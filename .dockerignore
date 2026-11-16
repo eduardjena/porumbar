@@ -1,0 +1,11 @@
+.git
+.env
+.superpowers
+node_modules
+web/node_modules
+web/dist
+web/.angular
+data
+test
+docs
+reports

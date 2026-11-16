@@ -4,7 +4,7 @@ import { ArboreData, REPEAT_COLORS } from './arbore-data';
 
 /*
  * Vederea „Evantai” (macheta 2): pedigree circular. Porumbelul în centru, tatăl în stânga, mama în dreapta; spre
- * margine părinți, bunici, străbunici, răstrăbunici. Felia colorată după notă (gri = alt porumbar), dunga M/F,
+ * margine părinți, bunici, străbunici, răstrăbunici. Felia colorată după notă (gri = nu e în porumbarul tău), dunga M/F,
  * contur colorat la strămoșii care se repetă. Puii dedesubt, după notă.
  */
 
@@ -74,7 +74,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
       <text [attr.x]="cx - outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#2b5a86">← familia tatălui</text>
       <text [attr.x]="cx + outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">familia mamei →</text>
     </svg>
-    <p class="muted how">Atinge o felie ca s-o alegi; dublu clic deschide fișa. Culoarea = nota (gri = alt porumbar), dunga = mascul / femelă, conturul colorat = strămoș care se repetă.</p>
+    <p class="muted how">Atinge o felie ca s-o alegi; dublu clic deschide fișa. Culoarea = nota (gri = nu e în porumbarul tău), dunga = mascul / femelă, conturul colorat = strămoș care se repetă.</p>
   `,
   styles: `
     :host { display: block; }

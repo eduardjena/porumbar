@@ -16,7 +16,7 @@ import { Icon } from '../../shared/icon';
           <div>
             <div><strong class="mono">{{ p.ring?.display ?? 'Fără inel' }}</strong></div>
             @if (p.name) { <div class="name">{{ p.name }}</div> }
-            <div class="muted">{{ sex(p.sex) }}@if (p.year) { · {{ p.year }} }@if (p.kind === 'external') { · alt porumbar }</div>
+            <div class="muted">{{ sex(p.sex) }}@if (p.year) { · {{ p.year }} }@if (p.kind === 'external') { · nu e al tău }</div>
           </div>
         </div>
         <div class="row">

@@ -109,7 +109,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
           <h2>Identitate</h2>
           <div class="row kinds" role="radiogroup" aria-label="Al cui e porumbelul">
             <label class="check"><input type="radio" name="kind" value="own" [(ngModel)]="f.kind" /> Din porumbarul meu</label>
-            <label class="check"><input type="radio" name="kind" value="external" [(ngModel)]="f.kind" /> Din alt porumbar</label>
+            <label class="check"><input type="radio" name="kind" value="external" [(ngModel)]="f.kind" /> Nu e în porumbarul meu</label>
           </div>
           <app-ring-input [(value)]="f.ring" [required]="f.kind === 'own'" />
           <fieldset class="row sexes">
@@ -285,7 +285,7 @@ export default class PorumbelForm implements OnInit {
     if (!b) return [];
     const L = (list: 'breeds' | 'colors' | 'eyeColors' | 'statuses', code: string) => this.catalog.label(list, code);
     const sex = (x: string) => (x === 'M' ? 'Mascul' : x === 'F' ? 'Femelă' : '');
-    const kind = (x: string) => (x === 'own' ? 'Din porumbarul meu' : 'Din alt porumbar');
+    const kind = (x: string) => (x === 'own' ? 'Din porumbarul meu' : 'Nu e în porumbarul meu');
     const crit = this.catalog.catalog()?.evalCriteria ?? [];
     return changes([
       { label: 'Al cui e', before: kind(a.kind), after: kind(b.kind) },

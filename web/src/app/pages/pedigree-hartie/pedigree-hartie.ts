@@ -111,7 +111,7 @@ function writeDraft(d: Draft | null) {
           <fieldset class="kind">
             <legend>Porumbelul de pe pedigree este</legend>
             <label><input type="radio" name="kind" value="own" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> Din porumbarul meu</label>
-            <label><input type="radio" name="kind" value="external" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> Din alt porumbar <span class="muted">(de ex. împrumutat pentru pui)</span></label>
+            <label><input type="radio" name="kind" value="external" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> Nu e în porumbarul meu <span class="muted">(de ex. împrumutat pentru pui)</span></label>
           </fieldset>
           <label class="sex">Sexul porumbelului
             <select [ngModel]="d().sex" (ngModelChange)="setSex($event)">
@@ -364,7 +364,7 @@ export default class PedigreeHartie {
     const ok = await this.confirm.ask({
       title: 'Adaug pedigree-ul în program?',
       lines: [
-        `${this.count()} căsuțe completate; porumbelul ${root.ring.trim()} ${this.d().kind === 'own' ? 'din porumbarul meu' : 'din alt porumbar'}.`,
+        `${this.count()} căsuțe completate; porumbelul ${root.ring.trim()} ${this.d().kind === 'own' ? 'din porumbarul meu' : 'care nu e în porumbarul meu'}.`,
         'Porumbeii pe care îi ai deja se folosesc așa cum sunt; doar ce lipsea se completează.',
       ],
       confirmLabel: 'Da, adaugă',

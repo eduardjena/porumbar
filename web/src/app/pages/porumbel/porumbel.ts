@@ -34,7 +34,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           <p class="row sub">
             <span [class]="'sex-' + (p.sex ?? '')">{{ sexLabel(p.sex) }}</span>
             @if (p.status) { <span class="badge">{{ catalog.label('statuses', p.status) }}</span> }
-            @if (p.kind === 'external') { <span class="badge">din alt porumbar</span> }
+            @if (p.kind === 'external') { <span class="badge">nu e în porumbarul meu</span> }
           </p>
         </div>
         <div class="row">

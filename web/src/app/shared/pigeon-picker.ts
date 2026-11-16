@@ -49,9 +49,15 @@ import { PigeonChip } from './pigeon-chip';
             }
           </div>
         }
-        @if (result() && !result()!.matches.length && ring.trim()) {
+        @if (result() && ring.trim() && (!result()!.matches.length || !result()!.ring.ok)) {
           <div class="card stack">
-            <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e în porumbarul tău. Îl adaugi ca strămoș?</p>
+            @if (result()!.ring.unringed) {
+              <p>Porumbel <strong>fără inel</strong>. Îl adaugi ca strămoș nou?</p>
+            } @else if (result()!.matches.length) {
+              <p>Sau e alt porumbel, scris la fel? Îl adaugi ca strămoș nou:</p>
+            } @else {
+              <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e în porumbarul tău. Îl adaugi ca strămoș?</p>
+            }
             <label class="field">Nume sau poreclă <span class="hint">opțional</span>
               <input [name]="'name-' + sex()" [(ngModel)]="newName" />
             </label>

@@ -67,8 +67,9 @@ export function familyRouter() {
     const ring = parseRing(raw);
     const key = ringKey(ring);
     let rows = [];
+    // Un porumbel fără inel („000 M”) nu se caută: două strămoși necunoscuți nu sunt același porumbel.
     if (key) rows = await all('SELECT * FROM pigeons WHERE account_id = ? AND ring_key = ? ORDER BY kind, id', req.account.id, key);
-    else if (raw) rows = await all('SELECT * FROM pigeons WHERE account_id = ? AND lower(ring_raw) = lower(?) ORDER BY kind, id', req.account.id, raw);
+    else if (raw && !ring.unringed) rows = await all('SELECT * FROM pigeons WHERE account_id = ? AND lower(ring_raw) = lower(?) ORDER BY kind, id', req.account.id, raw);
     const matches = [];
     for (const row of rows) matches.push(await historyCard(req.account.id, row));
     res.json({ ring: { ok: ring.ok, unringed: ring.unringed, raw, display: ring.ok && !ring.unringed ? formatRing(ring) : raw }, matches });

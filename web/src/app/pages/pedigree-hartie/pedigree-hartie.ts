@@ -93,7 +93,7 @@ function writeDraft(d: Draft | null) {
           }
           <div class="row">
             <a class="btn primary" [routerLink]="['/porumbei', r.pigeonId]"><app-icon name="fisa" />Deschide fișa</a>
-            <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: r.pigeonId }"><app-icon name="ramificare" />Vezi arborele</a>
+            <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: r.pigeonId }"><app-icon name="copac" />Vezi arborele</a>
             <button type="button" (click)="startOver()"><app-icon name="plus" />Încă un pedigree</button>
           </div>
         </section>

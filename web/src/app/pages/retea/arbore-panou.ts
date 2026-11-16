@@ -22,7 +22,7 @@ import { Icon } from '../../shared/icon';
         <div class="row">
           <a class="btn primary" [routerLink]="['/porumbei', p.id]" [queryParams]="from()"><app-icon name="fisa" />Deschide fișa</a>
           @if (p.id !== data().rootId) {
-            <button type="button" (click)="startHere.emit(p.id)"><app-icon name="ramificare" />Pornește de aici</button>
+            <button type="button" (click)="startHere.emit(p.id)"><app-icon name="copac" />Pornește de aici</button>
           }
         </div>
       </section>

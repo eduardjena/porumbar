@@ -38,7 +38,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           </p>
         </div>
         <div class="row">
-          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="retea" />Vezi în arbore</a>
+          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" />Vezi în arbore</a>
           <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />Editează</a>
         </div>
       </div>

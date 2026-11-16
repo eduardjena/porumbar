@@ -51,7 +51,8 @@ import { QrCode } from '../../shared/qr-code';
             </div>
             <div class="stamp">
               <span>Strămoșii colorați la fel apar de mai multe ori.</span>
-              <span>Tipărit pe {{ today }} · Porumbar</span>
+              <span class="made">Tipărit pe {{ today }} · <img src="/icon.svg" alt="" width="12" height="12" />Porumbar</span>
+              <span class="site">www.porumbar.ro</span>
             </div>
           </footer>
         </article>
@@ -69,17 +70,20 @@ import { QrCode } from '../../shared/qr-code';
       display: flex; flex-direction: column; gap: 3mm; border: 1px solid var(--border); box-shadow: var(--shadow);
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
-    header { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; height: 26mm; }
+    header { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; height: 24mm; }
     .title h1 { margin: 0; font-size: 15pt; letter-spacing: 0.01em; }
     .title h1 .mono { font-size: 1em; }
     .title p { margin: 1.5mm 0 0; font-size: 9pt; }
     .qr { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.8mm; width: 24mm; font-size: 5.5pt; text-align: center; line-height: 1.15; }
     .qr app-qr-code { width: 22mm; }
     .sheet-area { flex: 1; min-height: 0; }
-    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; height: 16mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
+    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; height: 18mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
     .owner { display: flex; flex-direction: column; font-size: 8pt; line-height: 1.3; }
     .owner strong { font-size: 9pt; }
     .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 6.5pt; color: #6b5d4f; }
+    .stamp .made { display: inline-flex; align-items: center; gap: 0.8mm; }
+    .stamp .made img { width: 3.6mm; height: 3.6mm; }
+    .stamp .site { font-weight: 700; color: #2b2117; }
     @media print {
       @page { size: A4 portrait; margin: 0; }
       :host { display: block; }

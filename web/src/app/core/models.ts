@@ -216,3 +216,48 @@ export interface RaceResult {
   onPedigree: boolean;
   short: string;
 }
+
+/** O pereche a sezonului (reproducția). */
+export interface Pair {
+  id: number;
+  season: number;
+  status: 'planificata' | 'activa' | 'despartita';
+  pairedOn: string | null;
+  separatedOn: string | null;
+  nest: string | null;
+  note: string | null;
+  cock: PigeonSummary | null;
+  hen: PigeonSummary | null;
+  coi: number;
+  clutchCount?: number;
+  youngCount?: number;
+  clutches?: Clutch[];
+}
+
+/** O pontă: ouăle, eclozarea (așteptată sau reală), inelarea și puii inelați. */
+export interface Clutch {
+  id: number;
+  pairId: number;
+  egg1On: string;
+  egg2On: string | null;
+  eggs: number;
+  infertile: number;
+  broken: number;
+  hatchedOn: string | null;
+  hatched: number | null;
+  fosterPairId: number | null;
+  foster: Pair | null;
+  note: string | null;
+  expectedHatch: { from: string; to: string } | null;
+  ringFrom: string | null;
+  ringTo: string | null;
+  young: PigeonSummary[];
+}
+
+export interface RingSeries {
+  id: number;
+  year: number;
+  first: string;
+  last: string;
+  count: number;
+}

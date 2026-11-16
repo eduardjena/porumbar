@@ -151,17 +151,17 @@ function validate(input, existing = null) {
   };
 }
 
-/** Dublura după inel: un porumbel propriu e unic în program, un strămoș extern e unic în cont. */
+/**
+ * Dublura după inel, doar în cont (separare totală: nimic nu spune unui crescător ce are altul): un inel e o singură
+ * dată printre porumbeii proprii și o singură dată printre strămoșii „din alt porumbar”.
+ */
 async function checkDuplicate(accountId, p, selfId = null) {
   const key = ringKey(p.ring);
   if (!key) return;
   const display = formatRing(p.ring);
   if (p.kind === 'own') {
-    const other = await one(`SELECT account_id FROM pigeons WHERE kind = 'own' AND ring_key = ? AND id IS DISTINCT FROM ?`, key, selfId);
-    if (other) {
-      throw new HttpError(409, other.account_id === accountId
-        ? `Inelul ${display} este deja în porumbarul tău.`
-        : `Inelul ${display} este deja în programul altui crescător.`);
+    if (await one(`SELECT 1 FROM pigeons WHERE kind = 'own' AND account_id = ? AND ring_key = ? AND id IS DISTINCT FROM ?`, accountId, key, selfId)) {
+      throw new HttpError(409, `Inelul ${display} este deja în porumbarul tău.`);
     }
   } else if (await one(`SELECT 1 FROM pigeons WHERE kind = 'external' AND account_id = ? AND ring_key = ? AND id IS DISTINCT FROM ?`, accountId, key, selfId)) {
     throw new HttpError(409, `Inelul ${display} este deja în porumbarul tău.`);

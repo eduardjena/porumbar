@@ -8,6 +8,7 @@ import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
 import { viewsRouter } from './routes/views.js';
+import { pedigreesRouter } from './routes/pedigrees.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
 const WEB_INDEX = path.join(WEB_DIR, 'index.html');
@@ -48,6 +49,8 @@ export function createApp() {
     }
     next();
   });
+  // Poza / PDF-ul unui pedigree vine ca JSON (base64), deci aici limita e mai mare; restul rămâne la 1 MB.
+  app.use('/api/pedigrees/read', express.json({ limit: '17mb' }));
   app.use(express.json({ limit: '1mb' }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -57,6 +60,7 @@ export function createApp() {
   app.use('/api', familyRouter());
   app.use('/api', journalRouter());
   app.use('/api', viewsRouter());
+  app.use('/api', pedigreesRouter());
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));

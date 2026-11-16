@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, percent, ringText } from '../../core/catalog';
 import { CoiResult, Kind, Pigeon, PigeonSummary, Sex } from '../../core/models';
@@ -67,10 +67,16 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [FormsModule, RingInput, Breadcrumbs, PigeonPicker],
+  imports: [FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker],
   template: `
     <app-breadcrumbs [items]="crumbs()" />
     <h1>{{ id() ? 'Editează porumbelul' : 'Porumbel nou' }}</h1>
+    @if (!id()) {
+      <a class="paper card" routerLink="/porumbei/pedigree">
+        <strong>Ai pedigree-ul pe hârtie, în PDF sau în poză?</strong>
+        <span class="muted">Trece-l tot dintr-o dată (porumbelul și strămoșii), sau lasă programul să-l citească din poză.</span>
+      </a>
+    }
     @if (restored()) {
       <div class="notice row" role="status">
         Am păstrat ce scriseseși data trecută.
@@ -196,6 +202,8 @@ function writeDraft(id: string | undefined, d: Draft | null) {
     }
   `,
   styles: `
+    .paper { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--text); border: 2px dashed var(--accent); margin-bottom: 16px; }
+    .paper:hover { background: var(--accent-soft); }
     section h2 { margin-top: 0; }
     fieldset { border: 0; padding: 0; margin: 0; }
     legend { font-weight: 600; margin-bottom: 6px; }

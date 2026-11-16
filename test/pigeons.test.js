@@ -34,9 +34,13 @@ test('același inel în altă formă e dublură (Review Focus 1)', async () => {
   const r = await create(a, { kind: 'own', ring: '800546/26 RO' });
   assert.equal(r.status, 409);
   assert.equal(r.data.error, 'Inelul RO-26-800546 este deja în porumbarul tău.');
+  // Separare totală: alt cont poate avea același inel și nu află nimic despre primul.
   const other = await create(b, { kind: 'own', ring: 'RO 26 0800546' });
-  assert.equal(other.status, 409);
-  assert.equal(other.data.error, 'Inelul RO-26-800546 este deja în programul altui crescător.');
+  assert.equal(other.status, 201);
+  assert.notEqual(other.data.pigeon.id, first.id);
+  assert.equal((await call(`/api/pigeons/${first.id}`, { cookie: b })).status, 404);
+  const mine = await call('/api/pigeons?q=800546', { cookie: b });
+  assert.deepEqual(mine.data.pigeons.map((p) => p.id), [other.data.pigeon.id]);
 });
 
 test('căutarea după inel în altă formă și după nume', async () => {
@@ -46,7 +50,7 @@ test('căutarea după inel în altă formă și după nume', async () => {
   assert.deepEqual(byForm.data.pigeons.map((p) => p.id), [first.id]);
   const byName = await call('/api/pigeons?q=de%20546', { cookie: a });
   assert.deepEqual(byName.data.pigeons.map((p) => p.id), [first.id]);
-  assert.equal((await call('/api/pigeons?q=800546', { cookie: b })).data.pigeons.length, 0);
+  assert.ok(!(await call('/api/pigeons?q=800546', { cookie: b })).data.pigeons.some((p) => p.id === first.id));
 });
 
 test('strămoși fără inel și cu inel necitit (Review Focus 2)', async () => {

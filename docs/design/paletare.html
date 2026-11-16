@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paletare Porumbar</title>
+<style>
+:root { --page: #e7e7e4; --page-text: #1b1b1b; --page-muted: #555; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--page); color: var(--page-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.45; }
+.wrap { max-width: 1960px; margin: 0 auto; padding: 32px 16px 64px; }
+.intro { max-width: 760px; margin-bottom: 28px; }
+.intro h1 { font-size: 1.9rem; line-height: 1.15; margin: 0 0 10px; letter-spacing: -0.01em; }
+.intro p { margin: 0 0 8px; color: #333; font-size: 1.02rem; }
+.grid { display: flex; flex-wrap: wrap; gap: 32px 24px; align-items: flex-start; }
+.pal { width: 360px; max-width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.pal.ref { opacity: .92; }
+.caption h2 { margin: 0 0 4px; font-size: 1.35rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.caption p { margin: 0; font-size: .95rem; color: #3a3a3a; min-height: 4.3em; }
+.rec { font-size: .78rem; font-weight: 700; background: #1b1b1b; color: #fff; padding: 3px 10px; border-radius: 999px; letter-spacing: .02em; }
+.ref .caption h2::after { content: "referință"; font-size: .75rem; font-weight: 600; color: var(--page-muted); border: 1px solid #aaa; padding: 2px 8px; border-radius: 999px; }
+
+/* ---------- telefonul ---------- */
+.phone { background: var(--bg); color: var(--text); border-radius: 28px; overflow: hidden; border: 1px solid rgb(0 0 0 / 14%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 14px 32px -14px rgb(0 0 0 / 30%); font-size: 17px; }
+.ic { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.app-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.app-head.solid { background: var(--accent); color: var(--accent-ink); border-bottom-color: var(--accent-strong); }
+.app-head.solid .brand small { color: inherit; opacity: .85; }
+.logo { width: 44px; height: 44px; flex: none; }
+.logo use { fill: #fff; }
+.brand { display: flex; flex-direction: column; font-weight: 800; font-size: 1.3rem; line-height: 1.1; letter-spacing: -0.01em; }
+.brand small { font-weight: 500; font-size: .8rem; color: var(--muted); letter-spacing: 0; margin-top: 2px; }
+.content { padding: 14px 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+.search { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 14px; background: var(--surface);
+  border: 2px solid var(--border-strong); border-radius: 14px; color: var(--muted); }
+.notice { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); font-weight: 600; font-size: .92rem; }
+.sect { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px; }
+.sect h3 { margin: 0; font-size: 1.15rem; }
+.badge { padding: 3px 12px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: .82rem; font-weight: 700; }
+.tiles { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.tile { display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; min-height: 76px; }
+.score { width: 52px; height: 52px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; font-size: 1.5rem; flex: none; }
+.tbody { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.ring { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 700; font-size: .98rem; letter-spacing: .01em; }
+.pname { font-weight: 700; font-size: 1.05rem; }
+.meta { color: var(--muted); font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sex-M { color: var(--male); } .sex-F { color: var(--female); }
+.chev { color: var(--muted); width: 22px; height: 22px; }
+.band-5 { background: var(--band-5); color: var(--band-5-ink); }
+.band-4 { background: var(--band-4); color: var(--band-4-ink); }
+.band-3 { background: var(--band-3); color: var(--band-3-ink); }
+.band-2 { background: var(--band-2); color: var(--band-2-ink); }
+.band-1 { background: var(--band-1); color: var(--band-1-ink); }
+.band-0 { background: var(--band-0); color: var(--band-0-ink); outline: 2px dashed var(--border-strong); outline-offset: -2px; }
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; border-radius: 14px; font-weight: 700; font-size: 1.05rem; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.secondary { background: var(--surface); color: var(--accent-strong); border: 2px solid var(--border-strong); }
+.legend { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px 12px 14px; }
+.legend h4 { margin: 0 0 10px; font-size: .95rem; }
+.legend ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+.chip { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-weight: 800; flex: none; }
+.bnav { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--border); padding: 8px 6px 12px; }
+.bnav span { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .82rem; font-weight: 600; color: var(--muted); }
+.bnav .ic { width: 30px; height: 30px; padding: 4px 14px; box-sizing: content-box; border-radius: 999px; }
+.bnav .on { color: var(--accent-strong); font-weight: 800; }
+.bnav .on .ic { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- sub telefon ---------- */
+.facts { font-size: .85rem; color: #333; }
+.sws { display: flex; gap: 4px; margin-bottom: 8px; }
+.sw { flex: 1; height: 22px; border-radius: 5px; border: 1px solid rgb(0 0 0 / 12%); }
+.logo-note { margin: 0 0 6px; }
+.facts dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.facts dl div { display: flex; justify-content: space-between; border-bottom: 1px dotted #b5b5b0; padding: 2px 0; }
+.facts dt { color: #555; } .facts dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 420px) { .intro h1 { font-size: 1.5rem; } .grid { gap: 40px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="emblem" viewBox="0 0 100 100"><path d="M52.78 30.19 A 20 20 0 0 1 69.70 46.53 Q 94.81 42.10 92.46 38.46 Q 87.24 35.40 75.86 38.27 Q 89.03 32.29 85.96 29.57 Q 80.30 28.15 71.41 32.78 Q 81.34 24.80 77.85 23.10 Q 72.22 23.33 65.91 28.74 Q 72.51 19.91 68.91 19.27 Q 63.76 21.02 59.77 26.31 Q 63.31 17.70 59.89 18.06 Q 55.62 21.10 53.44 25.54 Z"/><path d="M69.81 52.78 A 20 20 0 0 1 53.47 69.70 Q 57.90 94.81 61.54 92.46 Q 64.60 87.24 61.73 75.86 Q 67.71 89.03 70.43 85.96 Q 71.85 80.30 67.22 71.41 Q 75.20 81.34 76.90 77.85 Q 76.67 72.22 71.26 65.91 Q 80.09 72.51 80.73 68.91 Q 78.98 63.76 73.69 59.77 Q 82.30 63.31 81.94 59.89 Q 78.90 55.62 74.46 53.44 Z"/><path d="M47.22 69.81 A 20 20 0 0 1 30.30 53.47 Q 5.19 57.90 7.54 61.54 Q 12.76 64.60 24.14 61.73 Q 10.97 67.71 14.04 70.43 Q 19.70 71.85 28.59 67.22 Q 18.66 75.20 22.15 76.90 Q 27.78 76.67 34.09 71.26 Q 27.49 80.09 31.09 80.73 Q 36.24 78.98 40.23 73.69 Q 36.69 82.30 40.11 81.94 Q 44.38 78.90 46.56 74.46 Z"/><path d="M30.19 47.22 A 20 20 0 0 1 46.53 30.30 Q 42.10 5.19 38.46 7.54 Q 35.40 12.76 38.27 24.14 Q 32.29 10.97 29.57 14.04 Q 28.15 19.70 32.78 28.59 Q 24.80 18.66 23.10 22.15 Q 23.33 27.78 28.74 34.09 Q 19.91 27.49 19.27 31.09 Q 21.02 36.24 26.31 40.23 Q 17.70 36.69 18.06 40.11 Q 21.10 44.38 25.54 46.56 Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.3v.2"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h3l1.6-2.5h5.8L16.5 7h3A1.5 1.5 0 0 1 21 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/><circle cx="12" cy="13.2" r="3.6"/></symbol>
+    <symbol id="i-panou" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+    <symbol id="i-arbore" viewBox="0 0 24 24"><rect x="2.5" y="9.5" width="6" height="5" rx="1.2"/><rect x="15.5" y="3" width="6" height="5" rx="1.2"/><rect x="15.5" y="16" width="6" height="5" rx="1.2"/><path d="M8.5 12H12m0-6.5V18.5M12 5.5h3.5M12 18.5h3.5"/></symbol>
+    <symbol id="i-cont" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20.5c.8-4 4-6 8-6s7.2 2 8 6"/></symbol>
+  </defs>
+</svg>
+<div class="wrap">
+  <div class="intro">
+    <h1>Porumbar: cinci paletare de culori</h1>
+    <p>Același ecran, în cinci variante de culoare. Alegeți-o pe cea care vi se pare cea mai clară și mai plăcută, mai ales privită pe telefon, afară, la lumină.</p>
+    <p>Peste tot: butoanele au o singură culoare, iar pătratul cu cifră arată valoarea porumbelului (5 cel mai bun … 1, liniuță = fără date) într-o altă culoare, ca să nu fie confundat cu un buton. Ultima variantă, „Cer”, este aspectul de acum, pus doar pentru comparație. Toate trec verificarea de contrast (minim 4,5 : 1 pentru text).</p>
+  </div>
+  <div class="grid">
+  <article class="pal " style="--bg:#f5f0e8;--surface:#fffdf9;--surface-2:#efe8dc;--border:#e2d8c8;--border-strong:#c2b39c;--text:#2b2117;--muted:#625345;--accent:#a33d1c;--accent-strong:#7c2c12;--accent-soft:#f8e5da;--accent-ink:#ffffff;--danger:#9a1a34;--danger-soft:#f9e3e7;--warn:#7d4a00;--warn-soft:#fbefd4;--ok:#3d5c12;--ok-soft:#eaf0da;--male:#2b5a86;--female:#8c357f;--band-5:#33501a;--band-5-ink:#ffffff;--band-4:#567a28;--band-4-ink:#ffffff;--band-3:#90b256;--band-3-ink:#1e2f08;--band-2:#c8d99c;--band-2-ink:#24350c;--band-1:#e7efd2;--band-1-ink:#34461a;--band-0:#ebe6df;--band-0-ink:#5e5043">
+    <div class="caption">
+      <h2>Pământ</h2>
+      <p>Cald și liniștit, ca lemnul porumbarului și pământul de afară: crem, maro și cărămiziu pe butoane. Valoarea porumbeilor pe verde-măsliniu.</p>
+    </div>
+    <div class="phone">
+      <header class="app-head">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" style="fill:var(--accent)"/><use href="#emblem"/></svg>
+        <span class="brand">Porumbar<small>Crescătoria Dealul Mare</small></span>
+      </header>
+      <div class="content">
+        <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span>Caută după inel sau nume</span></div>
+        <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>2 inele de verificat din ultimul import</span></div>
+        <div class="sect"><h3>Porumbeii mei</h3><span class="badge">86 în total</span></div>
+        <ul class="tiles">
+        <li class="tile">
+          <span class="score band-5" aria-label="Valoare 5">5</span>
+          <span class="tbody">
+            <span class="ring">RO-15-412084</span>
+            <span class="pname">Fulgerul</span>
+            <span class="meta">2015 · <b class="sex-M">M</b> · Albastru solzat</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-4" aria-label="Valoare 4">4</span>
+          <span class="tbody">
+            <span class="ring">RO-19-104356</span>
+            <span class="pname">Steluța</span>
+            <span class="meta">2019 · <b class="sex-F">F</b> · Roșcată</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-2" aria-label="Valoare 2">2</span>
+          <span class="tbody">
+            <span class="ring">RO-22-307815</span>
+            <span class="pname">Bădița</span>
+            <span class="meta">2022 · <b class="sex-M">M</b> · Pestriț</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-0" aria-label="Valoare fără date">–</span>
+          <span class="tbody">
+            <span class="ring">RO-24-512903</span>
+            <span class="pname">Fără nume</span>
+            <span class="meta">2024 · <b class="sex-F">F</b> · încă fără rezultate</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        </ul>
+        <div class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Porumbel nou</div>
+        <div class="btn secondary"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Importă din poză</div>
+        <div class="legend">
+          <h4>Valoarea porumbelului</h4>
+          <ul><li><span class="chip band-5">5</span>Foarte bun</li><li><span class="chip band-4">4</span>Bun</li><li><span class="chip band-3">3</span>Mediu</li><li><span class="chip band-2">2</span>Slab</li><li><span class="chip band-1">1</span>Foarte slab</li><li><span class="chip band-0">–</span>Fără date</li></ul>
+        </div>
+      </div>
+      <nav class="bnav">
+        <span class="on"><svg class="ic" aria-hidden="true"><use href="#i-panou"/></svg>Panou</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-arbore"/></svg>Arbore</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Adaugă</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-cont"/></svg>Cont</span>
+      </nav>
+    </div>
+    <div class="facts">
+      <div class="sws"><span class="sw" style="background:var(--accent)" title="--accent #a33d1c"></span><span class="sw" style="background:var(--accent-strong)" title="--accent-strong #7c2c12"></span><span class="sw" style="background:var(--accent-soft)" title="--accent-soft #f8e5da"></span><span class="sw" style="background:var(--bg)" title="--bg #f5f0e8"></span><span class="sw" style="background:var(--surface-2)" title="--surface-2 #efe8dc"></span><span class="sw" style="background:var(--text)" title="--text #2b2117"></span><span class="sw" style="background:var(--muted)" title="--muted #625345"></span><span class="sw" style="background:var(--male)" title="--male #2b5a86"></span><span class="sw" style="background:var(--female)" title="--female #8c357f"></span><span class="sw" style="background:var(--danger)" title="--danger #9a1a34"></span><span class="sw" style="background:var(--warn)" title="--warn #7d4a00"></span><span class="sw" style="background:var(--ok)" title="--ok #3d5c12"></span></div>
+      <p class="logo-note">Cercul siglei devine cărămiziu (#A33D1C).</p>
+      <dl>
+        <div><dt>Text / fundal</dt><dd>13,9:1</dd></div>
+        <div><dt>Estompat / card</dt><dd>7,3:1</dd></div>
+        <div><dt>Alb / buton</dt><dd>6,5:1</dd></div>
+        <div><dt>Cifre valoare (min.)</dt><dd>5,0:1</dd></div>
+      </dl>
+    </div>
+  </article>
+  <article class="pal " style="--bg:#f4f4f3;--surface:#ffffff;--surface-2:#ececea;--border:#dcdcd9;--border-strong:#b5b5b0;--text:#1a1b1d;--muted:#55575b;--accent:#c2410c;--accent-strong:#9a3209;--accent-soft:#fdeee4;--accent-ink:#ffffff;--danger:#a5122f;--danger-soft:#fbe6ea;--warn:#7f5200;--warn-soft:#fdf3d7;--ok:#17663a;--ok-soft:#e2f3e8;--male:#1d5a9e;--female:#a62d6b;--band-5:#0f5132;--band-5-ink:#ffffff;--band-4:#1d7a4b;--band-4-ink:#ffffff;--band-3:#5db487;--band-3-ink:#0a3520;--band-2:#a9dcbf;--band-2-ink:#0c3a22;--band-1:#daf2e3;--band-1-ink:#1a4a30;--band-0:#ececea;--band-0-ink:#55575b">
+    <div class="caption">
+      <h2>Grafit</h2>
+      <p>Neutru și foarte curat: alb și gri, cu o singură culoare puternică, portocaliul, doar pe ce se apasă. Ochiul găsește imediat butonul.</p>
+    </div>
+    <div class="phone">
+      <header class="app-head">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" style="fill:var(--accent)"/><use href="#emblem"/></svg>
+        <span class="brand">Porumbar<small>Crescătoria Dealul Mare</small></span>
+      </header>
+      <div class="content">
+        <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span>Caută după inel sau nume</span></div>
+        <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>2 inele de verificat din ultimul import</span></div>
+        <div class="sect"><h3>Porumbeii mei</h3><span class="badge">86 în total</span></div>
+        <ul class="tiles">
+        <li class="tile">
+          <span class="score band-5" aria-label="Valoare 5">5</span>
+          <span class="tbody">
+            <span class="ring">RO-15-412084</span>
+            <span class="pname">Fulgerul</span>
+            <span class="meta">2015 · <b class="sex-M">M</b> · Albastru solzat</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-4" aria-label="Valoare 4">4</span>
+          <span class="tbody">
+            <span class="ring">RO-19-104356</span>
+            <span class="pname">Steluța</span>
+            <span class="meta">2019 · <b class="sex-F">F</b> · Roșcată</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-2" aria-label="Valoare 2">2</span>
+          <span class="tbody">
+            <span class="ring">RO-22-307815</span>
+            <span class="pname">Bădița</span>
+            <span class="meta">2022 · <b class="sex-M">M</b> · Pestriț</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-0" aria-label="Valoare fără date">–</span>
+          <span class="tbody">
+            <span class="ring">RO-24-512903</span>
+            <span class="pname">Fără nume</span>
+            <span class="meta">2024 · <b class="sex-F">F</b> · încă fără rezultate</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        </ul>
+        <div class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Porumbel nou</div>
+        <div class="btn secondary"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Importă din poză</div>
+        <div class="legend">
+          <h4>Valoarea porumbelului</h4>
+          <ul><li><span class="chip band-5">5</span>Foarte bun</li><li><span class="chip band-4">4</span>Bun</li><li><span class="chip band-3">3</span>Mediu</li><li><span class="chip band-2">2</span>Slab</li><li><span class="chip band-1">1</span>Foarte slab</li><li><span class="chip band-0">–</span>Fără date</li></ul>
+        </div>
+      </div>
+      <nav class="bnav">
+        <span class="on"><svg class="ic" aria-hidden="true"><use href="#i-panou"/></svg>Panou</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-arbore"/></svg>Arbore</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Adaugă</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-cont"/></svg>Cont</span>
+      </nav>
+    </div>
+    <div class="facts">
+      <div class="sws"><span class="sw" style="background:var(--accent)" title="--accent #c2410c"></span><span class="sw" style="background:var(--accent-strong)" title="--accent-strong #9a3209"></span><span class="sw" style="background:var(--accent-soft)" title="--accent-soft #fdeee4"></span><span class="sw" style="background:var(--bg)" title="--bg #f4f4f3"></span><span class="sw" style="background:var(--surface-2)" title="--surface-2 #ececea"></span><span class="sw" style="background:var(--text)" title="--text #1a1b1d"></span><span class="sw" style="background:var(--muted)" title="--muted #55575b"></span><span class="sw" style="background:var(--male)" title="--male #1d5a9e"></span><span class="sw" style="background:var(--female)" title="--female #a62d6b"></span><span class="sw" style="background:var(--danger)" title="--danger #a5122f"></span><span class="sw" style="background:var(--warn)" title="--warn #7f5200"></span><span class="sw" style="background:var(--ok)" title="--ok #17663a"></span></div>
+      <p class="logo-note">Cercul siglei devine portocaliu (#C2410C); alternativ rămâne grafit (#1F2328).</p>
+      <dl>
+        <div><dt>Text / fundal</dt><dd>15,7:1</dd></div>
+        <div><dt>Estompat / card</dt><dd>7,2:1</dd></div>
+        <div><dt>Alb / buton</dt><dd>5,2:1</dd></div>
+        <div><dt>Cifre valoare (min.)</dt><dd>5,3:1</dd></div>
+      </dl>
+    </div>
+  </article>
+  <article class="pal " style="--bg:#f0f6f3;--surface:#ffffff;--surface-2:#e5efea;--border:#d2e1da;--border-strong:#a6c1b5;--text:#10241e;--muted:#455d56;--accent:#0b6b5e;--accent-strong:#064f46;--accent-soft:#ddf1eb;--accent-ink:#ffffff;--danger:#b3261e;--danger-soft:#fce8e6;--warn:#8a3f00;--warn-soft:#fdeedd;--ok:#1f6b3a;--ok-soft:#e2f2e7;--male:#255da3;--female:#a4326c;--band-5:#73390a;--band-5-ink:#ffffff;--band-4:#a35a07;--band-4-ink:#ffffff;--band-3:#dc9634;--band-3-ink:#3b2100;--band-2:#f3cf7e;--band-2-ink:#3d2500;--band-1:#fcefcd;--band-1-ink:#5a3a00;--band-0:#e6ebe9;--band-0-ink:#455d56">
+    <div class="caption">
+      <h2>Livadă</h2>
+      <p>Proaspăt, ca o dimineață în grădină: alb cu o umbră de mentă și acțiuni pe verde-petrol. Valoarea porumbeilor pe auriu-miere, ca medaliile de concurs.</p>
+    </div>
+    <div class="phone">
+      <header class="app-head">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" style="fill:var(--accent)"/><use href="#emblem"/></svg>
+        <span class="brand">Porumbar<small>Crescătoria Dealul Mare</small></span>
+      </header>
+      <div class="content">
+        <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span>Caută după inel sau nume</span></div>
+        <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>2 inele de verificat din ultimul import</span></div>
+        <div class="sect"><h3>Porumbeii mei</h3><span class="badge">86 în total</span></div>
+        <ul class="tiles">
+        <li class="tile">
+          <span class="score band-5" aria-label="Valoare 5">5</span>
+          <span class="tbody">
+            <span class="ring">RO-15-412084</span>
+            <span class="pname">Fulgerul</span>
+            <span class="meta">2015 · <b class="sex-M">M</b> · Albastru solzat</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-4" aria-label="Valoare 4">4</span>
+          <span class="tbody">
+            <span class="ring">RO-19-104356</span>
+            <span class="pname">Steluța</span>
+            <span class="meta">2019 · <b class="sex-F">F</b> · Roșcată</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-2" aria-label="Valoare 2">2</span>
+          <span class="tbody">
+            <span class="ring">RO-22-307815</span>
+            <span class="pname">Bădița</span>
+            <span class="meta">2022 · <b class="sex-M">M</b> · Pestriț</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-0" aria-label="Valoare fără date">–</span>
+          <span class="tbody">
+            <span class="ring">RO-24-512903</span>
+            <span class="pname">Fără nume</span>
+            <span class="meta">2024 · <b class="sex-F">F</b> · încă fără rezultate</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        </ul>
+        <div class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Porumbel nou</div>
+        <div class="btn secondary"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Importă din poză</div>
+        <div class="legend">
+          <h4>Valoarea porumbelului</h4>
+          <ul><li><span class="chip band-5">5</span>Foarte bun</li><li><span class="chip band-4">4</span>Bun</li><li><span class="chip band-3">3</span>Mediu</li><li><span class="chip band-2">2</span>Slab</li><li><span class="chip band-1">1</span>Foarte slab</li><li><span class="chip band-0">–</span>Fără date</li></ul>
+        </div>
+      </div>
+      <nav class="bnav">
+        <span class="on"><svg class="ic" aria-hidden="true"><use href="#i-panou"/></svg>Panou</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-arbore"/></svg>Arbore</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Adaugă</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-cont"/></svg>Cont</span>
+      </nav>
+    </div>
+    <div class="facts">
+      <div class="sws"><span class="sw" style="background:var(--accent)" title="--accent #0b6b5e"></span><span class="sw" style="background:var(--accent-strong)" title="--accent-strong #064f46"></span><span class="sw" style="background:var(--accent-soft)" title="--accent-soft #ddf1eb"></span><span class="sw" style="background:var(--bg)" title="--bg #f0f6f3"></span><span class="sw" style="background:var(--surface-2)" title="--surface-2 #e5efea"></span><span class="sw" style="background:var(--text)" title="--text #10241e"></span><span class="sw" style="background:var(--muted)" title="--muted #455d56"></span><span class="sw" style="background:var(--male)" title="--male #255da3"></span><span class="sw" style="background:var(--female)" title="--female #a4326c"></span><span class="sw" style="background:var(--danger)" title="--danger #b3261e"></span><span class="sw" style="background:var(--warn)" title="--warn #8a3f00"></span><span class="sw" style="background:var(--ok)" title="--ok #1f6b3a"></span></div>
+      <p class="logo-note">Cercul siglei devine verde-petrol (#0B6B5E).</p>
+      <dl>
+        <div><dt>Text / fundal</dt><dd>14,8:1</dd></div>
+        <div><dt>Estompat / card</dt><dd>7,1:1</dd></div>
+        <div><dt>Alb / buton</dt><dd>6,4:1</dd></div>
+        <div><dt>Cifre valoare (min.)</dt><dd>5,2:1</dd></div>
+      </dl>
+    </div>
+  </article>
+  <article class="pal " style="--bg:#f6f3ed;--surface:#fffdf8;--surface-2:#efeae0;--border:#e0d9cb;--border-strong:#bdb39f;--text:#121c33;--muted:#4c5468;--accent:#1f3b70;--accent-strong:#142a53;--accent-soft:#f9ebcf;--accent-ink:#ffffff;--danger:#b42318;--danger-soft:#fbe8e5;--warn:#8a4b00;--warn-soft:#fdf0d6;--ok:#17663a;--ok-soft:#e3f2e7;--male:#0f6585;--female:#a62d6b;--band-5:#11502f;--band-5-ink:#ffffff;--band-4:#257a45;--band-4-ink:#ffffff;--band-3:#66b37c;--band-3-ink:#0b3519;--band-2:#b2dcb9;--band-2-ink:#0e3a1e;--band-1:#e2f2df;--band-1-ink:#1f4a2b;--band-0:#ece7de;--band-0-ink:#4c5468">
+    <div class="caption">
+      <h2>Marină <span class="rec">Recomandată</span></h2>
+      <p>Serios și de încredere: bleumarin pe hârtie caldă, ca un carnet de concurs bine ținut. Contrast foarte mare, se citește bine în soare.</p>
+    </div>
+    <div class="phone">
+      <header class="app-head solid">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" style="fill:var(--accent)"/><circle cx="50" cy="50" r="47" fill="none" stroke="#e2b04a" stroke-width="6"/><use href="#emblem"/></svg>
+        <span class="brand">Porumbar<small>Crescătoria Dealul Mare</small></span>
+      </header>
+      <div class="content">
+        <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span>Caută după inel sau nume</span></div>
+        <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>2 inele de verificat din ultimul import</span></div>
+        <div class="sect"><h3>Porumbeii mei</h3><span class="badge">86 în total</span></div>
+        <ul class="tiles">
+        <li class="tile">
+          <span class="score band-5" aria-label="Valoare 5">5</span>
+          <span class="tbody">
+            <span class="ring">RO-15-412084</span>
+            <span class="pname">Fulgerul</span>
+            <span class="meta">2015 · <b class="sex-M">M</b> · Albastru solzat</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-4" aria-label="Valoare 4">4</span>
+          <span class="tbody">
+            <span class="ring">RO-19-104356</span>
+            <span class="pname">Steluța</span>
+            <span class="meta">2019 · <b class="sex-F">F</b> · Roșcată</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-2" aria-label="Valoare 2">2</span>
+          <span class="tbody">
+            <span class="ring">RO-22-307815</span>
+            <span class="pname">Bădița</span>
+            <span class="meta">2022 · <b class="sex-M">M</b> · Pestriț</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-0" aria-label="Valoare fără date">–</span>
+          <span class="tbody">
+            <span class="ring">RO-24-512903</span>
+            <span class="pname">Fără nume</span>
+            <span class="meta">2024 · <b class="sex-F">F</b> · încă fără rezultate</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        </ul>
+        <div class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Porumbel nou</div>
+        <div class="btn secondary"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Importă din poză</div>
+        <div class="legend">
+          <h4>Valoarea porumbelului</h4>
+          <ul><li><span class="chip band-5">5</span>Foarte bun</li><li><span class="chip band-4">4</span>Bun</li><li><span class="chip band-3">3</span>Mediu</li><li><span class="chip band-2">2</span>Slab</li><li><span class="chip band-1">1</span>Foarte slab</li><li><span class="chip band-0">–</span>Fără date</li></ul>
+        </div>
+      </div>
+      <nav class="bnav">
+        <span class="on"><svg class="ic" aria-hidden="true"><use href="#i-panou"/></svg>Panou</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-arbore"/></svg>Arbore</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Adaugă</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-cont"/></svg>Cont</span>
+      </nav>
+    </div>
+    <div class="facts">
+      <div class="sws"><span class="sw" style="background:var(--accent)" title="--accent #1f3b70"></span><span class="sw" style="background:var(--accent-strong)" title="--accent-strong #142a53"></span><span class="sw" style="background:var(--accent-soft)" title="--accent-soft #f9ebcf"></span><span class="sw" style="background:var(--bg)" title="--bg #f6f3ed"></span><span class="sw" style="background:var(--surface-2)" title="--surface-2 #efeae0"></span><span class="sw" style="background:var(--text)" title="--text #121c33"></span><span class="sw" style="background:var(--muted)" title="--muted #4c5468"></span><span class="sw" style="background:var(--male)" title="--male #0f6585"></span><span class="sw" style="background:var(--female)" title="--female #a62d6b"></span><span class="sw" style="background:var(--danger)" title="--danger #b42318"></span><span class="sw" style="background:var(--warn)" title="--warn #8a4b00"></span><span class="sw" style="background:var(--ok)" title="--ok #17663a"></span></div>
+      <p class="logo-note">Cercul siglei devine bleumarin (#1F3B70), cu un inel subțire auriu opțional.</p>
+      <dl>
+        <div><dt>Text / fundal</dt><dd>15,3:1</dd></div>
+        <div><dt>Estompat / card</dt><dd>7,4:1</dd></div>
+        <div><dt>Alb / buton</dt><dd>10,9:1</dd></div>
+        <div><dt>Cifre valoare (min.)</dt><dd>5,3:1</dd></div>
+      </dl>
+    </div>
+  </article>
+  <article class="pal " style="--bg:#f5f3fb;--surface:#ffffff;--surface-2:#eeeaf8;--border:#dfd9ef;--border-strong:#bdb2db;--text:#1c1830;--muted:#544d69;--accent:#5b3cc4;--accent-strong:#432a9b;--accent-soft:#ece6fc;--accent-ink:#ffffff;--danger:#b42318;--danger-soft:#fdeae7;--warn:#8a4b00;--warn-soft:#fff2da;--ok:#14684a;--ok-soft:#e0f4ea;--male:#1e62a8;--female:#b0305a;--band-5:#0f5741;--band-5-ink:#ffffff;--band-4:#1f7d5e;--band-4-ink:#ffffff;--band-3:#60bc98;--band-3-ink:#083827;--band-2:#ade3cc;--band-2-ink:#0a3d2a;--band-1:#e2f6ed;--band-1-ink:#1a4a37;--band-0:#eceaf1;--band-0-ink:#544d69">
+    <div class="caption">
+      <h2>Lavandă</h2>
+      <p>Modern și prietenos: fundaluri pastelate, dar text și butoane închise la culoare, deci la fel de clare. Acțiuni pe violet, valoarea pe verde-mentă.</p>
+    </div>
+    <div class="phone">
+      <header class="app-head">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" style="fill:var(--accent)"/><use href="#emblem"/></svg>
+        <span class="brand">Porumbar<small>Crescătoria Dealul Mare</small></span>
+      </header>
+      <div class="content">
+        <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span>Caută după inel sau nume</span></div>
+        <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>2 inele de verificat din ultimul import</span></div>
+        <div class="sect"><h3>Porumbeii mei</h3><span class="badge">86 în total</span></div>
+        <ul class="tiles">
+        <li class="tile">
+          <span class="score band-5" aria-label="Valoare 5">5</span>
+          <span class="tbody">
+            <span class="ring">RO-15-412084</span>
+            <span class="pname">Fulgerul</span>
+            <span class="meta">2015 · <b class="sex-M">M</b> · Albastru solzat</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-4" aria-label="Valoare 4">4</span>
+          <span class="tbody">
+            <span class="ring">RO-19-104356</span>
+            <span class="pname">Steluța</span>
+            <span class="meta">2019 · <b class="sex-F">F</b> · Roșcată</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-2" aria-label="Valoare 2">2</span>
+          <span class="tbody">
+            <span class="ring">RO-22-307815</span>
+            <span class="pname">Bădița</span>
+            <span class="meta">2022 · <b class="sex-M">M</b> · Pestriț</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-0" aria-label="Valoare fără date">–</span>
+          <span class="tbody">
+            <span class="ring">RO-24-512903</span>
+            <span class="pname">Fără nume</span>
+            <span class="meta">2024 · <b class="sex-F">F</b> · încă fără rezultate</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        </ul>
+        <div class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Porumbel nou</div>
+        <div class="btn secondary"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Importă din poză</div>
+        <div class="legend">
+          <h4>Valoarea porumbelului</h4>
+          <ul><li><span class="chip band-5">5</span>Foarte bun</li><li><span class="chip band-4">4</span>Bun</li><li><span class="chip band-3">3</span>Mediu</li><li><span class="chip band-2">2</span>Slab</li><li><span class="chip band-1">1</span>Foarte slab</li><li><span class="chip band-0">–</span>Fără date</li></ul>
+        </div>
+      </div>
+      <nav class="bnav">
+        <span class="on"><svg class="ic" aria-hidden="true"><use href="#i-panou"/></svg>Panou</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-arbore"/></svg>Arbore</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Adaugă</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-cont"/></svg>Cont</span>
+      </nav>
+    </div>
+    <div class="facts">
+      <div class="sws"><span class="sw" style="background:var(--accent)" title="--accent #5b3cc4"></span><span class="sw" style="background:var(--accent-strong)" title="--accent-strong #432a9b"></span><span class="sw" style="background:var(--accent-soft)" title="--accent-soft #ece6fc"></span><span class="sw" style="background:var(--bg)" title="--bg #f5f3fb"></span><span class="sw" style="background:var(--surface-2)" title="--surface-2 #eeeaf8"></span><span class="sw" style="background:var(--text)" title="--text #1c1830"></span><span class="sw" style="background:var(--muted)" title="--muted #544d69"></span><span class="sw" style="background:var(--male)" title="--male #1e62a8"></span><span class="sw" style="background:var(--female)" title="--female #b0305a"></span><span class="sw" style="background:var(--danger)" title="--danger #b42318"></span><span class="sw" style="background:var(--warn)" title="--warn #8a4b00"></span><span class="sw" style="background:var(--ok)" title="--ok #14684a"></span></div>
+      <p class="logo-note">Cercul siglei devine violet (#5B3CC4).</p>
+      <dl>
+        <div><dt>Text / fundal</dt><dd>15,6:1</dd></div>
+        <div><dt>Estompat / card</dt><dd>7,9:1</dd></div>
+        <div><dt>Alb / buton</dt><dd>7,3:1</dd></div>
+        <div><dt>Cifre valoare (min.)</dt><dd>5,1:1</dd></div>
+      </dl>
+    </div>
+  </article>
+  <article class="pal ref" style="--bg:#f3f6f9;--surface:#ffffff;--surface-2:#eef2f6;--border:#d7dfe7;--border-strong:#b9c5d1;--text:#102030;--muted:#4d5d6c;--accent:#1764b8;--accent-strong:#0e4a8c;--accent-soft:#e4effa;--accent-ink:#ffffff;--danger:#b42318;--danger-soft:#fdecea;--warn:#8a4b00;--warn-soft:#fff4dc;--ok:#1d6b3a;--ok-soft:#e3f4e8;--male:#1f5fa8;--female:#b0306a;--band-5:#14532d;--band-5-ink:#ffffff;--band-4:#1f7a3f;--band-4-ink:#ffffff;--band-3:#7cc796;--band-3-ink:#0c3a1d;--band-2:#b6e2c4;--band-2-ink:#0c3a1d;--band-1:#ddf1e3;--band-1-ink:#1d4a2c;--band-0:#e9edf1;--band-0-ink:#4d5d6c">
+    <div class="caption">
+      <h2>Cer (actual)</h2>
+      <p>Paleta de acum, pusă alături doar pentru comparație.</p>
+    </div>
+    <div class="phone">
+      <header class="app-head">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" style="fill:var(--accent)"/><use href="#emblem"/></svg>
+        <span class="brand">Porumbar<small>Crescătoria Dealul Mare</small></span>
+      </header>
+      <div class="content">
+        <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span>Caută după inel sau nume</span></div>
+        <div class="notice"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>2 inele de verificat din ultimul import</span></div>
+        <div class="sect"><h3>Porumbeii mei</h3><span class="badge">86 în total</span></div>
+        <ul class="tiles">
+        <li class="tile">
+          <span class="score band-5" aria-label="Valoare 5">5</span>
+          <span class="tbody">
+            <span class="ring">RO-15-412084</span>
+            <span class="pname">Fulgerul</span>
+            <span class="meta">2015 · <b class="sex-M">M</b> · Albastru solzat</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-4" aria-label="Valoare 4">4</span>
+          <span class="tbody">
+            <span class="ring">RO-19-104356</span>
+            <span class="pname">Steluța</span>
+            <span class="meta">2019 · <b class="sex-F">F</b> · Roșcată</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-2" aria-label="Valoare 2">2</span>
+          <span class="tbody">
+            <span class="ring">RO-22-307815</span>
+            <span class="pname">Bădița</span>
+            <span class="meta">2022 · <b class="sex-M">M</b> · Pestriț</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        <li class="tile">
+          <span class="score band-0" aria-label="Valoare fără date">–</span>
+          <span class="tbody">
+            <span class="ring">RO-24-512903</span>
+            <span class="pname">Fără nume</span>
+            <span class="meta">2024 · <b class="sex-F">F</b> · încă fără rezultate</span>
+          </span>
+          <svg class="ic chev" aria-hidden="true"><use href="#i-chev"/></svg>
+        </li>
+        </ul>
+        <div class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Porumbel nou</div>
+        <div class="btn secondary"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg>Importă din poză</div>
+        <div class="legend">
+          <h4>Valoarea porumbelului</h4>
+          <ul><li><span class="chip band-5">5</span>Foarte bun</li><li><span class="chip band-4">4</span>Bun</li><li><span class="chip band-3">3</span>Mediu</li><li><span class="chip band-2">2</span>Slab</li><li><span class="chip band-1">1</span>Foarte slab</li><li><span class="chip band-0">–</span>Fără date</li></ul>
+        </div>
+      </div>
+      <nav class="bnav">
+        <span class="on"><svg class="ic" aria-hidden="true"><use href="#i-panou"/></svg>Panou</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-arbore"/></svg>Arbore</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Adaugă</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-cont"/></svg>Cont</span>
+      </nav>
+    </div>
+    <div class="facts">
+      <div class="sws"><span class="sw" style="background:var(--accent)" title="--accent #1764b8"></span><span class="sw" style="background:var(--accent-strong)" title="--accent-strong #0e4a8c"></span><span class="sw" style="background:var(--accent-soft)" title="--accent-soft #e4effa"></span><span class="sw" style="background:var(--bg)" title="--bg #f3f6f9"></span><span class="sw" style="background:var(--surface-2)" title="--surface-2 #eef2f6"></span><span class="sw" style="background:var(--text)" title="--text #102030"></span><span class="sw" style="background:var(--muted)" title="--muted #4d5d6c"></span><span class="sw" style="background:var(--male)" title="--male #1f5fa8"></span><span class="sw" style="background:var(--female)" title="--female #b0306a"></span><span class="sw" style="background:var(--danger)" title="--danger #b42318"></span><span class="sw" style="background:var(--warn)" title="--warn #8a4b00"></span><span class="sw" style="background:var(--ok)" title="--ok #1d6b3a"></span></div>
+      <p class="logo-note">Cercul siglei: albastru de cer (#1764B8).</p>
+      <dl>
+        <div><dt>Text / fundal</dt><dd>15,2:1</dd></div>
+        <div><dt>Estompat / card</dt><dd>6,8:1</dd></div>
+        <div><dt>Alb / buton</dt><dd>5,9:1</dd></div>
+        <div><dt>Cifre valoare (min.)</dt><dd>5,4:1</dd></div>
+      </dl>
+    </div>
+  </article>
+  </div>
+</div>
+</body>
+</html>

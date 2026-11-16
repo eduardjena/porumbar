@@ -5,6 +5,7 @@ import { requireAccount } from '../accounts.js';
 import { getPigeonRow, getPigeon, loadNodes, toPigeon, toSummary } from '../pigeons.js';
 import { parseRing, formatRing, ringKey } from '../rings.js';
 import { buildTree, wrightCoi, coiOf, ancestorIds } from '../genealogy.js';
+import { bloodlines } from '../bloodlines.js';
 
 /*
  * Familia unui porumbel: alegerea părinților după inel (cu istoricul lor), rudele, arborele și consangvinizarea.
@@ -143,6 +144,14 @@ export function familyRouter() {
   r.get('/pigeons/:id/coi', requireAccount, async (req, res) => {
     const root = await getPigeonRow(req.account.id, req.params.id);
     res.json(await coiResponse(req.account.id, coiOf(root.id, await loadNodes(req.account.id))));
+  });
+
+  r.get('/pigeons/:id/bloodlines', requireAccount, async (req, res) => {
+    const root = await getPigeonRow(req.account.id, req.params.id);
+    const rows = await all('SELECT id, father_id, mother_id, lines, breeder_text FROM pigeons WHERE account_id = ?', req.account.id);
+    const result = bloodlines(root.id, new Map(rows.map((r) => [r.id, r])));
+    const ids = [...new Set(result.paths.flatMap((p) => p.via))];
+    res.json({ ...result, pigeons: await summaries(req.account.id, ids) });
   });
 
   r.get('/pairs/coi', requireAccount, async (req, res) => {

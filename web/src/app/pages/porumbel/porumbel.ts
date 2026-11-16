@@ -8,13 +8,15 @@ import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
 import { Partajare } from './partajare';
+import { Rezultate } from './rezultate';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { Icon, IconName } from '../../shared/icon';
 
-type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal' | 'qr';
+type Tab = 'fisa' | 'rezultate' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'fisa', label: 'Fișa', icon: 'porumbel' },
+  { id: 'rezultate', label: 'Rezultate', icon: 'cupa' },
   { id: 'rude', label: 'Rude', icon: 'rude' },
   { id: 'arbore', label: 'Pedigree', icon: 'fisa' },
   { id: 'jurnal', label: 'Jurnal', icon: 'jurnal' },
@@ -23,7 +25,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, Rezultate],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -106,6 +108,9 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         @case ('arbore') {
           <app-arbore [pigeonId]="p.id" [version]="version()" (addParent)="openParent($event.id)" />
         }
+        @case ('rezultate') {
+          <app-rezultate [pigeonId]="p.id" />
+        }
         @case ('qr') {
           <app-partajare [pigeon]="p" />
         }
@@ -144,11 +149,13 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
+    .tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
     .tabs button {
       border: 0; border-radius: 14px; background: none; color: var(--muted); flex-direction: column; gap: 2px;
       min-height: 64px; padding: 6px 4px; font-size: 0.85rem;
     }
+    /* Pe telefon, cele 6 file pe două rânduri, ca etichetele să rămână întregi și mari. */
+    @media (max-width: 600px) { .tabs { grid-template-columns: repeat(3, 1fr); } }
     .tabs button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
     .facts dt { font-weight: 600; color: var(--muted); }

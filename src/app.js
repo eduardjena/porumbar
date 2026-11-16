@@ -7,6 +7,7 @@ import { authRouter } from './routes/auth.js';
 import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
+import { resultsRouter } from './routes/results.js';
 import { viewsRouter } from './routes/views.js';
 import { pedigreesRouter } from './routes/pedigrees.js';
 import { requireAccount } from './accounts.js';
@@ -79,6 +80,7 @@ export function createApp() {
   // Familia înaintea fișei: /api/pigeons/lookup nu trebuie luat drept id de porumbel.
   app.use('/api', familyRouter());
   app.use('/api', journalRouter());
+  app.use('/api', resultsRouter());
   app.use('/api', viewsRouter());
   app.use('/api', pedigreesRouter());
   app.use('/api', publicRouter());

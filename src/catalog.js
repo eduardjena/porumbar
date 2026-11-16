@@ -13,18 +13,24 @@ export const BREEDS = [
   { code: 'alta', label: 'Altă rasă' },
 ];
 
+// Sinonimele includ abrevierile de pe pedigree-uri și clasamente: românești (A, S, G, R, b) și internaționale
+// (BB = blue bar, BC = blue check, DC = dark check, PD = pied, GRZ = grizzle). Literele singure se recunosc doar
+// când sunt tot textul culorii (altfel „A fost neinelat” ar însemna albastru).
 export const COLORS = [
-  { code: 'albastru', label: 'Albastru', synonyms: ['albastra', 'albastru cu dungi', 'blue', 'bleu'] },
-  { code: 'albastru-brocat', label: 'Albastru brocat', synonyms: ['albastra brocata', 'brocat', 'brocata', 'albastru solzat inchis', 'blue check'] },
-  { code: 'solzat', label: 'Solzat', synonyms: ['solzata', 'cenusiu solzat'] },
+  { code: 'albastru', label: 'Albastru', synonyms: ['albastra', 'albastru cu dungi', 'blue', 'bleu', 'blue bar', 'bb', 'a'] },
+  { code: 'albastru-brocat', label: 'Albastru brocat', synonyms: ['albastra brocata', 'brocat', 'brocata'] },
+  { code: 'solzat', label: 'Solzat', synonyms: ['solzata', 'cenusiu solzat', 'blue check', 'check', 'bc', 's'] },
+  { code: 'solzat-inchis', label: 'Solzat închis', synonyms: ['solzata inchisa', 'dark check', 'dc'] },
+  { code: 'gut', label: 'Gut', synonyms: ['guta', 'g'] },
   { code: 'negru', label: 'Negru', synonyms: ['neagra', 'black'] },
-  { code: 'pestrit', label: 'Pestriț', synonyms: ['pestrita', 'pestrit alb', 'pied'] },
+  { code: 'pestrit', label: 'Pestriț', synonyms: ['pestrita', 'pestrit alb'] },
+  { code: 'baltat', label: 'Bălțat', synonyms: ['baltata', 'pied', 'pd', 'b'] },
   { code: 'vanat', label: 'Vânăt', synonyms: ['vanata', 'vnata', 'vanat inchis', 'dark'] },
-  { code: 'rosu', label: 'Roșu', synonyms: ['rosie', 'rosu solzat', 'red', 'mealy'] },
+  { code: 'rosu', label: 'Roșu', synonyms: ['rosie', 'rosu solzat', 'red', 'mealy', 'r'] },
   { code: 'rosu-brocat', label: 'Roșu brocat', synonyms: ['rosie brocata', 'red check'] },
   { code: 'galbui', label: 'Gălbui', synonyms: ['galbuie', 'galben', 'galbena', 'dun'] },
   { code: 'alb', label: 'Alb', synonyms: ['alba', 'white'] },
-  { code: 'tarcat', label: 'Tărcat', synonyms: ['tarcata', 'grizzle', 'gris'] },
+  { code: 'tarcat', label: 'Tărcat', synonyms: ['tarcata', 'grizzle', 'gris', 'grizonat', 'grz'] },
   { code: 'argintiu', label: 'Argintiu', synonyms: ['argintie', 'silver'] },
 ];
 
@@ -78,18 +84,21 @@ export const fold = (s) =>
     .trim();
 
 // Toate formele unei culori, ca liste de cuvinte; cele mai lungi întâi (ca „albastru brocat” să bată „albastru”).
+// Formele mai lungi întâi (ca „albastru brocat” să bată „albastru”, iar „vanat” să bată abrevierea „a”).
 const COLOR_FORMS = COLORS.flatMap((c) => [c.label, ...c.synonyms].map((f) => ({ code: c.code, words: fold(f).split(' ') }))).sort(
-  (a, b) => b.words.length - a.words.length,
+  (a, b) => b.words.length - a.words.length || b.words.join(' ').length - a.words.join(' ').length,
 );
-const PA = /(^|\s)(p\.?\s?a\.?|pene albe)(?=\s|$)/;
+const PA = /(^|\s)(p\.?\s?a\.?|pene albe|wf)(?=\s|$)/;
 
 /** Culoarea dintr-un text liber de pe pedigree: „Albastra p.a Consangvina” → { code: 'albastru', pa: true, rest: 'consangvina' }. */
 export function matchColor(text) {
-  let s = fold(text).replace(/[,;]/g, ' ');
+  // „Spa” = solzat cu pene albe (abrevierea culorii lipită de „pa”).
+  let s = fold(text).replace(/[,;]/g, ' ').replace(/(^|\s)([asgr])pa(?=\s|$)/g, '$1$2 pa');
   const pa = PA.test(s);
-  s = s.replace(PA, ' ').replace(/\s+/g, ' ').trim();
+  s = s.replace(PA, ' ').replace(/[.:!?()"„”]/g, ' ').replace(/\s+/g, ' ').trim();
   const words = s ? s.split(' ') : [];
   for (const form of COLOR_FORMS) {
+    if (form.words.length === 1 && form.words[0].length === 1 && words.length !== 1) continue;
     for (let i = 0; i + form.words.length <= words.length; i++) {
       if (form.words.every((w, j) => words[i + j] === w)) {
         const rest = [...words.slice(0, i), ...words.slice(i + form.words.length)].join(' ');

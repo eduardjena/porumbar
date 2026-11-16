@@ -3,18 +3,16 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { errorMessage } from '../../core/api';
+import { PasswordField } from '../../shared/password-field';
 
 @Component({
   selector: 'app-parola-noua',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, PasswordField],
   template: `
     <div class="auth-page stack">
       <h1>Parolă nouă</h1>
       <form class="card stack" (ngSubmit)="submit()">
-        <label class="field">Parola nouă
-          <span class="hint">Cel puțin 10 caractere.</span>
-          <input type="password" name="password" autocomplete="new-password" required [(ngModel)]="password" />
-        </label>
+        <app-password-field [(value)]="password" label="Parola nouă" autocomplete="new-password" hint="Cel puțin 10 caractere." />
         @if (error()) {
           <div class="error" role="alert">{{ error() }}</div>
           <a routerLink="/parola-uitata">Cere un link nou</a>
@@ -37,7 +35,7 @@ export default class ParolaNoua {
     this.busy.set(true);
     try {
       await this.auth.resetPassword(this.token(), this.password);
-      this.router.navigateByUrl('/porumbar');
+      this.router.navigateByUrl('/panou');
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

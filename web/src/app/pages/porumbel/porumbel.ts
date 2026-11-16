@@ -3,63 +3,48 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, sexLabel } from '../../core/catalog';
-import { Family, JournalEntry, Photo, Pigeon } from '../../core/models';
+import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
+import { Breadcrumbs } from '../../shared/breadcrumbs';
+import { Icon, IconName } from '../../shared/icon';
 
-/** Pozele de pe telefon sunt mari: le micșorăm la cel mult 2000 px înainte de trimitere (mai rapid pe date mobile). */
-async function shrink(file: File, max = 2000): Promise<Blob> {
-  try {
-    const img = await createImageBitmap(file);
-    const scale = Math.min(1, max / Math.max(img.width, img.height));
-    if (scale === 1 && file.size < 2_000_000) return file;
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(img.width * scale);
-    canvas.height = Math.round(img.height * scale);
-    canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b ?? file), 'image/jpeg', 0.85));
-  } catch {
-    return file;
-  }
-}
-
-type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal' | 'poze';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'fisa', label: 'Fișa' },
-  { id: 'rude', label: 'Rude' },
-  { id: 'arbore', label: 'Arbore' },
-  { id: 'jurnal', label: 'Jurnal' },
-  { id: 'poze', label: 'Poze' },
-];
-const PHOTO_KINDS = [
-  { code: 'corp', label: 'Corp' },
-  { code: 'aripa', label: 'Aripă' },
-  { code: 'ochi', label: 'Ochi' },
-  { code: 'altele', label: 'Altele' },
+type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal';
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
+  { id: 'fisa', label: 'Fișa', icon: 'porumbel' },
+  { id: 'rude', label: 'Rude', icon: 'rude' },
+  { id: 'arbore', label: 'Pedigree', icon: 'fisa' },
+  { id: 'jurnal', label: 'Jurnal', icon: 'jurnal' },
 ];
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
+      <app-breadcrumbs [items]="[{ label: 'Panou', link: ['/panou'] }, { label: p.ring?.display ?? 'Fără inel' }]" />
       <div class="title">
         <div>
           <h1><span class="mono">{{ p.ring?.display ?? 'Fără inel' }}</span>@if (p.name) { <span class="name"> „{{ p.name }}”</span> }</h1>
           <p class="row sub">
             <span [class]="'sex-' + (p.sex ?? '')">{{ sexLabel(p.sex) }}</span>
             @if (p.status) { <span class="badge">{{ catalog.label('statuses', p.status) }}</span> }
-            @if (p.kind === 'external') { <span class="badge">strămoș (al altcuiva)</span> }
+            @if (p.kind === 'external') { <span class="badge">din alt porumbar</span> }
           </p>
         </div>
-        <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']">✎ Editează</a>
+        <div class="row">
+          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="retea" />Vezi în arbore</a>
+          <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />Editează</a>
+        </div>
       </div>
 
       <nav class="tabs" role="tablist">
         @for (t of tabs; track t.id) {
-          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
+          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">
+            <app-icon [name]="t.icon" [size]="26" /><span>{{ t.label }}</span>
+          </button>
         }
       </nav>
 
@@ -134,28 +119,6 @@ const PHOTO_KINDS = [
             } @empty { <p class="muted">Nicio notă încă.</p> }
           </ul>
         }
-        @case ('poze') {
-          <div class="card stack">
-            <label class="field">Ce arată poza
-              <select name="pkind" [(ngModel)]="photoKind">
-                @for (k of photoKinds; track k.code) { <option [value]="k.code">{{ k.label }}</option> }
-              </select>
-            </label>
-            <label class="btn primary upload">
-              📷 Fă o poză sau alege din telefon
-              <input type="file" accept="image/jpeg,image/png,image/webp" (change)="upload($event)" hidden />
-            </label>
-            @if (pError()) { <div class="error" role="alert">{{ pError() }}</div> }
-          </div>
-          <div class="photos">
-            @for (ph of photos(); track ph.id) {
-              <figure class="card">
-                <img [src]="ph.url" [alt]="'Poză: ' + kindLabel(ph.kind)" loading="lazy" />
-                <figcaption class="row between">{{ kindLabel(ph.kind) }} <button type="button" class="link" (click)="removePhoto(ph)">Șterge</button></figcaption>
-              </figure>
-            } @empty { <p class="muted">Nicio poză încă.</p> }
-          </div>
-        }
       }
     }
   `,
@@ -164,9 +127,12 @@ const PHOTO_KINDS = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: flex; gap: 4px; overflow-x: auto; margin: 8px 0 16px; border-bottom: 2px solid var(--border); }
-    .tabs button { border: 0; border-radius: 10px 10px 0 0; background: none; flex: none; color: var(--muted); }
-    .tabs button.on { background: var(--surface); color: var(--accent-strong); border-bottom: 3px solid var(--accent); }
+    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
+    .tabs button {
+      border: 0; border-radius: 14px; background: none; color: var(--muted); flex-direction: column; gap: 2px;
+      min-height: 64px; padding: 6px 4px; font-size: 0.85rem;
+    }
+    .tabs button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
     .facts dt { font-weight: 600; color: var(--muted); }
     .facts dd { margin: 0; }
@@ -174,10 +140,6 @@ const PHOTO_KINDS = [
     .grow { flex: 1 1 160px; }
     .between { justify-content: space-between; }
     .entries { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-    .upload { cursor: pointer; }
-    .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
-    .photos figure { margin: 0; padding: 8px; }
-    .photos img { width: 100%; border-radius: 10px; display: block; aspect-ratio: 4 / 3; object-fit: cover; background: var(--surface-2); }
   `,
 })
 export default class Porumbel {
@@ -186,27 +148,22 @@ export default class Porumbel {
   protected readonly catalog = inject(CatalogService);
   readonly id = input.required<string>();
   protected readonly tabs = TABS;
-  protected readonly photoKinds = PHOTO_KINDS;
   protected readonly sexLabel = sexLabel;
 
   readonly tab = signal<Tab>('fisa');
   readonly p = signal<Pigeon | null>(null);
   readonly family = signal<Family | null>(null);
   readonly journal = signal<JournalEntry[]>([]);
-  readonly photos = signal<Photo[]>([]);
   readonly version = signal(0);
   readonly error = signal('');
   readonly jError = signal('');
-  readonly pError = signal('');
   jDate = new Date().toISOString().slice(0, 10);
   jType = 'nota';
   jText = '';
-  photoKind = 'corp';
   protected readonly hasEvaluation = computed(() => {
     const e = this.p()?.evaluation;
     return !!e && (Object.keys(e.scores ?? {}).length > 0 || !!e.calitati || !!e.deDorit || !!e.defecte);
   });
-  protected readonly kindLabel = (k: string) => PHOTO_KINDS.find((x) => x.code === k)?.label ?? k;
 
   constructor() {
     effect(() => {
@@ -218,16 +175,14 @@ export default class Porumbel {
 
   private async load(id: string) {
     try {
-      const [p, f, j, ph] = await Promise.all([
+      const [p, f, j] = await Promise.all([
         this.api.get<{ pigeon: Pigeon }>(`/pigeons/${id}`),
         this.api.get<Family>(`/pigeons/${id}/family`),
         this.api.get<{ entries: JournalEntry[] }>(`/pigeons/${id}/journal`),
-        this.api.get<{ photos: Photo[] }>(`/pigeons/${id}/photos`),
       ]);
       this.p.set(p.pigeon);
       this.family.set(f);
       this.journal.set(j.entries);
-      this.photos.set(ph.photos);
       this.error.set('');
     } catch (e) {
       this.error.set(errorMessage(e));
@@ -262,23 +217,4 @@ export default class Porumbel {
     this.journal.update((list) => list.filter((x) => x.id !== e.id));
   }
 
-  async upload(ev: Event) {
-    const input = ev.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    this.pError.set('');
-    try {
-      const r = await this.api.upload<{ photo: Photo }>(`/pigeons/${this.id()}/photos?kind=${this.photoKind}`, await shrink(file));
-      this.photos.update((list) => [...list, r.photo]);
-    } catch (e) {
-      this.pError.set(errorMessage(e));
-    }
-  }
-
-  async removePhoto(ph: Photo) {
-    if (!confirm('Ștergi această poză?')) return;
-    await this.api.delete(`/photos/${ph.id}`);
-    this.photos.update((list) => list.filter((x) => x.id !== ph.id));
-  }
 }

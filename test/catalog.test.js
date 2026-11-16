@@ -22,6 +22,25 @@ test('culori din pedigree-urile reale', () => {
   assert.equal(matchColor('xyz').code, null);
 });
 
+test('abrevierile de pe pedigree-uri (românești și internaționale)', () => {
+  assert.deepEqual(pick(matchColor('Gut')), { code: 'gut', pa: false });
+  assert.deepEqual(pick(matchColor('Guta')), { code: 'gut', pa: false });
+  assert.deepEqual(pick(matchColor('A')), { code: 'albastru', pa: false });
+  assert.deepEqual(pick(matchColor('S')), { code: 'solzat', pa: false });
+  assert.deepEqual(pick(matchColor('G')), { code: 'gut', pa: false });
+  assert.deepEqual(pick(matchColor('R')), { code: 'rosu', pa: false });
+  assert.deepEqual(pick(matchColor('Spa')), { code: 'solzat', pa: true });
+  assert.deepEqual(pick(matchColor('b')), { code: 'baltat', pa: false });
+  assert.deepEqual(pick(matchColor('BB')), { code: 'albastru', pa: false });
+  assert.deepEqual(pick(matchColor('BC')), { code: 'solzat', pa: false });
+  assert.deepEqual(pick(matchColor('Blue Check')), { code: 'solzat', pa: false });
+  assert.deepEqual(pick(matchColor('DC')), { code: 'solzat-inchis', pa: false });
+  assert.deepEqual(pick(matchColor('BC WF')), { code: 'solzat', pa: true });
+  assert.deepEqual(pick(matchColor('PD')), { code: 'baltat', pa: false });
+  assert.deepEqual(pick(matchColor('Pied')), { code: 'baltat', pa: false });
+  assert.deepEqual(pick(matchColor('GRZ')), { code: 'tarcat', pa: false });
+});
+
 test('catalogul public', async () => {
   const r = await call('/api/catalog', { auth: 'none' });
   assert.equal(r.status, 200);

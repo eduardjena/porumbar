@@ -13,9 +13,10 @@ import { CatalogService, ringText, sexShort } from '../core/catalog';
         <a class="chip" [routerLink]="['/porumbei', p.id]">
           <span class="mono ring">{{ ring() }}</span>
           <span [class]="'sex-' + (p.sex ?? '')">{{ sex() }}</span>
+          @if (p.year) { <span class="muted">{{ p.year }}</span> }
           @if (p.name) { <span class="name">„{{ p.name }}”</span> }
           @if (color()) { <span class="muted">{{ color() }}</span> }
-          @if (p.kind === 'external') { <span class="badge">strămoș</span> }
+          @if (p.kind === 'external') { <span class="badge">din alt porumbar</span> }
         </a>
       } @else {
         <span class="chip plain">

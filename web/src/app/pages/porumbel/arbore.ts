@@ -45,7 +45,7 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
         <div class="box" [style.background]="node.repeat ? color(node.repeat) : null" [class.root]="depth === 0">
           @if (pigeons()[node.id]; as p) {
             <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
-            <span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
+            <span><span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>@if (p.year) { <span class="year">· {{ p.year }}</span> }</span>
             @if (p.name) { <span class="name">„{{ p.name }}”</span> }
             @if (p.color) { <span class="muted">{{ catalog.label('colors', p.color) }}</span> }
           }
@@ -80,6 +80,7 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
     .box.root { border: 2px solid var(--accent); }
     .box.empty { border-style: dashed; color: var(--muted); font-weight: 400; min-height: 48px; justify-content: center; }
     .ring { font-weight: 700; }
+    .year { color: var(--muted); font-weight: 700; }
     .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
     .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; margin-right: 4px; }
   `,

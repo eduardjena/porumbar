@@ -2,7 +2,10 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/auth';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'porumbar' },
+  { path: '', pathMatch: 'full', redirectTo: 'panou' },
+  { path: 'panou', canActivate: [authGuard], title: 'Panou · Porumbar', loadComponent: () => import('./pages/panou/panou') },
+  { path: 'arbore', canActivate: [authGuard], title: 'Arbore · Porumbar', loadComponent: () => import('./pages/retea/retea') },
+  { path: 'retea', redirectTo: 'arbore' },
   { path: 'intra', canActivate: [guestGuard], title: 'Intră în cont · Porumbar', loadComponent: () => import('./pages/auth/intra') },
   { path: 'cont-nou', canActivate: [guestGuard], title: 'Cont nou · Porumbar', loadComponent: () => import('./pages/auth/cont-nou') },
   { path: 'parola-uitata', title: 'Parolă uitată · Porumbar', loadComponent: () => import('./pages/auth/parola-uitata') },
@@ -12,5 +15,5 @@ export const routes: Routes = [
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: 'Editează porumbelul', loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id', canActivate: [authGuard], title: 'Porumbel', loadComponent: () => import('./pages/porumbel/porumbel') },
   { path: 'cont', canActivate: [authGuard], title: 'Contul meu', loadComponent: () => import('./pages/auth/cont') },
-  { path: '**', redirectTo: 'porumbar' },
+  { path: '**', redirectTo: 'panou' },
 ];

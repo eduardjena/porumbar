@@ -7,7 +7,7 @@ import { PigeonChip } from './pigeon-chip';
 
 /*
  * Alegerea unui părinte după inel (cerut de crescător): scrii inelul și vezi imediat istoricul acelui porumbel —
- * părinții lui, câți pui are și care — apoi îl alegi. Dacă nu e în porumbar, îl adaugi pe loc ca strămoș.
+ * părinții lui, câți pui are și care — apoi îl alegi. Dacă nu e în porumbar, îl notezi pe loc ca porumbel din alt porumbar.
  */
 @Component({
   selector: 'app-pigeon-picker',
@@ -52,11 +52,11 @@ import { PigeonChip } from './pigeon-chip';
         @if (result() && ring.trim() && (!result()!.matches.length || !result()!.ring.ok)) {
           <div class="card stack">
             @if (result()!.ring.unringed) {
-              <p>Porumbel <strong>fără inel</strong>. Îl adaugi ca strămoș nou?</p>
+              <p>Porumbel <strong>fără inel</strong>. Îl notezi (din alt porumbar)?</p>
             } @else if (result()!.matches.length) {
-              <p>Sau e alt porumbel, scris la fel? Îl adaugi ca strămoș nou:</p>
+              <p>Sau e alt porumbel, scris la fel? Îl notezi separat:</p>
             } @else {
-              <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e în porumbarul tău. Îl adaugi ca strămoș?</p>
+              <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e încă în program. Îl notezi ca porumbel din alt porumbar?</p>
             }
             <label class="field">Nume sau poreclă <span class="hint">opțional</span>
               <input [name]="'name-' + sex()" [(ngModel)]="newName" />
@@ -67,7 +67,7 @@ import { PigeonChip } from './pigeon-chip';
             <label class="field">Ce scrie pe pedigree despre el <span class="hint">opțional</span>
               <textarea [name]="'text-' + sex()" [(ngModel)]="newText"></textarea>
             </label>
-            <button type="button" class="primary" (click)="addExternal()" [disabled]="busy()">Adaugă și alege</button>
+            <button type="button" class="primary" (click)="addExternal()" [disabled]="busy()">Notează-l și alege-l</button>
           </div>
         }
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }

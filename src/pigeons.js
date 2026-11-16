@@ -48,6 +48,9 @@ export function toPigeon(row) {
   };
 }
 
+/** Anul nașterii: din data eclozării, altfel din inel; necunoscut → null. */
+export const yearOf = (row) => (row.hatched_on ? Number(String(row.hatched_on).slice(0, 4)) : (row.ring_year ?? null));
+
 export const toSummary = (row) => ({
   id: row.id,
   kind: row.kind,
@@ -56,6 +59,7 @@ export const toSummary = (row) => ({
   name: row.name,
   color: row.color,
   status: row.status,
+  year: yearOf(row),
 });
 
 /** Rândul unui porumbel al contului, sau 404 (și pentru porumbeii altor conturi). */

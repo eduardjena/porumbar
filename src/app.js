@@ -7,7 +7,7 @@ import { authRouter } from './routes/auth.js';
 import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
-import { photosRouter } from './routes/photos.js';
+import { viewsRouter } from './routes/views.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
 const WEB_INDEX = path.join(WEB_DIR, 'index.html');
@@ -24,9 +24,6 @@ export const DEFAULT_CSP = [
   "object-src 'none'",
   "frame-ancestors 'none'",
 ].join('; ');
-
-/** Cererile care modifică date trebuie să fie JSON (protecție CSRF); încărcările de mai jos își verifică singure tipul. */
-const RAW_UPLOADS = [/^\/api\/pigeons\/\d+\/photos$/];
 
 export function createApp() {
   const app = express();
@@ -46,7 +43,7 @@ export function createApp() {
     res.set('Cache-Control', 'no-store');
     const changes = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
     const hasBody = Number(req.headers['content-length'] || 0) > 0 || req.headers['transfer-encoding'];
-    if (changes && hasBody && !req.is('application/json') && !RAW_UPLOADS.some((r) => r.test(req.originalUrl.split('?')[0]))) {
+    if (changes && hasBody && !req.is('application/json')) {
       return res.status(415).json({ error: 'Cererea trebuie trimisă ca JSON.' });
     }
     next();
@@ -59,7 +56,7 @@ export function createApp() {
   // Familia înaintea fișei: /api/pigeons/lookup nu trebuie luat drept id de porumbel.
   app.use('/api', familyRouter());
   app.use('/api', journalRouter());
-  app.use('/api', photosRouter());
+  app.use('/api', viewsRouter());
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));

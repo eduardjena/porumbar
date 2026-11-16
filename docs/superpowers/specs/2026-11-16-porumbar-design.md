@@ -82,7 +82,7 @@ Câmpuri predefinite (nu există un standard internațional unic pentru voiajori
 - **Stare**: concurent, reproducător, tânăr, vândut, pierdut, mort, accidentat.
 - **Evaluare la mână**: note 1–5 pentru echilibru, musculatură, spate, aripă, penaj, ochi, bazin, caracter; trei texte: **calități**, **de dorit**, **defecte**.
 - **Jurnal cu dată**: tip (notă, tratament, vaccin, antrenament, altele) + text.
-- **Poze**: corp, aripă întinsă, ochi, altele.
+- ~~Poze~~: **scoase** (decizia utilizatorului, 2026-11-16: fără spațiu pe server pentru pozele porumbeilor).
 - **Părinți**: tată și mamă, fiecare fie un porumbel din cont, fie un **strămoș extern** (vezi mai jos), fie necunoscut.
 - **Text pentru pedigree**: ce scrie în căsuța lui pe pedigree (titluri: „Super reproducătoare”, „Loc 1 Național 5 ani”); proprietarul alege ce note și ce rezultate apar pe pedigree și ce rămâne privat.
 
@@ -131,7 +131,7 @@ Inelele nerecunoscute se salvează ca text și se arată la verificare.
 3. **Ecran de verificare**: poza lângă arbore, câmpurile nesigure marcate, totul editabil; nimic nu se salvează înainte de „Confirm”.
 4. La salvare: inele normalizate, legături cu porumbeii / strămoșii existenți, culori potrivite cu lista.
 
-Pozele originale se păstrează la fișa porumbelului (și pot fi șterse de crescător).
+Poza sau PDF-ul încărcat se folosește doar pentru citire și **nu se păstrează** pe server (fără spațiu pentru poze, decizia utilizatorului).
 
 **Excel**: un model de fișier descărcabil (o linie pe porumbel: inel, sex, nume, culoare, tată, mamă, …) și potrivirea coloanelor pentru fișiere proprii.
 

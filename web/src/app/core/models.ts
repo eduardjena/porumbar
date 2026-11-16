@@ -40,6 +40,37 @@ export interface PigeonSummary {
   name: string | null;
   color: string | null;
   status: string | null;
+  /** Anul nașterii: din data eclozării sau din inel. */
+  year: number | null;
+}
+
+export interface Value {
+  score: number | null;
+  band: 0 | 1 | 2 | 3 | 4 | 5;
+  parts: { evaluare?: number; pui: number; reproducator: number };
+}
+
+export interface BoardPigeon extends PigeonSummary {
+  offspringCount: number;
+  value: Value;
+}
+
+export interface NetworkNode {
+  id: number;
+  ring: string;
+  name: string | null;
+  sex: Sex | null;
+  year: number | null;
+  kind: Kind;
+  score: number | null;
+  band: number;
+  offspringCount: number;
+}
+
+export interface Network {
+  nodes: NetworkNode[];
+  edges: { from: number; to: number; role: 'father' | 'mother' }[];
+  truncated: boolean;
 }
 
 export interface Evaluation {
@@ -105,8 +136,3 @@ export interface JournalEntry {
   text: string;
 }
 
-export interface Photo {
-  id: number;
-  kind: string;
-  url: string;
-}

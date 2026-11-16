@@ -2,6 +2,7 @@ import express from 'express';
 import { errorHandler } from './http.js';
 import { publicCatalog } from './catalog.js';
 import { authRouter } from './routes/auth.js';
+import { pigeonsRouter } from './routes/pigeons.js';
 
 export const DEFAULT_CSP = [
   "default-src 'self'",
@@ -47,6 +48,7 @@ export function createApp() {
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.get('/api/catalog', (req, res) => res.json(publicCatalog()));
   app.use('/api/auth', authRouter());
+  app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));
   app.use(errorHandler);

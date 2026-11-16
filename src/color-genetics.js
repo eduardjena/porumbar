@@ -17,7 +17,7 @@ const rank = (order, a) => order.indexOf(a);
 const top = (order, a, b) => (rank(order, a) <= rank(order, b) ? a : b);
 
 const BASE_NAME = { BA: ['Roșu', 'Gălbui'], '+': ['Albastru', 'Argintiu'], b: ['Maro', 'Kaki'] };
-const SPREAD_NAME = { BA: ['Roșu uniform', 'Gălbui uniform'], '+': ['Negru', 'Gălbui-cenușiu (dun)'], b: ['Maro uniform', 'Kaki uniform'] };
+const SPREAD_NAME = { BA: ['Roșu uniform', 'Gălbui uniform'], '+': ['Negru', 'Dun (maro-cenușiu)'], b: ['Maro uniform', 'Kaki uniform'] };
 const PATTERN_NAME = { CT: 'solzat închis', C: 'solzat', '+': 'cu dungi', c: 'fără dungi' };
 const CARRY_BASE = { '+': 'albastru', b: 'maro' };
 const CARRY_PATTERN = { C: 'solzat', '+': 'dungi', c: 'fără dungi' };
@@ -26,12 +26,20 @@ const CARRY_PATTERN = { C: 'solzat', '+': 'dungi', c: 'fără dungi' };
 const FROM_COLOR = {
   albastru: { base: '+', pattern: '+', spread: false, dilute: false },
   solzat: { base: '+', pattern: 'C', spread: false, dilute: false },
+  // „Albastru brocat” (utilizatorul, 2026-11-16) = albastru solzat (blue checker), ca „roșu brocat” pe roșu.
+  'albastru-brocat': { base: '+', pattern: 'C', spread: false, dilute: false },
   'solzat-inchis': { base: '+', pattern: 'CT', spread: false, dilute: false },
+  // „Vânăt” (utilizatorul) = albastru cu dungi, culoarea porumbelului sălbatic.
+  vanat: { base: '+', pattern: '+', spread: false, dilute: false },
+  // „Gut” (utilizatorul, 2026-11-16): bază albastru-negru cu desen solzat închis (pene cu margini negre), dominant peste dungi.
+  gut: { base: '+', pattern: 'CT', spread: false, dilute: false },
   negru: { base: '+', pattern: null, spread: true, dilute: false },
   rosu: { base: 'BA', pattern: null, spread: false, dilute: false },
   'rosu-brocat': { base: 'BA', pattern: 'C', spread: false, dilute: false },
   argintiu: { base: '+', pattern: null, spread: false, dilute: true },
   galbui: { base: 'BA', pattern: null, spread: false, dilute: true },
+  // „Dun” (maro-cenușiu) = negru diluat.
+  dun: { base: '+', pattern: null, spread: true, dilute: true },
 };
 
 export function factorsFromColor(code, sex) {

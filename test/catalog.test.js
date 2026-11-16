@@ -22,6 +22,12 @@ test('culori din pedigree-urile reale', () => {
   assert.equal(matchColor('xyz').code, null);
 });
 
+test('dun (negru diluat) e altă culoare decât gălbui (roșu diluat); „dark” e solzat închis (spus de utilizator)', () => {
+  assert.deepEqual(pick(matchColor('Dun')), { code: 'dun', pa: false });
+  assert.deepEqual(pick(matchColor('Galben')), { code: 'galbui', pa: false });
+  assert.deepEqual(pick(matchColor('Dark')), { code: 'solzat-inchis', pa: false });
+});
+
 test('abrevierile de pe pedigree-uri (românești și internaționale)', () => {
   assert.deepEqual(pick(matchColor('Gut')), { code: 'gut', pa: false });
   assert.deepEqual(pick(matchColor('Guta')), { code: 'gut', pa: false });

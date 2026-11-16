@@ -6,7 +6,7 @@ import { createPigeon, getPigeonRow, loadNodes, updatePigeon } from './pigeons.j
 import { formatRing, parseRing, ringKey } from './rings.js';
 
 /*
- * Importul unui pedigree întreg dintr-un singur pas („Pedigree pe hârtie”, apoi citirea din poză / PDF): rădăcina
+ * Importul unui pedigree întreg dintr-un singur pas („Importă pedigree”, apoi citirea din poză / PDF): rădăcina
  * (porumbelul propriu sau unul „din alt porumbar”) și strămoșii, cel mult 5 generații (31 de căsuțe).
  *
  * Reguli (spec §8): același inel e un singur porumbel în cont, deci un strămoș deja trecut se refolosește; ce era

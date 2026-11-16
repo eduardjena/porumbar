@@ -4,7 +4,7 @@ import { importPedigree } from '../pedigree-import.js';
 import { readPedigree } from '../pedigree-reader.js';
 import { rateLimit } from '../http.js';
 
-/* Pedigree-uri întregi: importul dintr-un pas (din ecranul „Pedigree pe hârtie” sau după citirea unei poze). */
+/* Pedigree-uri întregi: importul dintr-un pas (din ecranul „Importă pedigree” sau după citirea unei poze). */
 export function pedigreesRouter() {
   const r = express.Router();
   r.post('/pedigrees/import', requireAccount, async (req, res) => {

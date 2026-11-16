@@ -11,7 +11,7 @@ import { GENERATION_NAMES, roleName } from '../retea/arbore-data';
 import { CititorPoza, PedigreeNode } from './cititor-poza';
 
 /*
- * „Pedigree pe hârtie”: pedigree-ul primit de la cineva (hârtie, PDF, poză) se trece tot dintr-o dată, în 31 de
+ * „Importă pedigree”: pedigree-ul primit de la cineva (hârtie, PDF, poză) se trece tot dintr-o dată, în 31 de
  * căsuțe așezate ca pe foaie: porumbelul în stânga, părinții, bunicii, străbunicii, răstrăbunicii spre dreapta.
  * Căsuța i: tatăl e 2i, mama 2i + 1 (1 = porumbelul). Un inel pe care îl ai deja e recunoscut și părinții lui
  * cunoscuți se completează singuri. Ciorna stă pe telefon până la salvare. Serverul: POST /api/pedigrees/import.
@@ -73,10 +73,10 @@ function writeDraft(d: Draft | null) {
   imports: [FormsModule, RouterLink, Icon, Breadcrumbs, CititorPoza],
   template: `
     <div class="wide">
-      <app-breadcrumbs [items]="[{ label: 'Porumbel nou', link: ['/porumbei/nou'] }, { label: 'Pedigree pe hârtie' }]" />
+      <app-breadcrumbs [items]="[{ label: 'Porumbel nou', link: ['/porumbei/nou'] }, { label: 'Importă pedigree' }]" />
       <div class="head">
         <div>
-          <h1>Pedigree pe hârtie</h1>
+          <h1>Importă pedigree</h1>
           <p class="muted intro">Ai primit un pedigree pe hârtie, în PDF sau în poză? Trece-l aici tot dintr-o dată. Inelele pe care le ai deja în program sunt recunoscute și nu se dublează.</p>
         </div>
       </div>

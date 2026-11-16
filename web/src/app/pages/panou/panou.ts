@@ -36,7 +36,8 @@ function reasons(p: BoardPigeon): string {
       </div>
       <div class="row actions">
         <app-view-toggle current="grila" />
-        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />Pedigree pe hârtie</a>
+        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />Importă pedigree</a>
+        <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />Scanează cod QR</a>
         <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />Porumbel nou</a>
       </div>
     </div>

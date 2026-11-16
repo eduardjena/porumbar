@@ -73,8 +73,12 @@ function writeDraft(id: string | undefined, d: Draft | null) {
     <h1>{{ id() ? 'Editează porumbelul' : 'Porumbel nou' }}</h1>
     @if (!id()) {
       <a class="paper card" routerLink="/porumbei/pedigree">
-        <strong>Ai pedigree-ul pe hârtie, în PDF sau în poză?</strong>
+        <strong>Importă pedigree: îl ai pe hârtie, în PDF sau în poză?</strong>
         <span class="muted">Trece-l tot dintr-o dată (porumbelul și strămoșii), sau lasă programul să-l citească din poză.</span>
+      </a>
+      <a class="paper card" routerLink="/scaneaza">
+        <strong>Are cod QR de la Porumbar?</strong>
+        <span class="muted">Scanează-l: se deschide pedigree-ul crescătorului și îl preiei cu tot cu strămoși.</span>
       </a>
     }
     @if (restored()) {

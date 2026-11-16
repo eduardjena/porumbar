@@ -2,6 +2,8 @@ export interface Account {
   id: number;
   email: string;
   name: string;
+  /** Numele scris jos pe pedigree (echipa / crescătoria); gol = numele contului. */
+  pedigreeName?: string | null;
   phone: string | null;
   address: string | null;
   treeView?: string;

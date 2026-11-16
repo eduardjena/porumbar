@@ -52,10 +52,10 @@ function node(row, byId, depth, lines) {
 
 /** Pedigree-ul porumbelului (al contului dat) în formatul deschis. */
 export async function pedigreeV1(accountId, rootId) {
-  const account = await one('SELECT name, phone, address, email, show_phone, show_address, show_email FROM accounts WHERE id = ?', accountId);
+  const account = await one('SELECT name, pedigree_name, phone, address, email, show_phone, show_address, show_email FROM accounts WHERE id = ?', accountId);
   const rows = await all('SELECT * FROM pigeons WHERE account_id = ?', accountId);
   const byId = new Map(rows.map((r) => [r.id, r]));
-  const owner = { name: account.name };
+  const owner = { name: account.pedigree_name || account.name };
   if (account.show_phone && account.phone) owner.phone = account.phone;
   if (account.show_address && account.address) owner.address = account.address;
   if (account.show_email) owner.email = account.email;

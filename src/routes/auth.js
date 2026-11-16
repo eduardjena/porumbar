@@ -74,6 +74,7 @@ export function authRouter() {
   r.patch('/me', requireAccount, async (req, res) => {
     const b = req.body ?? {};
     const name = b.name === undefined ? req.account.name : text(b.name, 'nume', { max: 120 });
+    const pedigreeName = b.pedigreeName === undefined ? req.account.pedigreeName : text(b.pedigreeName, 'numele de pe pedigree', { max: 120, optional: true });
     const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
     const address = b.address === undefined ? req.account.address : text(b.address, 'adresă', { max: 300, optional: true });
     const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'vederea Arborelui');
@@ -83,8 +84,8 @@ export function authRouter() {
       return b[key];
     };
     await run(
-      'UPDATE accounts SET name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ? WHERE id = ?',
-      name, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'), req.account.id,
+      'UPDATE accounts SET name = ?, pedigree_name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ? WHERE id = ?',
+      name, pedigreeName, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'), req.account.id,
     );
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });

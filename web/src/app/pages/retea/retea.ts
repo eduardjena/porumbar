@@ -56,9 +56,9 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
         <div class="graph-empty muted">Niciun porumbel de arătat încă.</div>
       }
       <div class="zoom">
-        <button type="button" aria-label="Mărește" (click)="zoom(1.25)"><app-icon name="plus" /></button>
-        <button type="button" aria-label="Micșorează" (click)="zoom(0.8)"><app-icon name="minus" /></button>
-        <button type="button" aria-label="Arată tot" (click)="fit()"><app-icon name="panou" /></button>
+        <button type="button" aria-label="Mărește" title="Mărește" (click)="zoom(1.25)"><app-icon name="plus" /></button>
+        <button type="button" aria-label="Micșorează" title="Micșorează" (click)="zoom(0.8)"><app-icon name="minus" /></button>
+        <button type="button" aria-label="Arată tot arborele" title="Arată tot arborele" (click)="fit()"><app-icon name="panou" /></button>
       </div>
     </div>
 
@@ -201,7 +201,7 @@ export default class Retea implements OnDestroy {
 
   clearSelection() {
     this.selected.set(null);
-    this.cy?.elements().removeClass('faded lit');
+    this.cy?.elements().removeClass('faded lit picked');
   }
 
   private async load() {
@@ -306,6 +306,20 @@ export default class Retea implements OnDestroy {
         { selector: 'edge[role = "father"]', style: { 'line-color': '#8fb3dc', 'target-arrow-color': '#8fb3dc' } },
         { selector: 'edge[role = "mother"]', style: { 'line-color': '#dca3bf', 'target-arrow-color': '#dca3bf' } },
         { selector: '.faded', style: { opacity: 0.15 } },
+        // Porumbelul atins: chenar albastru gros și un halou în jur, ca să se vadă clar pe care ești.
+        {
+          selector: 'node.picked',
+          style: {
+            'border-width': 6,
+            'border-color': css('--accent'),
+            'border-style': 'solid',
+            'underlay-color': css('--accent'),
+            'underlay-opacity': 0.3,
+            'underlay-padding': 10,
+            'underlay-shape': 'round-rectangle',
+            'z-index': 20,
+          } as never,
+        },
         { selector: 'edge.lit', style: { width: 4, 'line-color': css('--accent'), 'target-arrow-color': css('--accent') } },
       ],
       layout: { name: 'dagre', rankDir: 'LR', nodeSep: 18, rankSep: 70, edgeSep: 10, padding: 24 } as never,
@@ -314,7 +328,10 @@ export default class Retea implements OnDestroy {
     this.cy.on('tap', 'node', (evt) => {
       const node = evt.target as NodeSingular;
       const related = node.predecessors().union(node.successors()).union(node);
-      this.cy!.elements().addClass('faded').removeClass('lit');
+      this.cy!.elements().addClass('faded').removeClass('lit picked');
+      node.addClass('picked');
+      // Porumbelul ales vine în mijlocul ecranului (nu rămâne sub cardul de jos).
+      this.cy!.animate({ center: { eles: node }, zoom: Math.max(this.cy!.zoom(), 0.85) }, { duration: 300 });
       related.removeClass('faded');
       related.edges().addClass('lit');
       this.selected.set(byId.get(Number(node.id())) ?? null);

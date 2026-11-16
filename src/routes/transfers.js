@@ -13,7 +13,7 @@ import { pedigreeV1, toImportNode } from '../pedigree-format.js';
  * plus notele și jurnalul dacă vânzătorul a bifat; la vânzător porumbelul rămâne, cu starea „Vândut”.
  */
 
-const today = () => new Date().toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const today = () => new Date().toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Bucharest' });
 
 /** Vânzarea în așteptare, blocată până la sfârșitul tranzacției (două apăsări pe „Primesc” nu fac două copii). */
 async function pendingFor(id, accountId, side) {
@@ -32,7 +32,7 @@ export function transfersRouter() {
     const email = String(req.body?.email ?? '').trim();
     if (!email) throw badRequest('Scrie emailul cumpărătorului.');
     const buyer = await one('SELECT id FROM accounts WHERE lower(email) = lower(?)', email);
-    if (!buyer) throw notFound('Nu există un cont cu acest email. Cumpărătorul își face întâi cont în Porumbar (gratuit).');
+    if (!buyer) throw notFound('Nu există un cont cu acest email. Cumpărătorul trebuie să-și facă întâi cont în Porumbar, iar contul să fie activ.');
     if (buyer.id === req.account.id) throw badRequest('Acesta e emailul contului tău.');
     if (await one(`SELECT 1 FROM transfers WHERE pigeon_id = ? AND status = 'accepted'`, pigeon.id)) {
       throw new HttpError(409, 'Porumbelul a fost deja vândut.');
@@ -42,7 +42,7 @@ export function transfersRouter() {
     }
     const id = await insert(
       `INSERT INTO transfers (pigeon_id, from_account, to_account, include_private, status, created_at) VALUES (?, ?, ?, ?, 'pending', now())`,
-      pigeon.id, req.account.id, buyer.id, Boolean(req.body?.includePrivate),
+      pigeon.id, req.account.id, buyer.id, req.body?.includePrivate === true,
     );
     res.status(201).json({ transfer: { id, status: 'pending' } });
   });
@@ -58,7 +58,8 @@ export function transfersRouter() {
     const outgoing = await all(
       `SELECT t.id, t.pigeon_id, t.status, t.include_private, t.created_at, t.decided_at, a.email AS buyer
          FROM transfers t JOIN accounts a ON a.id = t.to_account
-        WHERE t.from_account = ? ORDER BY t.created_at DESC LIMIT 100`, me,
+        WHERE t.from_account = ? AND (?::bigint IS NULL OR t.pigeon_id = ?::bigint) ORDER BY t.created_at DESC LIMIT 100`,
+      me, Number(req.query.pigeon) || null, Number(req.query.pigeon) || null,
     );
     const { parseRing, formatRing } = await import('../rings.js');
     const ring = (raw) => {
@@ -78,16 +79,20 @@ export function transfersRouter() {
       const seller = await one('SELECT name FROM accounts WHERE id = ?', t.from_account);
       const ped = await pedigreeV1(t.from_account, t.pigeon_id);
       const imported = await importPedigree(buyer, toImportNode(ped.root), 'own');
+      // Notele și jurnalul vânzătorului intră doar într-un porumbel nou la cumpărător (sau un fost strămoș „din alt
+      // porumbar”), niciodată peste notele lui (de ex. când își cumpără înapoi un porumbel vândut).
+      const copyPrivate = t.include_private && imported.rootWas !== 'existing';
       const src = await one('SELECT * FROM pigeons WHERE id = ?', t.pigeon_id);
       await run(
         `UPDATE pigeons SET source_note = ?, breed = COALESCE(breed, ?), lines = CASE WHEN cardinality(lines) = 0 THEN ? ELSE lines END,
-                eye_color = COALESCE(eye_color, ?), hatched_on = COALESCE(hatched_on, ?)
-                ${t.include_private ? ', evaluation = ?' : ''}
+                eye_color = COALESCE(eye_color, ?), hatched_on = COALESCE(hatched_on, ?),
+                status = CASE WHEN status = 'vandut' THEN NULL ELSE status END
+                ${copyPrivate ? ', evaluation = ?' : ''}
           WHERE id = ? AND account_id = ?`,
         `Cumpărat de la ${seller.name} pe ${today()}`, src.breed, src.lines, src.eye_color, src.hatched_on,
-        ...(t.include_private ? [JSON.stringify(src.evaluation ?? {})] : []), imported.pigeonId, buyer,
+        ...(copyPrivate ? [JSON.stringify(src.evaluation ?? {})] : []), imported.pigeonId, buyer,
       );
-      if (t.include_private) {
+      if (copyPrivate) {
         await run(
           `INSERT INTO journal_entries (pigeon_id, account_id, entry_date, type, text, created_at)
            SELECT ?, ?, entry_date, type, text, now() FROM journal_entries WHERE pigeon_id = ? ORDER BY entry_date, id`,
@@ -103,10 +108,13 @@ export function transfersRouter() {
 
   r.post('/transfers/:id/cancel', requireAccount, async (req, res) => {
     const me = req.account.id;
-    const t = await one('SELECT * FROM transfers WHERE id = ? AND (from_account = ? OR to_account = ?)', Number(req.params.id) || 0, me, me);
-    if (!t) throw notFound('Vânzarea nu a fost găsită.');
-    if (t.status !== 'pending') throw new HttpError(409, 'Vânzarea nu mai e în așteptare.');
-    await run(`UPDATE transfers SET status = 'cancelled', decided_at = now() WHERE id = ?`, t.id);
+    await tx(async () => {
+      // Blocat ca la acceptare: dacă cumpărătorul tocmai a primit porumbelul, anularea vede „primit” și se oprește.
+      const t = await one('SELECT * FROM transfers WHERE id = ? AND (from_account = ? OR to_account = ?) FOR UPDATE', Number(req.params.id) || 0, me, me);
+      if (!t) throw notFound('Vânzarea nu a fost găsită.');
+      if (t.status !== 'pending') throw new HttpError(409, t.status === 'accepted' ? 'Porumbelul a fost deja primit; vânzarea nu se mai poate anula.' : 'Vânzarea nu mai e în așteptare.');
+      await run(`UPDATE transfers SET status = 'cancelled', decided_at = now() WHERE id = ? AND status = 'pending'`, t.id);
+    });
     res.json({ ok: true });
   });
 

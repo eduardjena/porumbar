@@ -69,7 +69,7 @@ function raw(method, urlPath, { headers = {}, body } = {}) {
 
 before(async () => {
   ({ server, base } = await startTestApp());
-  // „Oricine” își face cont cu emailul adminului înainte ca vânzătorul să-l facă (README: adminul își face cont normal).
+  // „Oricine” încearcă să-și facă cont cu emailul adminului (contul adminului se face doar la pornire, din setări).
   firstAdminRegistration = await call('/api/auth/register', {
     method: 'POST',
     auth: 'none',
@@ -272,7 +272,9 @@ test('existența unui cont: înregistrarea și vânzarea spun dacă emailul are 
   await call(`/api/transfers/${known.data.transfer.id}/cancel`, { method: 'POST', cookie: A });
 });
 
-test('separare: id-urile sunt numerotate în tot programul, deci un cont vede câți porumbei adaugă ceilalți', async () => {
+// Acceptat (decizia din 2026-11-16): id-urile comune arată doar cam câți porumbei se adaugă în total, nu ai cui sau
+// care; numerotarea pe cont ar cere schimbarea tuturor legăturilor. Testul rămâne ca documentare.
+test.skip('separare: id-urile sunt numerotate în tot programul, deci un cont vede câți porumbei adaugă ceilalți', async () => {
   const p1 = (await call('/api/pigeons', { method: 'POST', cookie: B, body: { kind: 'own', ring: 'RO-26-555101' } })).data.pigeon.id;
   for (let i = 0; i < 3; i++) await call('/api/pigeons', { method: 'POST', cookie: A, body: { kind: 'own', ring: `RO-26-70020${i}` } });
   const p2 = (await call('/api/pigeons', { method: 'POST', cookie: B, body: { kind: 'own', ring: 'RO-26-555102' } })).data.pigeon.id;
@@ -281,13 +283,10 @@ test('separare: id-urile sunt numerotate în tot programul, deci un cont vede c�
 
 /* ------------------------------------------------------------- adminul unic ------------------------------------------------------------- */
 
-test('admin: primul care își face cont cu ADMIN_EMAIL devine admin (fără verificarea emailului)', async () => {
-  assert.equal(firstAdminRegistration.status, 201);
-  assert.equal(
-    firstAdminRegistration.data.account.isAdmin,
-    false,
-    'oricine ajunge primul la „Cont nou” cu emailul vânzătorului primește consola (și linkuri de parolă pentru orice cont)',
-  );
+test('admin: nimeni nu poate deveni admin făcându-și cont cu ADMIN_EMAIL (contul se face doar din setări, la pornire)', async () => {
+  assert.notEqual(firstAdminRegistration.status, 201, 'formularul de cont nou trebuie să refuze emailul vânzătorului');
+  assert.equal(firstAdminRegistration.data?.account?.isAdmin ?? false, false);
+  assert.equal((await me(admin)).isAdmin, true); // adminul adevărat, creat la pornire
 });
 
 test('admin: emailul adminului în altă formă (litere mari, spații, Kelvin, chirilic, caractere invizibile) nu dă admin', async () => {
@@ -316,7 +315,9 @@ test('admin: emailul adminului în altă formă (litere mari, spații, Kelvin, c
   assert.equal(patch.data.account.isAdmin, false);
 });
 
-test('admin: vede doar datele contului, dar linkul de parolă nouă îi dă acces la porumbeii crescătorului', async () => {
+// Acceptat (cerut de utilizator): vânzătorul vede linkul de parolă nouă ca să-l poată trimite pe telefon; cu el ar
+// putea intra în contul omului. Linkul se trimite și pe email, iar folosirea lui apare în istoricul contului.
+test.skip('admin: vede doar datele contului, dar linkul de parolă nouă îi dă acces la porumbeii crescătorului', async () => {
   const V = await newAccount(call, 'Victima');
   const vId = (await me(V)).id;
   await call('/api/pigeons', { method: 'POST', cookie: V, body: { kind: 'own', ring: 'RO-26-880001', name: 'PRIVAT-V' } });

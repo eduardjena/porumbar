@@ -28,6 +28,16 @@ interface Outgoing {
   template: `
     <h1>Vânzări</h1>
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
+    @if (received(); as r) {
+      <section class="card stack in" role="status">
+        <strong><app-icon name="bifa" />Porumbelul e în porumbarul tău.</strong>
+        <div class="warning stack">
+          <strong>De verificat ({{ r.conflicts.length }}):</strong>
+          @for (c of r.conflicts; track $index) { <span>{{ c.message }}</span> }
+        </div>
+        <div class="row"><a class="btn primary" [routerLink]="['/porumbei', r.pigeonId]"><app-icon name="fisa" />Deschide fișa</a></div>
+      </section>
+    }
 
     <h2>Porumbei care vin la tine</h2>
     @for (t of incoming(); track t.id) {
@@ -71,6 +81,8 @@ export default class Vanzari implements OnInit {
   readonly incoming = signal<Incoming[]>([]);
   readonly outgoing = signal<Outgoing[]>([]);
   readonly error = signal('');
+  /** Primit, dar cu diferențe față de ce aveai deja (le arătăm înainte de a deschide fișa). */
+  readonly received = signal<{ pigeonId: number; conflicts: { message: string }[] } | null>(null);
   protected readonly date = (iso: string) => new Date(iso).toLocaleDateString('ro-RO');
   protected readonly label = (s: Outgoing['status']) => ({ pending: 'În așteptare', accepted: 'Primit', cancelled: 'Anulat' })[s];
 
@@ -96,8 +108,13 @@ export default class Vanzari implements OnInit {
     });
     if (!ok) return;
     try {
-      const r = await this.api.post<{ pigeonId: number }>(`/transfers/${t.id}/accept`);
-      this.router.navigate(['/porumbei', r.pigeonId]);
+      const r = await this.api.post<{ pigeonId: number; conflicts: { message: string }[] }>(`/transfers/${t.id}/accept`);
+      if (r.conflicts?.length) {
+        this.received.set(r);
+        await this.load();
+      } else {
+        this.router.navigate(['/porumbei', r.pigeonId]);
+      }
     } catch (e) {
       this.error.set(errorMessage(e));
     }

@@ -1,4 +1,4 @@
-import { one, run, tx } from './db.js';
+import { lockAccount, one, run, tx } from './db.js';
 import { ancestorIds } from './genealogy.js';
 import { badRequest } from './http.js';
 import { matchColor } from './catalog.js';
@@ -90,19 +90,35 @@ export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
   const stats = { created: 0, reused: 0, conflicts: [] };
 
   return tx(async () => {
+    await lockAccount(accountId); // importurile aceluiași cont, unul după altul (fără dubluri și blocaje reciproce)
+    stats.created = 0;
+    stats.reused = 0;
+    stats.conflicts = [];
+    let rootWas = null;
     const byKey = async (key) =>
       key ? one(`SELECT * FROM pigeons WHERE account_id = ? AND ring_key = ? ORDER BY (kind = 'own') DESC, id LIMIT 1`, accountId, key) : null;
 
     /** Așază căsuța: găsește sau creează porumbelul, apoi părinții lui. `existingId` = părintele deja legat în program. */
     const place = async (node, kind, sex, existingId = null) => {
       let row = existingId ? await getPigeonRow(accountId, existingId) : await byKey(keyOf(node));
-      if (!row || (kind === 'own' && row.kind === 'external')) {
-        // Nou, sau un strămoș care devine acum porumbelul meu (createPigeon îl transformă, cu tot cu legături).
+      const isRoot = !existingId && node === root;
+      if (!row) {
         const p = await createPigeon(accountId, fields(node, kind, sex));
-        if (row) stats.reused++;
-        else stats.created++;
+        stats.created++;
         row = await getPigeonRow(accountId, p.id);
+        if (isRoot) rootWas = 'created';
+      } else if (kind === 'own' && row.kind === 'external') {
+        // Un strămoș „din alt porumbar” devine porumbelul meu: același rând, cu legăturile lui; ce era scris rămâne,
+        // hârtia completează doar câmpurile goale.
+        await updatePigeon(accountId, row.id, { kind: 'own', ...missing(row, node, sex) });
+        stats.reused++;
+        row = await getPigeonRow(accountId, row.id);
+        if (isRoot) rootWas = 'converted';
       } else {
+        if (isRoot) rootWas = 'existing';
+        if (isRoot && node.sex && row.sex && node.sex !== row.sex) {
+          stats.conflicts.push({ ring: label(node), message: `${label(node)} e în program ${row.sex === 'M' ? 'mascul' : 'femelă'}, iar pe hârtie scrie altfel. Am păstrat ce era.` });
+        }
         stats.reused++;
         const patch = missing(row, node, sex);
         if (Object.keys(patch).length) {
@@ -150,6 +166,6 @@ export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
     };
 
     const pigeonId = await place(root, rootKind, root.sex);
-    return { pigeonId, ...stats };
+    return { pigeonId, rootWas, ...stats };
   });
 }

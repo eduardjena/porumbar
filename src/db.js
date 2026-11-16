@@ -224,9 +224,31 @@ export const run = async (sql, ...params) => ({ changes: (await query(sql, param
 /** INSERT care întoarce ID-ul rândului nou. */
 export const insert = async (sql, ...params) => (await query(`${sql} RETURNING id`, params)).rows[0].id;
 
-/** Tranzacție re-entrantă (apelurile imbricate rulează în tranzacția exterioară). */
+// Conflicte între cereri simultane după care tranzacția poate fi pur și simplu reluată: blocaj reciproc, serializare,
+// același rând unic creat de altul între timp, un rând legat șters între timp. A doua oară cererea vede datele noi.
+const RETRYABLE = new Set(['40P01', '40001', '23505', '23503']);
+const RETRIES = 3;
+
+/**
+ * Tranzacție re-entrantă (apelurile imbricate rulează în tranzacția exterioară). Tranzacția din afară se reia de
+ * cel mult 3 ori la un conflict cu altă cerere simultană (RETRYABLE); erorile noastre (HttpError) nu se reiau.
+ */
 export async function tx(fn) {
   if (current.getStore()) return fn();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await txOnce(fn);
+    } catch (err) {
+      if (attempt >= RETRIES || !RETRYABLE.has(err?.code)) throw err;
+      await new Promise((r) => setTimeout(r, 10 + Math.random() * 40 * attempt));
+    }
+  }
+}
+
+/** Blochează scrierile în genealogia unui cont până la sfârșitul tranzacției (două cereri nu fac împreună un ciclu). */
+export const lockAccount = (accountId) => run('SELECT pg_advisory_xact_lock(4210002, ?::int)', Number(accountId));
+
+async function txOnce(fn) {
   const client = await pool.connect();
   const onError = (err) => console.error('[porumbar] Conexiune PostgreSQL pierdută:', err.message);
   client.on('error', onError);

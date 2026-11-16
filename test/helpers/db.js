@@ -8,6 +8,9 @@ import { createDatabase } from '../../scripts/lib/temp-postgres.mjs';
 
 /** Se apelează în `before`, după ce testul și-a setat variabilele de mediu și înainte de orice import din aplicație. */
 export async function bootTestDb() {
+  // Adminul de test se face la pornire (src/boot.js), deci setările lui trebuie să existe înainte.
+  process.env.ADMIN_EMAIL ??= 'admin@porumbar.test';
+  process.env.ADMIN_PASSWORD ??= 'parola-admin-de-test-123';
   const admin = process.env.TEST_DATABASE_URL;
   if (!admin) throw new Error('Testele se rulează cu „npm test” (sau cu TEST_DATABASE_URL setat).');
   const name = `porumbar_test_${process.pid}_${crypto.randomBytes(4).toString('hex')}`;

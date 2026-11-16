@@ -307,7 +307,16 @@ export default class PedigreeHartie {
   }
 
   /** Căsuțele completate din citirea pozei / PDF-ului (doar cele goale; ce ai scris tu rămâne). */
-  fillFromReading(root: PedigreeNode) {
+  async fillFromReading(root: PedigreeNode) {
+    // Ciorna veche (alt pedigree început altă dată) nu se amestecă pe tăcute cu pedigree-ul citit acum.
+    if (this.count() > 0) {
+      const fresh = await this.confirm.ask({
+        title: 'Începi pedigree-ul de la zero cu ce s-a citit?',
+        lines: [`Ai deja ${this.count()} căsuțe completate. „Da” le golește și pune doar ce s-a citit din poză.`, '„Renunță” păstrează ce ai scris și completează doar căsuțele goale.'],
+        confirmLabel: 'Da, de la zero',
+      });
+      if (fresh) this.d.set({ ...emptyDraft(), kind: this.d().kind });
+    }
     const slots = this.d().slots.slice();
     const put = (n: PedigreeNode | null | undefined, i: number) => {
       if (!n || i > SLOTS) return;

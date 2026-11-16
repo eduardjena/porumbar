@@ -22,6 +22,17 @@ export function text(value, field, { max = 1000, optional = false } = {}) {
   return s;
 }
 
+/** O dată reală AAAA-LL-ZZ, între 1900 și 2100 (30 februarie sau anul 0000 sunt refuzate aici, cu mesaj clar). */
+export function realDate(value, label = 'Data') {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw badRequest(`${label} trebuie să fie de forma AAAA-LL-ZZ.`);
+  const d = new Date(`${value}T00:00:00Z`);
+  const year = Number(value.slice(0, 4));
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value || year < 1900 || year > 2100) {
+    throw badRequest(`${label} nu este o dată reală.`);
+  }
+  return value;
+}
+
 export function oneOf(value, allowed, field) {
   if (!allowed.includes(value)) throw badRequest(`Valoare invalidă pentru „${field}”.`);
   return value;
@@ -49,15 +60,18 @@ export function rateLimit({ windowMs, max, key = (req) => req.ip, failuresOnly =
       h = { n: 0, reset: now + windowMs };
       hits.set(k, h);
     }
-    const over = failuresOnly ? h.n >= max : ++h.n > max;
+    // failuresOnly: încercarea se numără de la început și se scade la succes, ca cererile trimise deodată să nu
+    // treacă toate înainte să se numere vreuna.
+    const over = ++h.n > max;
     if (over) {
+      if (failuresOnly) h.n--;
       res.set('Retry-After', String(Math.ceil((h.reset - now) / 1000)));
       return res.status(429).json({ error: 'Prea multe încercări. Reîncearcă puțin mai târziu.' });
     }
     if (failuresOnly) {
       const bucket = h;
       res.on('finish', () => {
-        if (res.statusCode >= 400) bucket.n++;
+        if (res.statusCode < 400) bucket.n = Math.max(0, bucket.n - 1);
       });
     }
     next();
@@ -81,6 +95,9 @@ export function errorHandler(err, req, res, next) {
     console.error('[porumbar] Baza de date nu răspunde:', err.message);
     return res.status(503).json({ error: 'Baza de date este ocupată sau indisponibilă. Reîncearcă în câteva momente.' });
   }
+  // Conflict cu o altă cerere simultană, rămas după reluări: omul poate încerca din nou.
+  if (['40P01', '40001'].includes(err.code)) return res.status(503).json({ error: 'Altă operație pe aceleași date era în curs. Încearcă din nou.' });
+  if (err.code === '23503') return res.status(409).json({ error: 'Porumbelul a fost șters sau schimbat între timp. Reîncarcă pagina.' });
   // Doi utilizatori creează același lucru în același moment (verificarea dinainte nu l-a văzut pe celălalt).
   if (err.code === '23505') return res.status(409).json({ error: 'Există deja o înregistrare cu aceste date.' });
   console.error(err);

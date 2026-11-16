@@ -46,11 +46,8 @@ export function publicRouter() {
 
   r.post('/pigeons/:id/public', requireAccount, async (req, res) => {
     const row = await ownRow(req.account.id, req.params.id);
-    let token = row.public_token;
-    if (!token) {
-      token = newToken();
-      await run('UPDATE pigeons SET public_token = ? WHERE id = ?', token, row.id);
-    }
+    // Atomic: zece apăsări deodată dau același link (primul pornit rămâne).
+    const { public_token: token } = await one('UPDATE pigeons SET public_token = COALESCE(public_token, ?) WHERE id = ? RETURNING public_token', newToken(), row.id);
     res.json({ url: urlOf(token) });
   });
 
@@ -80,7 +77,7 @@ export function publicRouter() {
     const kind = req.body?.kind === 'own' ? 'own' : 'external';
     const ped = await pedigreeV1(row.account_id, row.id);
     const result = await importPedigree(req.account.id, toImportNode(ped.root), kind);
-    const note = `Preluat de la ${ped.owner.name} pe ${new Date().toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+    const note = `Preluat de la ${ped.owner.name} pe ${new Date().toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Bucharest' })}`;
     await run('UPDATE pigeons SET source_note = COALESCE(source_note, ?) WHERE id = ? AND account_id = ?', note, result.pigeonId, req.account.id);
     res.status(201).json(result);
   });

@@ -12,7 +12,8 @@ import { sendMail } from './mail.js';
 export const REMIND_DAYS = 30;
 const DAY = 86_400_000;
 
-export const isoDate = (d = new Date()) => d.toISOString().slice(0, 10);
+/** Ziua calendaristică în România (abonamentul se termină la miezul nopții de aici, nu la 02:00 / 03:00). */
+export const isoDate = (d = new Date()) => d.toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
 const daysBetween = (a, b) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / DAY);
 
 /** Data de sfârșit: exact un an după început (29 februarie → 28 februarie). */
@@ -20,7 +21,7 @@ export function plusOneYear(start) {
   const [y, m, d] = start.split('-').map(Number);
   const end = new Date(Date.UTC(y + 1, m - 1, d));
   if (end.getUTCMonth() !== m - 1) end.setUTCDate(0);
-  return isoDate(end);
+  return end.toISOString().slice(0, 10);
 }
 
 export const isAdminEmail = (email) => !!config.adminEmail && String(email ?? '').toLowerCase() === config.adminEmail;

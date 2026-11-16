@@ -3,25 +3,22 @@
 // „doar citire”, ca un cont care n-a plătit încă.
 let n = 0;
 process.env.ADMIN_EMAIL ??= 'admin@porumbar.test';
-const ADMIN_PASSWORD = 'parola-admin-de-test-123';
+// Adminul se face la pornirea serverului din ADMIN_EMAIL + ADMIN_PASSWORD (formularul de cont nou îl refuză).
+process.env.ADMIN_PASSWORD ??= 'parola-admin-de-test-123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const admins = new WeakMap();
 
 /** Cookie-ul adminului pentru serverul acestui `call` (contul se face la prima nevoie). */
 export async function adminCookie(call) {
   if (admins.has(call)) return admins.get(call);
-  let r = await call('/api/auth/register', {
-    method: 'POST',
-    auth: 'none',
-    body: { email: process.env.ADMIN_EMAIL, password: ADMIN_PASSWORD, name: 'Vânzătorul' },
-  });
-  if (r.status === 409) r = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: process.env.ADMIN_EMAIL, password: ADMIN_PASSWORD } });
-  if (![200, 201].includes(r.status)) throw new Error(`Adminul de test: ${r.status} ${JSON.stringify(r.data)}`);
+  const r = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: process.env.ADMIN_EMAIL, password: ADMIN_PASSWORD } });
+  if (r.status !== 200) throw new Error(`Adminul de test: ${r.status} ${JSON.stringify(r.data)}`);
   const cookie = r.res.headers.get('set-cookie').split(';')[0];
   admins.set(call, cookie);
   return cookie;
 }
 
-export const today = () => new Date().toISOString().slice(0, 10);
+export const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
 
 export async function newAccount(call, name = 'Crescător', { active = true } = {}) {
   n += 1;

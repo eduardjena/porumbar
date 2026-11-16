@@ -29,20 +29,23 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
       }
     }
     <form class="card stack" (ngSubmit)="save()">
-      <p class="muted">Aceste date pot apărea pe pedigree-urile tipărite, doar dacă alegi tu.</p>
+      <p class="muted">Pe pedigree-ul tipărit apar jos, în stânga, numele, adresa, telefonul și emailul completate aici.</p>
       <label class="field">Nume
         <input name="name" required [(ngModel)]="name" autocomplete="name" />
+      </label>
+      <label class="field">Numele de pe pedigree <span class="hint">(echipa sau crescătoria, de ex. „Popescu-Ionescu Team”; gol = numele de mai sus)</span>
+        <input name="pedigreeName" [(ngModel)]="pedigreeName" />
       </label>
       <label class="field">Telefon
         <input name="phone" type="tel" inputmode="tel" [(ngModel)]="phone" autocomplete="tel" />
       </label>
       <label class="field">Adresă
-        <textarea name="address" [(ngModel)]="address" autocomplete="street-address"></textarea>
+        <textarea name="address" [(ngModel)]="address" autocomplete="street-address" rows="3" placeholder="Strada, numărul&#10;Localitatea, județul"></textarea>
       </label>
       <p class="muted">Email: {{ auth.account()?.email }}</p>
       <fieldset class="stack show">
-        <legend>Ce apare pe pedigree (linkul public, codul QR, foaia tipărită)</legend>
-        <p class="muted">Numele apare mereu. Restul doar dacă bifezi.</p>
+        <legend>Ce apare pe linkul public și la codul QR</legend>
+        <p class="muted">Acolo îl poate vedea oricine are linkul: numele apare mereu, restul doar dacă bifezi. Pe foaia tipărită apar toate.</p>
         <label class="check"><input type="checkbox" name="showPhone" [(ngModel)]="showPhone" /> Telefonul</label>
         <label class="check"><input type="checkbox" name="showAddress" [(ngModel)]="showAddress" /> Adresa</label>
         <label class="check"><input type="checkbox" name="showEmail" [(ngModel)]="showEmail" /> Emailul</label>
@@ -75,6 +78,7 @@ export default class Cont {
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
   name = this.auth.account()?.name ?? '';
+  pedigreeName = this.auth.account()?.pedigreeName ?? '';
   phone = this.auth.account()?.phone ?? '';
   address = this.auth.account()?.address ?? '';
   showPhone = !!this.auth.account()?.showPhone;
@@ -93,17 +97,18 @@ export default class Cont {
     const a = this.auth.account();
     const diff = changes([
       { label: 'Nume', before: a?.name, after: this.name },
+      { label: 'Numele de pe pedigree', before: a?.pedigreeName, after: this.pedigreeName },
       { label: 'Telefon', before: a?.phone, after: this.phone },
       { label: 'Adresă', before: a?.address, after: this.address },
-      { label: 'Telefonul pe pedigree', before: yes(a?.showPhone), after: yes(this.showPhone) },
-      { label: 'Adresa pe pedigree', before: yes(a?.showAddress), after: yes(this.showAddress) },
-      { label: 'Emailul pe pedigree', before: yes(a?.showEmail), after: yes(this.showEmail) },
+      { label: 'Telefonul pe linkul public', before: yes(a?.showPhone), after: yes(this.showPhone) },
+      { label: 'Adresa pe linkul public', before: yes(a?.showAddress), after: yes(this.showAddress) },
+      { label: 'Emailul pe linkul public', before: yes(a?.showEmail), after: yes(this.showEmail) },
     ]);
     if (!diff.length) return this.saved.set(true);
     if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
     try {
       await this.auth.update({
-        name: this.name, phone: this.phone || null, address: this.address || null,
+        name: this.name, pedigreeName: this.pedigreeName || null, phone: this.phone || null, address: this.address || null,
         showPhone: this.showPhone, showAddress: this.showAddress, showEmail: this.showEmail,
       });
       this.saved.set(true);

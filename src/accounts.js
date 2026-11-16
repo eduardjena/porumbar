@@ -26,10 +26,12 @@ export const publicAccount = (a) => ({
   id: a.id,
   email: a.email,
   name: a.name,
+  // Numele scris jos pe pedigree (echipa / crescătoria); gol = numele contului.
+  pedigreeName: a.pedigree_name ?? null,
   phone: a.phone ?? null,
   address: a.address ?? null,
   treeView: TREE_VIEWS.includes(a.tree_view) ? a.tree_view : TREE_VIEWS[0],
-  // Ce apare pe pedigree-ul public și pe cel tipărit, pe lângă nume (implicit nimic).
+  // Ce apare pe linkul public / codul QR, pe lângă nume (implicit nimic). Foaia tipărită are tot ce e completat.
   showPhone: !!a.show_phone,
   showAddress: !!a.show_address,
   showEmail: !!a.show_email,
@@ -87,7 +89,7 @@ export async function requireAccount(req, res, next) {
     if (!token) throw new HttpError(401, 'Trebuie să intri în cont.');
     const hash = sha256(token);
     const row = await one(
-      `SELECT a.id, a.email, a.name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
+      `SELECT a.id, a.email, a.name, a.pedigree_name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
               a.subscription_start, a.subscription_end, a.ai_credit_micros, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,

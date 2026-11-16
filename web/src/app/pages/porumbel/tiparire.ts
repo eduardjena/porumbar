@@ -2,6 +2,7 @@ import { Component, DestroyRef, ElementRef, effect, inject, input, signal, untra
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
+import { AuthService } from '../../core/auth';
 import { PedigreeV1 } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { PedigreeSheet } from '../../shared/pedigree-sheet';
@@ -43,11 +44,13 @@ import { QrCode } from '../../shared/qr-code';
           </header>
           <div class="sheet-area"><app-pedigree-sheet [root]="d.root" [paper]="true" /></div>
           <footer>
+            <!-- Ca pe fișele crescătorilor: jos în stânga numele (echipa), adresa, telefonul, emailul — ce e completat în Cont. -->
+            @let o = owner(d);
             <div class="owner">
-              <strong>{{ d.owner.name }}</strong>
-              @if (d.owner.address) { <span>{{ d.owner.address }}</span> }
-              @if (d.owner.phone) { <span>Tel.: {{ d.owner.phone }}</span> }
-              @if (d.owner.email) { <span>{{ d.owner.email }}</span> }
+              <strong>{{ o.name }}</strong>
+              @if (o.address) { <span class="addr">{{ o.address }}</span> }
+              @if (o.phone) { <span>Tel.: {{ o.phone }}</span> }
+              @if (o.email) { <span>{{ o.email }}</span> }
             </div>
             <div class="stamp">
               <span>Strămoșii colorați la fel apar de mai multe ori.</span>
@@ -77,9 +80,11 @@ import { QrCode } from '../../shared/qr-code';
     .qr { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.8mm; width: 24mm; font-size: 5.5pt; text-align: center; line-height: 1.15; }
     .qr app-qr-code { width: 22mm; }
     .sheet-area { flex: 1; min-height: 0; }
-    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; height: 18mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
-    .owner { display: flex; flex-direction: column; font-size: 8pt; line-height: 1.3; }
-    .owner strong { font-size: 9pt; }
+    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; min-height: 18mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
+    .owner { display: flex; flex-direction: column; font-size: 8.5pt; line-height: 1.3; }
+    .owner strong { font-size: 11pt; }
+    /* Adresa pe rândurile scrise în Cont (strada / localitatea), cel mult 3. */
+    .owner .addr { white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
     .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 6.5pt; color: #6b5d4f; }
     .stamp .made { display: inline-flex; align-items: center; gap: 0.8mm; }
     .stamp .made img { width: 3.6mm; height: 3.6mm; }
@@ -97,6 +102,7 @@ import { QrCode } from '../../shared/qr-code';
 export default class Tiparire {
   private readonly api = inject(Api);
   private readonly confirm = inject(ConfirmService);
+  private readonly auth = inject(AuthService);
   readonly id = input.required<string>();
   readonly data = signal<PedigreeV1 | null>(null);
   readonly url = signal<string | null>(null);
@@ -106,6 +112,12 @@ export default class Tiparire {
   readonly zoom = signal(1);
   private readonly preview = viewChild<ElementRef<HTMLElement>>('preview');
   protected readonly today = new Date().toLocaleDateString('ro-RO');
+  /** Datele crescătorului de jos: tot ce a completat în Cont (foaia e a lui); fără cont încărcat, ce vine cu pedigree-ul. */
+  protected owner(d: PedigreeV1) {
+    const a = this.auth.account();
+    if (!a) return d.owner;
+    return { name: a.pedigreeName || a.name, address: a.address, phone: a.phone, email: a.email };
+  }
   /** Rândul de sub titlu: sexul, anul, culoarea, crescătorul (ce se știe). */
   protected facts(d: PedigreeV1) {
     const r = d.root;

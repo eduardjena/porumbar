@@ -231,6 +231,11 @@ const MIGRATIONS = [
   CREATE INDEX ix_race_results_pigeon ON race_results (pigeon_id);
   CREATE INDEX ix_race_results_account ON race_results (account_id);
   `,
+
+  // 15: numele de pe pedigree (echipa / crescătoria, de ex. „Popescu-Ionescu Team”); gol = numele contului.
+  `
+  ALTER TABLE accounts ADD COLUMN pedigree_name TEXT;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

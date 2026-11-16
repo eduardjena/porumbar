@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, ElementRef, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
@@ -8,7 +8,7 @@ import { PedigreeSheet } from '../../shared/pedigree-sheet';
 import { QrCode } from '../../shared/qr-code';
 
 /*
- * Pedigree-ul tipărit (A4 orizontal, spec §7): 5 generații în căsuțe, strămoșii repetați colorați, jos datele
+ * Pedigree-ul tipărit (A4 vertical, ca fișele de pedigree pe hârtie): 5 generații în căsuțe, strămoșii repetați colorați, jos datele
  * crescătorului alese de el și codul QR al linkului public (care duce la tot pedigree-ul, cu textele întregi).
  * „Tipărește / Salvează PDF” deschide fereastra de tipărire a browserului (de acolo se alege și PDF).
  */
@@ -26,52 +26,67 @@ import { QrCode } from '../../shared/qr-code';
     @if (error()) { <div class="error no-print" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
     @if (data(); as d) {
-      <article class="page">
-        <header>
-          <div>
-            <p class="kicker">Pedigree</p>
-            <h1><span class="mono">{{ d.root.ring ?? 'fără inel' }}</span>@if (d.root.name) { „{{ d.root.name }}” }</h1>
-          </div>
-          <p class="brand">Porumbar</p>
-        </header>
-        <app-pedigree-sheet [root]="d.root" [compact]="true" />
-        <footer>
-          <div class="owner">
-            <strong>Crescător: {{ d.owner.name }}</strong>
-            @if (d.owner.phone) { <span>Tel.: {{ d.owner.phone }}</span> }
-            @if (d.owner.email) { <span>{{ d.owner.email }}</span> }
-            @if (d.owner.address) { <span>{{ d.owner.address }}</span> }
-            <span class="muted">Tipărit pe {{ today }}. Strămoșii colorați la fel apar de mai multe ori.</span>
-          </div>
-          @if (url(); as u) {
-            <div class="qr">
-              <app-qr-code [url]="u" [size]="240" />
-              <span>Scanează pentru pedigree-ul complet</span>
+      <!-- Foaia A4 vertical: 186 × 272 mm de conținut (1 mm rezervă ca să nu treacă pe a doua pagină), cu 12 mm margine liberă pe fiecare latură (imprimanta nu tipărește până în margine). -->
+      <div class="preview" #preview>
+        <article class="page" [style.zoom]="zoom()">
+          <header>
+            <div class="title">
+              <h1>Pedigree porumbel: <span class="mono">{{ d.root.ring ?? 'fără inel' }}</span>@if (d.root.sex) { {{ d.root.sex }} }</h1>
+              <p>@if (d.root.name) { <strong>„{{ d.root.name }}”</strong> · }{{ facts(d) }}</p>
             </div>
-          }
-        </footer>
-      </article>
+            @if (url(); as u) {
+              <div class="qr">
+                <app-qr-code [url]="u" [size]="240" />
+                <span>Scanează pentru pedigree-ul complet</span>
+              </div>
+            }
+          </header>
+          <div class="sheet-area"><app-pedigree-sheet [root]="d.root" [paper]="true" /></div>
+          <footer>
+            <div class="owner">
+              <strong>{{ d.owner.name }}</strong>
+              @if (d.owner.address) { <span>{{ d.owner.address }}</span> }
+              @if (d.owner.phone) { <span>Tel.: {{ d.owner.phone }}</span> }
+              @if (d.owner.email) { <span>{{ d.owner.email }}</span> }
+            </div>
+            <div class="stamp">
+              <span>Strămoșii colorați la fel apar de mai multe ori.</span>
+              <span>Tipărit pe {{ today }} · Porumbar</span>
+            </div>
+          </footer>
+        </article>
+      </div>
     } @else if (!error()) {
       <p class="muted">Se pregătește pedigree-ul…</p>
     }
   `,
   styles: `
     .bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-    .page { width: min(1062px, 100%); margin: 0 auto; background: #fff; padding: 0; border: 1px solid var(--border); border-radius: 12px; }
-    header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--text); padding-bottom: 4px; margin-bottom: 6px; }
-    .kicker { margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.75rem; color: var(--accent-strong); }
-    h1 { margin: 0; font-size: 1.3rem; }
-    .brand { margin: 0; font-weight: 800; color: var(--muted); }
-    footer { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 4px; }
-    .owner { display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem; }
-    .qr { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 92px; font-size: 6.5pt; text-align: center; }
-    .owner { font-size: 8pt !important; }
-    .qr app-qr-code { width: 92px; }
+    /* Pe ecran: aceeași foaie A4 verticală ca la tipar; pe ecrane înguste e micșorată întreagă (zoom), nu tăiată. */
+    .preview { padding-bottom: 12px; }
+    .page {
+      box-sizing: content-box; width: 186mm; height: 272mm; padding: 12mm; margin: 0 auto; background: #fff; color: #2b2117;
+      display: flex; flex-direction: column; gap: 3mm; border: 1px solid var(--border); box-shadow: var(--shadow);
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    header { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; height: 26mm; }
+    .title h1 { margin: 0; font-size: 15pt; letter-spacing: 0.01em; }
+    .title h1 .mono { font-size: 1em; }
+    .title p { margin: 1.5mm 0 0; font-size: 9pt; }
+    .qr { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.8mm; width: 24mm; font-size: 5.5pt; text-align: center; line-height: 1.15; }
+    .qr app-qr-code { width: 22mm; }
+    .sheet-area { flex: 1; min-height: 0; }
+    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; height: 16mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
+    .owner { display: flex; flex-direction: column; font-size: 8pt; line-height: 1.3; }
+    .owner strong { font-size: 9pt; }
+    .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 6.5pt; color: #6b5d4f; }
     @media print {
-      @page { size: A4 landscape; margin: 8mm; }
+      @page { size: A4 portrait; margin: 0; }
       :host { display: block; }
       .no-print { display: none !important; }
-      .page { width: 100%; border: 0; padding: 0; border-radius: 0; break-inside: avoid; }
+      .preview { overflow: visible; padding: 0; }
+      /* Marginea de 12 mm e în foaie (padding), nu lăsată la imprimantă: arată la fel pe orice imprimantă. */
+      .page { zoom: 1 !important; border: 0; box-shadow: none; margin: 0; break-inside: avoid; page-break-after: avoid; }
     }
   `,
 })
@@ -83,13 +98,35 @@ export default class Tiparire {
   readonly url = signal<string | null>(null);
   readonly loaded = signal(false);
   readonly error = signal('');
+  /** Cât se micșorează foaia pe ecran ca să încapă pe lățime (1 = mărime reală, 210 mm). */
+  readonly zoom = signal(1);
+  private readonly preview = viewChild<ElementRef<HTMLElement>>('preview');
   protected readonly today = new Date().toLocaleDateString('ro-RO');
+  /** Rândul de sub titlu: sexul, anul, culoarea, crescătorul (ce se știe). */
+  protected facts(d: PedigreeV1) {
+    const r = d.root;
+    const sex = r.sex === 'M' ? 'Mascul' : r.sex === 'F' ? 'Femelă' : '';
+    const color = r.colorText || (r.colorLabel ? `${r.colorLabel}${r.colorPa ? ' p.a.' : ''}` : '');
+    return [sex, r.year ? String(r.year) : '', color, r.breeder ?? ''].filter(Boolean).join(' · ');
+  }
 
   constructor() {
     effect(() => {
       const id = this.id();
       untracked(() => this.load(id));
     });
+    // Foaia are 210 mm (≈ 794 px); pe ecranele mai înguste o micșorăm toată, ca să se vadă pagina verticală întreagă.
+    let observer: ResizeObserver | undefined;
+    effect(() => {
+      const el = this.preview()?.nativeElement;
+      observer?.disconnect();
+      if (!el) return;
+      const fit = () => this.zoom.set(Math.min(1, el.clientWidth / ((210 / 25.4) * 96 + 2)));
+      observer = new ResizeObserver(fit);
+      observer.observe(el);
+      fit();
+    });
+    inject(DestroyRef).onDestroy(() => observer?.disconnect());
   }
 
   private async load(id: string) {

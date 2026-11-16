@@ -18,7 +18,7 @@ interface Box {
  */
 @Component({
   selector: 'app-pedigree-sheet',
-  host: { '[class.compact]': 'compact()' },
+  host: { '[class.compact]': 'compact()', '[class.paper]': 'paper()' },
   template: `
     <div class="heads" aria-hidden="true">@for (h of heads.slice(0, generations()); track h) { <div>{{ h }}</div> }</div>
     <div class="sheet" [style.grid-template-columns]="'repeat(' + generations() + ', minmax(0, 1fr))'" [style.grid-template-rows]="'repeat(' + rows() + ', auto)'">
@@ -70,10 +70,33 @@ interface Box {
     :host(.compact) .txt.t2 { -webkit-line-clamp: 3; }
     :host(.compact) .txt.t3, :host(.compact) .txt.t4 { -webkit-line-clamp: 1; }
     :host(.compact) .g3 .meta, :host(.compact) .g4 .meta { display: none; }
+    /*
+     * Pe hârtie (A4 vertical, ca fișele myloft / Compuclub): înălțime fixă, 16 rânduri egale; fiecare căsuță umple
+     * locul ei, textul se scurtează după cât încape. Culorile repetărilor se tipăresc.
+     */
+    :host(.paper) { height: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    :host(.paper) .heads { display: none; }
+    :host(.paper) .sheet { height: 100%; grid-template-columns: 18% 20.5% 20.5% 20.5% 20.5% !important; grid-template-rows: repeat(16, minmax(0, 1fr)) !important; gap: 1.2mm 1.6mm; }
+    :host(.paper) .box { align-self: stretch; overflow: hidden; padding: 0.9mm 1.3mm; border-radius: 1.4mm; border: 0.25mm solid #8f8476; background: #fff; box-shadow: 0.6mm 0.6mm 0 #3a3129; font-size: 6.6pt; line-height: 1.22; }
+    :host(.paper) .box.g0 { align-self: center; height: 34%; min-height: 34mm; font-size: 8.5pt; border: 0.5mm solid #a33d1c; }
+    :host(.paper) .box.g1 { font-size: 7.4pt; }
+    :host(.paper) .box.g2 { font-size: 7pt; }
+    :host(.paper) .box.g4 { font-size: 6.2pt; padding: 0.6mm 1.1mm; }
+    /* Pe hârtie inelul nu se taie niciodată: dacă nu încape, trece pe rândul următor. */
+    :host(.paper) .line1 { align-items: flex-start; }
+    :host(.paper) .line1 strong { color: #a33d1c; font-size: 1.05em; white-space: normal; overflow-wrap: anywhere; }
+    :host(.paper) .sx { width: 3mm; height: 3mm; font-size: 5pt; }
+    :host(.paper) .meta, :host(.paper) .txt { font-size: 1em; color: #2b2117; }
+    :host(.paper) .txt.t0 { -webkit-line-clamp: 14; }
+    :host(.paper) .txt.t1 { -webkit-line-clamp: 26; }
+    :host(.paper) .txt.t2 { -webkit-line-clamp: 12; }
+    :host(.paper) .txt.t3 { -webkit-line-clamp: 4; }
+    :host(.paper) .txt.t4 { -webkit-line-clamp: 1; }
+    :host(.paper) .g4 .meta { display: none; }
     @media screen and (max-width: 767px) {
-      .heads { display: none; }
-      .sheet { display: flex; flex-direction: column; }
-      .box { grid-row: auto !important; }
+      :host(:not(.paper)) .heads { display: none; }
+      :host(:not(.paper)) .sheet { display: flex; flex-direction: column; }
+      :host(:not(.paper)) .box { grid-row: auto !important; }
     }
   `,
 })
@@ -82,6 +105,8 @@ export class PedigreeSheet {
   readonly generations = input(5);
   /** Foaia tipărită: totul pe o pagină A4. */
   readonly compact = input(false);
+  /** Foaia A4 vertical (pagina de tipar): înălțime fixă, căsuțe pe 16 rânduri egale. */
+  readonly paper = input(false);
   protected readonly heads = HEADS;
   protected readonly rows = computed(() => 2 ** (this.generations() - 1));
 

@@ -7,7 +7,7 @@ import { PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
 
-/** Lista porumbeilor: toți odată, pe rânduri compacte, cu căutare și filtre (și strămoșii, dacă îi alegi). */
+/** Lista porumbeilor: toți odată, pe rânduri compacte, cu căutare și filtre (și pe cei din alte porumbare, dacă îi alegi). */
 @Component({
   selector: 'app-porumbar',
   imports: [FormsModule, RouterLink, Icon, ViewToggle],
@@ -29,8 +29,8 @@ import { ViewToggle } from '../../shared/view-toggle';
         <input type="search" placeholder="Caută după inel sau nume" aria-label="Caută după inel sau nume" [(ngModel)]="q" (ngModelChange)="search()" />
       </label>
       <select [(ngModel)]="kind" (ngModelChange)="load()" aria-label="Ce porumbei">
-        <option value="own">Porumbeii mei</option>
-        <option value="external">Strămoși (ai altora)</option>
+        <option value="own">Din porumbarul meu</option>
+        <option value="external">Din alt porumbar</option>
         <option value="">Toți</option>
       </select>
       <select [(ngModel)]="status" (ngModelChange)="load()" aria-label="Starea">
@@ -58,7 +58,7 @@ import { ViewToggle } from '../../shared/view-toggle';
               <span [class]="'sex sex-' + (p.sex ?? '')">{{ sexS(p.sex) }}</span>
               <span class="name">{{ p.name ?? '' }}</span>
               <span class="muted year">{{ p.year ?? '' }}</span>
-              <span class="muted status">{{ p.kind === 'external' ? 'strămoș' : catalog.label('statuses', p.status) }}</span>
+              <span class="muted status">{{ p.kind === 'external' ? 'din alt porumbar' : catalog.label('statuses', p.status) }}</span>
               <app-icon name="inainte" [size]="20" class="go" />
             </a>
           </li>

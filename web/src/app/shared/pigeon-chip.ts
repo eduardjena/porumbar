@@ -16,7 +16,7 @@ import { CatalogService, ringText, sexShort } from '../core/catalog';
           @if (p.year) { <span class="muted">{{ p.year }}</span> }
           @if (p.name) { <span class="name">„{{ p.name }}”</span> }
           @if (color()) { <span class="muted">{{ color() }}</span> }
-          @if (p.kind === 'external') { <span class="badge">strămoș</span> }
+          @if (p.kind === 'external') { <span class="badge">din alt porumbar</span> }
         </a>
       } @else {
         <span class="chip plain">

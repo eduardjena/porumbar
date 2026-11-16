@@ -2,10 +2,11 @@ import { Component, computed, inject, input, OnInit, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
-import { CatalogService } from '../../core/catalog';
-import { Kind, Pigeon, Sex } from '../../core/models';
+import { CatalogService, percent, ringText } from '../../core/catalog';
+import { CoiResult, Kind, Pigeon, PigeonSummary, Sex } from '../../core/models';
 import { RingInput } from '../../shared/ring-input';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
+import { PigeonPicker } from '../../shared/pigeon-picker';
 
 interface Draft {
   kind: Kind;
@@ -26,6 +27,9 @@ interface Draft {
   calitati: string;
   deDorit: string;
   defecte: string;
+  /** Doar la porumbel nou: părinții aleși înainte de salvare. */
+  father?: PigeonSummary | null;
+  mother?: PigeonSummary | null;
 }
 
 const empty = (): Draft => ({
@@ -62,7 +66,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [FormsModule, RingInput, Breadcrumbs],
+  imports: [FormsModule, RingInput, Breadcrumbs, PigeonPicker],
   template: `
     <app-breadcrumbs [items]="crumbs()" />
     <h1>{{ id() ? 'Editează porumbelul' : 'Porumbel nou' }}</h1>
@@ -73,12 +77,32 @@ function writeDraft(id: string | undefined, d: Draft | null) {
       </div>
     }
     @if (d(); as f) {
+      @if (!id()) {
+        <!-- Întâi părinții (cerut de crescător): cine e tatăl, cine e mama, apoi seria puiului. În afara formularului,
+             ca Enter în căutarea unui părinte să nu salveze porumbelul. -->
+        <section class="card stack parents">
+          <h2>Părinții</h2>
+          <p class="muted">Scrie seria de inel a tatălui și a mamei. Vezi pe loc istoricul lor; dacă nu sunt încă în program, îi notezi.</p>
+          <app-pigeon-picker label="Tatăl" sex="M" [selected]="f.father ?? null" (picked)="setParent('father', $event)" />
+          <app-pigeon-picker label="Mama" sex="F" [selected]="f.mother ?? null" (picked)="setParent('mother', $event)" />
+          @if (pairCoi(); as c) {
+            <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
+              @if (c.coi > 0) {
+                Puiul lor are consangvinizare <strong>{{ pct(c.coi) }}</strong> (strămoși comuni:
+                @for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : ', ' }}}).
+              } @else {
+                Tatăl și mama nu au strămoși comuni cunoscuți.
+              }
+            </div>
+          }
+        </section>
+      }
       <form class="stack" (ngSubmit)="save()" (input)="keep()" (change)="keep()">
         <section class="card stack">
           <h2>Identitate</h2>
           <div class="row kinds" role="radiogroup" aria-label="Al cui e porumbelul">
-            <label class="check"><input type="radio" name="kind" value="own" [(ngModel)]="f.kind" /> E porumbelul meu</label>
-            <label class="check"><input type="radio" name="kind" value="external" [(ngModel)]="f.kind" /> E un strămoș (al altcuiva)</label>
+            <label class="check"><input type="radio" name="kind" value="own" [(ngModel)]="f.kind" /> Din porumbarul meu</label>
+            <label class="check"><input type="radio" name="kind" value="external" [(ngModel)]="f.kind" /> Din alt porumbar</label>
           </div>
           <app-ring-input [(value)]="f.ring" [required]="f.kind === 'own'" />
           <fieldset class="row sexes">
@@ -193,6 +217,9 @@ export default class PorumbelForm implements OnInit {
   readonly d = signal<Draft | null>(null);
   /** Inelul salvat (pentru firimituri), nu cel din formular. */
   readonly savedRing = signal('');
+  readonly pairCoi = signal<CoiResult | null>(null);
+  protected readonly pct = percent;
+  protected readonly ring = ringText;
   protected readonly crumbs = computed<Crumb[]>(() =>
     this.id()
       ? [{ label: 'Panou', link: ['/panou'] }, { label: this.savedRing() || 'Porumbel', link: ['/porumbei', this.id()!] }, { label: 'Editează' }]
@@ -232,6 +259,24 @@ export default class PorumbelForm implements OnInit {
     this.router.navigate(this.id() ? ['/porumbei', this.id()] : ['/panou']);
   }
 
+  /** Alege un părinte; liniile puiului se propun din liniile părinților, dacă n-ai scris altele. */
+  async setParent(side: 'father' | 'mother', p: PigeonSummary | null) {
+    const f = this.d()!;
+    f[side] = p;
+    const lines = (x: PigeonSummary | null | undefined) => ((x as { lines?: string[] } | null | undefined)?.lines ?? []);
+    if (!f.lines.trim()) f.lines = [...new Set([...lines(f.father), ...lines(f.mother)])].join(', ');
+    this.d.set({ ...f });
+    this.keep();
+    this.pairCoi.set(null);
+    if (f.father && f.mother) {
+      try {
+        this.pairCoi.set(await this.api.get<CoiResult>(`/pairs/coi?sireId=${f.father.id}&damId=${f.mother.id}`));
+      } catch {
+        /* fără consangvinizare afișată; nu împiedică salvarea */
+      }
+    }
+  }
+
   setScore(code: string, n: number) {
     const f = this.d()!;
     f.scores[code] = f.scores[code] === n ? null : n;
@@ -265,6 +310,13 @@ export default class PorumbelForm implements OnInit {
       const r = this.id()
         ? await this.api.patch<{ pigeon: Pigeon }>(`/pigeons/${this.id()}`, body)
         : await this.api.post<{ pigeon: Pigeon }>('/pigeons', body);
+      // Porumbel nou: părinții aleși la început se leagă acum. Dacă legarea nu merge (de ex. o greșeală de sex),
+      // porumbelul e oricum salvat, iar părinții se aleg din nou în fișa lui.
+      if (!this.id() && (f.father || f.mother)) {
+        await this.api
+          .put(`/pigeons/${r.pigeon.id}/parents`, { fatherId: f.father?.id ?? null, motherId: f.mother?.id ?? null })
+          .catch(() => undefined);
+      }
       writeDraft(this.id(), null);
       this.router.navigate(['/porumbei', r.pigeon.id], { queryParams: this.id() ? {} : { nou: 1 } });
     } catch (e) {

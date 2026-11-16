@@ -109,6 +109,9 @@ const MIGRATIONS = [
   CREATE INDEX ix_photos_pigeon ON photos (pigeon_id);
   CREATE INDEX ix_photos_account ON photos (account_id);
   `,
+
+  // 5: fără poze (cerut de utilizator: nu ocupăm spațiu pe server cu pozele porumbeilor).
+  'DROP TABLE photos',
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

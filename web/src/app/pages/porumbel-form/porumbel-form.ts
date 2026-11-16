@@ -5,6 +5,7 @@ import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { Kind, Pigeon, Sex } from '../../core/models';
 import { RingInput } from '../../shared/ring-input';
+import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 
 interface Draft {
   kind: Kind;
@@ -61,8 +62,9 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [FormsModule, RingInput],
+  imports: [FormsModule, RingInput, Breadcrumbs],
   template: `
+    <app-breadcrumbs [items]="crumbs()" />
     <h1>{{ id() ? 'Editează porumbelul' : 'Porumbel nou' }}</h1>
     @if (restored()) {
       <div class="notice row" role="status">
@@ -189,6 +191,13 @@ export default class PorumbelForm implements OnInit {
   readonly id = input<string>();
   protected readonly cat = computed(() => this.catalog.catalog());
   readonly d = signal<Draft | null>(null);
+  /** Inelul salvat (pentru firimituri), nu cel din formular. */
+  readonly savedRing = signal('');
+  protected readonly crumbs = computed<Crumb[]>(() =>
+    this.id()
+      ? [{ label: 'Panou', link: ['/panou'] }, { label: this.savedRing() || 'Porumbel', link: ['/porumbei', this.id()!] }, { label: 'Editează' }]
+      : [{ label: 'Panou', link: ['/panou'] }, { label: 'Porumbel nou' }],
+  );
   readonly restored = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
@@ -196,7 +205,9 @@ export default class PorumbelForm implements OnInit {
   async ngOnInit() {
     const draft = readDraft(this.id());
     try {
-      const base = this.id() ? fromPigeon((await this.api.get<{ pigeon: Pigeon }>(`/pigeons/${this.id()}`)).pigeon) : empty();
+      const saved = this.id() ? (await this.api.get<{ pigeon: Pigeon }>(`/pigeons/${this.id()}`)).pigeon : null;
+      this.savedRing.set(saved?.ring?.display ?? '');
+      const base = saved ? fromPigeon(saved) : empty();
       this.d.set(draft ?? base);
       this.restored.set(!!draft);
     } catch (e) {

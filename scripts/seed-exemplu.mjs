@@ -46,4 +46,25 @@ for (const { pedigree, extra } of EXAMPLES) {
   await call(`/api/pigeons/${id}`, { method: 'PATCH', cookie, body: extra });
   console.log(`Gata: ${base}/porumbei/${id}`);
 }
+// 40 de pui inventați (date de test), ca grila și rețeaua să arate ca un porumbar adevărat: părinți din exemple,
+// note diferite, unii marcați reproducători.
+const own = async (ring) => (await call(`/api/pigeons/lookup?ring=${encodeURIComponent(ring)}`, { cookie })).data.matches.find((m) => m.pigeon.kind === 'own')?.pigeon;
+const fumur = await own(PEDIGREE_FOTO.ring);
+const de546 = await own(PEDIGREE_COMPUCLUB.ring);
+const dam = (await call(`/api/pigeons/lookup?ring=${encodeURIComponent('RO-24-671653')}`, { cookie })).data.matches[0]?.pigeon;
+let rnd = 7;
+const next = () => (rnd = (rnd * 9301 + 49297) % 233280) / 233280;
+let added = 0;
+for (let i = 1; i <= 40; i++) {
+  const ring = `RO-25-${900000 + i}`;
+  if (await own(ring)) continue;
+  const scores = next() < 0.85 ? { echilibru: 1 + Math.floor(next() * 5), musculatura: 1 + Math.floor(next() * 5), aripa: 1 + Math.floor(next() * 5) } : {};
+  const body = { kind: 'own', ring, sex: next() < 0.5 ? 'M' : 'F', name: `Pui ${i}`, status: next() < 0.15 ? 'reproducator' : 'tanar', evaluation: { scores } };
+  const r = await call('/api/pigeons', { method: 'POST', cookie, body });
+  if (r.status !== 201) throw new Error(`${ring}: ${r.status} ${JSON.stringify(r.data)}`);
+  const father = i % 2 ? fumur : de546;
+  await call(`/api/pigeons/${r.data.pigeon.id}/parents`, { method: 'PUT', cookie, body: { fatherId: father?.id ?? null, motherId: i % 3 === 0 ? (dam?.id ?? null) : null } });
+  added++;
+}
+if (added) console.log(`Am adăugat ${added} pui de test.`);
 console.log(`Intră cu ${EMAIL} / ${PASSWORD}`);

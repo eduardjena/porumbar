@@ -5,6 +5,7 @@ import { Api, errorMessage } from '../../core/api';
 import { CatalogService, sexShort } from '../../core/catalog';
 import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { ViewToggle } from '../../shared/view-toggle';
 
 const BANDS = [
   { band: 5, label: '80–100' },
@@ -26,7 +27,7 @@ function reasons(p: BoardPigeon): string {
 
 @Component({
   selector: 'app-panou',
-  imports: [FormsModule, RouterLink, Icon],
+  imports: [FormsModule, RouterLink, Icon, ViewToggle],
   template: `
     <div class="head">
       <div>
@@ -34,8 +35,8 @@ function reasons(p: BoardPigeon): string {
         @if (loaded()) { <p class="muted count">{{ all().length }} {{ all().length === 1 ? 'porumbel' : 'porumbei' }}, cei mai valoroși primii</p> }
       </div>
       <div class="row actions">
-        <a routerLink="/porumbar" class="btn"><app-icon name="lista" />Listă</a>
-        <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Porumbel nou</a>
+        <app-view-toggle current="grila" />
+        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />Porumbel nou</a>
       </div>
     </div>
 
@@ -68,26 +69,20 @@ function reasons(p: BoardPigeon): string {
       <p class="muted">Niciun porumbel nu se potrivește căutării.</p>
     }
 
-    <ol class="ranking">
+    <!-- Grilă compactă: încap zeci de porumbei pe ecran (2 pe rând pe telefon, 5–6 pe calculator). -->
+    <ol class="grid">
       @for (p of shown(); track p.id) {
         <li>
-          <a [routerLink]="['/porumbei', p.id]" class="item">
-            <span class="score" [class]="'score band-' + p.value.band" [attr.aria-label]="p.value.score == null ? 'fără notă' : 'nota ' + p.value.score">
-              {{ p.value.score ?? '–' }}
-            </span>
-            <span class="body">
-              <span class="line1">
-                <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
-                @if (p.name) { <span class="name">{{ p.name }}</span> }
+          <a [routerLink]="['/porumbei', p.id]" class="tile" [title]="why(p)">
+            <span class="top">
+              <span class="score" [class]="'score band-' + p.value.band" [attr.aria-label]="p.value.score == null ? 'fără notă' : 'nota ' + p.value.score">
+                {{ p.value.score ?? '–' }}
               </span>
-              <span class="line2 muted">
-                <span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
-                @if (p.year) { · {{ p.year }} }
-                @if (p.status) { · {{ catalog.label('statuses', p.status) }} }
-              </span>
-              <span class="why">{{ why(p) }}</span>
+              <span [class]="'sex sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
             </span>
-            <app-icon name="inainte" class="go" />
+            <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+            <span class="name">{{ p.name || ' ' }}</span>
+            <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
           </a>
         </li>
       }
@@ -110,22 +105,20 @@ function reasons(p: BoardPigeon): string {
     .search { position: relative; display: block; }
     .search app-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
     .search input { padding-left: 50px; border-radius: 999px; }
-    .ranking { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 10px; }
-    .item {
-      display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: var(--radius); background: var(--surface);
-      border: 1px solid var(--border); box-shadow: var(--shadow); color: var(--text); text-decoration: none; min-height: 88px;
+    .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
+    .tile {
+      display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: var(--radius); background: var(--surface);
+      border: 1px solid var(--border); box-shadow: var(--shadow); color: var(--text); text-decoration: none; height: 100%;
       transition: border-color 0.15s, transform 0.2s var(--ease);
     }
-    .item:hover { border-color: var(--accent); }
-    .item:active { transform: scale(0.99); }
-    .score { flex: none; width: 60px; height: 60px; border-radius: 16px; display: grid; place-items: center; font-size: 1.45rem; font-weight: 800; }
-    .body { display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 1px; }
-    .line1 { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
-    .ring { font-size: 1.05rem; }
-    .name { font-weight: 700; }
-    .line2 { font-size: 0.92rem; }
-    .why { font-size: 0.85rem; color: var(--muted); }
-    .go { color: var(--border-strong); }
+    .tile:hover { border-color: var(--accent); }
+    .tile:active { transform: scale(0.98); }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .score { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 1.25rem; font-weight: 800; }
+    .sex { font-size: 1rem; padding-top: 2px; }
+    .ring { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.5em; }
+    .meta { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 24px; }
     .chip { padding: 4px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; }
     .small { font-size: 0.9rem; max-width: 70ch; }
@@ -133,10 +126,11 @@ function reasons(p: BoardPigeon): string {
     .empty h2 { margin: 8px 0 0; }
     .empty-ico { width: 88px; height: 88px; border-radius: 28px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
     @media (max-width: 767px) {
-      .actions { display: none; }
+      .actions .add { display: none; }
       .filters { grid-template-columns: 1fr 1fr; }
       .search { grid-column: 1 / -1; }
-      .ranking { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .tile { padding: 10px; }
     }
   `,
 })

@@ -39,10 +39,6 @@ export class Api {
     return firstValueFrom(this.http.delete<T>(`/api${path}`, { body }));
   }
 
-  /** Trimite un fișier (poză) ca atare, cu tipul lui. */
-  upload<T>(path: string, file: Blob): Promise<T> {
-    return firstValueFrom(this.http.post<T>(`/api${path}`, file, { headers: { 'Content-Type': file.type || 'application/octet-stream' } }));
-  }
 }
 
 /** La sesiune expirată, omul ajunge la pagina de intrare. */

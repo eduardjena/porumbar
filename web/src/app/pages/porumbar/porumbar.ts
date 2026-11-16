@@ -1,94 +1,115 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
-import { CatalogService } from '../../core/catalog';
+import { CatalogService, sexShort } from '../../core/catalog';
 import { PigeonSummary } from '../../core/models';
-import { PigeonChip } from '../../shared/pigeon-chip';
 import { Icon } from '../../shared/icon';
+import { ViewToggle } from '../../shared/view-toggle';
 
-const PAGE = 50;
-
+/** Lista porumbeilor: toți odată, pe rânduri compacte, cu căutare și filtre (și strămoșii, dacă îi alegi). */
 @Component({
   selector: 'app-porumbar',
-  imports: [FormsModule, RouterLink, PigeonChip, Icon],
+  imports: [FormsModule, RouterLink, Icon, ViewToggle],
   template: `
     <div class="head">
-      <h1>Lista porumbeilor</h1>
-      <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Porumbel nou</a>
+      <div>
+        <h1>Porumbarul meu</h1>
+        @if (loaded()) { <p class="muted count">{{ pigeons().length }} {{ pigeons().length === 1 ? 'porumbel' : 'porumbei' }}</p> }
+      </div>
+      <div class="row actions">
+        <app-view-toggle current="lista" />
+        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />Porumbel nou</a>
+      </div>
     </div>
 
-    <div class="card stack filters">
-      <label class="field">Caută după inel sau nume
-        <input type="search" name="q" placeholder="de ex. RO-25-276971 sau 276971" [(ngModel)]="q" (ngModelChange)="search()" />
+    <div class="filters">
+      <label class="search">
+        <app-icon name="cautare" />
+        <input type="search" placeholder="Caută după inel sau nume" aria-label="Caută după inel sau nume" [(ngModel)]="q" (ngModelChange)="search()" />
       </label>
-      <div class="row">
-        <select [(ngModel)]="kind" (ngModelChange)="load()" aria-label="Ce porumbei">
-          <option value="own">Porumbeii mei</option>
-          <option value="external">Strămoși (ai altora)</option>
-          <option value="">Toți</option>
-        </select>
-        <select [(ngModel)]="status" (ngModelChange)="load()" aria-label="Starea">
-          <option value="">Orice stare</option>
-          @for (s of catalog.catalog()?.statuses ?? []; track s.code) { <option [value]="s.code">{{ s.label }}</option> }
-        </select>
-        <select [(ngModel)]="sex" (ngModelChange)="load()" aria-label="Sexul">
-          <option value="">Masculi și femele</option>
-          <option value="M">Masculi</option>
-          <option value="F">Femele</option>
-        </select>
-        <input type="number" inputmode="numeric" placeholder="Anul" aria-label="Anul inelului" [(ngModel)]="year" (ngModelChange)="search()" class="year" />
-      </div>
+      <select [(ngModel)]="kind" (ngModelChange)="load()" aria-label="Ce porumbei">
+        <option value="own">Porumbeii mei</option>
+        <option value="external">Strămoși (ai altora)</option>
+        <option value="">Toți</option>
+      </select>
+      <select [(ngModel)]="status" (ngModelChange)="load()" aria-label="Starea">
+        <option value="">Orice stare</option>
+        @for (s of catalog.catalog()?.statuses ?? []; track s.code) { <option [value]="s.code">{{ s.label }}</option> }
+      </select>
+      <select [(ngModel)]="sex" (ngModelChange)="load()" aria-label="Sexul">
+        <option value="">Masculi și femele</option>
+        <option value="M">Masculi</option>
+        <option value="F">Femele</option>
+      </select>
     </div>
 
-    @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
+    @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (loaded() && !pigeons().length) {
-      <div class="card empty stack">
-        @if (q || status || sex || year || kind !== 'own') {
-          <p>Niciun porumbel nu se potrivește căutării.</p>
-        } @else {
-          <p>Porumbarul e gol deocamdată.</p>
-          <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Adaugă primul porumbel</a>
-        }
-      </div>
+      <p class="muted">{{ q || status || sex || kind !== 'own' ? 'Niciun porumbel nu se potrivește căutării.' : 'Porumbarul e gol deocamdată.' }}</p>
     }
-    <ul class="list">
-      @for (p of visible(); track p.id) {
-        <li class="card item">
-          <app-pigeon-chip [pigeon]="p" />
-          @if (p.status) { <span class="badge">{{ catalog.label('statuses', p.status) }}</span> }
-        </li>
-      }
-    </ul>
-    @if (pigeons().length > shown()) {
-      <button type="button" class="wide" (click)="shown.set(shown() + PAGE)">Arată mai mulți ({{ pigeons().length - shown() }} rămași)</button>
+
+    @if (pigeons().length) {
+      <ul class="rows card">
+        @for (p of pigeons(); track p.id) {
+          <li>
+            <a [routerLink]="['/porumbei', p.id]">
+              <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+              <span [class]="'sex sex-' + (p.sex ?? '')">{{ sexS(p.sex) }}</span>
+              <span class="name">{{ p.name ?? '' }}</span>
+              <span class="muted year">{{ p.year ?? '' }}</span>
+              <span class="muted status">{{ p.kind === 'external' ? 'strămoș' : catalog.label('statuses', p.status) }}</span>
+              <app-icon name="inainte" [size]="20" class="go" />
+            </a>
+          </li>
+        }
+      </ul>
     }
   `,
   styles: `
-    .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .filters { margin-bottom: 16px; }
-    .filters select { width: auto; flex: 1 1 160px; }
-    .year { width: 120px; flex: 0 0 120px; }
-    .list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-    .item { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 16px; }
-    .empty { text-align: center; align-items: center; }
+    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .head h1 { margin-bottom: 2px; }
+    .count { margin: 0; }
+    .filters { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; margin-bottom: 16px; }
+    .filters select { width: auto; }
+    .search { position: relative; display: block; }
+    .search app-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .search input { padding-left: 50px; border-radius: 999px; }
+    .rows { list-style: none; margin: 0; padding: 4px 0; }
+    .rows li + li { border-top: 1px solid var(--border); }
+    .rows a {
+      display: grid; grid-template-columns: minmax(150px, 1.2fr) 28px minmax(0, 1.4fr) 56px minmax(0, 1fr) 20px; gap: 10px;
+      align-items: center; min-height: 52px; padding: 4px 16px; color: var(--text); text-decoration: none;
+    }
+    .rows a:hover { background: var(--accent-soft); }
+    .ring { white-space: nowrap; }
+    .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; }
+    .go { color: var(--border-strong); }
+    @media (max-width: 767px) {
+      .actions .add { display: none; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .search { grid-column: 1 / -1; }
+      .filters select:first-of-type { grid-column: 1 / -1; }
+      .rows a { grid-template-columns: minmax(0, 1fr) 24px 52px 20px; padding: 6px 12px; row-gap: 0; }
+      .rows .name { grid-column: 1; grid-row: 2; font-size: 0.95rem; }
+      .rows .status { display: none; }
+    }
   `,
 })
 export default class Porumbar {
   private readonly api = inject(Api);
   protected readonly catalog = inject(CatalogService);
-  protected readonly PAGE = PAGE;
+  protected readonly sexS = sexShort;
   q = '';
   kind = 'own';
   status = '';
   sex = '';
-  year: number | null = null;
   readonly pigeons = signal<PigeonSummary[]>([]);
   readonly loaded = signal(false);
   readonly error = signal('');
-  readonly shown = signal(PAGE);
-  readonly visible = computed(() => this.pigeons().slice(0, this.shown()));
   private timer: ReturnType<typeof setTimeout> | undefined;
+  private request = 0;
 
   constructor() {
     this.load();
@@ -105,14 +126,14 @@ export default class Porumbar {
     if (this.kind) params.set('kind', this.kind);
     if (this.status) params.set('status', this.status);
     if (this.sex) params.set('sex', this.sex);
-    if (this.year) params.set('year', String(this.year));
+    const req = ++this.request;
     try {
       const r = await this.api.get<{ pigeons: PigeonSummary[] }>(`/pigeons?${params}`);
+      if (req !== this.request) return; // între timp s-a cerut altă căutare
       this.pigeons.set(r.pigeons);
-      this.shown.set(PAGE);
       this.error.set('');
     } catch (e) {
-      this.error.set(errorMessage(e));
+      if (req === this.request) this.error.set(errorMessage(e));
     } finally {
       this.loaded.set(true);
     }

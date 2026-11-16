@@ -136,8 +136,3 @@ export interface JournalEntry {
   text: string;
 }
 
-export interface Photo {
-  id: number;
-  kind: string;
-  url: string;
-}

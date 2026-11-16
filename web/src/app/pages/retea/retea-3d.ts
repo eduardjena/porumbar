@@ -238,11 +238,10 @@ export default class Retea3d implements OnDestroy {
         this.lit = related(n.id);
         this.selected.set(byId.get(n.id) ?? null);
         this.refreshColors();
-        const d = 120;
-        const r = Math.hypot(n.x ?? 0, n.y ?? 0, n.z ?? 0) || 1;
-        this.graph.cameraPosition({ x: (n.x ?? 0) * (1 + d / r), y: (n.y ?? 0) * (1 + d / r), z: (n.z ?? 0) * (1 + d / r) + d }, n, 900);
-        this.setSpin(false);
+        this.setSpin(false); // camera rămâne unde a lăsat-o omul
       })
+      // Sferele nu se trag cu mouse-ul: tragerea rotește / mută vederea, iar arborele nu se rearanjează.
+      .enableNodeDrag(false)
       .onBackgroundClick(() => this.clearSelection())
       .onNodeHover((n: Node3D | null) => (this.hovered = n))
       .graphData({ nodes, links });
@@ -257,7 +256,13 @@ export default class Retea3d implements OnDestroy {
     controls.addEventListener('start', () => this.setSpin(false));
     this.applyMode();
     // Când arborele s-a așezat: încape tot în ecran și se rotește în jurul mijlocului lui (nu al porumbelului de jos).
-    this.graph.onEngineStop(() => this.fit());
+    let fitted = false;
+    this.graph.onEngineStop(() => {
+      // Doar prima dată: după aceea vederea rămâne exact cum o lasă omul.
+      if (fitted) return;
+      fitted = true;
+      this.fit();
+    });
     // Apăsat pe o sferă și tras: rotirea se face în jurul acelui porumbel (vine ușor în centru).
     el.addEventListener(
       'pointerdown',

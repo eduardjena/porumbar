@@ -207,3 +207,25 @@ test('crescătorul invitat care a pierdut linkul: „Link de parolă nouă” di
   const token = again.data.link.split('/').pop();
   assert.equal((await call('/api/auth/reset', { method: 'POST', auth: 'none', body: { token, password: 'parola-lui-noua-1' } })).status, 200);
 });
+
+/* Ultima intrare a crescătorului, în consolă (cerută de vânzător). */
+
+test('consola arată ultima intrare în cont și ultima activitate; nimic pentru cine n-a intrat niciodată', async () => {
+  const c = await newAccount(call, 'Intrare');
+  const a = await me(c);
+  const before = Date.now();
+  const login = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: a.email, password: 'parola-de-test-123' } });
+  assert.equal(login.status, 200);
+  const row = (await call(`/api/admin/accounts?q=${encodeURIComponent(a.email)}`, { cookie: admin })).data.accounts.find((x) => x.id === a.id);
+  assert.ok(row.lastLoginAt, 'ultima intrare');
+  assert.ok(Date.parse(row.lastLoginAt) >= before - 2000);
+  assert.ok(row.lastSeenAt, 'ultima activitate');
+  // După ieșire (sesiunea se șterge) ultima intrare rămâne.
+  const cookie = login.res.headers.get('set-cookie').split(';')[0];
+  await call('/api/auth/logout', { method: 'POST', cookie });
+  const after = (await call(`/api/admin/accounts/${a.id}`, { cookie: admin })).data.account;
+  assert.equal(after.lastLoginAt, row.lastLoginAt);
+  // Făcut din consolă și neintrat încă: fără dată.
+  const inv = await createBreeder({ name: 'Neintrat', email: 'neintrat@exemplu.test' });
+  assert.equal(inv.data.account.lastLoginAt, null);
+});

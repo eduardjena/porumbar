@@ -12,6 +12,7 @@ interface Row {
   phone: string | null;
   createdAt: string;
   lastSeenAt: string | null;
+  lastLoginAt: string | null;
   subscriptionStart: string | null;
   subscriptionEnd: string | null;
   status: Status;
@@ -122,7 +123,7 @@ function plusOneYear(start: string) {
 
       <div class="layout">
         <div class="list">
-          <div class="thead" aria-hidden="true"><span>Crescător</span><span>Abonament</span><span>Credit</span><span>Porumbei</span></div>
+          <div class="thead" aria-hidden="true"><span>Crescător</span><span>Abonament</span><span>Ultima intrare</span><span>Credit</span><span>Porumbei</span></div>
           @for (r of shown(); track r.id) {
             <button type="button" class="tr" [class.sel]="r.id === selectedId()" (click)="open(r.id)">
               <span class="who"><strong>{{ r.name }}</strong><span class="muted">{{ r.email }}@if (r.phone) { · {{ r.phone }} }</span></span>
@@ -130,6 +131,7 @@ function plusOneYear(start: string) {
                 <span class="st" [class]="'st ' + r.status">{{ statusLabel[r.status] }}@if (r.invited) { <span class="inv">· n-a intrat încă</span> }</span>
                 @if (r.subscriptionEnd) { <span class="muted">până pe {{ date(r.subscriptionEnd) }}@if (r.status === 'expiring') { ({{ r.daysLeft }} zile) }</span> }
               </span>
+              <span class="seen" [title]="r.lastLoginAt ? 'Ultima intrare: ' + when(r.lastLoginAt) : 'Nu a intrat încă'">{{ ago(r.lastLoginAt) }}</span>
               <span class="mono">{{ money(r.aiCredit) }}</span>
               <span class="mono">{{ r.pigeons }}</span>
             </button>
@@ -145,7 +147,7 @@ function plusOneYear(start: string) {
               <button type="button" class="icon-btn" aria-label="Închide" (click)="selectedId.set(null)"><app-icon name="inchide" /></button>
             </div>
             @if (d.invited) { <p class="warning">Nu și-a ales încă parola. Dacă a pierdut linkul, trimite-i unul nou mai jos („Link de parolă nouă”, 7 zile).</p> }
-            <p class="muted">{{ d.email }}@if (d.phone) { · {{ d.phone }} }<br />Cont din {{ date(d.createdAt) }} · ultima vizită: {{ d.lastSeenAt ? date(d.lastSeenAt) : '—' }} · {{ d.pigeons }} porumbei · {{ d.reads }} citiri din poze</p>
+            <p class="muted">{{ d.email }}@if (d.phone) { · {{ d.phone }} }<br />Cont din {{ date(d.createdAt) }} · ultima intrare: {{ d.lastLoginAt ? when(d.lastLoginAt) : 'încă niciuna' }} · ultima activitate: {{ d.lastSeenAt ? when(d.lastSeenAt) : '—' }} · {{ d.pigeons }} porumbei · {{ d.reads }} citiri din poze</p>
 
             <section class="stack box">
               <h3>Abonament <span class="st" [class]="'st ' + d.status">{{ statusLabel[d.status] }}</span></h3>
@@ -213,7 +215,7 @@ function plusOneYear(start: string) {
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 16px; align-items: start; }
     .layout:has(> .list:only-child) { grid-template-columns: 1fr; }
     .list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .thead, .tr { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.6fr) 90px 90px; gap: 12px; align-items: center; padding: 10px 16px; }
+    .thead, .tr { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.6fr) 130px 90px 80px; gap: 12px; align-items: center; padding: 10px 16px; }
     .thead { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border-bottom: 1px solid var(--border); }
     .tr { width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: none; font-weight: 400; min-height: 64px; }
     .tr:hover, .tr.sel { background: var(--accent-soft); }
@@ -221,6 +223,7 @@ function plusOneYear(start: string) {
     .who .muted { font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sub .muted { font-size: 0.85rem; }
     .st { font-weight: 800; font-size: 0.9rem; }
+    .seen { font-size: 0.9rem; }
     .st.active { color: var(--ok); }
     .st.expiring { color: var(--accent-strong); }
     .st.expired { color: var(--danger); }
@@ -242,7 +245,7 @@ function plusOneYear(start: string) {
       .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .thead { display: none; }
       .tr { grid-template-columns: 1fr auto; }
-      .tr > .mono { display: none; }
+      .tr > .mono, .tr > .seen { display: none; }
       .detail { position: static; max-height: none; }
     }
   `,
@@ -278,6 +281,18 @@ export default class Consola implements OnInit {
   });
   protected readonly detail = computed(() => this.rows().find((r) => r.id === this.selectedId()) ?? null);
   protected readonly date = (v: string) => new Date(v.length === 10 ? `${v}T12:00:00Z` : v).toLocaleDateString('ro-RO');
+  /** Data și ora, ca „16.11.2026, 19:09”. */
+  protected readonly when = (v: string) => new Date(v).toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  /** Cât de recent a intrat: „azi, 19:09”, „ieri”, „acum 5 zile”, „n-a intrat”. */
+  protected readonly ago = (v: string | null) => {
+    if (!v) return 'n-a intrat';
+    const d = new Date(v);
+    const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 86_400_000);
+    if (days <= 0) return `azi, ${d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}`;
+    if (days === 1) return 'ieri';
+    if (days < 30) return `acum ${days} zile`;
+    return this.date(v);
+  };
   protected readonly money = (n: number) => `${n.toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`;
   protected readonly endFor = plusOneYear;
   protected count(id: '' | Status) {

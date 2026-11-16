@@ -185,6 +185,15 @@ const MIGRATIONS = [
   ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
     CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created'));
   `,
+
+  // 13: ultima intrare în cont și ultima activitate (pentru consola vânzătorului; rămân și după ieșire).
+  `
+  ALTER TABLE accounts ADD COLUMN last_login_at TIMESTAMPTZ;
+  ALTER TABLE accounts ADD COLUMN last_seen_at TIMESTAMPTZ;
+  UPDATE accounts a SET last_login_at = s.created, last_seen_at = s.seen
+    FROM (SELECT account_id, max(created_at) AS created, max(last_seen_at) AS seen FROM sessions GROUP BY account_id) s
+   WHERE s.account_id = a.id;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -41,12 +41,6 @@ function reasons(p: BoardPigeon): string {
       </div>
     </div>
 
-    @if (incoming() > 0) {
-      <a class="notice incoming" routerLink="/vanzari">
-        <app-icon name="vinde" />{{ incoming() === 1 ? 'Cineva ți-a trimis un porumbel.' : 'Ai ' + incoming() + ' porumbei trimiși de alți crescători.' }} Deschide „Vânzări” ca să-i primești.
-      </a>
-    }
-
     <div class="filters">
       <label class="search">
         <app-icon name="cautare" />
@@ -105,7 +99,6 @@ function reasons(p: BoardPigeon): string {
     }
   `,
   styles: `
-    .incoming { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 12px; font-weight: 700; }
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .head h1 { margin-bottom: 2px; }
     .count { margin: 0; }
@@ -153,8 +146,6 @@ export default class Panou {
   readonly all = signal<BoardPigeon[]>([]);
   readonly loaded = signal(false);
   readonly error = signal('');
-  /** Porumbei trimiși de alți crescători, care așteaptă să fie primiți. */
-  readonly incoming = signal(0);
   readonly qS = signal('');
   readonly statusS = signal('');
   readonly sexS = signal('');
@@ -185,7 +176,6 @@ export default class Panou {
     try {
       this.all.set((await this.api.get<{ pigeons: BoardPigeon[] }>('/board')).pigeons);
       this.error.set('');
-      this.api.get<{ incoming: unknown[] }>('/transfers').then((t) => this.incoming.set(t.incoming.length)).catch(() => undefined);
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

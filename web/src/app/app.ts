@@ -1,5 +1,6 @@
-import { Component, computed, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { IncomingService } from './core/incoming';
 import { AuthService } from './core/auth';
 import { Icon, IconName } from './shared/icon';
 import { ConfirmDialog } from './core/confirm';
@@ -46,6 +47,14 @@ const NAV: NavItem[] = [
     <app-confirm-dialog />
     <main [class.with-bottom]="auth.account()">
       @if (banner(); as b) { <div class="sub-banner no-print" [class]="'sub-banner ' + b.kind" role="status">{{ b.text }}</div> }
+      @if (showIncoming()) {
+        <!-- Pe orice pagină, până primește (sau refuză) porumbeii trimiși de alți crescători. -->
+        <a class="notice incoming no-print" routerLink="/vanzari" role="status">
+          <app-icon name="vinde" />
+          <span>{{ incoming.count() === 1 ? 'Cineva ți-a trimis (vândut) un porumbel.' : 'Ai ' + incoming.count() + ' porumbei trimiși de alți crescători.' }}
+            <strong>Apasă aici ca să-l primești.</strong></span>
+        </a>
+      }
       <router-outlet />
       <!-- Semnătura: pe calculator mic în colțul din dreapta jos, pe telefon la capătul paginii. -->
       <a class="made-by no-print" href="https://www.soopra.com" target="_blank" rel="noopener">Soopra</a>
@@ -64,6 +73,8 @@ const NAV: NavItem[] = [
   `,
   styles: `
     .sub-banner { margin-bottom: 14px; font-weight: 600; }
+    .incoming { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 14px; font-weight: 600; min-height: 48px; }
+    .incoming strong { text-decoration: underline; }
     .top {
       background: rgb(255 253 249 / 94%); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
@@ -115,6 +126,28 @@ const NAV: NavItem[] = [
 export class App {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  protected readonly incoming = inject(IncomingService);
+  private readonly url = signal('');
+  /** Anunțul porumbeilor de primit: pentru crescători, pe orice pagină în afară de Vânzări (unde sunt chiar ei). */
+  protected readonly showIncoming = computed(() => {
+    const a = this.auth.account();
+    return !!a && !a.isAdmin && this.incoming.count() > 0 && !this.url().startsWith('/vanzari');
+  });
+
+  constructor() {
+    this.router.events.subscribe((e) => {
+      if (!(e instanceof NavigationEnd)) return;
+      this.url.set(e.urlAfterRedirects);
+      const a = this.auth.account();
+      if (a && !a.isAdmin) this.incoming.refresh();
+    });
+    // La intrarea în cont se verifică imediat; la ieșire anunțul dispare.
+    effect(() => {
+      const a = this.auth.account();
+      if (a && !a.isAdmin) this.incoming.refresh(true);
+      else this.incoming.reset();
+    });
+  }
   /** Adminul (vânzătorul) are în plus consola. */
   /** Vânzătorul (adminul) vede doar consola și contul lui; porumbarul nu-l interesează. */
   protected readonly nav = computed<NavItem[]>(() =>

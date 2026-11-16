@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
+import { IncomingService } from '../../core/incoming';
 import { Icon } from '../../shared/icon';
 
 interface Incoming {
@@ -78,6 +79,8 @@ export default class Vanzari implements OnInit {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
+  /** Anunțul de sus („Cineva ți-a trimis un porumbel”) se ține la zi de aici. */
+  private readonly waiting = inject(IncomingService);
   readonly incoming = signal<Incoming[]>([]);
   readonly outgoing = signal<Outgoing[]>([]);
   readonly error = signal('');
@@ -94,6 +97,7 @@ export default class Vanzari implements OnInit {
     try {
       const r = await this.api.get<{ incoming: Incoming[]; outgoing: Outgoing[] }>('/transfers');
       this.incoming.set(r.incoming);
+      this.waiting.set(r.incoming.length);
       this.outgoing.set(r.outgoing);
     } catch (e) {
       this.error.set(errorMessage(e));
@@ -109,6 +113,7 @@ export default class Vanzari implements OnInit {
     if (!ok) return;
     try {
       const r = await this.api.post<{ pigeonId: number; conflicts: { message: string }[] }>(`/transfers/${t.id}/accept`);
+      await this.waiting.refresh(true);
       if (r.conflicts?.length) {
         this.received.set(r);
         await this.load();

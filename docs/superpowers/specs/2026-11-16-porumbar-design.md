@@ -29,7 +29,7 @@ Decizia utilizatorului: programul face **tot ce fac programele din lume și ce l
 7. Consangvinizarea calculată (și pentru o pereche plănuită); rudele (părinți, frați, semi-frați, pui) pe fișă.
 
 **Etapa 2 – rezultatele**
-8. Import de rezultate prin lipirea clasamentului de pe columba.ro, din PDF sau din poză.
+8. Import de rezultate prin lipirea clasamentului de pe columba.ro, din PDF sau din poză (scanare), **și introducere de mână** (cerut de utilizator, 2026-11-16) într-un formular cu aceleași câmpuri ca clasamentul federației: concursul (nr., organizator / județ, categorie, data, locul lansării), porumbei angajați, distanța (m), ora sosirii (zi, h, m, s), timpul, viteza (m/min), locul, coeficientul FCI — ca datele introduse de mână și cele importate să fie interschimbabile.
 9. Analiza rudelor și urmașilor pe baza rezultatelor („nota de reproducător”).
 
 **Analizorul de perechi** (cerut de utilizator, 2026-11-16; pe etape, doar metode științifice recunoscute, cu cât de sigur e rezultatul afișat mereu):

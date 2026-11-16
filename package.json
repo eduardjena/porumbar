@@ -14,7 +14,8 @@
     "build": "npm --prefix web run build",
     "test": "node scripts/test.mjs",
     "db:setup": "node scripts/db-setup.mjs",
-    "dev:db": "node scripts/dev-db.mjs"
+    "dev:db": "node scripts/dev-db.mjs",
+    "seed:exemplu": "node scripts/seed-exemplu.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

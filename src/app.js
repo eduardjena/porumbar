@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import { errorHandler } from './http.js';
 import { publicCatalog } from './catalog.js';
@@ -6,6 +8,9 @@ import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
 import { photosRouter } from './routes/photos.js';
+
+export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
+const WEB_INDEX = path.join(WEB_DIR, 'index.html');
 
 export const DEFAULT_CSP = [
   "default-src 'self'",
@@ -58,6 +63,19 @@ export function createApp() {
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));
+
+  // Interfața (build Angular). Fișierele cu hash în nume se pot ține în cache un an; restul rutelor primesc index.html.
+  if (fs.existsSync(WEB_INDEX)) {
+    app.use(
+      express.static(WEB_DIR, {
+        index: false,
+        setHeaders: (res, file) => {
+          if (/[-.][A-Za-z0-9_-]{8,}\.(js|css)$/.test(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable');
+        },
+      }),
+    );
+    app.get(/.*/, (req, res) => res.set('Cache-Control', 'no-cache').sendFile(WEB_INDEX));
+  }
   app.use(errorHandler);
   return app;
 }

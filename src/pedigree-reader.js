@@ -6,7 +6,7 @@ import { MAX_GENERATIONS } from './pedigree-import.js';
 
 /*
  * Citirea unui pedigree din poză sau PDF cu Claude (spec §8). Fișierul vine în memorie, se trimite la citire și
- * nu se păstrează nicăieri. Rezultatul NU se salvează: completează ecranul „Pedigree pe hârtie”, unde omul verifică
+ * nu se păstrează nicăieri. Rezultatul NU se salvează: completează ecranul „Importă pedigree”, unde omul verifică
  * și corectează, apoi salvează el (POST /api/pedigrees/import).
  *
  * Claude primește căsuțele numerotate ca pe foaie (1 = porumbelul, tatăl lui i = 2i, mama = 2i + 1) și întoarce o

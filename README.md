@@ -43,7 +43,7 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
 
 - **Panou și Arbore**: porumbeii după valoare; Arborele în Carduri, Evantai, Linii de sânge sau Rețea, cu „Alege alt
   porumbel”; pe telefon generațiile se glisează. (Vederea 3D a existat și a fost scoasă: frumoasă, dar fără folos.)
-- **Pedigree pe hârtie** (`/porumbei/pedigree`): 31 de căsuțe ca pe foaie; inelele știute se recunosc și părinții lor se
+- **Importă pedigree** (`/porumbei/pedigree`): 31 de căsuțe ca pe foaie; inelele știute se recunosc și părinții lor se
   completează singuri; **citirea din poză sau PDF** cu Claude (doar cu `ANTHROPIC_API_KEY`; limită pe zi
   `PEDIGREE_READS_PER_DAY`; poza nu se păstrează).
 - **Separare totală între conturi**: același inel poate exista în mai multe conturi și nimeni nu vede nimic din alt cont.

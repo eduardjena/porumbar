@@ -158,3 +158,11 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
   .tree-bar-right > *, .tree-bar-right .pick-wrap > button { flex: none; }
   .tree-bar button, .tree-bar .btn { min-height: 40px; }
 }
+
+/* Tipărire (pedigree pe A4, pagina publică): fără antet, meniu și fundal. */
+@media print {
+  .top, .bottom-nav, .no-print { display: none !important; }
+  main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  body { background: #fff !important; }
+  .card { box-shadow: none !important; }
+}

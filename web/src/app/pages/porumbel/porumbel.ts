@@ -7,21 +7,23 @@ import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
+import { Partajare } from './partajare';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { Icon, IconName } from '../../shared/icon';
 
-type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal';
+type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'fisa', label: 'Fișa', icon: 'porumbel' },
   { id: 'rude', label: 'Rude', icon: 'rude' },
   { id: 'arbore', label: 'Pedigree', icon: 'fisa' },
   { id: 'jurnal', label: 'Jurnal', icon: 'jurnal' },
+  { id: 'qr', label: 'QR', icon: 'qr' },
 ];
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -96,6 +98,9 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         @case ('arbore') {
           <app-arbore [pigeonId]="p.id" [version]="version()" (addParent)="openParent($event.id)" />
         }
+        @case ('qr') {
+          <app-partajare [pigeon]="p" />
+        }
         @case ('jurnal') {
           <form class="card stack" (ngSubmit)="addEntry()">
             <div class="row">
@@ -128,7 +133,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
+    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
     .tabs button {
       border: 0; border-radius: 14px; background: none; color: var(--muted); flex-direction: column; gap: 2px;
       min-height: 64px; padding: 6px 4px; font-size: 0.85rem;
@@ -154,6 +159,8 @@ export default class Porumbel {
   readonly radacina = input<string>();
   readonly tot = input<string>();
   readonly vedere = input<string>();
+  /** Fila deschisă la intrare (?fila=qr, de ex. din Vânzări). */
+  readonly fila = input<string>();
   protected readonly origin = computed<Crumb>(() => {
     const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined, vedere: this.vedere() || undefined };
     switch (this.din()) {
@@ -184,7 +191,8 @@ export default class Porumbel {
   constructor() {
     effect(() => {
       const id = this.id();
-      this.tab.set('fisa');
+      const fila = this.fila();
+      this.tab.set(TABS.some((t) => t.id === fila) ? (fila as Tab) : 'fisa');
       this.load(id);
     });
   }

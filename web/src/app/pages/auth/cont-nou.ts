@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/auth';
+import { AuthService, afterLoginUrl } from '../../core/auth';
 import { errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
 
@@ -41,7 +41,7 @@ export default class ContNou {
     this.busy.set(true);
     try {
       await this.auth.register(this.name.trim(), this.email.trim(), this.password);
-      this.router.navigateByUrl('/panou');
+      this.router.navigateByUrl(afterLoginUrl());
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

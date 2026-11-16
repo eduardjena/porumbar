@@ -54,6 +54,26 @@ export class AuthService {
   }
 }
 
+const AFTER_LOGIN = 'porumbar.dupa-intrare';
+/** Unde se întoarce omul după ce intră în cont / își face cont (de ex. pagina publică a unui pedigree). */
+export function rememberAfterLogin(url: string) {
+  try {
+    sessionStorage.setItem(AFTER_LOGIN, url);
+  } catch {
+    /* fără memorie: ajunge la panou */
+  }
+}
+export function afterLoginUrl(): string {
+  try {
+    const url = sessionStorage.getItem(AFTER_LOGIN);
+    sessionStorage.removeItem(AFTER_LOGIN);
+    // Doar adrese din program (fără „//alt-site”).
+    return url && url.startsWith('/') && !url.startsWith('//') ? url : '/panou';
+  } catch {
+    return '/panou';
+  }
+}
+
 /** Paginile porumbarului: doar cu cont. */
 // inject() merge doar înainte de primul await, deci Router-ul se ia de la început.
 export const authGuard: CanActivateFn = async () => {

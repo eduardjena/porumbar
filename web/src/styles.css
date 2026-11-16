@@ -32,11 +32,11 @@
   --band-5-ink: #ffffff;
   --band-4: #1f7a3f;
   --band-4-ink: #ffffff;
-  --band-3: #8fd1a5;
+  --band-3: #7cc796;
   --band-3-ink: #0c3a1d;
-  --band-2: #c9ebd3;
+  --band-2: #b6e2c4;
   --band-2-ink: #0c3a1d;
-  --band-1: #ecf8ef;
+  --band-1: #ddf1e3;
   --band-1-ink: #1d4a2c;
   --band-0: #e9edf1;
   --band-0-ink: #4d5d6c;
@@ -112,7 +112,7 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 .band-3 { background: var(--band-3); color: var(--band-3-ink); }
 .band-2 { background: var(--band-2); color: var(--band-2-ink); }
 .band-1 { background: var(--band-1); color: var(--band-1-ink); }
-.band-0 { background: var(--band-0); color: var(--band-0-ink); }
+.band-0 { background: var(--band-0); color: var(--band-0-ink); outline: 2px dashed var(--border-strong); outline-offset: -2px; }
 
 .auth-page { max-width: 440px; margin: 32px auto; }
 .auth-page .logo { display: flex; justify-content: center; color: var(--accent); margin-bottom: 8px; }

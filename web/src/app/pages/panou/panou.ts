@@ -22,7 +22,7 @@ function reasons(p: BoardPigeon): string {
   if (p.value.parts.evaluare != null) out.push(`evaluare ${Math.round(p.value.parts.evaluare)}`);
   if (p.offspringCount) out.push(p.offspringCount === 1 ? '1 pui' : `${p.offspringCount} pui`);
   if (p.value.parts.reproducator) out.push('reproducător');
-  return out.length ? out.join(' · ') : 'Adaugă evaluarea sau puii ca să primească o notă';
+  return out.length ? out.join(' · ') : 'Fără notă: adaugă evaluarea sau puii';
 }
 
 @Component({
@@ -83,6 +83,7 @@ function reasons(p: BoardPigeon): string {
             <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
             <span class="name">{{ p.name || ' ' }}</span>
             <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
+            <span class="why">{{ why(p) }}</span>
           </a>
         </li>
       }
@@ -119,6 +120,7 @@ function reasons(p: BoardPigeon): string {
     .ring { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.5em; }
     .meta { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .why { font-size: 0.8rem; color: var(--muted); line-height: 1.3; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 24px; }
     .chip { padding: 4px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; }
     .small { font-size: 0.9rem; max-width: 70ch; }

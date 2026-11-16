@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#2f6f4f"/><path d="M118 318c40-6 74-26 98-58l-42-6 70-22c26-44 74-70 126-62-22 10-36 28-40 50 34 4 60 22 70 50-36-14-70-10-96 10-28 66-94 110-170 106 20-14 34-30 42-50-22 0-42-6-58-18z" fill="#fff"/><circle cx="352" cy="196" r="10" fill="#2f6f4f"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Sigla provizorie (până alege utilizatorul sigla cu aripi): pasărea din meniu, pe albastrul aplicației. -->
+  <rect width="24" height="24" rx="6" fill="#1764b8"/>
+  <g transform="translate(4 4) scale(0.667)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 7h.01M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.3-2.3L2 20M20 7l2 .5-2 .5M10 18v3M14 17.8V21M7 18a6 6 0 0 0 3.8-10.6"/>
+  </g>
+</svg>

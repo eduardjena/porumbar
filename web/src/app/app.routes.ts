@@ -4,7 +4,8 @@ import { authGuard, guestGuard } from './core/auth';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'panou' },
   { path: 'panou', canActivate: [authGuard], title: 'Panou · Porumbar', loadComponent: () => import('./pages/panou/panou') },
-  { path: 'retea', canActivate: [authGuard], title: 'Rețea · Porumbar', loadComponent: () => import('./pages/retea/retea') },
+  { path: 'arbore', canActivate: [authGuard], title: 'Arbore · Porumbar', loadComponent: () => import('./pages/retea/retea') },
+  { path: 'retea', redirectTo: 'arbore' },
   { path: 'intra', canActivate: [guestGuard], title: 'Intră în cont · Porumbar', loadComponent: () => import('./pages/auth/intra') },
   { path: 'cont-nou', canActivate: [guestGuard], title: 'Cont nou · Porumbar', loadComponent: () => import('./pages/auth/cont-nou') },
   { path: 'parola-uitata', title: 'Parolă uitată · Porumbar', loadComponent: () => import('./pages/auth/parola-uitata') },

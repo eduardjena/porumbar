@@ -10,8 +10,8 @@ import { pigeonValue } from '../value.js';
  * (fiecare porumbel o singură dată, muchii părinte → pui).
  */
 
-/** Câți porumbei arată rețeaua „tot porumbarul” (setabil pentru teste prin NETWORK_LIMIT). */
-export const networkLimit = () => Number(process.env.NETWORK_LIMIT) || 1000;
+/** Câți porumbei arată rețeaua „tot porumbarul”: așezarea grafului durează mult peste ~200 și ar bloca telefonul. */
+export const networkLimit = () => Number(process.env.NETWORK_LIMIT) || 200;
 
 const intParam = (value, fallback, min, max, field) => {
   if (value === undefined || value === '') return fallback;

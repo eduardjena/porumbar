@@ -12,9 +12,9 @@ import { Icon, IconName } from '../../shared/icon';
 
 type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
-  { id: 'fisa', label: 'Fișa', icon: 'fisa' },
+  { id: 'fisa', label: 'Fișa', icon: 'porumbel' },
   { id: 'rude', label: 'Rude', icon: 'rude' },
-  { id: 'arbore', label: 'Arbore', icon: 'arbore' },
+  { id: 'arbore', label: 'Pedigree', icon: 'fisa' },
   { id: 'jurnal', label: 'Jurnal', icon: 'jurnal' },
 ];
 
@@ -35,7 +35,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           </p>
         </div>
         <div class="row">
-          <a class="btn" [routerLink]="['/retea']" [queryParams]="{ porumbel: p.id }"><app-icon name="retea" />Rețea</a>
+          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="retea" />Vezi în arbore</a>
           <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />Editează</a>
         </div>
       </div>

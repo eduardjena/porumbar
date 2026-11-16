@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
  */
 export type IconName =
   | 'panou' | 'retea' | 'plus' | 'cont' | 'lista' | 'cautare' | 'editeaza' | 'arbore' | 'jurnal' | 'poze' | 'rude'
-  | 'fisa' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa';
+  | 'fisa' | 'minus' | 'ramificare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa';
 
 @Component({
   selector: 'app-icon',
@@ -17,6 +17,8 @@ export type IconName =
         @case ('panou') { <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /> }
         @case ('retea') { <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /> }
         @case ('plus') { <path d="M5 12h14M12 5v14" /> }
+        @case ('minus') { <path d="M5 12h14" /> }
+        @case ('ramificare') { <circle cx="5" cy="12" r="2.5" /><circle cx="19" cy="5" r="2.5" /><circle cx="19" cy="19" r="2.5" /><path d="M7.5 12h3.5a2 2 0 0 0 2-2V7a2 2 0 0 1 2-2h1.5M11 12a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h1.5" /> }
         @case ('cont') { <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /> }
         @case ('lista') { <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /> }
         @case ('cautare') { <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /> }

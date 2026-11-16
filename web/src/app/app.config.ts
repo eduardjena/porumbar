@@ -19,8 +19,9 @@ export const appConfig: ApplicationConfig = {
         const msg = String((e.error as Error)?.message ?? e.error);
         if (!/dynamically imported module|Importing a module script failed|error loading dynamically/i.test(msg)) return;
         try {
-          if (sessionStorage.getItem('porumbar.reload') === e.url) return;
-          sessionStorage.setItem('porumbar.reload', e.url);
+          const [lastUrl, lastAt] = (sessionStorage.getItem('porumbar.reload') ?? '').split('|');
+          if (lastUrl === e.url && Date.now() - Number(lastAt) < 60_000) return; // tocmai am încercat: nu intrăm în buclă
+          sessionStorage.setItem('porumbar.reload', `${e.url}|${Date.now()}`);
         } catch {
           /* fără spațiu local: reîncărcăm oricum */
         }

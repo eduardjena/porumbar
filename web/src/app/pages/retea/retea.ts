@@ -19,7 +19,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
   imports: [FormsModule, RouterLink, Icon],
   template: `
     <div class="head">
-      <h1>Rețeaua de rudenie</h1>
+      <h1>Arborele porumbarului</h1>
       <p class="muted intro">Fiecare porumbel apare o singură dată. Chenarul gros arată strămoșii comuni, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.</p>
     </div>
 
@@ -29,7 +29,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
         <input type="search" placeholder="Inel sau nume" aria-label="Porumbelul de la care pornești"
                [(ngModel)]="q" (ngModelChange)="suggest()" />
       </label>
-      <button type="button" [class.primary]="!rootId()" (click)="showAll()"><app-icon name="retea" />Tot porumbarul</button>
+      <button type="button" [class.primary]="!!tot() && !rootId()" (click)="showAll()"><app-icon name="retea" />Tot porumbarul</button>
     </div>
     @if (suggestions().length) {
       <ul class="suggestions card">
@@ -44,16 +44,20 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
     }
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
-    @if (net()?.truncated) { <div class="warning"><app-icon name="alerta" />Arăt doar o parte din porumbar. Alege un porumbel ca să vezi rudele lui.</div> }
+    @if (net()?.truncated) { <div class="warning"><app-icon name="alerta" />Arăt doar cei mai tineri {{ net()!.nodes.length }} porumbei. Alege un porumbel ca să vezi rudele lui.</div> }
+    @if (!rootId() && !tot()) {
+      <div class="notice"><app-icon name="cautare" />Scrie sus inelul sau numele unui porumbel: vezi strămoșii și urmașii lui. Sau apasă „Tot porumbarul”.</div>
+    }
     @if (rootLabel()) { <p class="from">Pornind de la <strong class="mono">{{ rootLabel() }}</strong>: strămoșii pe 5 generații și urmașii pe 3.</p> }
 
     <div class="graph-wrap">
-      <div #graph class="graph" role="img" aria-label="Rețeaua de rudenie a porumbarului"></div>
+      <div #graph class="graph" role="img" aria-label="Arborele porumbarului"></div>
       @if (net() && !net()!.nodes.length) {
         <div class="graph-empty muted">Niciun porumbel de arătat încă.</div>
       }
       <div class="zoom">
         <button type="button" aria-label="Mărește" (click)="zoom(1.25)"><app-icon name="plus" /></button>
+        <button type="button" aria-label="Micșorează" (click)="zoom(0.8)"><app-icon name="minus" /></button>
         <button type="button" aria-label="Arată tot" (click)="fit()"><app-icon name="panou" /></button>
       </div>
     </div>
@@ -64,7 +68,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
           <span class="score" [class]="'score band-' + s.band">{{ s.score ?? '–' }}</span>
           <div>
             <div><strong class="mono">{{ s.ring }}</strong> @if (s.name) { <span class="name">{{ s.name }}</span> }</div>
-            <div class="muted">{{ sexText(s.sex) }}@if (s.year) { · {{ s.year }} } · {{ s.offspringCount }} {{ s.offspringCount === 1 ? 'pui' : 'pui' }}@if (s.kind === 'external') { · din alt porumbar }</div>
+            <div class="muted">{{ sexText(s.sex) }}@if (s.year) { · {{ s.year }} } · {{ s.offspringCount }} pui@if (s.kind === 'external') { · din alt porumbar }</div>
           </div>
           <button type="button" class="icon-btn" aria-label="Închide" (click)="clearSelection()"><app-icon name="inchide" /></button>
         </div>
@@ -112,6 +116,8 @@ export default class Retea implements OnDestroy {
   private readonly router = inject(Router);
   /** Porumbelul de la care pornește rețeaua (?porumbel=<id>). */
   readonly porumbel = input<string>();
+  /** ?tot=1: tot porumbarul (cel mult 200 de porumbei, ca telefonul să nu se blocheze). */
+  readonly tot = input<string>();
   private readonly graph = viewChild.required<ElementRef<HTMLDivElement>>('graph');
 
   q = '';
@@ -129,14 +135,21 @@ export default class Retea implements OnDestroy {
   constructor() {
     effect(() => {
       const id = Number(this.porumbel()) || null;
+      const all = !!this.tot();
       untracked(() => {
         this.rootId.set(id);
-        this.load();
+        if (id || all) this.load();
+        else {
+          this.net.set(null);
+          this.cy?.destroy();
+          this.cy = null;
+        }
       });
     });
   }
 
   ngOnDestroy() {
+    clearTimeout(this.timer);
     this.cy?.destroy();
   }
 
@@ -157,15 +170,15 @@ export default class Retea implements OnDestroy {
   pick(p: PigeonSummary) {
     this.q = '';
     this.suggestions.set([]);
-    this.router.navigate(['/retea'], { queryParams: { porumbel: p.id } });
+    this.router.navigate(['/arbore'], { queryParams: { porumbel: p.id } });
   }
 
   startFrom(n: NetworkNode) {
-    this.router.navigate(['/retea'], { queryParams: { porumbel: n.id } });
+    this.router.navigate(['/arbore'], { queryParams: { porumbel: n.id } });
   }
 
   showAll() {
-    this.router.navigate(['/retea']);
+    this.router.navigate(['/arbore'], { queryParams: { tot: 1 } });
   }
 
   zoom(factor: number) {
@@ -194,7 +207,12 @@ export default class Retea implements OnDestroy {
       this.error.set('');
       await this.draw(net, id);
     } catch (e) {
-      if (req === this.request) this.error.set(errorMessage(e));
+      if (req === this.request) {
+        this.error.set(errorMessage(e));
+        this.net.set(null);
+        this.cy?.destroy();
+        this.cy = null;
+      }
     }
   }
 

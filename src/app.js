@@ -4,6 +4,8 @@ import { publicCatalog } from './catalog.js';
 import { authRouter } from './routes/auth.js';
 import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
+import { journalRouter } from './routes/journal.js';
+import { photosRouter } from './routes/photos.js';
 
 export const DEFAULT_CSP = [
   "default-src 'self'",
@@ -51,6 +53,8 @@ export function createApp() {
   app.use('/api/auth', authRouter());
   // Familia înaintea fișei: /api/pigeons/lookup nu trebuie luat drept id de porumbel.
   app.use('/api', familyRouter());
+  app.use('/api', journalRouter());
+  app.use('/api', photosRouter());
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));

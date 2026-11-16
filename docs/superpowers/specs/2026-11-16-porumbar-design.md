@@ -32,6 +32,12 @@ Decizia utilizatorului: programul face **tot ce fac programele din lume și ce l
 8. Import de rezultate prin lipirea clasamentului de pe columba.ro, din PDF sau din poză.
 9. Analiza rudelor și urmașilor pe baza rezultatelor („nota de reproducător”).
 
+**Analizorul de perechi** (cerut de utilizator, 2026-11-16; pe etape, doar metode științifice recunoscute, cu cât de sigur e rezultatul afișat mereu):
+- Etapa 1 (deja în Planul 1): **consangvinizarea** puilor unei perechi plănuite (Wright), cu strămoșii comuni. Avertisment, nu interdicție: crescătorii fac intenționat împerecheri în linie.
+- Etapa 2: **culorile probabile ale puilor**, după genetica mendeliană a porumbeilor (culori legate de sex, desene, diluție), din culorile părinților și, unde se știu, ale bunicilor.
+- Etapa 2, după rezultate: **valoarea de reproducție estimată** (metoda BLUP / „modelul animal”, folosită în creșterea animalelor) din rezultatele porumbelui, ale rudelor și ale puilor. Recomandări de perechi („pentru pui buni la viteză: X cu Y”) doar unde datele ajung; altfel se spune clar „prea puține date”.
+- Etapa 3: diversitatea genetică a porumbarului (rudenia medie), ca să nu se strângă totul pe o singură linie.
+
 **Etapa 3 – restul a ce există în lume și ce lipsește** (ordinea se stabilește atunci): sănătate (tratamente, vaccinuri, cure, cu memento-uri), antrenamente, coșul pentru concurs, statistici, vânzări și cumpărări, porumbei pierduți / găsiți, finanțele porumbarului, genetica culorilor legată de pedigree, ADN atașat la pedigree, mai mulți oameni pe același cont, alte limbi (maghiara întâi), import din exporturile Compuclub / myloft și din ceasuri electronice, aplicații în magazine, plăți / abonamente, înțelegere cu federația.
 
 **Anti-obiective (ar fi un eșec chiar dacă merge tehnic)**

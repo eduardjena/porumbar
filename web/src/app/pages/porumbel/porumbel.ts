@@ -8,6 +8,7 @@ import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
+import { ConfirmService } from '../../core/confirm';
 import { Icon, IconName } from '../../shared/icon';
 
 type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal';
@@ -145,6 +146,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 export default class Porumbel {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
+  private readonly confirm = inject(ConfirmService);
   protected readonly catalog = inject(CatalogService);
   readonly id = input.required<string>();
   protected readonly tabs = TABS;
@@ -212,7 +214,13 @@ export default class Porumbel {
   }
 
   async removeEntry(e: JournalEntry) {
-    if (!confirm('Ștergi această notă?')) return;
+    const ok = await this.confirm.ask({
+      title: 'Ștergi această notă din jurnal?',
+      lines: [`${e.date} · ${this.catalog.label('journalTypes', e.type)}: ${e.text.slice(0, 80)}`, 'Nu se poate da înapoi.'],
+      confirmLabel: 'Da, șterge',
+      danger: true,
+    });
+    if (!ok) return;
     await this.api.delete(`/journal/${e.id}`);
     this.journal.update((list) => list.filter((x) => x.id !== e.id));
   }

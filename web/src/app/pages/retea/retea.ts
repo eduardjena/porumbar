@@ -306,17 +306,22 @@ export default class Retea implements OnDestroy {
         { selector: 'edge[role = "father"]', style: { 'line-color': '#8fb3dc', 'target-arrow-color': '#8fb3dc' } },
         { selector: 'edge[role = "mother"]', style: { 'line-color': '#dca3bf', 'target-arrow-color': '#dca3bf' } },
         { selector: '.faded', style: { opacity: 0.15 } },
-        // Porumbelul atins: chenar albastru gros și un halou în jur, ca să se vadă clar pe care ești.
+        // Porumbelul atins: chenar albastru și un halou pastel în jur, ca să se vadă clar pe care ești.
         {
           selector: 'node.picked',
           style: {
-            'border-width': 6,
+            'border-width': 4,
             'border-color': css('--accent'),
             'border-style': 'solid',
-            'underlay-color': css('--accent'),
-            'underlay-opacity': 0.3,
-            'underlay-padding': 10,
+            // halou pastel, moale, în jurul porumbelului ales (cerut de utilizator)
+            'underlay-color': '#a9d1ff',
+            'underlay-opacity': 1,
+            'underlay-padding': 26,
             'underlay-shape': 'round-rectangle',
+            'underlay-corner-radius': 40,
+            'underlay-fill': 'radial-gradient',
+            'underlay-gradient-stop-colors': 'rgba(150,200,255,0.95) rgba(190,222,255,0.7) rgba(220,236,255,0)',
+            'underlay-gradient-stop-positions': '0% 60% 100%',
             'z-index': 20,
           } as never,
         },

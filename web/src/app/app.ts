@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth';
 import { Icon, IconName } from './shared/icon';
+import { ConfirmDialog } from './core/confirm';
 
 interface NavItem {
   path: string;
@@ -19,7 +20,7 @@ const NAV: NavItem[] = [
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, ConfirmDialog],
   template: `
     @if (auth.account()) {
       <header class="top">
@@ -37,6 +38,7 @@ const NAV: NavItem[] = [
         </nav>
       </header>
     }
+    <app-confirm-dialog />
     <main [class.with-bottom]="auth.account()">
       <router-outlet />
     </main>

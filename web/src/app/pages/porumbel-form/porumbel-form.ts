@@ -7,6 +7,7 @@ import { CoiResult, Kind, Pigeon, PigeonSummary, Sex } from '../../core/models';
 import { RingInput } from '../../shared/ring-input';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { PigeonPicker } from '../../shared/pigeon-picker';
+import { ConfirmService, changes } from '../../core/confirm';
 
 interface Draft {
   kind: Kind;
@@ -226,6 +227,9 @@ export default class PorumbelForm implements OnInit {
       : [{ label: 'Panou', link: ['/panou'] }, { label: 'Porumbel nou' }],
   );
   readonly restored = signal(false);
+  private readonly confirm = inject(ConfirmService);
+  /** Fișa salvată (sau goală, la porumbel nou): de aici se văd schimbările de confirmat. */
+  private original: Draft = empty();
   readonly busy = signal(false);
   readonly error = signal('');
 
@@ -235,6 +239,7 @@ export default class PorumbelForm implements OnInit {
       const saved = this.id() ? (await this.api.get<{ pigeon: Pigeon }>(`/pigeons/${this.id()}`)).pigeon : null;
       this.savedRing.set(saved?.ring?.display ?? '');
       const base = saved ? fromPigeon(saved) : empty();
+      this.original = structuredClone(base); // copie: formularul modifică obiectul din d()
       this.d.set(draft ?? base);
       this.restored.set(!!draft);
     } catch (e) {
@@ -247,16 +252,53 @@ export default class PorumbelForm implements OnInit {
     writeDraft(this.id(), this.d());
   }
 
-  discardDraft() {
+  async discardDraft() {
+    const ok = await this.confirm.ask({ title: 'Arunci ce scriseseși data trecută?', lines: ['Formularul revine la datele salvate.'], confirmLabel: 'Da, aruncă', danger: true });
+    if (!ok) return;
     writeDraft(this.id(), null);
     this.restored.set(false);
     this.ngOnInit();
   }
 
   /** „Renunță” aruncă și ciorna: altfel modificările lăsate baltă ar reapărea data viitoare peste datele salvate. */
-  cancel() {
+  async cancel() {
+    if (this.diff().length) {
+      const ok = await this.confirm.ask({ title: 'Renunți la modificări?', lines: this.diff(), confirmLabel: 'Da, renunță', cancelLabel: 'Înapoi la formular', danger: true });
+      if (!ok) return;
+    }
     writeDraft(this.id(), null);
     this.router.navigate(this.id() ? ['/porumbei', this.id()] : ['/panou']);
+  }
+
+  /** Ce s-a schimbat față de fișa salvată, pe înțelesul omului („Starea: Tânăr → Reproducător”). */
+  private diff(): string[] {
+    const a = this.original;
+    const b = this.d();
+    if (!b) return [];
+    const L = (list: 'breeds' | 'colors' | 'eyeColors' | 'statuses', code: string) => this.catalog.label(list, code);
+    const sex = (x: string) => (x === 'M' ? 'Mascul' : x === 'F' ? 'Femelă' : '');
+    const kind = (x: string) => (x === 'own' ? 'Din porumbarul meu' : 'Din alt porumbar');
+    const crit = this.catalog.catalog()?.evalCriteria ?? [];
+    return changes([
+      { label: 'Al cui e', before: kind(a.kind), after: kind(b.kind) },
+      { label: 'Inelul', before: a.ring.trim(), after: b.ring.trim() },
+      { label: 'Sexul', before: sex(a.sex), after: sex(b.sex) },
+      { label: 'Numele', before: a.name.trim(), after: b.name.trim() },
+      { label: 'Data eclozării', before: a.hatchedOn, after: b.hatchedOn },
+      { label: 'Crescătorul', before: a.breederText.trim(), after: b.breederText.trim() },
+      { label: 'Starea', before: L('statuses', a.status), after: L('statuses', b.status) },
+      { label: 'Rasa', before: L('breeds', a.breed), after: L('breeds', b.breed) },
+      { label: 'Liniile', before: a.lines.trim(), after: b.lines.trim() },
+      { label: 'Culoarea', before: L('colors', a.color), after: L('colors', b.color) },
+      { label: 'Pene albe', before: a.colorPa ? 'da' : 'nu', after: b.colorPa ? 'da' : 'nu' },
+      { label: 'Culoarea (text)', before: a.colorText.trim(), after: b.colorText.trim() },
+      { label: 'Ochii', before: L('eyeColors', a.eyeColor), after: L('eyeColors', b.eyeColor) },
+      ...crit.map((c) => ({ label: 'Nota la ' + c.label.toLowerCase(), before: a.scores[c.code] ?? '', after: b.scores[c.code] ?? '' })),
+      { label: 'Calități', before: a.calitati.trim(), after: b.calitati.trim() },
+      { label: 'De dorit', before: a.deDorit.trim(), after: b.deDorit.trim() },
+      { label: 'Defecte', before: a.defecte.trim(), after: b.defecte.trim() },
+      { label: 'Textul pentru pedigree', before: a.pedigreeText.trim(), after: b.pedigreeText.trim() },
+    ]);
   }
 
   /** Alege un părinte; liniile puiului se propun din liniile părinților, dacă n-ai scris altele. */
@@ -286,6 +328,16 @@ export default class PorumbelForm implements OnInit {
 
   async save() {
     const f = this.d()!;
+    // Porumbel existent: întâi arătăm ce se schimbă și cerem confirmarea (cerut de utilizator).
+    if (this.id()) {
+      const diff = this.diff();
+      if (!diff.length) {
+        writeDraft(this.id(), null);
+        this.router.navigate(['/porumbei', this.id()]);
+        return;
+      }
+      if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
+    }
     this.busy.set(true);
     this.error.set('');
     const scores = Object.fromEntries(Object.entries(f.scores).filter(([, v]) => v != null));

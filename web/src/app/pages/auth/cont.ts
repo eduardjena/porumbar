@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
+import { ConfirmService, changes } from '../../core/confirm';
 
 @Component({
   selector: 'app-cont',
@@ -44,6 +45,7 @@ export default class Cont {
   protected readonly auth = inject(AuthService);
   private readonly api = inject(Api);
   private readonly router = inject(Router);
+  private readonly confirm = inject(ConfirmService);
   name = this.auth.account()?.name ?? '';
   phone = this.auth.account()?.phone ?? '';
   address = this.auth.account()?.address ?? '';
@@ -55,6 +57,14 @@ export default class Cont {
   async save() {
     this.saved.set(false);
     this.error.set('');
+    const a = this.auth.account();
+    const diff = changes([
+      { label: 'Nume', before: a?.name, after: this.name },
+      { label: 'Telefon', before: a?.phone, after: this.phone },
+      { label: 'Adresă', before: a?.address, after: this.address },
+    ]);
+    if (!diff.length) return this.saved.set(true);
+    if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
     try {
       await this.auth.update({ name: this.name, phone: this.phone || null, address: this.address || null });
       this.saved.set(true);
@@ -69,7 +79,13 @@ export default class Cont {
   }
 
   async remove() {
-    if (!confirm('Sigur ștergi contul și tot porumbarul? Nu se poate da înapoi.')) return;
+    const ok = await this.confirm.ask({
+      title: 'Ștergi contul și tot porumbarul?',
+      lines: ['Se șterg toți porumbeii, notele și datele contului.', 'Nu se poate da înapoi.'],
+      confirmLabel: 'Da, șterge tot',
+      danger: true,
+    });
+    if (!ok) return;
     this.deleteError.set('');
     try {
       await this.api.delete('/auth/me', { password: this.deletePassword });

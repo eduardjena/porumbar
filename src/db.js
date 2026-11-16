@@ -115,6 +115,12 @@ const MIGRATIONS = [
 
   // 6: vederea cu care se deschide Arborele (aleasă de fiecare crescător).
   "ALTER TABLE accounts ADD COLUMN tree_view TEXT NOT NULL DEFAULT 'carduri'",
+
+  // 7: separare totală între conturi (Planul 3): inelul unui porumbel propriu e unic doar în cont.
+  `
+  DROP INDEX ux_pigeons_own_ring;
+  CREATE UNIQUE INDEX ux_pigeons_own_ring ON pigeons (account_id, ring_key) WHERE kind = 'own' AND ring_key IS NOT NULL;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

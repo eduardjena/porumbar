@@ -3,6 +3,7 @@ import { Api, errorMessage } from '../core/api';
 import { CoiResult, Pigeon, PigeonSummary } from '../core/models';
 import { percent, ringText } from '../core/catalog';
 import { PigeonPicker } from './pigeon-picker';
+import { ConfirmService, changes } from '../core/confirm';
 
 /** Tatăl și mama: alegi pe fiecare după inel, vezi cât de înrudiți ar fi puii lor, apoi confirmi. */
 @Component({
@@ -31,6 +32,7 @@ import { PigeonPicker } from './pigeon-picker';
 })
 export class ParentsEditor {
   private readonly api = inject(Api);
+  private readonly confirm = inject(ConfirmService);
   readonly pigeonId = input.required<number>();
   readonly initialFather = input<PigeonSummary | null>(null);
   readonly initialMother = input<PigeonSummary | null>(null);
@@ -77,6 +79,11 @@ export class ParentsEditor {
   }
 
   async save() {
+    const diff = changes([
+      { label: 'Tatăl', before: this.initialFather() ? ringText(this.initialFather()) : '', after: this.father() ? ringText(this.father()) : '' },
+      { label: 'Mama', before: this.initialMother() ? ringText(this.initialMother()) : '', after: this.mother() ? ringText(this.mother()) : '' },
+    ]);
+    if (diff.length && !(await this.confirm.ask({ title: 'Schimbi părinții?', lines: diff, confirmLabel: 'Da, schimbă' }))) return;
     this.busy.set(true);
     this.error.set('');
     try {

@@ -26,6 +26,8 @@ const CARRY_PATTERN = { C: 'solzat', '+': 'dungi', c: 'fără dungi' };
 const FROM_COLOR = {
   albastru: { base: '+', pattern: '+', spread: false, dilute: false },
   solzat: { base: '+', pattern: 'C', spread: false, dilute: false },
+  // „Albastru brocat” (utilizatorul, 2026-11-16) = albastru solzat (blue checker), ca „roșu brocat” pe roșu.
+  'albastru-brocat': { base: '+', pattern: 'C', spread: false, dilute: false },
   'solzat-inchis': { base: '+', pattern: 'CT', spread: false, dilute: false },
   // „Gut” (utilizatorul, 2026-11-16): bază albastru-negru cu desen solzat închis (pene cu margini negre), dominant peste dungi.
   gut: { base: '+', pattern: 'CT', spread: false, dilute: false },

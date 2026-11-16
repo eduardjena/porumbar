@@ -67,6 +67,8 @@ test('culorile din listă se traduc în factori doar unde e sigur', () => {
   assert.equal(factorsFromColor(null, 'M').base, null);
   // „Gut” (spus de utilizator): bază albastru-negru, desen solzat închis, dominant peste dungi.
   assert.deepEqual(factorsFromColor('gut', 'F'), { sex: 'F', base: '+', pattern: 'CT', spread: false, dilute: false });
+  // „Albastru brocat” (spus de utilizator) = albastru solzat, perechea pe albastru a lui „roșu brocat”.
+  assert.deepEqual(factorsFromColor('albastru-brocat', 'M'), { sex: 'M', base: '+', pattern: 'C', spread: false, dilute: false });
 });
 
 test('ce poartă ascuns, dedus din părinți: masculul roșu cu mamă albastră poartă albastru', () => {

@@ -28,6 +28,10 @@ export const publicAccount = (a) => ({
   phone: a.phone ?? null,
   address: a.address ?? null,
   treeView: TREE_VIEWS.includes(a.tree_view) ? a.tree_view : TREE_VIEWS[0],
+  // Ce apare pe pedigree-ul public și pe cel tipărit, pe lângă nume (implicit nimic).
+  showPhone: !!a.show_phone,
+  showAddress: !!a.show_address,
+  showEmail: !!a.show_email,
 });
 
 export function parseCookies(header = '') {
@@ -75,7 +79,7 @@ export async function requireAccount(req, res, next) {
     if (!token) throw new HttpError(401, 'Trebuie să intri în cont.');
     const hash = sha256(token);
     const row = await one(
-      `SELECT a.id, a.email, a.name, a.phone, a.address, a.tree_view, s.last_seen_at
+      `SELECT a.id, a.email, a.name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
       hash, SESSION_DAYS,

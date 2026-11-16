@@ -1,6 +1,6 @@
 import { Component, inject, input, output, signal, effect } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, percent, ringText, sexShort } from '../../core/catalog';
 import { CoiResult, PigeonSummary, TreeNode } from '../../core/models';
@@ -42,10 +42,11 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
 
     <ng-template #branch let-node let-depth="depth">
       <div class="branch">
-        <div class="box" [style.background]="node.repeat ? color(node.repeat) : null" [class.root]="depth === 0">
+        <div class="box" [style.background]="node.repeat ? color(node.repeat) : null" [class.root]="depth === 0"
+             (dblclick)="openPigeon(node.id)" title="Dublu clic: deschide fișa">
           @if (pigeons()[node.id]; as p) {
             <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
-            <span><span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>@if (p.year) { <span class="year">· {{ p.year }}</span> }</span>
+            <span><span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>@if (p.year) { <span class="year"> · {{ p.year }}</span> }</span>
             @if (p.name) { <span class="name">„{{ p.name }}”</span> }
             @if (p.color) { <span class="muted">{{ catalog.label('colors', p.color) }}</span> }
           }
@@ -72,7 +73,16 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
     .bar { margin-bottom: 12px; }
     .scroll { overflow-x: auto; padding: 8px 0 16px; -webkit-overflow-scrolling: touch; }
     .branch { display: flex; align-items: center; }
-    .parents { display: flex; flex-direction: column; gap: 6px; padding-left: 14px; margin-left: 10px; border-left: 2px solid var(--border); }
+    /* Liniile clasice de pedigree: din puiul din stânga iese o linie, care se desparte spre tată (sus) și mamă (jos). */
+    .parents { display: flex; flex-direction: column; gap: 10px; position: relative; margin-left: 22px; }
+    .parents::before { content: ''; position: absolute; left: -22px; top: 50%; width: 22px; border-top: 2px solid var(--border-strong); }
+    .parents > .branch { position: relative; padding-left: 22px; }
+    .parents > .branch::before { content: ''; position: absolute; left: 0; border-left: 2px solid var(--border-strong); }
+    .parents > .branch::after { content: ''; position: absolute; left: 0; top: 50%; width: 22px; border-top: 2px solid var(--border-strong); }
+    .parents > .branch:first-child::before { top: 50%; bottom: -5px; }
+    .parents > .branch:last-child::before { top: -5px; bottom: 50%; }
+    .parents > .branch:first-child::before, .parents > .branch:first-child::after { border-color: #8fa9c4; }
+    .parents > .branch:last-child::before, .parents > .branch:last-child::after { border-color: #c995be; }
     .box {
       width: 190px; flex: none; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
       padding: 6px 10px; display: flex; flex-direction: column; font-size: 0.85rem; line-height: 1.3; text-align: left;
@@ -87,6 +97,7 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
 })
 export class Arbore {
   private readonly api = inject(Api);
+  private readonly router = inject(Router);
   protected readonly catalog = inject(CatalogService);
   readonly pigeonId = input.required<number>();
   /** Crește când se schimbă părinții, ca arborele să se reîncarce. */
@@ -109,6 +120,10 @@ export class Arbore {
       this.version();
       this.load(this.pigeonId(), this.gen());
     });
+  }
+
+  openPigeon(id: number) {
+    this.router.navigate(['/porumbei', id]);
   }
 
   setGen(n: number) {

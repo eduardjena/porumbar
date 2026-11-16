@@ -303,8 +303,8 @@ export default class Retea implements OnDestroy {
             'arrow-scale': 0.9,
           },
         },
-        { selector: 'edge[role = "father"]', style: { 'line-color': '#8fb3dc', 'target-arrow-color': '#8fb3dc' } },
-        { selector: 'edge[role = "mother"]', style: { 'line-color': '#dca3bf', 'target-arrow-color': '#dca3bf' } },
+        { selector: 'edge[role = "father"]', style: { 'line-color': '#9fb8cf', 'target-arrow-color': '#9fb8cf' } },
+        { selector: 'edge[role = "mother"]', style: { 'line-color': '#d2a6c9', 'target-arrow-color': '#d2a6c9' } },
         { selector: '.faded', style: { opacity: 0.15 } },
         // Porumbelul atins: chenar albastru și un halou pastel în jur, ca să se vadă clar pe care ești.
         {
@@ -314,13 +314,13 @@ export default class Retea implements OnDestroy {
             'border-color': css('--accent'),
             'border-style': 'solid',
             // halou pastel, moale, în jurul porumbelului ales (cerut de utilizator)
-            'underlay-color': '#a9d1ff',
+            'underlay-color': '#f3c9b5',
             'underlay-opacity': 1,
             'underlay-padding': 26,
             'underlay-shape': 'round-rectangle',
             'underlay-corner-radius': 40,
             'underlay-fill': 'radial-gradient',
-            'underlay-gradient-stop-colors': 'rgba(150,200,255,0.95) rgba(190,222,255,0.7) rgba(220,236,255,0)',
+            'underlay-gradient-stop-colors': 'rgba(240,180,150,0.95) rgba(246,205,185,0.7) rgba(250,228,215,0)',
             'underlay-gradient-stop-positions': '0% 60% 100%',
             'z-index': 20,
           } as never,
@@ -341,6 +341,8 @@ export default class Retea implements OnDestroy {
       related.edges().addClass('lit');
       this.selected.set(byId.get(Number(node.id())) ?? null);
     });
+    // Dublu clic (sau dublă atingere) pe un porumbel: deschide fișa lui.
+    this.cy.on('dbltap', 'node', (evt) => this.router.navigate(['/porumbei', Number((evt.target as NodeSingular).id())]));
     this.cy.on('tap', (evt) => {
       if (evt.target === this.cy) this.clearSelection();
     });

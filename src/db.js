@@ -177,6 +177,14 @@ const MIGRATIONS = [
   );
   CREATE INDEX ix_account_events ON account_events (account_id, created_at DESC);
   `,
+
+  // 12: crescător făcut de vânzător din consolă: contul există, dar parola și-o alege omul din linkul de activare.
+  `
+  ALTER TABLE accounts ADD COLUMN invited BOOLEAN NOT NULL DEFAULT false;
+  ALTER TABLE account_events DROP CONSTRAINT account_events_kind_check;
+  ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
+    CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created'));
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

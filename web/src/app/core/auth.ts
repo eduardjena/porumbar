@@ -98,6 +98,14 @@ export const adminGuard: CanActivateFn = async () => {
   return auth.account()?.isAdmin ? true : router.parseUrl('/panou');
 };
 
+/** Pagina de start a vânzătorului e consola: „Panou” (și orice trimite acolo) îl duce la /vanzator. */
+export const sellerHomeGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  await auth.load();
+  return auth.account()?.isAdmin ? router.parseUrl('/vanzator') : true;
+};
+
 /** Paginile de intrare: cine e deja în cont merge la porumbar. */
 export const guestGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);

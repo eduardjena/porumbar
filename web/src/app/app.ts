@@ -108,8 +108,9 @@ export class App {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   /** Adminul (vânzătorul) are în plus consola. */
+  /** Vânzătorul (adminul) vede doar consola și contul lui; porumbarul nu-l interesează. */
   protected readonly nav = computed<NavItem[]>(() =>
-    this.auth.account()?.isAdmin ? [...NAV.slice(0, 3), { path: '/vanzator', label: 'Vânzător', icon: 'vinde' }, NAV[3]] : NAV,
+    this.auth.account()?.isAdmin ? [{ path: '/vanzator', label: 'Vânzător', icon: 'vinde' }, NAV[3]] : NAV,
   );
   /** Banda de sus pentru crescători: „doar citire” sau abonamentul care expiră curând. */
   protected readonly banner = computed(() => {

@@ -10,7 +10,7 @@ import { PasswordField } from '../../shared/password-field';
   imports: [FormsModule, RouterLink, PasswordField],
   template: `
     <div class="auth-page stack">
-      <h1>Parolă nouă</h1>
+      <h1>Alege-ți parola</h1>
       <form class="card stack" (ngSubmit)="submit()">
         <app-password-field [(value)]="password" label="Parola nouă" autocomplete="new-password" hint="Cel puțin 10 caractere." />
         @if (error()) {

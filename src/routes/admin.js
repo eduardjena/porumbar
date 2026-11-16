@@ -1,8 +1,8 @@
 import express from 'express';
 import { config } from '../config.js';
-import { all, one, run, tx } from '../db.js';
+import { all, insert, nowIso, one, run, tx } from '../db.js';
 import { HttpError, badRequest, notFound, realDate, text } from '../http.js';
-import { randomToken, requireAccount, sha256 } from '../accounts.js';
+import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.js';
 import { sendMail } from '../mail.js';
 import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscriptions.js';
 
@@ -13,6 +13,19 @@ import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscrip
  */
 
 const PASSWORD_LINK_HOURS = 24;
+const INVITE_LINK_HOURS = 7 * 24; // linkul de activare al unui cont făcut din consolă
+
+/** Un link de parolă (activare sau parolă nouă), folosit o singură dată. */
+async function passwordLinkFor(accountId, hours) {
+  const token = randomToken();
+  await run(
+    `INSERT INTO password_resets (token_hash, account_id, expires_at) VALUES (?, ?, now() + make_interval(hours => ?))`,
+    sha256(token), accountId, hours,
+  );
+  return `${config.publicBaseUrl}/parola-noua/${token}`;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STATUSES = ['pending', 'active', 'expiring', 'expired'];
 
 function requireAdmin(req, res, next) {
@@ -39,6 +52,8 @@ function row(a) {
     pigeons: Number(a.pigeons ?? 0),
     reads: Number(a.reads ?? 0),
     reminderSentAt: a.reminder_sent_for && a.reminder_sent_for === a.subscription_end ? a.reminder_sent_at : null,
+    // Făcut din consolă și încă fără parolă aleasă.
+    invited: !!a.invited,
   };
 }
 
@@ -71,6 +86,55 @@ export function adminRouter() {
     // De încasat primele: cele care expiră curând, după zile rămase.
     if (filter === 'expiring') shown.sort((a, b) => a.daysLeft - b.daysLeft);
     res.json({ accounts: shown, counts, mailConfigured: !!config.smtpUrl });
+  });
+
+  // „Crescător nou”: contul fără parolă + link de activare (7 zile) pe care vânzătorul îl trimite pe telefon / email.
+  // Opțional, în același pas: abonamentul (a plătit deja) și credit pentru citiri.
+  r.post('/accounts', async (req, res) => {
+    const b = req.body ?? {};
+    const name = text(b.name, 'nume', { max: 120 });
+    const email = text(b.email, 'email', { max: 200 });
+    if (!EMAIL_RE.test(email)) throw badRequest('Adresa de email nu pare corectă.');
+    const phone = text(b.phone, 'telefon', { max: 40, optional: true });
+    const activate = b.activate === true;
+    const start = activate ? validDate(b.start, 'Data de început') : null;
+    const credit = b.credit == null || b.credit === 0 ? 0 : b.credit;
+    if (typeof credit !== 'number' || !Number.isFinite(credit) || credit < 0 || credit > 1000) throw badRequest('Creditul se scrie în dolari, de exemplu 5.');
+    const note = text(b.note, 'notă', { max: 300, optional: true });
+    if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
+    const created = await tx(async () => {
+      if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
+      // Parola de pornire nu o știe nimeni (o valoare aleatoare); omul își alege parola din link.
+      const id = await insert(
+        'INSERT INTO accounts (email, name, phone, password_hash, invited, created_at) VALUES (?, ?, ?, ?, true, ?)',
+        email, name, phone, await hashPassword(randomToken()), nowIso(),
+      );
+      await logEvent(id, 'created', { note: note ?? 'făcut din consolă' });
+      if (activate) {
+        await run('UPDATE accounts SET subscription_start = ?, subscription_end = ? WHERE id = ?', start, plusOneYear(start), id);
+        await logEvent(id, 'subscription', { note: [`${start} → ${plusOneYear(start)}`, note].filter(Boolean).join(' · ') });
+      }
+      if (credit > 0) {
+        const micros = Math.round(credit * 1e6);
+        await run('UPDATE accounts SET ai_credit_micros = ? WHERE id = ?', micros, id);
+        await logEvent(id, 'credit', { amountMicros: micros, note });
+      }
+      return { id, link: await passwordLinkFor(id, INVITE_LINK_HOURS) };
+    });
+    let emailed = !!config.smtpUrl;
+    try {
+      await sendMail({
+        to: email,
+        subject: 'Contul tău Porumbar',
+        text:
+          `Bună, ${name}!\n\nȚi-am făcut un cont în Porumbar, programul pentru evidența porumbeilor și a pedigree-urilor.\n` +
+          `Deschide linkul de mai jos în cel mult 7 zile și alege-ți parola; apoi intri direct în porumbarul tău:\n\n${created.link}\n\n` +
+          'Parola o alegi doar tu; nimeni altcineva nu o vede.\n',
+      });
+    } catch {
+      emailed = false;
+    }
+    res.status(201).json({ account: row(await accountRow(created.id)), link: created.link, emailed });
   });
 
   r.get('/accounts/:id', async (req, res) => {
@@ -121,26 +185,23 @@ export function adminRouter() {
   // Link de parolă nouă (24 h, o folosire): pleacă pe email și îl vede și adminul (îl poate trimite pe telefon).
   r.post('/accounts/:id/password-link', async (req, res) => {
     const a = await accountRow(req.params.id);
-    const token = randomToken();
-    await run(
-      `INSERT INTO password_resets (token_hash, account_id, expires_at) VALUES (?, ?, now() + make_interval(hours => ?))`,
-      sha256(token), a.id, PASSWORD_LINK_HOURS,
-    );
-    const link = `${config.publicBaseUrl}/parola-noua/${token}`;
+    // Cine n-a intrat încă niciodată (făcut din consolă) primește iar 7 zile; restul, 24 de ore.
+    const hours = a.invited ? INVITE_LINK_HOURS : PASSWORD_LINK_HOURS;
+    const link = await passwordLinkFor(a.id, hours);
     let emailed = !!config.smtpUrl; // fără SMTP emailul doar se scrie în jurnalul serverului
     try {
       await sendMail({
         to: a.email,
         subject: 'Parolă nouă pentru Porumbar',
         text:
-          `Bună, ${a.name}!\n\nCa să intri din nou în contul tău Porumbar, deschide linkul de mai jos în cel mult 24 de ore ` +
+          `Bună, ${a.name}!\n\nCa să intri în contul tău Porumbar, deschide linkul de mai jos în cel mult ${a.invited ? '7 zile' : '24 de ore'} ` +
           `și alege-ți o parolă nouă:\n\n${link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n`,
       });
     } catch {
       emailed = false;
     }
     await logEvent(a.id, 'password-link', { note: emailed ? 'trimis pe email' : 'emailul nu a plecat' });
-    res.json({ link, emailed });
+    res.json({ link, emailed, hours });
   });
 
   return r;

@@ -3,6 +3,7 @@ import { HttpError, badRequest, notFound, text, realDate } from './http.js';
 import { createPigeon, getPigeon, getPigeonRow, loadNodes, toSummary } from './pigeons.js';
 import { wrightCoi } from './genealogy.js';
 import { parseRing, formatRing, ringKey } from './rings.js';
+import { cleanFactors, factorsFromColor, inferHidden, predictColors } from './color-genetics.js';
 
 /*
  * Reproducția (design: docs/superpowers/specs/2026-11-16-reproductie-design.md): perechi pe sezon, ponte, inelarea
@@ -318,4 +319,32 @@ export async function nextRing(accountId, year) {
     }
   }
   return null;
+}
+
+// ——— Culorile probabile ale puilor ———
+
+/** Factorii de culoare ai unui porumbel din fișa lui, cu ce poartă ascuns dedus din culorile părinților. */
+async function colorFactors(accountId, row) {
+  const parents = await all('SELECT id, sex, color FROM pigeons WHERE account_id = ? AND id = ANY(?::bigint[])', accountId, [row.father_id, row.mother_id].filter(Boolean));
+  const of = (id) => parents.find((p) => p.id === id);
+  const father = of(row.father_id);
+  const mother = of(row.mother_id);
+  return inferHidden(
+    factorsFromColor(row.color, row.sex),
+    father ? factorsFromColor(father.color, 'M') : null,
+    mother ? factorsFromColor(mother.color, 'F') : null,
+  );
+}
+
+/** Pentru perechea dată: factorii masculului și ai femelei (din fișe) și culorile probabile ale puilor. */
+export async function pairColors(accountId, id) {
+  const pair = await getPairRow(accountId, id);
+  const sire = await colorFactors(accountId, await getPigeonRow(accountId, pair.cock_id));
+  const dam = await colorFactors(accountId, await getPigeonRow(accountId, pair.hen_id));
+  return { sire, dam, result: predictColors(sire, dam) };
+}
+
+/** Calculul pentru factorii corectați de om pe ecran. */
+export function predictFromBody(body) {
+  return predictColors(cleanFactors(body?.sire, 'M'), cleanFactors(body?.dam, 'F'));
 }

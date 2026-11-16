@@ -110,3 +110,22 @@ test('perechea are consangvinizarea, numărul de ponte și de pui; ștergerea la
   const young = (await call('/api/pigeons?q=RO-26-800541', { cookie: a })).data.pigeons;
   assert.equal(young.length, 1, 'puiul rămâne');
 });
+
+test('culorile puilor pentru o pereche: din culorile din fișe, cu ce poartă ascuns dedus din părinți', async () => {
+  const set = (p, body) => call(`/api/pigeons/${p.id}`, { method: 'PATCH', cookie: a, body });
+  const m = await own('RO-24-200001', 'M');
+  const f = await own('RO-24-200002', 'F');
+  await set(m, { color: 'albastru' });
+  await set(f, { color: 'rosu' });
+  const p = (await call('/api/pairs', { method: 'POST', cookie: a, body: { cockId: m.id, henId: f.id, season: 2027 } })).data.pair;
+  const r = await call(`/api/pairs/${p.id}/colors`, { cookie: a });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.sire.base, '+');
+  assert.equal(r.data.result.cocks[0].name.startsWith('Roșu'), true, 'fiii iau roșul mamei');
+  assert.equal(r.data.result.hens[0].name.startsWith('Albastru'), true, 'fiicele iau albastrul tatălui');
+  const edited = await call('/api/colors/predict', { method: 'POST', cookie: a, body: { sire: { base: 'BA', baseHidden: '+', pattern: '+', spread: false, dilute: false }, dam: { base: '+', pattern: '+', spread: false, dilute: false } } });
+  assert.equal(edited.status, 200);
+  assert.equal(edited.data.cocks.length, 2);
+  assert.equal((await call('/api/colors/predict', { method: 'POST', cookie: a, body: { sire: { base: 'verde' }, dam: {} } })).status, 400);
+  assert.equal((await call(`/api/pairs/${p.id}/colors`, { cookie: b })).status, 404);
+});

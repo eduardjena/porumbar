@@ -9,7 +9,7 @@ const COUNTRIES = {
   RO: 'RO', NL: 'NL', BE: 'BE', BELG: 'BE', B: 'BE', DV: 'DV', D: 'DV', DE: 'DV',
   GB: 'GB', GBR: 'GB', PL: 'PL', HU: 'HU', H: 'HU', BG: 'BG', MD: 'MD', FR: 'FR', F: 'FR',
   CZ: 'CZ', SK: 'SK', RS: 'RS', SRB: 'RS', UA: 'UA', IT: 'IT', I: 'IT', ES: 'ES', E: 'ES',
-  PT: 'PT', P: 'PT', TW: 'TW', CN: 'CN', CHN: 'CN', US: 'US', USA: 'US', AT: 'AT', A: 'AT', AUS: 'AT', AUT: 'AT', CH: 'CH', DK: 'DK', DAN: 'DK',
+  PT: 'PT', P: 'PT', ESP: 'ES', TW: 'TW', CN: 'CN', CHN: 'CN', US: 'US', USA: 'US', AT: 'AT', A: 'AT', AUS: 'AT', AUT: 'AT', CH: 'CH', DK: 'DK', DAN: 'DK',
 };
 // Litera de sex de la final: L/M = mascul, T/F = femelă (Compuclub folosește L/T).
 const SEX = { L: 'M', M: 'M', T: 'F', F: 'F' };
@@ -52,9 +52,12 @@ export function parseRing(text, { now = new Date() } = {}) {
     parts = { country: COUNTRIES[m[1]], club: stripZeros(m[3]), year: m[2], number: m[4] };
   } else if ((m = s.match(/^([A-Z]{1,4})[\s-]+(\d{2}|\d{4})[\s-]+(\d+)$/))) {
     parts = { country: country(m[1]), year: m[2], number: m[3] };
-  } else if ((m = s.match(/^(\d+)\s*[/-]\s*(\d{2}|\d{4})(?:\s+([A-Z]{1,4}))?$/))) {
-    // Numărul întâi: 412084/15 RO, 6008107/08 BELG, 2091850-25.
+  } else if ((m = s.match(/^(\d+)\s*[/-]\s*(\d{2}|\d{4})(?:[\s-]+([A-Z]{1,4}))?$/))) {
+    // Numărul întâi: 412084/15 RO, 6008107/08 BELG, 2091850-25, 0561385-2017-RO.
     parts = { country: country(m[3]), year: m[2], number: m[1] };
+  } else if ((m = s.match(/^([A-Z]{1,4})\s+(\d{4,})\s*-\s*(\d{4})$/)) && COUNTRIES[m[1]]) {
+    // Țara, numărul, anul întreg: Ro 439175 - 2020, B 6024428-2019.
+    parts = { country: COUNTRIES[m[1]], year: m[3], number: m[2] };
   }
   if (!parts || !parts.country) return result;
 

@@ -12,7 +12,7 @@ let status = 1;
 try {
   const r = spawnSync(process.execPath, ['--disable-warning=ExperimentalWarning', '--test', ...files], {
     stdio: 'inherit',
-    env: { ...process.env, TEST_DATABASE_URL: process.env.TEST_DATABASE_URL || temp.url },
+    env: { ...process.env, NODE_ENV: 'test', TEST_DATABASE_URL: process.env.TEST_DATABASE_URL || temp.url },
   });
   status = r.status ?? 1;
 } finally {

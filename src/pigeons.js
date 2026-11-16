@@ -1,5 +1,5 @@
-import { one, all, run, insert, tx, nowIso } from './db.js';
-import { HttpError, badRequest, notFound, text, oneOf } from './http.js';
+import { one, all, run, insert, tx, nowIso, lockAccount } from './db.js';
+import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { parseRing, formatRing, ringKey } from './rings.js';
 import { BREEDS, COLORS, EYE_COLORS, STATUSES, EVAL_CRITERIA, codes, fold } from './catalog.js';
 
@@ -82,19 +82,19 @@ const optCode = (value, list, field) => (value == null || value === '' ? null : 
 
 function validDate(value) {
   if (value == null || value === '') return null;
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw badRequest('Data eclozării trebuie să fie de forma AAAA-LL-ZZ.');
-  const d = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) throw badRequest('Data eclozării nu este o dată reală.');
-  return value;
+  return realDate(value, 'Data eclozării');
 }
 
 function validLines(value) {
   if (value == null) return [];
   if (!Array.isArray(value)) throw badRequest('Liniile trebuie să fie o listă.');
+  // O listă uriașă e refuzată înainte de orice lucru (altfel o singură cerere ar ține serverul ocupat pentru toți).
+  if (value.length > MAX_LINES * 3) throw badRequest(`Cel mult ${MAX_LINES} linii.`);
   const out = [];
+  const seen = new Set();
   for (const v of value) {
     const s = text(v, 'linie', { max: 40, optional: true });
-    if (s && !out.some((x) => fold(x) === fold(s))) out.push(s);
+    if (s && !seen.has(fold(s))) seen.add(fold(s)), out.push(s);
   }
   if (out.length > MAX_LINES) throw badRequest(`Cel mult ${MAX_LINES} linii.`);
   return out;
@@ -210,6 +210,12 @@ export async function updatePigeon(accountId, id, input) {
     const existing = await getPigeon(accountId, id);
     const p = validate(input ?? {}, existing);
     await checkDuplicate(accountId, p, existing.id);
+    if (p.sex !== existing.sex) {
+      const column = existing.sex === 'M' ? 'father_id' : existing.sex === 'F' ? 'mother_id' : null;
+      if (column && (await one(`SELECT 1 FROM pigeons WHERE ${column} = ? LIMIT 1`, existing.id))) {
+        throw badRequest(`Porumbelul e deja ${existing.sex === 'M' ? 'tatăl' : 'mama'} unor pui din program, așa că nu i se poate schimba sexul. Schimbă întâi părinții acelor pui.`);
+      }
+    }
     const sets = COLS.split(',').map((c) => `${c.trim()} = ?`).join(', ');
     await run(`UPDATE pigeons SET ${sets}, updated_at = ? WHERE id = ?`, ...columns(p), nowIso(), existing.id);
     return getPigeon(accountId, existing.id);
@@ -222,6 +228,7 @@ export const whenPigeonDeleted = (fn) => pigeonDeleted.push(fn);
 
 export async function deletePigeon(accountId, id) {
   await tx(async () => {
+    await lockAccount(accountId);
     const row = await getPigeonRow(accountId, id);
     if (await one('SELECT 1 FROM pigeons WHERE father_id = ? OR mother_id = ? LIMIT 1', row.id, row.id)) {
       throw new HttpError(409, 'Porumbelul are pui în program. Schimbă-i starea în loc să-l ștergi.');

@@ -1,18 +1,13 @@
 import express from 'express';
 import { one, all, run, insert, nowIso } from '../db.js';
-import { badRequest, notFound, text, oneOf } from '../http.js';
+import { badRequest, notFound, text, oneOf, realDate } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
 import { JOURNAL_TYPES, codes } from '../catalog.js';
 
 const toEntry = (r) => ({ id: r.id, date: r.entry_date, type: r.type, text: r.text });
 
-function validDate(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw badRequest('Data trebuie să fie de forma AAAA-LL-ZZ.');
-  const d = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) throw badRequest('Data nu este o dată reală.');
-  return value;
-}
+const validDate = (value) => realDate(value, 'Data');
 
 /** Jurnalul porumbelului: note, tratamente, vaccinuri, antrenamente — cu dată. */
 export function journalRouter() {

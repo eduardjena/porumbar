@@ -91,10 +91,16 @@ async function claudeModel({ mime, data }) {
     output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
     messages: [{ role: 'user', content: [file, { type: 'text', text: INSTRUCTIONS }] }],
   });
-  if (response.stop_reason === 'refusal') throw new HttpError(422, 'Fișierul nu a putut fi citit. Încearcă altă poză.');
-  if (response.stop_reason === 'max_tokens') throw new HttpError(422, 'Pedigree-ul e prea lung pentru o citire. Încearcă o poză cu mai puține generații.');
+  // Și o citire nereușită se plătește: costul ei pleacă împreună cu eroarea, ca să fie scăzut din credit.
+  const fail = (message) => Object.assign(new HttpError(422, message), { usage: response.usage });
+  if (response.stop_reason === 'refusal') throw fail('Fișierul nu a putut fi citit. Încearcă altă poză.');
+  if (response.stop_reason === 'max_tokens') throw fail('Pedigree-ul e prea lung pentru o citire. Încearcă o poză cu mai puține generații.');
   const text = response.content.find((b) => b.type === 'text')?.text ?? '';
-  return { ...JSON.parse(text), usage: response.usage };
+  try {
+    return { ...JSON.parse(text), usage: response.usage };
+  } catch {
+    throw fail('Citirea nu a reușit. Încearcă din nou sau altă poză.');
+  }
 }
 
 /** Lista plată de căsuțe → arbore { ring, name, color, text, breeder, sex?, father, mother }. */
@@ -124,13 +130,28 @@ function toTree(slots, rootSex) {
 export async function readPedigree(accountId, body) {
   const mime = String(body?.mime ?? '');
   if (!MIME_TYPES.includes(mime)) throw badRequest('Trimite o poză (JPG, PNG, WebP) sau un PDF.');
-  const data = Buffer.from(String(body?.data ?? ''), 'base64');
+  if (typeof body?.data !== 'string' || !/^[A-Za-z0-9+/\s]*={0,2}\s*$/.test(body.data)) throw badRequest('Fișierul nu a ajuns întreg. Încearcă din nou.');
+  const data = Buffer.from(body.data, 'base64');
   if (!data.length) throw badRequest('Fișierul e gol.');
   if (data.length > MAX_BYTES) throw badRequest('Fișierul e prea mare (cel mult 12 MB).');
 
   const run = model ?? (process.env.ANTHROPIC_API_KEY ? claudeModel : null);
   if (!run) throw new HttpError(503, 'Citirea din poză nu e pornită încă pe acest server. Completează căsuțele de mână.');
 
+  // O singură citire odată pe cont: cererile trimise deodată nu pot trece toate de credit și de limita pe zi
+  // (serverul rulează o singură instanță, deci ajunge o listă în memorie).
+  if (reading.has(accountId)) throw new HttpError(429, 'O citire e deja în curs. Așteaptă să se termine.');
+  reading.add(accountId);
+  try {
+    return await readLocked(accountId, mime, data, run);
+  } finally {
+    reading.delete(accountId);
+  }
+}
+
+const reading = new Set();
+
+async function readLocked(accountId, mime, data, run) {
   // Creditul pus de vânzător după plată (adminul citește fără credit).
   const acc = await one('SELECT email, ai_credit_micros FROM accounts WHERE id = ?', accountId);
   const admin = isAdminEmail(acc.email);
@@ -141,19 +162,23 @@ export async function readPedigree(accountId, body) {
   if (used.n >= readsPerDay()) throw new HttpError(429, `Ai folosit cele ${readsPerDay()} citiri de azi. Mai poți citi mâine sau completezi căsuțele de mână.`);
   const readId = await insert('INSERT INTO pedigree_reads (account_id, created_at) VALUES (?, now())', accountId);
 
+  const charge = async (usage) => {
+    const cost = costOf(usage);
+    await runSql('UPDATE pedigree_reads SET cost_micros = ? WHERE id = ?', cost, readId);
+    if (!admin) await runSql('UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros - ?) WHERE id = ?', cost, accountId);
+  };
   let out;
   try {
     out = await run({ mime, data });
   } catch (e) {
+    if (e?.usage) await charge(e.usage);
     if (e instanceof HttpError) throw e;
     if (e instanceof Anthropic.RateLimitError) throw new HttpError(503, 'Citirea e ocupată acum. Încearcă din nou peste un minut.');
     console.error('[porumbar] Citirea pedigree-ului a eșuat:', e?.message);
     throw new HttpError(502, 'Citirea nu a mers acum. Încearcă din nou sau completează de mână.');
   }
   // Costul real al citirii se scade din credit (nu sub zero) și rămâne lângă citire.
-  const cost = costOf(out?.usage);
-  await runSql('UPDATE pedigree_reads SET cost_micros = ? WHERE id = ?', cost, readId);
-  if (!admin) await runSql('UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros - ?) WHERE id = ?', cost, accountId);
+  await charge(out?.usage);
   const { root, filled } = toTree(out?.slots, out?.rootSex);
   const notes = typeof out?.notes === 'string' ? out.notes.trim() : '';
   if (!root) throw new HttpError(422, notes || 'Nu am găsit niciun porumbel în fișier. Încearcă o poză mai clară.');

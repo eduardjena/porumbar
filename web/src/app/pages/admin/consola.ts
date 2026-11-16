@@ -58,6 +58,9 @@ function plusOneYear(start: string) {
   template: `
     <div class="wide">
       <h1>Consola vânzătorului</h1>
+      @if (mailConfigured() === false) {
+        <p class="warning">Emailurile nu pleacă încă (lipsește setarea SMTP_URL pe server): memento-urile și linkurile de parolă apar doar aici, în consolă. Linkurile le poți trimite tu pe telefon.</p>
+      }
       <div class="tiles" role="tablist" aria-label="Filtre">
         @for (f of filters; track f.id) {
           <button type="button" role="tab" class="tile" [class.on]="filter() === f.id" [class.warn]="f.id === 'expiring' && counts()?.expiring"
@@ -67,7 +70,7 @@ function plusOneYear(start: string) {
         }
       </div>
       @if (counts()?.expiring) {
-        <p class="warning">De încasat: {{ counts()!.expiring }} {{ counts()!.expiring === 1 ? 'abonament expiră' : 'abonamente expiră' }} în cel mult 30 de zile. Crescătorii au primit memento pe email.</p>
+        <p class="warning">De încasat: {{ counts()!.expiring }} {{ counts()!.expiring === 1 ? 'abonament expiră' : 'abonamente expiră' }} în cel mult 30 de zile. Crescătorii au primit memento{{ mailConfigured() ? ' pe email' : ' (doar în consolă: emailul nu e configurat)' }}.</p>
       }
       <label class="search">
         <app-icon name="cautare" />
@@ -200,6 +203,7 @@ export default class Consola implements OnInit {
   protected readonly eventLabel = EVENT_LABEL;
   readonly rows = signal<Row[]>([]);
   readonly counts = signal<Counts | null>(null);
+  readonly mailConfigured = signal<boolean | null>(null);
   readonly filter = signal<'' | Status>('');
   readonly q = signal('');
   readonly loaded = signal(false);
@@ -237,9 +241,10 @@ export default class Consola implements OnInit {
 
   private async load() {
     try {
-      const r = await this.api.get<{ accounts: Row[]; counts: Counts }>(`/admin/accounts${this.filter() ? `?filter=${this.filter()}` : ''}`);
+      const r = await this.api.get<{ accounts: Row[]; counts: Counts; mailConfigured: boolean }>(`/admin/accounts${this.filter() ? `?filter=${this.filter()}` : ''}`);
       this.rows.set(r.accounts);
       this.counts.set(r.counts);
+      this.mailConfigured.set(r.mailConfigured);
       this.error.set('');
     } catch (e) {
       this.error.set(errorMessage(e));

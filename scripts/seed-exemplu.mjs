@@ -2,7 +2,8 @@
  * npm run seed:exemplu — pune în serverul pornit local (implicit http://localhost:3100) un cont de exemplu cu cele două
  * pedigree-uri din docs/exemple/, ca porumbarul, arborele și consangvinizarea să se poată încerca pe date reale.
  * Contul de exemplu (doar pentru dezvoltare): exemplu@porumbar.local / exemplu-porumbar-2026
- * Adminul (consola vânzătorului, cu ADMIN_EMAIL=admin@porumbar.local în .env): admin@porumbar.local / admin-porumbar-2026
+ * Adminul (consola vânzătorului) se face la pornirea serverului din .env: ADMIN_EMAIL=admin@porumbar.local și
+ * ADMIN_PASSWORD=admin-porumbar-2026 (doar pentru dezvoltare).
  */
 import { apiCaller } from '../test/helpers/api.js';
 import { loadPedigree } from '../test/helpers/load-pedigree.js';
@@ -23,11 +24,9 @@ const exampleId = r.data.account.id;
 // Adminul (vânzătorul): activează contul de exemplu și îi dă credit pentru citiri, ca la un crescător care a plătit.
 const ADMIN_EMAIL = 'admin@porumbar.local';
 const ADMIN_PASSWORD = 'admin-porumbar-2026';
-let ra = await call('/api/auth/login', { method: 'POST', body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } });
-if (ra.status !== 200) ra = await call('/api/auth/register', { method: 'POST', body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD, name: 'Vânzătorul' } });
-if (![200, 201].includes(ra.status)) throw new Error(`Adminul: ${ra.status} ${JSON.stringify(ra.data)}`);
-if (!ra.data.account.isAdmin) {
-  console.log('Atenție: pune ADMIN_EMAIL=admin@porumbar.local în .env și repornește serverul, apoi rulează din nou.');
+const ra = await call('/api/auth/login', { method: 'POST', body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } });
+if (ra.status !== 200 || !ra.data.account.isAdmin) {
+  console.log('Atenție: pune ADMIN_EMAIL=admin@porumbar.local și ADMIN_PASSWORD=admin-porumbar-2026 în .env, repornește serverul, apoi rulează din nou.');
 } else {
   const admin = ra.res.headers.get('set-cookie').split(';')[0];
   if (!r.data.account.subscription?.active) {

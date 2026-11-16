@@ -31,7 +31,7 @@ interface Outgoing {
         <p>Așteaptă să-l primească <strong>{{ t.buyerEmail }}</strong> (trimis pe {{ date(t.createdAt) }}){{ t.includePrivate ? ', cu notele și jurnalul' : '' }}.</p>
         <div class="row"><button type="button" (click)="cancel(t)">Anulează vânzarea</button></div>
       } @else {
-        <p class="muted">Cumpărătorul primește porumbelul cu tot pedigree-ul în contul lui. Trebuie să aibă cont în Porumbar (gratuit). Dacă nu are încă, dă-i linkul sau pedigree-ul tipărit de mai sus.</p>
+        <p class="muted">Cumpărătorul primește porumbelul cu tot pedigree-ul în contul lui. Trebuie să aibă cont activ în Porumbar. Dacă nu are încă, dă-i linkul sau pedigree-ul tipărit de mai sus.</p>
         <form class="stack" (ngSubmit)="sell()">
           <label class="field">Emailul cumpărătorului
             <input type="email" name="email" [(ngModel)]="email" autocomplete="off" required placeholder="cumparator@exemplu.ro" />
@@ -72,8 +72,8 @@ export class Vanzare {
 
   private async load(id: number) {
     try {
-      const r = await this.api.get<{ outgoing: Outgoing[] }>('/transfers');
-      this.mine.set(r.outgoing.filter((t) => t.pigeonId === id));
+      const r = await this.api.get<{ outgoing: Outgoing[] }>(`/transfers?pigeon=${id}`);
+      if (id === this.pigeon().id) this.mine.set(r.outgoing.filter((t) => t.pigeonId === id));
     } catch (e) {
       this.error.set(errorMessage(e));
     }

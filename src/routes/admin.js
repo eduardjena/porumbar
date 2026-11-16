@@ -1,7 +1,7 @@
 import express from 'express';
 import { config } from '../config.js';
 import { all, one, run, tx } from '../db.js';
-import { HttpError, badRequest, notFound, text } from '../http.js';
+import { HttpError, badRequest, notFound, realDate, text } from '../http.js';
 import { randomToken, requireAccount, sha256 } from '../accounts.js';
 import { sendMail } from '../mail.js';
 import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscriptions.js';
@@ -20,11 +20,7 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-const validDate = (v, field) => {
-  const s = String(v ?? '');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || Number.isNaN(Date.parse(`${s}T00:00:00Z`))) throw badRequest(`${field}: alege o dată.`);
-  return s;
-};
+const validDate = (v, field) => realDate(v, field);
 
 function row(a) {
   const sub = subscriptionOf(a);
@@ -74,7 +70,7 @@ export function adminRouter() {
       .filter((a) => !q || [a.name, a.email, a.phone].some((x) => String(x ?? '').toLowerCase().includes(q)));
     // De încasat primele: cele care expiră curând, după zile rămase.
     if (filter === 'expiring') shown.sort((a, b) => a.daysLeft - b.daysLeft);
-    res.json({ accounts: shown, counts });
+    res.json({ accounts: shown, counts, mailConfigured: !!config.smtpUrl });
   });
 
   r.get('/accounts/:id', async (req, res) => {
@@ -103,14 +99,20 @@ export function adminRouter() {
 
   // Credit pentru citirea pozelor, în dolari (negativ = corectură). Nu coboară sub zero.
   r.post('/accounts/:id/credit', async (req, res) => {
-    const amount = Number(req.body?.amount);
-    if (!Number.isFinite(amount) || amount === 0 || Math.abs(amount) > 1000) throw badRequest('Scrie suma în dolari, de exemplu 5.');
+    const amount = req.body?.amount;
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount === 0 || Math.abs(amount) > 1000) {
+      throw badRequest('Scrie suma în dolari, de exemplu 5.');
+    }
     const micros = Math.round(amount * 1e6);
     const note = text(req.body?.note, 'notă', { max: 300, optional: true });
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
-      await run('UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros + ?) WHERE id = ?', micros, acc.id);
-      await logEvent(acc.id, 'credit', { amountMicros: micros, note });
+      const { ai_credit_micros: before } = await one('SELECT ai_credit_micros FROM accounts WHERE id = ? FOR UPDATE', acc.id);
+      const { ai_credit_micros: after } = await one(
+        'UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros + ?) WHERE id = ? RETURNING ai_credit_micros', micros, acc.id,
+      );
+      // În istoric: ce s-a schimbat de fapt (o corectură de -10 $ pe 2 $ scade 2 $, nu 10 $).
+      await logEvent(acc.id, 'credit', { amountMicros: Number(after) - Number(before), note });
       return accountRow(acc.id);
     });
     res.json({ account: row(a) });
@@ -125,7 +127,7 @@ export function adminRouter() {
       sha256(token), a.id, PASSWORD_LINK_HOURS,
     );
     const link = `${config.publicBaseUrl}/parola-noua/${token}`;
-    let emailed = true;
+    let emailed = !!config.smtpUrl; // fără SMTP emailul doar se scrie în jurnalul serverului
     try {
       await sendMail({
         to: a.email,

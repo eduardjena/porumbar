@@ -9,6 +9,7 @@ import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
 import { viewsRouter } from './routes/views.js';
 import { pedigreesRouter } from './routes/pedigrees.js';
+import { requireAccount } from './accounts.js';
 import { publicRouter } from './routes/public.js';
 import { transfersRouter } from './routes/transfers.js';
 import { adminRouter } from './routes/admin.js';
@@ -28,6 +29,19 @@ export const DEFAULT_CSP = [
   "object-src 'none'",
   "frame-ancestors 'none'",
 ].join('; ');
+
+/** Cererea vine din pagina altui site? (Sec-Fetch-Site al browserului, altfel Origin față de Host.) */
+function crossSite(req) {
+  const site = req.headers['sec-fetch-site'];
+  if (site) return site === 'cross-site';
+  const origin = req.headers.origin;
+  if (!origin || origin === 'null') return origin === 'null';
+  try {
+    return new URL(origin).host !== req.headers.host;
+  } catch {
+    return true;
+  }
+}
 
 export function createApp() {
   const app = express();
@@ -50,11 +64,14 @@ export function createApp() {
     if (changes && hasBody && !req.is('application/json')) {
       return res.status(415).json({ error: 'Cererea trebuie trimisă ca JSON.' });
     }
+    // Scrieri venite de pe alt site (și cele fără corp, pe care regula JSON nu le prinde): refuzate.
+    if (changes && crossSite(req)) return res.status(403).json({ error: 'Cerere refuzată.' });
     next();
   });
-  // Poza / PDF-ul unui pedigree vine ca JSON (base64), deci aici limita e mai mare; restul rămâne la 1 MB.
-  app.use('/api/pedigrees/read', express.json({ limit: '17mb' }));
-  app.use(express.json({ limit: '1mb' }));
+  // Poza / PDF-ul unui pedigree vine ca JSON (base64), deci aici limita e mai mare; restul rămâne la 1 MB. Corpul mare
+  // se citește doar după ce se știe cine e omul, iar conținutul arhivat (gzip) nu se dezarhivează nicăieri.
+  app.use('/api/pedigrees/read', requireAccount, express.json({ limit: '17mb', inflate: false }));
+  app.use(express.json({ limit: '1mb', inflate: false }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.get('/api/catalog', (req, res) => res.json(publicCatalog()));

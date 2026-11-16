@@ -36,13 +36,13 @@ import { PedigreeSheet } from '../../shared/pedigree-sheet';
               }
             } @else {
               <button type="button" class="primary" (click)="go('/intra')"><app-icon name="cont" />Intră ca să-l preiei</button>
-              <button type="button" (click)="go('/cont-nou')">Fă-ți cont gratuit</button>
+              <button type="button" (click)="go('/cont-nou')">Fă-ți cont</button>
             }
             <button type="button" (click)="print()"><app-icon name="tipar" />Tipărește</button>
           </div>
         </header>
         @if (!auth.account()) {
-          <p class="notice no-print">Ții evidența porumbeilor pe hârtie? În Porumbar pedigree-urile se trec dintr-o poză și se dau mai departe cu un cod QR. Contul e gratuit.</p>
+          <p class="notice no-print">Ții evidența porumbeilor pe hârtie? În Porumbar pedigree-urile se trec dintr-o poză și se dau mai departe cu un cod QR. Ca să preiei porumbei, contul trebuie să fie activ.</p>
         }
         @if (error()) { <div class="error no-print" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
         <app-pedigree-sheet [root]="d.root" />

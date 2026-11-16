@@ -1,5 +1,5 @@
 import express from 'express';
-import { all, run, tx } from '../db.js';
+import { all, run, tx, lockAccount } from '../db.js';
 import { badRequest } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow, getPigeon, loadNodes, toPigeon, toSummary } from '../pigeons.js';
@@ -81,6 +81,7 @@ export function familyRouter() {
     const fatherId = idOrNull(req.body?.fatherId);
     const motherId = idOrNull(req.body?.motherId);
     const pigeon = await tx(async () => {
+      await lockAccount(accountId); // două alegeri de părinți deodată nu pot face împreună un ciclu
       const child = await getPigeonRow(accountId, req.params.id);
       const father = fatherId ? await getPigeonRow(accountId, fatherId) : null;
       const mother = motherId ? await getPigeonRow(accountId, motherId) : null;

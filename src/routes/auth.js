@@ -8,6 +8,7 @@ import {
   requireAccount, createSession, endSession, hashPassword, checkPassword, validatePassword,
   publicAccount, randomToken, sha256, TREE_VIEWS,
 } from '../accounts.js';
+import { isAdminEmail } from '../subscriptions.js';
 
 const RESET_MINUTES = 60;
 let dummyHash = null;
@@ -23,12 +24,21 @@ export function authRouter() {
     windowMs: 15 * 60_000,
     max: 10,
     failuresOnly: true,
-    key: (req) => `${req.ip}|${String(req.body?.email ?? '').toLowerCase()}`,
+    // Același email cu spații sau alte litere mari e aceeași țintă (altfel limita s-ar ocoli).
+    key: (req) => `${req.ip}|${String(req.body?.email ?? '').trim().toLowerCase()}`,
+  });
+  const registerLimit = rateLimit({
+    windowMs: 60 * 60_000,
+    max: Number(process.env.REGISTER_PER_HOUR) || (process.env.NODE_ENV === 'test' ? 100_000 : 20),
+    key: (req) => `register|${req.ip}`,
   });
   const mailLimit = rateLimit({ windowMs: 15 * 60_000, max: 5, key: (req) => `forgot|${req.ip}` });
 
-  r.post('/register', async (req, res) => {
+  r.post('/register', registerLimit, async (req, res) => {
     const email = emailOf(req.body?.email);
+    // Contul vânzătorului se face doar la pornirea serverului (ADMIN_EMAIL + ADMIN_PASSWORD), niciodată din formular:
+    // altfel primul care se înregistra cu acel email devenea admin.
+    if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
     const password = validatePassword(req.body?.password);
     const name = text(req.body?.name, 'nume', { max: 120 });
     if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) {
@@ -66,7 +76,11 @@ export function authRouter() {
     const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
     const address = b.address === undefined ? req.account.address : text(b.address, 'adresă', { max: 300, optional: true });
     const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'vederea Arborelui');
-    const flag = (key) => (b[key] === undefined ? req.account[key] : Boolean(b[key]));
+    const flag = (key) => {
+      if (b[key] === undefined) return req.account[key];
+      if (typeof b[key] !== 'boolean') throw badRequest('Bifele trebuie să fie da sau nu.');
+      return b[key];
+    };
     await run(
       'UPDATE accounts SET name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ? WHERE id = ?',
       name, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'), req.account.id,
@@ -114,7 +128,8 @@ export function authRouter() {
     const accountId = await tx(async () => {
       const row = await one('SELECT * FROM password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > now() FOR UPDATE', hash);
       if (!row) throw badRequest('Linkul a expirat sau a fost folosit.');
-      await run('UPDATE password_resets SET used_at = now() WHERE token_hash = ?', hash);
+      // Linkul folosit și toate celelalte linkuri încă nefolosite ale contului nu mai merg.
+      await run('UPDATE password_resets SET used_at = now() WHERE account_id = ? AND used_at IS NULL', row.account_id);
       await run('UPDATE accounts SET password_hash = ? WHERE id = ?', await hashPassword(password), row.account_id);
       // Parola nouă închide toate sesiunile vechi (cineva poate fi intrat cu parola veche).
       await run('DELETE FROM sessions WHERE account_id = ?', row.account_id);

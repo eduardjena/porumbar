@@ -47,6 +47,8 @@ const NAV: NavItem[] = [
     <main [class.with-bottom]="auth.account()">
       @if (banner(); as b) { <div class="sub-banner no-print" [class]="'sub-banner ' + b.kind" role="status">{{ b.text }}</div> }
       <router-outlet />
+      <!-- Semnătura: pe calculator mic în colțul din dreapta jos, pe telefon la capătul paginii. -->
+      <a class="made-by no-print" href="https://www.soopra.com" target="_blank" rel="noopener">Soopra</a>
     </main>
     @if (auth.account()) {
       <!-- Pe telefon, meniul stă jos, la îndemâna degetului mare. -->
@@ -82,7 +84,13 @@ const NAV: NavItem[] = [
     .top-nav a.on { background: var(--accent-soft); color: var(--accent-strong); }
     main { max-width: 1120px; margin: 0 auto; padding: 20px 24px 40px; }
     .bottom-nav { display: none; }
+    .made-by {
+      position: fixed; right: 12px; bottom: 8px; z-index: 5; padding: 2px 8px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600; color: var(--muted); text-decoration: none; background: rgb(255 253 249 / 85%);
+    }
+    .made-by:hover { color: var(--accent-strong); text-decoration: underline; }
     @media (max-width: 767px) {
+      .made-by { position: static; display: block; width: fit-content; margin: 28px 0 0 auto; background: none; }
       .top-inner { padding: 8px 16px; }
       .top-nav { display: none; }
       main { padding: 16px 16px 24px; }

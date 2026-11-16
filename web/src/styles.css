@@ -1,45 +1,45 @@
 /*
- * Porumbar — direcția „Cer” (aleasă de utilizator, 2026-11-16): alb, albastru de cer pentru acțiuni și navigare,
- * verde doar pentru valoarea porumbeilor (ca să nu se confunde cu butoanele). Curat, actual, fără efecte.
+ * Porumbar — paleta „Pământ” (aleasă de utilizator, 2026-11-16, din 5 propuse; docs/design/paletare.md): crem, maro și cărămiziu pentru acțiuni,
+ * verde-măsliniu doar pentru valoarea porumbeilor (ca să nu se confunde cu butoanele). Curat, actual, fără efecte.
  * Pentru oameni în vârstă, pe telefon: text de bază 18px, ținte de cel puțin 48px, contrast mare, literă făcută pentru
  * citire ușoară (Atkinson Hyperlegible Next, găzduită de noi).
  */
 @import '@fontsource-variable/atkinson-hyperlegible-next';
 
 :root {
-  --bg: #f3f6f9;
-  --surface: #ffffff;
-  --surface-2: #eef2f6;
-  --border: #d7dfe7;
-  --border-strong: #b9c5d1;
-  --text: #102030;
-  --muted: #4d5d6c;
-  --accent: #1764b8;
-  --accent-strong: #0e4a8c;
-  --accent-soft: #e4effa;
+  --bg: #f5f0e8;
+  --surface: #fffdf9;
+  --surface-2: #efe8dc;
+  --border: #e2d8c8;
+  --border-strong: #c2b39c;
+  --text: #2b2117;
+  --muted: #625345;
+  --accent: #a33d1c;
+  --accent-strong: #7c2c12;
+  --accent-soft: #f8e5da;
   --accent-ink: #ffffff;
-  --danger: #b42318;
-  --danger-soft: #fdecea;
-  --warn: #8a4b00;
-  --warn-soft: #fff4dc;
-  --ok: #1d6b3a;
-  --ok-soft: #e3f4e8;
-  --male: #1f5fa8;
-  --female: #b0306a;
+  --danger: #9a1a34;
+  --danger-soft: #f9e3e7;
+  --warn: #7d4a00;
+  --warn-soft: #fbefd4;
+  --ok: #3d5c12;
+  --ok-soft: #eaf0da;
+  --male: #2b5a86;
+  --female: #8c357f;
 
   /* Valoarea porumbelului: 5 = cei mai valoroși … 1, 0 = fără date. */
-  --band-5: #14532d;
+  --band-5: #33501a;
   --band-5-ink: #ffffff;
-  --band-4: #1f7a3f;
+  --band-4: #567a28;
   --band-4-ink: #ffffff;
-  --band-3: #7cc796;
-  --band-3-ink: #0c3a1d;
-  --band-2: #b6e2c4;
-  --band-2-ink: #0c3a1d;
-  --band-1: #ddf1e3;
-  --band-1-ink: #1d4a2c;
-  --band-0: #e9edf1;
-  --band-0-ink: #4d5d6c;
+  --band-3: #90b256;
+  --band-3-ink: #1e2f08;
+  --band-2: #c8d99c;
+  --band-2-ink: #24350c;
+  --band-1: #e7efd2;
+  --band-1-ink: #34461a;
+  --band-0: #ebe6df;
+  --band-0-ink: #5e5043;
 
   --radius: 16px;
   --radius-sm: 12px;
@@ -57,7 +57,7 @@ body {
   margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
-::selection { background: #cfe2f6; color: var(--text); }
+::selection { background: #f3d3c3; color: var(--text); }
 h1 { font-size: 1.75rem; margin: 4px 0 16px; line-height: 1.15; font-weight: 750; letter-spacing: -0.015em; text-wrap: balance; }
 h2 { font-size: 1.25rem; margin: 28px 0 12px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
 h3 { font-size: 1.05rem; margin: 18px 0 8px; font-weight: 700; }
@@ -76,9 +76,9 @@ input, select, textarea {
   font: inherit; color: inherit; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm);
   min-height: 52px; padding: 10px 14px; width: 100%; transition: border-color 0.15s, box-shadow 0.15s;
 }
-input::placeholder, textarea::placeholder { color: #6b7a88; }
+input::placeholder, textarea::placeholder { color: #7a6a5a; }
 textarea { min-height: 104px; resize: vertical; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgb(23 100 184 / 18%); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgb(163 61 28 / 20%); }
 button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
 input[type='checkbox'], input[type='radio'] { width: 26px; height: 26px; min-height: 0; flex: none; margin: 0; }
 label.check { display: flex; align-items: center; gap: 12px; min-height: 48px; font-weight: 600; cursor: pointer; }

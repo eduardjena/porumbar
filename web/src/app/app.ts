@@ -59,7 +59,7 @@ const NAV: NavItem[] = [
   `,
   styles: `
     .top {
-      background: rgb(255 255 255 / 92%); border-bottom: 1px solid var(--border);
+      background: rgb(255 253 249 / 94%); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
     }
     .top-inner {
@@ -85,7 +85,7 @@ const NAV: NavItem[] = [
       main.with-bottom { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
       .bottom-nav {
         display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-        background: rgb(255 255 255 / 96%); border-top: 1px solid var(--border); backdrop-filter: saturate(1.4) blur(10px);
+        background: rgb(255 253 249 / 97%); border-top: 1px solid var(--border); backdrop-filter: saturate(1.4) blur(10px);
         padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
       }
       .bottom-nav a {

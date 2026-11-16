@@ -145,8 +145,8 @@ const is2d = (v: unknown): v is View2d => VIEWS.some((x) => x.id === v);
     .picker-head .search { flex: 1; }
     .close { width: 48px; padding: 0; flex: none; }
     .picker .small { margin: 8px 0; }
-    .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; min-height: 0; overflow-y: auto; }
-    .pick { justify-content: flex-start; gap: 8px; font-weight: 600; text-align: left; }
+    .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; min-height: 0; overflow-y: auto; grid-auto-rows: max-content; align-content: start; padding: 2px; }
+    .pick { justify-content: flex-start; gap: 10px; font-weight: 600; text-align: left; min-height: 58px; height: auto; padding: 8px 12px; border-radius: 14px; }
     .pick.on { border-color: var(--accent); background: var(--accent-soft); }
     .pick .stack { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
     .pick .rg { white-space: nowrap; }

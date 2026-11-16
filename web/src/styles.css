@@ -139,7 +139,7 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 .bar-title h1 { font-size: 1.3rem; margin: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-title > span { font-size: 0.8rem; white-space: nowrap; }
 .tree-bar-right { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; justify-content: flex-end; margin-left: auto; }
-.tree-bar button, .tree-bar .btn { min-height: 36px; padding: 4px 11px; font-size: 0.9rem; gap: 6px; border-radius: 999px; }
+.tree-bar button:not(.picker button), .tree-bar .btn { min-height: 36px; padding: 4px 11px; font-size: 0.9rem; gap: 6px; border-radius: 999px; }
 .tree-bar app-icon svg { width: 18px; height: 18px; }
 .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border-radius: 999px; }
 .seg button { border: 0; background: none; min-width: 36px; color: var(--muted); }

@@ -67,3 +67,5 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
 - Pe Railway / Render pune și `TRUST_PROXY=1`, altfel limitele de încercări se aplică tuturor utilizatorilor deodată.
 - Cu 30 de zile înainte de expirare pleacă un email de memento (o dată), iar contul apare la „Expiră curând”.
   Emailurile pleacă doar cu `SMTP_URL`; `SELLER_CONTACT` spune crescătorilor cum te contactează pentru plată.
+- La fiecare cont nou făcut din formular pleacă un mail la `ADMIN_EMAIL` (nume, email, link spre consolă), ca să-l
+  contactezi și să-i activezi abonamentul. Dacă mailul nu pleacă, contul se face oricum.

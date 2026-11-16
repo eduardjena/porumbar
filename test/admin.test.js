@@ -229,3 +229,18 @@ test('consola arată ultima intrare în cont și ultima activitate; nimic pentru
   const inv = await createBreeder({ name: 'Neintrat', email: 'neintrat@exemplu.test' });
   assert.equal(inv.data.account.lastLoginAt, null);
 });
+
+/* Cont nou din formular: vânzătorul (ADMIN_EMAIL) primește un mail, ca să-l contacteze și să-l activeze. */
+
+test('cont nou din formular: adminul primește un mail cu numele și emailul omului', async () => {
+  const before = mail.sentMails.length;
+  const email = `mail-admin-${process.pid}@exemplu.test`;
+  const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: 'parola-de-test-123', name: 'Vasile Nou' } });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const sent = mail.sentMails.slice(before).filter((m) => m.to === process.env.ADMIN_EMAIL);
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].subject, /Cont nou/);
+  assert.ok(sent[0].text.includes('Vasile Nou'));
+  assert.ok(sent[0].text.includes(email));
+  assert.ok(sent[0].text.includes('/vanzator'));
+});

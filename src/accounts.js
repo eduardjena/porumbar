@@ -20,7 +20,7 @@ export function validatePassword(password) {
 }
 
 /** Vederile Arborelui; prima e cea implicită. */
-export const TREE_VIEWS = ['carduri', 'evantai', 'sange', 'retea', '3d'];
+export const TREE_VIEWS = ['carduri', 'evantai', 'sange', 'retea'];
 
 export const publicAccount = (a) => ({
   id: a.id,

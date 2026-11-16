@@ -41,8 +41,8 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
 
 ## Ce fac Planurile 1b, 1c și 3
 
-- **Panou și Arbore**: porumbeii după valoare; Arborele în 2D (Carduri, Evantai, Linii de sânge, Rețea) sau 3D (etaje pe
-  generații sau orbite), cu „Alege alt porumbel”; pe telefon generațiile se glisează.
+- **Panou și Arbore**: porumbeii după valoare; Arborele în Carduri, Evantai, Linii de sânge sau Rețea, cu „Alege alt
+  porumbel”; pe telefon generațiile se glisează. (Vederea 3D a existat și a fost scoasă: frumoasă, dar fără folos.)
 - **Pedigree pe hârtie** (`/porumbei/pedigree`): 31 de căsuțe ca pe foaie; inelele știute se recunosc și părinții lor se
   completează singuri; **citirea din poză sau PDF** cu Claude (doar cu `ANTHROPIC_API_KEY`; limită pe zi
   `PEDIGREE_READS_PER_DAY`; poza nu se păstrează).

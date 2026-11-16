@@ -35,6 +35,7 @@ export interface Catalog {
   statuses: CodeLabel[];
   evalCriteria: CodeLabel[];
   journalTypes: CodeLabel[];
+  raceCategories: CodeLabel[];
 }
 
 export interface Ring {
@@ -171,6 +172,8 @@ export interface PedigreeV1Node {
   hatchedOn: string | null;
   breeder: string | null;
   pedigreeText: string | null;
+  /** Rezultatele la concursuri bifate „pe pedigree”, scurt: „1e-197KM-10023P-'26”. */
+  results?: string[];
   father: PedigreeV1Node | null;
   mother: PedigreeV1Node | null;
 }
@@ -180,4 +183,34 @@ export interface PedigreeV1 {
   generatedAt: string;
   owner: { name: string; phone?: string; address?: string; email?: string };
   root: PedigreeV1Node;
+}
+
+/** Un concurs al contului (aceleași câmpuri ca antetul clasamentului columba.ro). */
+export interface Race {
+  id: number;
+  number: number | null;
+  organizer: string;
+  category: string;
+  date: string;
+  releasePlace: string;
+  releaseTime: string | null;
+  entered: number | null;
+}
+
+/** Rezultatul unui porumbel la un concurs; viteza, penalizarea și rândul scurt sunt calculate de server. */
+export interface RaceResult {
+  id: number;
+  pigeonId: number;
+  race: Race;
+  place: number;
+  distanceM: number;
+  arrival: { day: number; time: string } | null;
+  flightMinutes: number | null;
+  /** Viteza scrisă de om (null = calculată de program). */
+  speedEntered: number | null;
+  speed: number | null;
+  penalty: number | null;
+  fci: number | null;
+  onPedigree: boolean;
+  short: string;
 }

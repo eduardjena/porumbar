@@ -3,6 +3,7 @@ import { COLORS } from './catalog.js';
 import { formatRing } from './rings.js';
 import { yearOf } from './pigeons.js';
 import { parseRing } from './rings.js';
+import { pedigreeLines } from './results.js';
 
 /*
  * Formatul deschis „porumbar-pedigree” v1 (spec §2): ce se vede pe linkul public / QR și ce se copiază la preluare.
@@ -23,9 +24,9 @@ function ringDisplay(row) {
 }
 
 /** Un nod public; părinții până la 5 generații (un ciclu vechi din date se oprește la limită). */
-function node(row, byId, depth) {
+function node(row, byId, depth, lines) {
   if (!row) return null;
-  const parent = (id) => (depth + 1 < GENERATIONS && id ? node(byId.get(id), byId, depth + 1) : null);
+  const parent = (id) => (depth + 1 < GENERATIONS && id ? node(byId.get(id), byId, depth + 1, lines) : null);
   return {
     ring: ringDisplay(row),
     ringRaw: row.ring_raw ?? null,
@@ -42,6 +43,8 @@ function node(row, byId, depth) {
     hatchedOn: row.hatched_on ?? null,
     breeder: row.breeder_text ?? null,
     pedigreeText: row.pedigree_text ?? null,
+    // Rezultatele la concursuri bifate „pe pedigree”, scurt: „1e-197KM-10023P-'26”.
+    results: lines.get(row.id) ?? [],
     father: parent(row.father_id),
     mother: parent(row.mother_id),
   };
@@ -56,7 +59,7 @@ export async function pedigreeV1(accountId, rootId) {
   if (account.show_phone && account.phone) owner.phone = account.phone;
   if (account.show_address && account.address) owner.address = account.address;
   if (account.show_email) owner.email = account.email;
-  return { format: FORMAT, version: VERSION, generatedAt: new Date().toISOString(), owner, root: node(byId.get(rootId), byId, 0) };
+  return { format: FORMAT, version: VERSION, generatedAt: new Date().toISOString(), owner, root: node(byId.get(rootId), byId, 0, await pedigreeLines(accountId)) };
 }
 
 /** Nodul public → nodul primit de importul de pedigree (src/pedigree-import.js). */
@@ -67,7 +70,8 @@ export function toImportNode(n) {
     sex: n.sex,
     name: n.name,
     color: n.colorText ?? (n.colorLabel ? `${n.colorLabel}${n.colorPa ? ' p.a.' : ''}` : null),
-    text: n.pedigreeText,
+    // La preluare / cumpărare, rezultatele intră în textul de pedigree al porumbelului nou.
+    text: [(n.results ?? []).join('; '), n.pedigreeText].filter(Boolean).join('; ') || null,
     breeder: n.breeder,
     father: toImportNode(n.father),
     mother: toImportNode(n.mother),

@@ -72,6 +72,17 @@ export const JOURNAL_TYPES = [
   { code: 'altele', label: 'Altele' },
 ];
 
+// Categoriile concursurilor, ca în antetul clasamentelor („CATEGORIA - VITEZA”).
+export const RACE_CATEGORIES = [
+  { code: 'viteza', label: 'Viteză' },
+  { code: 'semifond', label: 'Semifond' },
+  { code: 'fond', label: 'Fond' },
+  { code: 'mare-fond', label: 'Mare fond' },
+  { code: 'maraton', label: 'Maraton' },
+  { code: 'pui', label: 'Pui' },
+  { code: 'altele', label: 'Altele' },
+];
+
 export const codes = (list) => list.map((x) => x.code);
 
 /** Fără diacritice, litere mici, spații simple. */
@@ -118,5 +129,6 @@ export function publicCatalog() {
     statuses: STATUSES,
     evalCriteria: EVAL_CRITERIA,
     journalTypes: JOURNAL_TYPES,
+    raceCategories: RACE_CATEGORIES,
   };
 }

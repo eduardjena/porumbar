@@ -33,7 +33,7 @@ interface Box {
             @if (n.name) { <div class="nm">„{{ n.name }}”</div> }
             @if (color(n); as c) { <div class="meta">{{ c }}</div> }
             @if (n.breeder) { <div class="meta">{{ n.breeder }}</div> }
-            @if (n.pedigreeText) { <div class="txt" [class]="'txt t' + b.gen">{{ n.pedigreeText }}</div> }
+            @if (textOf(n); as t) { <div class="txt" [class]="'txt t' + b.gen">{{ t }}</div> }
           } @else {
             <span class="muted">—</span>
           }
@@ -102,6 +102,10 @@ interface Box {
 })
 export class PedigreeSheet {
   readonly root = input.required<PedigreeV1Node>();
+  /** Textul căsuței: întâi rezultatele scurte („1e-197KM-10023P-'26”), apoi textul de pedigree. */
+  protected textOf(n: PedigreeV1Node) {
+    return [(n.results ?? []).join('; '), n.pedigreeText].filter(Boolean).join('; ');
+  }
   readonly generations = input(5);
   /** Foaia tipărită: totul pe o pagină A4. */
   readonly compact = input(false);

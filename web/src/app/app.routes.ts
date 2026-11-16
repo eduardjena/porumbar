@@ -13,6 +13,7 @@ export const routes: Routes = [
   { path: 'parola-uitata', title: 'Parolă uitată · Porumbar', loadComponent: () => import('./pages/auth/parola-uitata') },
   { path: 'parola-noua/:token', title: 'Parolă nouă · Porumbar', loadComponent: () => import('./pages/auth/parola-noua') },
   { path: 'porumbar', canActivate: [authGuard], title: 'Porumbarul meu', loadComponent: () => import('./pages/porumbar/porumbar') },
+  { path: 'porumbei/pedigree', canActivate: [authGuard], title: 'Pedigree pe hârtie · Porumbar', loadComponent: () => import('./pages/pedigree-hartie/pedigree-hartie') },
   { path: 'porumbei/nou', canActivate: [authGuard], title: 'Porumbel nou', loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: 'Editează porumbelul', loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id', canActivate: [authGuard], title: 'Porumbel', loadComponent: () => import('./pages/porumbel/porumbel') },

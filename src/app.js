@@ -49,6 +49,8 @@ export function createApp() {
     }
     next();
   });
+  // Poza / PDF-ul unui pedigree vine ca JSON (base64), deci aici limita e mai mare; restul rămâne la 1 MB.
+  app.use('/api/pedigrees/read', express.json({ limit: '17mb' }));
   app.use(express.json({ limit: '1mb' }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));

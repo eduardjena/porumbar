@@ -158,7 +158,7 @@ export default class Porumbel {
     const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined, vedere: this.vedere() || undefined };
     switch (this.din()) {
       case 'arbore': return { label: 'Arbore', link: ['/arbore'], query: q };
-      case 'arbore3d': return { label: 'Arbore 3D', link: ['/arbore/3d'], query: q };
+      case 'arbore3d': return { label: 'Arbore', link: ['/arbore'], query: { ...q, vedere: '3d' } };
       case 'lista': return { label: 'Listă', link: ['/porumbar'] };
       default: return { label: 'Panou', link: ['/panou'] };
     }

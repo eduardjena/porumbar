@@ -126,3 +126,35 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* Bara Arborelui: titlul + 2D / 3D în stânga, butoanele modului și „Alege alt porumbel” în dreapta. Compactă, ca să
+   încapă pe un rând, și lipită sub antet când derulezi. */
+.tree-bar {
+  position: sticky; top: 68px; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 8px 12px;
+  flex-wrap: wrap; padding: 8px 0; margin: 0 0 10px; background: var(--bg);
+  box-shadow: 0 10px 12px -12px rgb(43 33 23 / 25%);
+}
+.bar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.bar-title { display: flex; flex-direction: column; min-width: 0; }
+.bar-title h1 { font-size: 1.3rem; margin: 0; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-title > span { font-size: 0.8rem; white-space: nowrap; }
+.tree-bar-right { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; justify-content: flex-end; margin-left: auto; }
+.tree-bar button, .tree-bar .btn { min-height: 36px; padding: 4px 11px; font-size: 0.9rem; gap: 6px; border-radius: 999px; }
+.tree-bar app-icon svg { width: 18px; height: 18px; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border-radius: 999px; }
+.seg button { border: 0; background: none; min-width: 36px; color: var(--muted); }
+.seg button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
+.tree-bar .dim-toggle { background: var(--text); }
+.tree-bar .dim-toggle button { min-width: 46px; font-weight: 800; color: #f3e6d6; }
+.tree-bar .dim-toggle button.on { background: var(--accent); color: #fff; }
+.pick-wrap { display: contents; }
+@media (max-width: 767px) {
+  /* Pe telefon: rândul 1 titlul și 2D / 3D, rândul 2 butoanele, care se derulează cu degetul. */
+  .tree-bar { top: 64px; padding: 6px 0; }
+  .bar-left { width: 100%; justify-content: space-between; }
+  .bar-title h1 { font-size: 1.1rem; }
+  .tree-bar-right { width: 100%; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; margin-left: 0; scrollbar-width: none; }
+  .tree-bar-right::-webkit-scrollbar { display: none; }
+  .tree-bar-right > *, .tree-bar-right .pick-wrap > button { flex: none; }
+  .tree-bar button, .tree-bar .btn { min-height: 40px; }
+}

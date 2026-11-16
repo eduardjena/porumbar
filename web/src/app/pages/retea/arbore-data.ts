@@ -63,3 +63,20 @@ export function repeatCounts(tree: TreeNode): Map<number, number> {
   walk(tree);
   return out;
 }
+
+/** Ultimul porumbel deschis în Arbore (doar pe acest calculator), ca Arborele să se redeschidă tot pe el. */
+export const LAST_KEY = 'porumbar.arbore.ultimul';
+export function lastRoot(): number | null {
+  try {
+    return Number(localStorage.getItem(LAST_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+export function rememberRoot(id: number) {
+  try {
+    localStorage.setItem(LAST_KEY, String(id));
+  } catch {
+    /* fără memorie locală: pornește de la cel mai valoros */
+  }
+}

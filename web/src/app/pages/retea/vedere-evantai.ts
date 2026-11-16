@@ -49,7 +49,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
 @Component({
   selector: 'app-vedere-evantai',
   template: `
-    <svg viewBox="0 0 1000 490" class="fan" role="img" aria-label="Evantaiul strămoșilor">
+    <svg viewBox="0 0 1000 500" class="fan" role="img" aria-label="Evantaiul strămoșilor">
       @for (s of slices(); track s.key) {
         <g class="slice" [class.sel]="s.id != null && s.id === selectedId()" (click)="s.id != null && select.emit(s.id)" (dblclick)="s.id != null && open.emit(s.id)">
           <path [attr.d]="s.d" [attr.fill]="s.fill" stroke="#fffdf9" stroke-width="2" />
@@ -66,13 +66,13 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
         </g>
       }
       <g class="slice" (click)="select.emit(data().rootId)" (dblclick)="open.emit(data().rootId)">
-        <circle [attr.cx]="cx" [attr.cy]="cy" [attr.r]="r0" [attr.fill]="rootFill()" stroke="#a33d1c" stroke-width="4" />
-        <text [attr.x]="cx" [attr.y]="cy - 22" text-anchor="middle" [attr.fill]="rootInk()" font-size="26" font-weight="800">{{ rootValue() }}</text>
-        <text [attr.x]="cx" [attr.y]="cy + 4" text-anchor="middle" [attr.fill]="rootInk()" font-size="15" font-weight="800">{{ rootName() }}</text>
-        <text [attr.x]="cx" [attr.y]="cy + 24" text-anchor="middle" [attr.fill]="rootInk()" font-size="12">{{ rootRing() }}</text>
+        <path [attr.d]="rootHalf" [attr.fill]="rootFill()" stroke="#a33d1c" stroke-width="4" stroke-linejoin="round" />
+        <text [attr.x]="cx" [attr.y]="cy - 42" text-anchor="middle" [attr.fill]="rootInk()" font-size="24" font-weight="800">{{ rootValue() }}</text>
+        <text [attr.x]="cx" [attr.y]="cy - 22" text-anchor="middle" [attr.fill]="rootInk()" font-size="14" font-weight="800">{{ rootName() }}</text>
+        <text [attr.x]="cx" [attr.y]="cy - 7" text-anchor="middle" [attr.fill]="rootInk()" font-size="11">{{ rootRing() }}</text>
       </g>
-      <text x="40" y="484" font-size="15" font-weight="800" fill="#2b5a86">← familia tatălui</text>
-      <text x="960" y="484" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">familia mamei →</text>
+      <text x="40" y="492" font-size="15" font-weight="800" fill="#2b5a86">← familia tatălui</text>
+      <text x="960" y="492" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">familia mamei →</text>
     </svg>
     <p class="muted how">Atinge o felie ca s-o alegi; dublu clic deschide fișa. Culoarea = nota (gri = alt porumbar), dunga = mascul / femelă, conturul colorat = strămoș care se repetă.</p>
   `,
@@ -92,6 +92,8 @@ export class VedereEvantai {
   protected readonly cx = CX;
   protected readonly cy = CY;
   protected readonly r0 = R0;
+  /** Porumbelul: un semicerc așezat pe linia de jos (un cerc întreg ar ieși din desen). */
+  protected readonly rootHalf = `M${CX - R0 + 2},${CY} A${R0 - 2},${R0 - 2} 0 0 1 ${CX + R0 - 2},${CY} Z`;
   protected readonly repeatColor = (g: number) => REPEAT_COLORS[(g - 1) % REPEAT_COLORS.length];
 
   private root = computed(() => this.data().pigeons[this.data().rootId]);
@@ -118,10 +120,11 @@ export class VedereEvantai {
         const band = v?.band ?? 0;
         const own = p?.kind === 'own';
         const mid = (a1 + a2) / 2;
-        const rm = (r1 + r2) / 2 + 4;
+        const rm = (r1 + r2) / 2 + (gen <= 2 ? -4 : 4);
         const [tx, ty] = pt(rm, mid);
-        // Text: drept în inelele interioare; de-a lungul razei în cele exterioare, întors ca să nu stea cu capul în jos.
-        const rot = gen <= 2 ? 0 : mid > 90 ? 180 - mid : -mid;
+        // Text: de-a lungul arcului în inelele interioare (părinți, bunici: feliile sunt late), de-a lungul razei în
+        // cele exterioare (feliile sunt înguste); niciodată cu capul în jos, niciodată peste felia vecină.
+        const rot = gen <= 2 ? 90 - mid : mid > 90 ? 180 - mid : -mid;
         const ring = p?.ring?.display ?? (node ? 'fără inel' : '');
         out.push({
           key: key || 'r',

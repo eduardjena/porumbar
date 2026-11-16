@@ -5,6 +5,7 @@ import { Icon } from './icon';
 export interface Crumb {
   label: string;
   link?: (string | number)[];
+  query?: Record<string, string | number | undefined>;
 }
 
 /** Drumul până la pagina curentă: „Panou › RO-15-412084 › Editează”. Ultimul pas e pagina curentă (fără legătură). */
@@ -17,7 +18,7 @@ export interface Crumb {
         @for (c of items(); track $index; let last = $last) {
           <li>
             @if (c.link && !last) {
-              <a [routerLink]="c.link">{{ c.label }}</a>
+              <a [routerLink]="c.link" [queryParams]="c.query ?? null">{{ c.label }}</a>
               <app-icon name="inainte" [size]="18" class="sep" />
             } @else {
               <span aria-current="page">{{ c.label }}</span>

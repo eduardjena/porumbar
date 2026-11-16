@@ -53,7 +53,7 @@ import { ViewToggle } from '../../shared/view-toggle';
       <ul class="rows card">
         @for (p of pigeons(); track p.id) {
           <li>
-            <a [routerLink]="['/porumbei', p.id]">
+            <a [routerLink]="['/porumbei', p.id]" [queryParams]="{ din: 'lista' }">
               <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
               <span [class]="'sex sex-' + (p.sex ?? '')">{{ sexS(p.sex) }}</span>
               <span class="name">{{ p.name ?? '' }}</span>

@@ -30,6 +30,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
                [(ngModel)]="q" (ngModelChange)="suggest()" />
       </label>
       <button type="button" [class.primary]="!!tot() && !rootId()" (click)="showAll()"><app-icon name="retea" />Tot porumbarul</button>
+      <a class="btn" [routerLink]="['/arbore/3d']" [queryParams]="rootId() ? { porumbel: rootId() } : tot() ? { tot: 1 } : {}" title="Vezi arborele în trei dimensiuni"><app-icon name="retea" />Vedere 3D</a>
     </div>
     @if (suggestions().length) {
       <ul class="suggestions card">
@@ -73,7 +74,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
           <button type="button" class="icon-btn" aria-label="Închide" (click)="clearSelection()"><app-icon name="inchide" /></button>
         </div>
         <div class="row">
-          <a class="btn primary" [routerLink]="['/porumbei', s.id]"><app-icon name="fisa" />Deschide fișa</a>
+          <a class="btn primary" [routerLink]="['/porumbei', s.id]" [queryParams]="from()"><app-icon name="fisa" />Deschide fișa</a>
           <button type="button" (click)="startFrom(s)"><app-icon name="retea" />Pornește de aici</button>
         </div>
       </aside>
@@ -82,7 +83,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
   styles: `
     .head h1 { margin-bottom: 4px; }
     .intro { margin: 0 0 16px; max-width: 70ch; }
-    .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; }
     .search { position: relative; display: block; }
     .search app-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
     .search input { padding-left: 50px; border-radius: 999px; }
@@ -128,6 +129,8 @@ export default class Retea implements OnDestroy {
   readonly suggestions = signal<PigeonSummary[]>([]);
   readonly error = signal('');
   protected readonly sexText = sexLabel;
+  /** De unde vine omul în fișă: firimiturile îl întorc în Arbore, la același porumbel. */
+  protected from = () => ({ din: 'arbore', radacina: this.rootId() ?? undefined, tot: this.tot() ? 1 : undefined });
   private cy: Core | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private request = 0;
@@ -342,7 +345,7 @@ export default class Retea implements OnDestroy {
       this.selected.set(byId.get(Number(node.id())) ?? null);
     });
     // Dublu clic (sau dublă atingere) pe un porumbel: deschide fișa lui.
-    this.cy.on('dbltap', 'node', (evt) => this.router.navigate(['/porumbei', Number((evt.target as NodeSingular).id())]));
+    this.cy.on('dbltap', 'node', (evt) => this.router.navigate(['/porumbei', Number((evt.target as NodeSingular).id())], { queryParams: this.from() }));
     this.cy.on('tap', (evt) => {
       if (evt.target === this.cy) this.clearSelection();
     });

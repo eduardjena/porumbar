@@ -7,7 +7,7 @@ import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
-import { Breadcrumbs } from '../../shared/breadcrumbs';
+import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { Icon, IconName } from '../../shared/icon';
 
@@ -25,7 +25,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
-      <app-breadcrumbs [items]="[{ label: 'Panou', link: ['/panou'] }, { label: p.ring?.display ?? 'Fără inel' }]" />
+      <app-breadcrumbs [items]="[origin(), { label: p.ring?.display ?? 'Fără inel' }]" />
       <div class="title">
         <div>
           <h1><span class="mono">{{ p.ring?.display ?? 'Fără inel' }}</span>@if (p.name) { <span class="name"> „{{ p.name }}”</span> }</h1>
@@ -149,6 +149,19 @@ export default class Porumbel {
   private readonly confirm = inject(ConfirmService);
   protected readonly catalog = inject(CatalogService);
   readonly id = input.required<string>();
+  /** De unde a venit omul (?din=arbore|arbore3d|lista), ca firimiturile să-l întoarcă acolo. */
+  readonly din = input<string>();
+  readonly radacina = input<string>();
+  readonly tot = input<string>();
+  protected readonly origin = computed<Crumb>(() => {
+    const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined };
+    switch (this.din()) {
+      case 'arbore': return { label: 'Arbore', link: ['/arbore'], query: q };
+      case 'arbore3d': return { label: 'Arbore 3D', link: ['/arbore/3d'], query: q };
+      case 'lista': return { label: 'Listă', link: ['/porumbar'] };
+      default: return { label: 'Panou', link: ['/panou'] };
+    }
+  });
   protected readonly tabs = TABS;
   protected readonly sexLabel = sexLabel;
 

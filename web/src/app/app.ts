@@ -15,7 +15,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { path: '/panou', label: 'Panou', icon: 'panou' },
-  { path: '/arbore', label: 'Arbore', icon: 'ramificare' },
+  { path: '/arbore', label: 'Arbore', icon: 'copac' },
   { path: '/porumbei/nou', label: 'Adaugă', icon: 'plus', exact: true },
   { path: '/cont', label: 'Cont', icon: 'cont' },
 ];

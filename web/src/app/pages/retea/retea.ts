@@ -29,7 +29,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
           <li><button type="button" (click)="pick(s)">
             <span class="mono">{{ s.ring?.display ?? 'Fără inel' }}</span>
             @if (s.name) { <span>{{ s.name }}</span> }
-            @if (s.kind === 'external') { <span class="badge">din alt porumbar</span> }
+            @if (s.kind === 'external') { <span class="badge">nu e în porumbarul meu</span> }
           </button></li>
         }
       </ul>
@@ -60,7 +60,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
           <span class="score" [class]="'score band-' + s.band">{{ s.score ?? '–' }}</span>
           <div>
             <div><strong class="mono">{{ s.ring }}</strong> @if (s.name) { <span class="name">{{ s.name }}</span> }</div>
-            <div class="muted">{{ sexText(s.sex) }}@if (s.year) { · {{ s.year }} } · {{ s.offspringCount }} pui@if (s.kind === 'external') { · din alt porumbar }</div>
+            <div class="muted">{{ sexText(s.sex) }}@if (s.year) { · {{ s.year }} } · {{ s.offspringCount }} pui@if (s.kind === 'external') { · nu e în porumbarul tău }</div>
           </div>
           <button type="button" class="icon-btn" aria-label="Închide" (click)="clearSelection()"><app-icon name="inchide" /></button>
         </div>

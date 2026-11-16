@@ -19,12 +19,10 @@
     "@angular/router": "^22.2.0",
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
     "@types/qrcode": "^1.5.6",
-    "3d-force-graph": "^1.80.2",
     "cytoscape": "^3.35.0",
     "cytoscape-dagre": "^4.1.0",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
-    "three": "^0.187.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
@@ -33,7 +31,6 @@
     "@angular/compiler-cli": "^22.2.0",
     "@types/cytoscape": "^3.21.9",
     "@types/cytoscape-dagre": "^2.3.4",
-    "@types/three": "^0.187.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2"
   }

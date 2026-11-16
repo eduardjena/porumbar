@@ -17,7 +17,7 @@ import { Vanzare } from './vanzare';
   imports: [RouterLink, Icon, QrCode, Vanzare],
   template: `
     @if (pigeon().kind !== 'own') {
-      <section class="card"><p class="muted">Porumbeii „din alt porumbar” nu au link public: îl dă proprietarul lor.</p></section>
+      <section class="card"><p class="muted">Doar porumbeii din porumbarul tău au link public. Dacă acesta e al tău, schimbă-l din Editează → „Din porumbarul meu”.</p></section>
     } @else {
       <section class="card share">
         @if (url(); as u) {

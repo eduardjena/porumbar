@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
  */
 export type IconName =
   | 'panou' | 'retea' | 'plus' | 'cont' | 'lista' | 'cautare' | 'editeaza' | 'arbore' | 'jurnal' | 'poze' | 'rude'
-  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'qr' | 'tipar' | 'trimite' | 'copie' | 'vinde';
+  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'copie' | 'vinde';
 
 @Component({
   selector: 'app-icon',
@@ -38,6 +38,8 @@ export type IconName =
         @case ('porumbel') { <path d="M16 7h.01M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.3-2.3L2 20M20 7l2 .5-2 .5M10 18v3M14 17.8V21M7 18a6 6 0 0 0 3.8-10.6" /> }
         @case ('inchide') { <path d="M18 6 6 18M6 6l12 12" /> }
         @case ('bifa') { <path d="M20 6 9 17l-5-5" /> }
+        <!-- Arborele genealogic: trunchi și ramuri, la capete câte un porumbel (aleasă de utilizator, varianta A). -->
+        @case ('copac') { <path d="M9 21.5h6M12 21.5V7.3M12 15.5 7.2 10.6M12 15.5l4.8-4.9" /><circle cx="5.6" cy="8.9" r="2.3" /><circle cx="18.4" cy="8.9" r="2.3" /><circle cx="12" cy="4.9" r="2.3" /> }
         @case ('qr') { <rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" /> }
         @case ('tipar') { <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect width="12" height="8" x="6" y="14" /> }
         @case ('trimite') { <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /> }

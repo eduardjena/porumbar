@@ -21,6 +21,11 @@ const cases = [
   ['1441788/05 NL M', { country: 'NL', year: 2005, number: '1441788' }],
   ['NL-03-1395255 L', { country: 'NL', year: 2003, number: '1395255' }],
   ['123456/99 RO', { country: 'RO', year: 1999 }],
+  // myloft: inele germane cu anul în față și inele austriece (AUS) cu club.
+  ['DV 17-01063-813 F', { country: 'DV', year: 2017, club: '1063', number: '813', sex: 'F' }],
+  ['DV-10-01063-714 M', { country: 'DV', year: 2010, club: '1063', number: '714', sex: 'M' }],
+  ['AUS 18-301-1405 M', { country: 'AT', year: 2018, club: '301', number: '1405', sex: 'M' }],
+  ['AUS-11-335-216 F', { country: 'AT', year: 2011, club: '335', number: '216', sex: 'F' }],
 ];
 
 for (const [raw, exp] of cases) {
@@ -67,4 +72,13 @@ test('afișare', () => {
   assert.equal(formatRing(parseRing('412084/15 RO', { now })), 'RO-15-412084');
   assert.equal(formatRing(parseRing('DV-8778-24-262', { now })), 'DV-08778-24-262');
   assert.equal(formatRing(parseRing('123456/99 RO', { now })), 'RO-99-123456');
+});
+
+test('inele cu club scrise cu anul în față: aceeași cheie ca forma obișnuită; afișare clară', () => {
+  const k = (r) => ringKey(parseRing(r, { now }));
+  assert.equal(k('DV 17-01063-813 F'), k('DV-01063-17-813'));
+  assert.equal(formatRing(parseRing('DV 17-01063-813', { now })), 'DV-01063-17-813');
+  assert.equal(formatRing(parseRing('AUS 18-301-1405 M', { now })), 'AT-18-301-1405');
+  assert.equal(k('AUS 18-301-1405'), k('AT-18-301-1405'));
+  assert.notEqual(k('AUS 18-301-1405'), k('AUS 18-302-1405'));
 });

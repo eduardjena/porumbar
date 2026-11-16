@@ -5,7 +5,7 @@ import { ArboreData, GENERATION_NAMES, REPEAT_COLORS, roleName, repeatCounts, Tr
 
 /*
  * Vederea „Carduri moderne” (macheta 1): pedigree-ul ca pe hârtie, dar modern. Coloane pe generații (strămoșii în
- * stânga, porumbelul în dreapta), carduri cu M/F, inel, text, an, notă; „alt porumbar” scris; strămoșii repetați
+ * stânga, porumbelul în dreapta), carduri cu M/F, inel, text, an, notă; „nu e al tău” scris; strămoșii repetați
  * cu insigna „×N” în aceeași culoare; legături curbe; porumbelul ales cu halou pastel.
  */
 
@@ -61,7 +61,7 @@ interface Card {
               @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
             </span>
             @if (c.gen <= 3 && (p.name || p.text)) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
-            <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">alt porumbar</span> } @else { <span class="mine">al tău</span> }</span>
+            <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">nu e al tău</span> } @else { <span class="mine">al tău</span> }</span>
           </button>
         } @else if (c.gen <= 2) {
           <div class="card-p empty" [style.left.px]="c.x" [style.top.px]="c.y" [style.width.px]="c.w">{{ role(c.path) }}: necunoscut</div>
@@ -85,7 +85,7 @@ interface Card {
                   @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                 </span>
                 @if (p.name || p.text) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
-                <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">alt porumbar</span> } @else { <span class="mine">al tău</span> }</span>
+                <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">nu e al tău</span> } @else { <span class="mine">al tău</span> }</span>
               </button>
             } @else if (g <= 2) {
               <div class="m-card empty">{{ role(c.path) }}: necunoscut</div>

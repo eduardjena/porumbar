@@ -7,7 +7,7 @@ import { PigeonChip } from './pigeon-chip';
 
 /*
  * Alegerea unui părinte după inel (cerut de crescător): scrii inelul și vezi imediat istoricul acelui porumbel —
- * părinții lui, câți pui are și care — apoi îl alegi. Dacă nu e în porumbar, îl notezi pe loc ca porumbel din alt porumbar.
+ * părinții lui, câți pui are și care — apoi îl alegi. Dacă nu e în porumbar, îl notezi pe loc ca strămoș (nu e în porumbarul tău).
  */
 @Component({
   selector: 'app-pigeon-picker',
@@ -52,11 +52,11 @@ import { PigeonChip } from './pigeon-chip';
         @if (result() && ring.trim() && (!result()!.matches.length || !result()!.ring.ok)) {
           <div class="card stack">
             @if (result()!.ring.unringed) {
-              <p>Porumbel <strong>fără inel</strong>. Îl notezi (din alt porumbar)?</p>
+              <p>Porumbel <strong>fără inel</strong>. Îl notezi ca strămoș (nu e în porumbarul tău)?</p>
             } @else if (result()!.matches.length) {
               <p>Sau e alt porumbel, scris la fel? Îl notezi separat:</p>
             } @else {
-              <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e încă în program. Îl notezi ca porumbel din alt porumbar?</p>
+              <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e încă în program. Îl notezi ca strămoș (nu e în porumbarul tău)?</p>
             }
             <label class="field">Nume sau poreclă <span class="hint">opțional</span>
               <input [name]="'name-' + sex()" [(ngModel)]="newName" />

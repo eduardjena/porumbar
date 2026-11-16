@@ -34,11 +34,11 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           <p class="row sub">
             <span [class]="'sex-' + (p.sex ?? '')">{{ sexLabel(p.sex) }}</span>
             @if (p.status) { <span class="badge">{{ catalog.label('statuses', p.status) }}</span> }
-            @if (p.kind === 'external') { <span class="badge">din alt porumbar</span> }
+            @if (p.kind === 'external') { <span class="badge">nu e în porumbarul meu</span> }
           </p>
         </div>
         <div class="row">
-          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="retea" />Vezi în arbore</a>
+          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" />Vezi în arbore</a>
           <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />Editează</a>
         </div>
       </div>
@@ -165,7 +165,7 @@ export default class Porumbel {
   private readonly confirm = inject(ConfirmService);
   protected readonly catalog = inject(CatalogService);
   readonly id = input.required<string>();
-  /** De unde a venit omul (?din=arbore|arbore3d|lista), ca firimiturile să-l întoarcă acolo. */
+  /** De unde a venit omul (?din=arbore|lista; arbore3d = linkuri vechi), ca firimiturile să-l întoarcă acolo. */
   readonly din = input<string>();
   readonly radacina = input<string>();
   readonly tot = input<string>();
@@ -176,7 +176,7 @@ export default class Porumbel {
     const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined, vedere: this.vedere() || undefined };
     switch (this.din()) {
       case 'arbore': return { label: 'Arbore', link: ['/arbore'], query: q };
-      case 'arbore3d': return { label: 'Arbore', link: ['/arbore'], query: { ...q, vedere: '3d' } };
+      case 'arbore3d': return { label: 'Arbore', link: ['/arbore'], query: { ...q, vedere: undefined } };
       case 'lista': return { label: 'Listă', link: ['/porumbar'] };
       default: return { label: 'Panou', link: ['/panou'] };
     }

@@ -123,7 +123,7 @@ export default class PublicPedigree {
     const ok = await this.confirm.ask({
       title: `Preiei pedigree-ul lui ${d.root.ring ?? ''}?`,
       lines: [
-        'Se copiază în porumbarul tău ca porumbel „din alt porumbar” (de ex. împrumutat pentru pui), cu strămoșii lui.',
+        'Se copiază în porumbarul tău ca porumbel care nu e în porumbarul tău (de ex. împrumutat pentru pui), cu strămoșii lui.',
         'Strămoșii pe care îi ai deja nu se dublează. Dacă l-ai cumpărat, îl poți trece apoi ca al tău din fișa lui.',
       ],
       confirmLabel: 'Da, preia',

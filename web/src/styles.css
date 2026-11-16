@@ -127,7 +127,7 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
   * { transition: none !important; animation: none !important; }
 }
 
-/* Bara Arborelui: titlul + 2D / 3D în stânga, butoanele modului și „Alege alt porumbel” în dreapta. Compactă, ca să
+/* Bara Arborelui: titlul în stânga, butoanele modului și „Alege alt porumbel” în dreapta. Compactă, ca să
    încapă pe un rând, și lipită sub antet când derulezi. */
 .tree-bar {
   position: sticky; top: 68px; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 8px 12px;
@@ -144,12 +144,9 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 .seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border-radius: 999px; }
 .seg button { border: 0; background: none; min-width: 36px; color: var(--muted); }
 .seg button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
-.tree-bar .dim-toggle { background: var(--text); }
-.tree-bar .dim-toggle button { min-width: 46px; font-weight: 800; color: #f3e6d6; }
-.tree-bar .dim-toggle button.on { background: var(--accent); color: #fff; }
 .pick-wrap { display: contents; }
 @media (max-width: 767px) {
-  /* Pe telefon: rândul 1 titlul și 2D / 3D, rândul 2 butoanele, care se derulează cu degetul. */
+  /* Pe telefon: rândul 1 titlul, rândul 2 butoanele, care se derulează cu degetul. */
   .tree-bar { top: 64px; padding: 6px 0; }
   .bar-left { width: 100%; justify-content: space-between; }
   .bar-title h1 { font-size: 1.1rem; }

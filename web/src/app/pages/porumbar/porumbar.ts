@@ -30,7 +30,7 @@ import { ViewToggle } from '../../shared/view-toggle';
       </label>
       <select [(ngModel)]="kind" (ngModelChange)="load()" aria-label="Ce porumbei">
         <option value="own">Din porumbarul meu</option>
-        <option value="external">Din alt porumbar</option>
+        <option value="external">Nu sunt în porumbarul meu</option>
         <option value="">Toți</option>
       </select>
       <select [(ngModel)]="status" (ngModelChange)="load()" aria-label="Starea">
@@ -58,7 +58,7 @@ import { ViewToggle } from '../../shared/view-toggle';
               <span [class]="'sex sex-' + (p.sex ?? '')">{{ sexS(p.sex) }}</span>
               <span class="name">{{ p.name ?? '' }}</span>
               <span class="muted year">{{ p.year ?? '' }}</span>
-              <span class="muted status">{{ p.kind === 'external' ? 'din alt porumbar' : catalog.label('statuses', p.status) }}</span>
+              <span class="muted status">{{ p.kind === 'external' ? 'nu e în porumbarul meu' : catalog.label('statuses', p.status) }}</span>
               <app-icon name="inainte" [size]="20" class="go" />
             </a>
           </li>

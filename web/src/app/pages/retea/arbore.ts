@@ -13,37 +13,31 @@ import { VedereCarduri } from './vedere-carduri';
 import { VedereEvantai } from './vedere-evantai';
 import { VedereSange } from './vedere-sange';
 import Retea from './retea';
-import Retea3d from './retea-3d';
 
-type View2d = 'carduri' | 'evantai' | 'sange' | 'retea';
-type View = View2d | '3d';
-const VIEWS: { id: View2d; label: string; icon: IconName }[] = [
+type View = 'carduri' | 'evantai' | 'sange' | 'retea';
+const VIEWS: { id: View; label: string; icon: IconName }[] = [
   { id: 'carduri', label: 'Carduri', icon: 'panou' },
   { id: 'evantai', label: 'Evantai', icon: 'rotire' },
   { id: 'sange', label: 'Linii de sânge', icon: 'ramificare' },
   { id: 'retea', label: 'Rețea', icon: 'retea' },
 ];
-const is2d = (v: unknown): v is View2d => VIEWS.some((x) => x.id === v);
+const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
 
 
 /**
- * Pagina Arbore: alegi porumbelul, apoi vederea (Carduri, Evantai, Linii de sânge, Rețea, 3D). Fără `?vedere`, se
+ * Pagina Arbore: alegi porumbelul, apoi vederea (Carduri, Evantai, Linii de sânge, Rețea). Fără `?vedere`, se
  * deschide vederea de pornire a contului. Datele pentru Carduri / Evantai / Linii se aduc o singură dată aici.
  */
 @Component({
   selector: 'app-arbore',
-  imports: [FormsModule, NgTemplateOutlet, Icon, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea, Retea3d],
+  imports: [FormsModule, NgTemplateOutlet, Icon, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea],
   template: `
     <div class="wide">
-      <!-- Stânga barei (la fel în 2D și 3D): titlul și comutatorul 2D / 3D. -->
-      <ng-template #dimToggle>
+      <!-- Stânga barei: titlul. -->
+      <ng-template #titleTpl>
         <div class="bar-title">
           <h1>{{ title() }}</h1>
           @if (rootRing() && data()?.rootId === rootId()) { <span class="muted"><span class="mono">{{ rootRing() }}</span>@if (data(); as d) { · {{ d.offspring.length }} pui }</span> }
-        </div>
-        <div class="seg dim-toggle" role="group" aria-label="2D sau 3D">
-          <button type="button" [class.on]="!is3d()" [attr.aria-pressed]="!is3d()" (click)="go(last2d())">2D</button>
-          <button type="button" [class.on]="is3d()" [attr.aria-pressed]="is3d()" (click)="go('3d')">3D</button>
         </div>
       </ng-template>
 
@@ -81,19 +75,8 @@ const is2d = (v: unknown): v is View2d => VIEWS.some((x) => x.id === v);
 
       @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
-      @if (is3d()) {
-        @defer (on immediate) {
-          <app-retea-3d [porumbel]="porumbel()" [tot]="tot()">
-            <div bara class="bar-left"><ng-container [ngTemplateOutlet]="dimToggle" /></div>
-            <div bara-dreapta class="pick-wrap"><ng-container [ngTemplateOutlet]="pickTpl" /></div>
-          </app-retea-3d>
-        } @placeholder {
-          <div class="tree-bar"><div class="bar-left"><ng-container [ngTemplateOutlet]="dimToggle" /></div></div>
-          <p class="muted">Se pregătește vederea 3D…</p>
-        }
-      } @else {
-        <div class="tree-bar" role="toolbar" aria-label="Comenzi pentru arbore">
-          <div class="bar-left"><ng-container [ngTemplateOutlet]="dimToggle" /></div>
+      <div class="tree-bar" role="toolbar" aria-label="Comenzi pentru arbore">
+          <div class="bar-left"><ng-container [ngTemplateOutlet]="titleTpl" /></div>
           <div class="tree-bar-right">
             <div class="seg" role="tablist" aria-label="Cum vezi arborele">
               @for (v of views; track v.id) {
@@ -130,7 +113,6 @@ const is2d = (v: unknown): v is View2d => VIEWS.some((x) => x.id === v);
             }
           }
         }
-      }
     </div>
   `,
   styles: `
@@ -177,19 +159,15 @@ export default class Arbore {
   readonly vedere = input<string>();
   protected readonly views = VIEWS;
 
-  /** Vederea de pornire e mereu una 2D (implicit Carduri); 3D se alege din comutator. */
-  protected readonly defaultView = computed<View2d>(() => {
+  /** Vederea de pornire a contului (implicit Carduri). */
+  protected readonly defaultView = computed<View>(() => {
     const v = this.auth.account()?.treeView;
-    return is2d(v) ? v : 'carduri';
+    return isView(v) ? v : 'carduri';
   });
   protected readonly view = computed<View>(() => {
     const v = this.vedere();
-    return v === '3d' || is2d(v) ? v : this.defaultView();
+    return isView(v) ? v : this.defaultView();
   });
-  protected readonly is3d = computed(() => this.view() === '3d');
-  /** Ultima vedere 2D: butonul „2D” te întoarce la ea. */
-  private readonly lastSeen2d = signal<View2d | null>(null);
-  protected readonly last2d = computed<View2d>(() => this.lastSeen2d() ?? this.defaultView());
   readonly data = signal<ArboreData | null>(null);
   readonly selected = signal(0);
   readonly error = signal('');
@@ -218,15 +196,11 @@ export default class Arbore {
   protected readonly title = computed(() => {
     const d = this.data();
     const r = d?.pigeons[d.rootId];
-    return r && this.view() !== 'retea' && !(this.is3d() && this.tot()) ? `Arborele lui ${r.name || r.ring?.display || ''}` : 'Arborele porumbarului';
+    return r && this.view() !== 'retea' ? `Arborele lui ${r.name || r.ring?.display || ''}` : 'Arborele porumbarului';
   });
   protected readonly from = computed(() => ({ din: 'arbore', radacina: this.rootId() ?? undefined, vedere: this.view() }));
 
   constructor() {
-    effect(() => {
-      const v = this.view();
-      if (v !== '3d') this.lastSeen2d.set(v);
-    });
     effect(() => {
       const view = this.view();
       const id = this.rootId();
@@ -236,7 +210,7 @@ export default class Arbore {
   }
 
   private async load(view: View, id: number | null, all: boolean) {
-    if (view === 'retea' || (view === '3d' && !id)) return; // rețeaua și 3D-ul își aduc singure datele
+    if (view === 'retea') return; // rețeaua își aduce singură datele
     const req = ++this.request;
     try {
       if (!id) {
@@ -284,7 +258,6 @@ export default class Arbore {
 
   async makeDefault() {
     const label = VIEWS.find((v) => v.id === this.view())?.label ?? '';
-    if (this.is3d()) return;
     const ok = await this.confirm.ask({
       title: `Arborele se deschide de acum cu „${label}”?`,
       lines: ['Poți schimba oricând din comutatorul de vederi.'],

@@ -18,6 +18,14 @@ export const config = {
   get mailFrom() {
     return process.env.MAIL_FROM || 'Porumbar <nu-raspunde@porumbar.local>';
   },
+  /** Singurul admin (consola vânzătorului): contul cu acest email. */
+  get adminEmail() {
+    return (process.env.ADMIN_EMAIL || '').trim().toLowerCase() || null;
+  },
+  /** Cum îl contactează crescătorii pe vânzător pentru plată (apare în mesaje și în memento). */
+  get sellerContact() {
+    return (process.env.SELLER_CONTACT || '').trim() || null;
+  },
   get secureCookies() {
     return process.env.NODE_ENV === 'production';
   },

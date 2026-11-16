@@ -11,6 +11,7 @@ import { viewsRouter } from './routes/views.js';
 import { pedigreesRouter } from './routes/pedigrees.js';
 import { publicRouter } from './routes/public.js';
 import { transfersRouter } from './routes/transfers.js';
+import { adminRouter } from './routes/admin.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
 const WEB_INDEX = path.join(WEB_DIR, 'index.html');
@@ -65,6 +66,7 @@ export function createApp() {
   app.use('/api', pedigreesRouter());
   app.use('/api', publicRouter());
   app.use('/api', transfersRouter());
+  app.use('/api/admin', adminRouter());
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));

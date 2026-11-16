@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { config } from './config.js';
 import { one, run, nowIso } from './db.js';
 import { HttpError, badRequest } from './http.js';
+import { isAdminEmail, readOnlyMessage, subscriptionOf } from './subscriptions.js';
 
 export const SESSION_COOKIE = 'porumbar_session';
 const SESSION_DAYS = 90;
@@ -32,6 +33,10 @@ export const publicAccount = (a) => ({
   showPhone: !!a.show_phone,
   showAddress: !!a.show_address,
   showEmail: !!a.show_email,
+  isAdmin: isAdminEmail(a.email),
+  subscription: subscriptionOf(a),
+  // Creditul pentru citirea pedigree-urilor din poze, în dolari (2 zecimale).
+  aiCredit: Math.round(Number(a.ai_credit_micros ?? 0) / 1e4) / 100,
 });
 
 export function parseCookies(header = '') {
@@ -79,7 +84,8 @@ export async function requireAccount(req, res, next) {
     if (!token) throw new HttpError(401, 'Trebuie să intri în cont.');
     const hash = sha256(token);
     const row = await one(
-      `SELECT a.id, a.email, a.name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email, s.last_seen_at
+      `SELECT a.id, a.email, a.name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
+              a.subscription_start, a.subscription_end, a.ai_credit_micros, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
       hash, SESSION_DAYS,
@@ -89,6 +95,10 @@ export async function requireAccount(req, res, next) {
     if (Date.now() - Date.parse(row.last_seen_at) > 3600_000) await run('UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?', nowIso(), hash);
     req.account = publicAccount(row);
     req.sessionHash = hash;
+    // Fără abonament activ: doar citire. Setările contului (/api/auth) și consola (/api/admin) merg oricum.
+    const writes = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+    const exempt = /^\/api\/(auth|admin)(\/|$)/.test(req.originalUrl);
+    if (writes && !exempt && !req.account.subscription.active) throw new HttpError(402, readOnlyMessage(req.account.subscription.status));
     next();
   } catch (err) {
     next(err);

@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { errorMessage } from '../../core/api';
+import { PasswordField } from '../../shared/password-field';
 import { Icon } from '../../shared/icon';
 
 @Component({
   selector: 'app-cont-nou',
-  imports: [FormsModule, RouterLink, Icon],
+  imports: [FormsModule, RouterLink, Icon, PasswordField],
   template: `
     <div class="auth-page stack">
       <div class="logo" aria-hidden="true"><app-icon name="porumbel" [size]="56" /></div>
@@ -19,10 +20,7 @@ import { Icon } from '../../shared/icon';
         <label class="field">Email
           <input type="email" name="email" autocomplete="email" inputmode="email" required [(ngModel)]="email" />
         </label>
-        <label class="field">Parola
-          <span class="hint">Cel puțin 10 caractere. Poate fi o propoziție, de exemplu „porumbeii mei zboară”.</span>
-          <input type="password" name="password" autocomplete="new-password" required [(ngModel)]="password" />
-        </label>
+        <app-password-field [(value)]="password" autocomplete="new-password" hint="Cel puțin 10 caractere. Poate fi o propoziție, de exemplu „porumbeii mei zboară”." />
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
         <button class="primary wide" type="submit" [disabled]="busy()">{{ busy() ? 'Se creează…' : 'Fă contul' }}</button>
       </form>

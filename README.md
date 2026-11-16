@@ -38,3 +38,18 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
   rasă, linii, culoare din listă, ochi, stare, evaluare 1–5 + calități / de dorit / defecte, text pentru pedigree;
 - strămoși externi (și fără inel), jurnal cu dată, poze (micșorate pe telefon înainte de trimitere);
 - părinții aleși după inel, cu istoricul lor și consangvinizarea puilor perechii; rude; arbore cu strămoșii repetați colorați.
+
+## Ce fac Planurile 1b, 1c și 3
+
+- **Panou și Arbore**: porumbeii după valoare; Arborele în 2D (Carduri, Evantai, Linii de sânge, Rețea) sau 3D (etaje pe
+  generații sau orbite), cu „Alege alt porumbel”; pe telefon generațiile se glisează.
+- **Pedigree pe hârtie** (`/porumbei/pedigree`): 31 de căsuțe ca pe foaie; inelele știute se recunosc și părinții lor se
+  completează singuri; **citirea din poză sau PDF** cu Claude (doar cu `ANTHROPIC_API_KEY`; limită pe zi
+  `PEDIGREE_READS_PER_DAY`; poza nu se păstrează).
+- **Separare totală între conturi**: același inel poate exista în mai multe conturi și nimeni nu vede nimic din alt cont.
+  Datele trec doar prin copii:
+  - **link public / cod QR** pe fiecare porumbel (fila „QR”): pedigree-ul pe 5 generații fără cont, în formatul deschis
+    `porumbar-pedigree` v1; cine are cont îl **preia** în porumbarul lui (strămoșii existenți nu se dublează);
+  - **vânzarea**: emailul cumpărătorului, care o primește în „Vânzări”; la vânzător porumbelul rămâne „Vândut”;
+  - **pedigree tipărit** pe A4 orizontal, cu QR-ul; ce apare pe el (telefon, adresă, email) se alege în „Contul meu”.
+- `PUBLIC_BASE_URL` trebuie să fie domeniul final înainte de a tipări coduri QR (codul conține adresa).

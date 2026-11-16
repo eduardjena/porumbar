@@ -303,6 +303,8 @@ export default class Retea3d implements OnDestroy {
   private net: Network | null = null;
   private lastClick = { id: 0, at: 0 };
   private hovered: Node3D | null = null;
+  private pointerReady = false;
+  private request = 0;
 
   /** De unde vine omul în fișă: firimiturile îl întorc aici. */
   protected from = () => ({ din: 'arbore', radacina: this.rootId ?? undefined, vedere: '3d' });
@@ -331,6 +333,7 @@ export default class Retea3d implements OnDestroy {
   }
 
   private async load(id: number | null, all: boolean) {
+    const req = ++this.request;
     try {
       if (!id && !all) {
         // Ca în 2D: fără porumbel ales, pornim de la ultimul ales (sau de la cel mai valoros).
@@ -344,6 +347,7 @@ export default class Retea3d implements OnDestroy {
       this.hasRoot.set(!!id);
       if (id) rememberRoot(id);
       const net = await this.api.get<Network>(id ? `/network?rootId=${id}&up=8&down=4` : '/network');
+      if (req !== this.request) return; // între timp s-a ales alt porumbel
       this.error.set('');
       await this.draw(net);
     } catch (e) {
@@ -535,17 +539,21 @@ export default class Retea3d implements OnDestroy {
     });
     // Apăsat pe o sferă și tras: rotirea se face în jurul acelui porumbel (vine ușor în centru).
     // Pivotul se schimbă doar când omul începe să tragă (nu la un simplu clic, care alege porumbelul).
-    let press: { node: Node3D; x: number; y: number } | null = null;
-    el.addEventListener('pointerdown', (e: PointerEvent) => {
-      press = e.button === 0 && this.mode() === 'rotate' && this.hovered ? { node: this.hovered, x: e.clientX, y: e.clientY } : null;
-    }, { capture: true });
-    el.addEventListener('pointermove', (e: PointerEvent) => {
-      if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) {
-        this.pivotOn(press.node);
-        press = null;
-      }
-    }, { capture: true });
-    el.addEventListener('pointerup', () => (press = null), { capture: true });
+    // Ascultătorii se pun o singură dată pe scenă (draw se repetă la Etaje / Orbite).
+    if (!this.pointerReady) {
+      this.pointerReady = true;
+      let press: { node: Node3D; x: number; y: number } | null = null;
+      el.addEventListener('pointerdown', (e: PointerEvent) => {
+        press = e.button === 0 && this.mode() === 'rotate' && this.hovered ? { node: this.hovered, x: e.clientX, y: e.clientY } : null;
+      }, { capture: true });
+      el.addEventListener('pointermove', (e: PointerEvent) => {
+        if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) {
+          this.pivotOn(press.node);
+          press = null;
+        }
+      }, { capture: true });
+      el.addEventListener('pointerup', () => (press = null), { capture: true });
+    }
 
     this.resize?.disconnect();
     this.resize = new ResizeObserver(() => this.graph?.width(el.clientWidth).height(el.clientHeight));

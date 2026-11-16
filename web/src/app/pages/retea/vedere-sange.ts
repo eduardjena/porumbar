@@ -102,7 +102,10 @@ export class VedereSange {
     return [p?.name ? `„${p.name}”` : '', p?.year ?? ''].filter(Boolean).join(' · ');
   };
 
-  /** Fiecare porumbel o dată, în coloana generației celei mai apropiate de rădăcină. */
+  /**
+   * Fiecare porumbel o dată, în coloana celei mai mari adâncimi la care apare: așa orice părinte stă mai la stânga
+   * decât orice pui al lui, iar panglicile curg mereu spre dreapta (și la consangvinizare).
+   */
   protected readonly nodes = computed<Node2[]>(() => {
     const depth = new Map<number, number>();
     const order: number[] = [];
@@ -110,7 +113,7 @@ export class VedereSange {
       p.via.forEach((id, k) => {
         const d = p.via.length - 1 - k;
         if (!depth.has(id)) order.push(id);
-        depth.set(id, Math.min(depth.get(id) ?? Infinity, d));
+        depth.set(id, Math.max(depth.get(id) ?? -Infinity, d));
       });
     }
     if (!depth.size) depth.set(this.data().rootId, 0), order.push(this.data().rootId);

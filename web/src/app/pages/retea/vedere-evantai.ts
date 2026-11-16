@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { TreeNode } from '../../core/models';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
 
@@ -49,7 +49,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
 @Component({
   selector: 'app-vedere-evantai',
   template: `
-    <svg viewBox="0 0 1000 500" class="fan" role="img" aria-label="Evantaiul strămoșilor">
+    <svg [attr.viewBox]="viewBox()" class="fan" role="img" aria-label="Evantaiul strămoșilor">
       @for (s of slices(); track s.key) {
         <g class="slice" [class.sel]="s.id != null && s.id === selectedId()" (click)="s.id != null && select.emit(s.id)" (dblclick)="s.id != null && open.emit(s.id)">
           <path [attr.d]="s.d" [attr.fill]="s.fill" stroke="#fffdf9" stroke-width="2" />
@@ -58,7 +58,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
           @if (s.id != null && s.id === selectedId()) { <path [attr.d]="s.d" fill="none" stroke="#a33d1c" stroke-width="5" /> }
           @if (s.label) {
             <text [attr.x]="s.tx" [attr.y]="s.ty" [attr.transform]="'rotate(' + s.rot + ' ' + s.tx + ' ' + s.ty + ')'" [attr.fill]="s.ink"
-                  text-anchor="middle" dominant-baseline="middle" [attr.font-size]="s.gen <= 2 ? 15 : 12" font-weight="700">
+                  text-anchor="middle" dominant-baseline="middle" [attr.font-size]="fontFor(s.gen)" font-weight="700">
               {{ s.label }}
               @if (s.sub && s.gen <= 2) { <tspan [attr.x]="s.tx" dy="17" font-weight="400" font-size="12">{{ s.sub }}</tspan> }
             </text>
@@ -71,8 +71,8 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
         <text [attr.x]="cx" [attr.y]="cy - 22" text-anchor="middle" [attr.fill]="rootInk()" font-size="14" font-weight="800">{{ rootName() }}</text>
         <text [attr.x]="cx" [attr.y]="cy - 7" text-anchor="middle" [attr.fill]="rootInk()" font-size="11">{{ rootRing() }}</text>
       </g>
-      <text x="40" y="492" font-size="15" font-weight="800" fill="#2b5a86">← familia tatălui</text>
-      <text x="960" y="492" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">familia mamei →</text>
+      <text [attr.x]="cx - outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#2b5a86">← familia tatălui</text>
+      <text [attr.x]="cx + outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">familia mamei →</text>
     </svg>
     <p class="muted how">Atinge o felie ca s-o alegi; dublu clic deschide fișa. Culoarea = nota (gri = alt porumbar), dunga = mascul / femelă, conturul colorat = strămoș care se repetă.</p>
   `,
@@ -89,11 +89,28 @@ export class VedereEvantai {
   readonly selectedId = input.required<number>();
   readonly select = output<number>();
   readonly open = output<number>();
+
+  constructor() {
+    if (typeof matchMedia === 'undefined') return;
+    const mq = matchMedia('(max-width: 767px)');
+    const onChange = () => this.narrow.set(mq.matches);
+    mq.addEventListener('change', onChange);
+    inject(DestroyRef).onDestroy(() => mq.removeEventListener('change', onChange));
+  }
   protected readonly cx = CX;
   protected readonly cy = CY;
   protected readonly r0 = R0;
   /** Porumbelul: un semicerc așezat pe linia de jos (un cerc întreg ar ieși din desen). */
   protected readonly rootHalf = `M${CX - R0 + 2},${CY} A${R0 - 2},${R0 - 2} 0 0 1 ${CX + R0 - 2},${CY} Z`;
+  /** Pe telefon doar 3 inele (părinți, bunici, străbunici), ca scrisul să rămână citibil; pe calculator 4. */
+  private readonly narrow = signal(typeof matchMedia !== 'undefined' && matchMedia('(max-width: 767px)').matches);
+  protected readonly maxGen = computed(() => (this.narrow() ? 3 : 4));
+  protected readonly outer = computed(() => R0 + this.maxGen() * RING);
+  protected readonly viewBox = computed(() => {
+    const r = this.outer() + 12;
+    return `${CX - r} ${CY - r} ${2 * r} ${r + 34}`;
+  });
+  protected readonly fontFor = (gen: number) => (this.narrow() ? (gen <= 2 ? 19 : 17) : gen <= 2 ? 15 : 12);
   protected readonly repeatColor = (g: number) => REPEAT_COLORS[(g - 1) % REPEAT_COLORS.length];
 
   private root = computed(() => this.data().pigeons[this.data().rootId]);
@@ -108,7 +125,7 @@ export class VedereEvantai {
     const { pigeons, values } = this.data();
     const out: Slice[] = [];
     const walk = (node: TreeNode | null, gen: number, i: number, key: string) => {
-      if (gen > 4) return;
+      if (gen > this.maxGen()) return;
       if (gen > 0) {
         const span = 180 / 2 ** gen;
         const a1 = 180 - i * span;
@@ -136,7 +153,8 @@ export class VedereEvantai {
           ink: own && band >= 4 ? '#ffffff' : '#2b2117',
           sexColor: p?.sex === 'M' ? MALE : p?.sex === 'F' ? FEMALE : 'transparent',
           repeat: node?.repeat ?? null,
-          label: gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, ''),
+          // Inelele exterioare scurtate la număr (încap în felie), și cele scrise ca „6008107/08 BELG M”.
+          label: gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, '').replace(/^(\d+)\s*\/.*$/, '$1'),
           sub: p?.name ? `„${p.name}”` : p?.year ? String(p.year) : '',
           tx,
           ty,

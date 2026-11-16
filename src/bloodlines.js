@@ -48,9 +48,27 @@ export function bloodlines(rootId, rowsById, maxGen = 8) {
     if (p.founderId != null) l.founders.add(p.founderId);
     byLine.set(p.line, l);
   }
-  const round = (x) => Math.round(x * 1e4) / 1e2; // procent cu 2 zecimale
-  const lines = [...byLine.values()]
-    .map((l) => ({ name: l.name, percent: round(l.share), founders: [...l.founders] }))
+  const all = [...byLine.values()];
+  const percents = roundPercents(all.map((l) => l.share));
+  const lines = all
+    .map((l, i) => ({ name: l.name, percent: percents[i], founders: [...l.founders] }))
     .sort((a, b) => b.percent - a.percent || a.name.localeCompare(b.name, 'ro'));
   return { lines, paths };
+}
+
+/**
+ * Procente cu 2 zecimale care adună exact 100 (metoda celor mai mari resturi): fiecare cotă se rotunjește în jos
+ * la sutimi, iar sutimile rămase merg la cotele cu cel mai mare rest. Altfel bara ar putea arăta 99,99 %.
+ */
+export function roundPercents(shares) {
+  const units = shares.map((s) => s * 1e4); // sutimi de procent
+  const floor = units.map((u) => Math.floor(u + 1e-9));
+  let left = Math.round(units.reduce((a, b) => a + b, 0)) - floor.reduce((a, b) => a + b, 0);
+  const order = units.map((u, i) => [u - floor[i], i]).sort((a, b) => b[0] - a[0]);
+  for (const [, i] of order) {
+    if (left <= 0) break;
+    floor[i]++;
+    left--;
+  }
+  return floor.map((f) => f / 100);
 }

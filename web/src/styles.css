@@ -156,6 +156,8 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
   .tree-bar-right { width: 100%; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; margin-left: 0; scrollbar-width: none; }
   .tree-bar-right::-webkit-scrollbar { display: none; }
   .tree-bar-right > *, .tree-bar-right .pick-wrap > button { flex: none; }
+  /* „Alege alt porumbel” primul, ca să se vadă fără derulare. */
+  .tree-bar-right .pick-wrap > button { order: -1; }
   .tree-bar button, .tree-bar .btn { min-height: 40px; }
 }
 

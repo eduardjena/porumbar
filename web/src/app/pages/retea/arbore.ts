@@ -39,7 +39,7 @@ const is2d = (v: unknown): v is View2d => VIEWS.some((x) => x.id === v);
       <ng-template #dimToggle>
         <div class="bar-title">
           <h1>{{ title() }}</h1>
-          @if (rootRing()) { <span class="muted"><span class="mono">{{ rootRing() }}</span>@if (data(); as d) { · {{ d.offspring.length }} pui }</span> }
+          @if (rootRing() && data()?.rootId === rootId()) { <span class="muted"><span class="mono">{{ rootRing() }}</span>@if (data(); as d) { · {{ d.offspring.length }} pui }</span> }
         </div>
         <div class="seg dim-toggle" role="group" aria-label="2D sau 3D">
           <button type="button" [class.on]="!is3d()" [attr.aria-pressed]="!is3d()" (click)="go(last2d())">2D</button>
@@ -144,6 +144,10 @@ const is2d = (v: unknown): v is View2d => VIEWS.some((x) => x.id === v);
     .picker-head { display: flex; gap: 8px; align-items: center; }
     .picker-head .search { flex: 1; }
     .close { width: 48px; padding: 0; flex: none; }
+    @media (max-width: 767px) {
+      /* Pe telefon, meniul de jos (~80px) acoperă partea de jos a ecranului. */
+      .picker { max-height: calc(100dvh - var(--picker-top, 150px) - 96px - env(safe-area-inset-bottom)); }
+    }
     .picker .small { margin: 8px 0; }
     .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; min-height: 0; overflow-y: auto; grid-auto-rows: max-content; align-content: start; padding: 2px; }
     .pick { justify-content: flex-start; gap: 10px; font-weight: 600; text-align: left; min-height: 58px; height: auto; padding: 8px 12px; border-radius: 14px; }
@@ -184,12 +188,15 @@ export default class Arbore {
   });
   protected readonly is3d = computed(() => this.view() === '3d');
   /** Ultima vedere 2D: butonul „2D” te întoarce la ea. */
-  protected readonly last2d = signal<View2d>('carduri');
+  private readonly lastSeen2d = signal<View2d | null>(null);
+  protected readonly last2d = computed<View2d>(() => this.lastSeen2d() ?? this.defaultView());
   readonly data = signal<ArboreData | null>(null);
   readonly selected = signal(0);
   readonly error = signal('');
   readonly suggestions = signal<PigeonSummary[]>([]);
   readonly picking = signal(false);
+  readonly searching = signal(false);
+  private searchReq = 0;
   /** Lista se deschide chiar sub bară (bara poate fi lipită sus sau mai jos în pagină). */
   protected readonly pickerTop = signal(150);
   private readonly board = signal<BoardPigeon[]>([]);
@@ -218,7 +225,7 @@ export default class Arbore {
   constructor() {
     effect(() => {
       const v = this.view();
-      if (v !== '3d') this.last2d.set(v);
+      if (v !== '3d') this.lastSeen2d.set(v);
     });
     effect(() => {
       const view = this.view();
@@ -236,6 +243,7 @@ export default class Arbore {
         const pigeons = (await this.api.get<{ pigeons: BoardPigeon[] }>('/board')).pigeons;
         const last = lastRoot();
         const start = pigeons.find((p) => p.id === last) ?? pigeons[0];
+        if (req !== this.request) return;
         if (start) this.router.navigate(['/arbore'], { queryParams: { porumbel: start.id, vedere: this.vedere() || undefined }, replaceUrl: true });
         else this.error.set('Adaugă primul porumbel, apoi îi vezi aici arborele.');
         return;
@@ -284,7 +292,7 @@ export default class Arbore {
     });
     if (!ok) return;
     try {
-      await this.auth.update({ treeView: this.view() } as never);
+      await this.auth.update({ treeView: this.view() });
     } catch (e) {
       this.error.set(errorMessage(e));
     }
@@ -301,12 +309,17 @@ export default class Arbore {
   suggest() {
     clearTimeout(this.timer);
     const q = this.q.trim();
+    const req = ++this.searchReq;
+    this.searching.set(!!q);
     if (!q) return this.suggestions.set([]);
     this.timer = setTimeout(async () => {
       try {
-        this.suggestions.set((await this.api.get<{ pigeons: PigeonSummary[] }>(`/pigeons?q=${encodeURIComponent(q)}`)).pigeons.slice(0, 8));
+        const found = (await this.api.get<{ pigeons: PigeonSummary[] }>(`/pigeons?q=${encodeURIComponent(q)}`)).pigeons.slice(0, 24);
+        if (req === this.searchReq) this.suggestions.set(found);
       } catch {
-        this.suggestions.set([]);
+        if (req === this.searchReq) this.suggestions.set([]);
+      } finally {
+        if (req === this.searchReq) this.searching.set(false);
       }
     }, 300);
   }

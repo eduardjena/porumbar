@@ -112,6 +112,9 @@ const MIGRATIONS = [
 
   // 5: fără poze (cerut de utilizator: nu ocupăm spațiu pe server cu pozele porumbeilor).
   'DROP TABLE photos',
+
+  // 6: vederea cu care se deschide Arborele (aleasă de fiecare crescător).
+  "ALTER TABLE accounts ADD COLUMN tree_view TEXT NOT NULL DEFAULT 'carduri'",
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

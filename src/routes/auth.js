@@ -1,12 +1,12 @@
 import express from 'express';
 import { one, run, insert, tx, nowIso } from '../db.js';
-import { HttpError, badRequest, text, rateLimit } from '../http.js';
+import { HttpError, badRequest, text, oneOf, rateLimit } from '../http.js';
 import { config } from '../config.js';
 import { sendMail } from '../mail.js';
 import { onAccountDeleted } from '../hooks.js';
 import {
   requireAccount, createSession, endSession, hashPassword, checkPassword, validatePassword,
-  publicAccount, randomToken, sha256,
+  publicAccount, randomToken, sha256, TREE_VIEWS,
 } from '../accounts.js';
 
 const RESET_MINUTES = 60;
@@ -65,7 +65,8 @@ export function authRouter() {
     const name = b.name === undefined ? req.account.name : text(b.name, 'nume', { max: 120 });
     const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
     const address = b.address === undefined ? req.account.address : text(b.address, 'adresă', { max: 300, optional: true });
-    await run('UPDATE accounts SET name = ?, phone = ?, address = ? WHERE id = ?', name, phone, address, req.account.id);
+    const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'vederea Arborelui');
+    await run('UPDATE accounts SET name = ?, phone = ?, address = ?, tree_view = ? WHERE id = ?', name, phone, address, treeView, req.account.id);
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });
 

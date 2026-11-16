@@ -93,3 +93,15 @@ test('ștergerea contului', async () => {
   const login = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: 'ion@exemplu.test', password: 'parola-noua-456' } });
   assert.equal(login.status, 401);
 });
+
+test('vederea de pornire a Arborelui (Review Focus 4)', async () => {
+  const { newAccount } = await import('./helpers/accounts.js');
+  const c = await newAccount(call, 'V');
+  const me = await call('/api/auth/me', { cookie: c });
+  assert.equal(me.data.account.treeView, 'carduri', 'implicit');
+  const ok = await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { treeView: 'evantai' } });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.data.account.treeView, 'evantai');
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { treeView: 'inventat' } })).status, 400);
+  assert.equal((await call('/api/auth/me', { cookie: c })).data.account.treeView, 'evantai');
+});

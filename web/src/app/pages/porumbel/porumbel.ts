@@ -153,11 +153,12 @@ export default class Porumbel {
   readonly din = input<string>();
   readonly radacina = input<string>();
   readonly tot = input<string>();
+  readonly vedere = input<string>();
   protected readonly origin = computed<Crumb>(() => {
-    const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined };
+    const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined, vedere: this.vedere() || undefined };
     switch (this.din()) {
       case 'arbore': return { label: 'Arbore', link: ['/arbore'], query: q };
-      case 'arbore3d': return { label: 'Arbore 3D', link: ['/arbore/3d'], query: q };
+      case 'arbore3d': return { label: 'Arbore', link: ['/arbore'], query: { ...q, vedere: '3d' } };
       case 'lista': return { label: 'Listă', link: ['/porumbar'] };
       default: return { label: 'Panou', link: ['/panou'] };
     }

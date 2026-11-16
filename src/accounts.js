@@ -18,7 +18,17 @@ export function validatePassword(password) {
   return password;
 }
 
-export const publicAccount = (a) => ({ id: a.id, email: a.email, name: a.name, phone: a.phone ?? null, address: a.address ?? null });
+/** Vederile Arborelui; prima e cea implicită. */
+export const TREE_VIEWS = ['carduri', 'evantai', 'sange', 'retea', '3d'];
+
+export const publicAccount = (a) => ({
+  id: a.id,
+  email: a.email,
+  name: a.name,
+  phone: a.phone ?? null,
+  address: a.address ?? null,
+  treeView: TREE_VIEWS.includes(a.tree_view) ? a.tree_view : TREE_VIEWS[0],
+});
 
 export function parseCookies(header = '') {
   const out = {};
@@ -65,7 +75,7 @@ export async function requireAccount(req, res, next) {
     if (!token) throw new HttpError(401, 'Trebuie să intri în cont.');
     const hash = sha256(token);
     const row = await one(
-      `SELECT a.id, a.email, a.name, a.phone, a.address, s.last_seen_at
+      `SELECT a.id, a.email, a.name, a.phone, a.address, a.tree_view, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
       hash, SESSION_DAYS,

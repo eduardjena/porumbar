@@ -4,14 +4,13 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
-import { Icon } from '../../shared/icon';
 
 @Component({
   selector: 'app-intra',
-  imports: [FormsModule, RouterLink, Icon, PasswordField],
+  imports: [FormsModule, RouterLink, PasswordField],
   template: `
     <div class="auth-page stack">
-      <div class="logo" aria-hidden="true"><app-icon name="porumbel" [size]="56" /></div>
+      <div class="logo"><img src="/icon.svg" alt="Porumbar" width="88" height="88" /></div>
       <h1>Intră în porumbarul tău</h1>
       <form class="card stack" (ngSubmit)="submit()">
         <label class="field">Email

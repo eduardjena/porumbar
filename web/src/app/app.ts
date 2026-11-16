@@ -24,7 +24,7 @@ const NAV: NavItem[] = [
     @if (auth.account()) {
       <header class="top">
         <a routerLink="/panou" class="brand" aria-label="Porumbar, panoul">
-          <span class="brand-mark"><app-icon name="porumbel" [size]="22" /></span>
+          <img class="brand-mark" src="/icon.svg" alt="" width="40" height="40" />
           Porumbar
         </a>
         <nav class="top-nav" aria-label="Meniu">
@@ -59,7 +59,7 @@ const NAV: NavItem[] = [
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
     }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; letter-spacing: -0.01em; }
-    .brand-mark { width: 38px; height: 38px; border-radius: 12px; background: var(--accent); color: #fff; display: grid; place-items: center; }
+    .brand-mark { width: 40px; height: 40px; display: block; }
     .top-nav { display: flex; gap: 4px; align-items: center; }
     .top-nav a, .top-nav .ghost {
       padding: 8px 16px; border-radius: 999px; color: var(--muted); text-decoration: none; min-height: 48px;

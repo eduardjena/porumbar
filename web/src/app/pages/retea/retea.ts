@@ -46,7 +46,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (net()?.truncated) { <div class="warning"><app-icon name="alerta" />Arăt doar cei mai tineri {{ net()!.nodes.length }} porumbei. Alege un porumbel ca să vezi rudele lui.</div> }
     @if (!rootId() && !tot()) {
-      <div class="notice"><app-icon name="cautare" />Scrie sus inelul sau numele unui porumbel: vezi strămoșii și urmașii lui. Sau apasă „Tot porumbarul”.</div>
+      <div class="notice"><app-icon name="cautare" />Adaugă primul porumbel, apoi îl vezi aici cu strămoșii și urmașii lui.</div>
     }
     @if (rootLabel()) { <p class="from">Pornind de la <strong class="mono">{{ rootLabel() }}</strong>: strămoșii pe 5 generații și urmașii pe 3.</p> }
 
@@ -139,11 +139,7 @@ export default class Retea implements OnDestroy {
       untracked(() => {
         this.rootId.set(id);
         if (id || all) this.load();
-        else {
-          this.net.set(null);
-          this.cy?.destroy();
-          this.cy = null;
-        }
+        else this.startFromBest();
       });
     });
   }
@@ -165,6 +161,19 @@ export default class Retea implements OnDestroy {
         this.suggestions.set([]);
       }
     }, 300);
+  }
+
+  /** Fără porumbel ales: pornim de la cel mai valoros din porumbar (primul de pe panou), nu de la o pagină goală. */
+  private async startFromBest() {
+    this.net.set(null);
+    this.cy?.destroy();
+    this.cy = null;
+    try {
+      const best = (await this.api.get<{ pigeons: PigeonSummary[] }>('/board')).pigeons[0];
+      if (best) this.router.navigate(['/arbore'], { queryParams: { porumbel: best.id }, replaceUrl: true });
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    }
   }
 
   pick(p: PigeonSummary) {

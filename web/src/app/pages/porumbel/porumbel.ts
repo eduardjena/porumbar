@@ -7,6 +7,7 @@ import { Family, JournalEntry, Photo, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
+import { Icon, IconName } from '../../shared/icon';
 
 /** Pozele de pe telefon sunt mari: le micșorăm la cel mult 2000 px înainte de trimitere (mai rapid pe date mobile). */
 async function shrink(file: File, max = 2000): Promise<Blob> {
@@ -25,12 +26,12 @@ async function shrink(file: File, max = 2000): Promise<Blob> {
 }
 
 type Tab = 'fisa' | 'rude' | 'arbore' | 'jurnal' | 'poze';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'fisa', label: 'Fișa' },
-  { id: 'rude', label: 'Rude' },
-  { id: 'arbore', label: 'Arbore' },
-  { id: 'jurnal', label: 'Jurnal' },
-  { id: 'poze', label: 'Poze' },
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
+  { id: 'fisa', label: 'Fișa', icon: 'fisa' },
+  { id: 'rude', label: 'Rude', icon: 'rude' },
+  { id: 'arbore', label: 'Arbore', icon: 'arbore' },
+  { id: 'jurnal', label: 'Jurnal', icon: 'jurnal' },
+  { id: 'poze', label: 'Poze', icon: 'poze' },
 ];
 const PHOTO_KINDS = [
   { code: 'corp', label: 'Corp' },
@@ -41,7 +42,7 @@ const PHOTO_KINDS = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -54,12 +55,17 @@ const PHOTO_KINDS = [
             @if (p.kind === 'external') { <span class="badge">strămoș (al altcuiva)</span> }
           </p>
         </div>
-        <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']">✎ Editează</a>
+        <div class="row">
+          <a class="btn" [routerLink]="['/retea']" [queryParams]="{ porumbel: p.id }"><app-icon name="retea" />Rețea</a>
+          <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />Editează</a>
+        </div>
       </div>
 
       <nav class="tabs" role="tablist">
         @for (t of tabs; track t.id) {
-          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">{{ t.label }}</button>
+          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">
+            <app-icon [name]="t.icon" [size]="26" /><span>{{ t.label }}</span>
+          </button>
         }
       </nav>
 
@@ -142,7 +148,7 @@ const PHOTO_KINDS = [
               </select>
             </label>
             <label class="btn primary upload">
-              📷 Fă o poză sau alege din telefon
+              <app-icon name="poze" /> Fă o poză sau alege din telefon
               <input type="file" accept="image/jpeg,image/png,image/webp" (change)="upload($event)" hidden />
             </label>
             @if (pError()) { <div class="error" role="alert">{{ pError() }}</div> }
@@ -164,9 +170,12 @@ const PHOTO_KINDS = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: flex; gap: 4px; overflow-x: auto; margin: 8px 0 16px; border-bottom: 2px solid var(--border); }
-    .tabs button { border: 0; border-radius: 10px 10px 0 0; background: none; flex: none; color: var(--muted); }
-    .tabs button.on { background: var(--surface); color: var(--accent-strong); border-bottom: 3px solid var(--accent); }
+    .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
+    .tabs button {
+      border: 0; border-radius: 14px; background: none; color: var(--muted); flex-direction: column; gap: 2px;
+      min-height: 64px; padding: 6px 4px; font-size: 0.85rem;
+    }
+    .tabs button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
     .facts dt { font-weight: 600; color: var(--muted); }
     .facts dd { margin: 0; }

@@ -218,7 +218,7 @@ export default class PorumbelForm implements OnInit {
   /** „Renunță” aruncă și ciorna: altfel modificările lăsate baltă ar reapărea data viitoare peste datele salvate. */
   cancel() {
     writeDraft(this.id(), null);
-    this.router.navigate(this.id() ? ['/porumbei', this.id()] : ['/porumbar']);
+    this.router.navigate(this.id() ? ['/porumbei', this.id()] : ['/panou']);
   }
 
   setScore(code: string, n: number) {

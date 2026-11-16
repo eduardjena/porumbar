@@ -37,7 +37,7 @@ export default class ParolaNoua {
     this.busy.set(true);
     try {
       await this.auth.resetPassword(this.token(), this.password);
-      this.router.navigateByUrl('/porumbar');
+      this.router.navigateByUrl('/panou');
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

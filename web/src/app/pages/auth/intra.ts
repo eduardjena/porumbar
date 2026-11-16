@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { errorMessage } from '../../core/api';
+import { Icon } from '../../shared/icon';
 
 @Component({
   selector: 'app-intra',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Icon],
   template: `
     <div class="auth-page stack">
-      <div class="logo" aria-hidden="true">🕊</div>
+      <div class="logo" aria-hidden="true"><app-icon name="porumbel" [size]="56" /></div>
       <h1>Intră în porumbarul tău</h1>
       <form class="card stack" (ngSubmit)="submit()">
         <label class="field">Email
@@ -39,7 +40,7 @@ export default class Intra {
     this.busy.set(true);
     try {
       await this.auth.login(this.email.trim(), this.password);
-      this.router.navigateByUrl('/porumbar');
+      this.router.navigateByUrl('/panou');
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

@@ -19,8 +19,20 @@ if (![200, 201].includes(r.status)) throw new Error(`Contul de exemplu: ${r.stat
 const cookie = r.res.headers.get('set-cookie').split(';')[0];
 
 const EXAMPLES = [
-  { pedigree: PEDIGREE_FOTO, extra: { name: 'FUMUR', status: 'concurent', color: 'albastru', lines: ['Van Heteren', 'Comb. Den Haan'] } },
-  { pedigree: PEDIGREE_COMPUCLUB, extra: { status: 'tanar', lines: ['Super Velden', 'Power Night', 'Donkere Barcelona'] } },
+  {
+    pedigree: PEDIGREE_FOTO,
+    extra: {
+      name: 'FUMUR', status: 'reproducator', color: 'albastru', lines: ['Van Heteren', 'Comb. Den Haan'],
+      evaluation: { scores: { echilibru: 5, musculatura: 4, aripa: 5, penaj: 4, ochi: 4 }, calitati: 'Exemplu: echilibru foarte bun' },
+    },
+  },
+  {
+    pedigree: PEDIGREE_COMPUCLUB,
+    extra: {
+      status: 'tanar', lines: ['Super Velden', 'Power Night', 'Donkere Barcelona'],
+      evaluation: { scores: { echilibru: 3, musculatura: 3, aripa: 4 } },
+    },
+  },
 ];
 
 for (const { pedigree, extra } of EXAMPLES) {

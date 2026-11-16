@@ -5,16 +5,17 @@ import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { PigeonSummary } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
+import { Icon } from '../../shared/icon';
 
 const PAGE = 50;
 
 @Component({
   selector: 'app-porumbar',
-  imports: [FormsModule, RouterLink, PigeonChip],
+  imports: [FormsModule, RouterLink, PigeonChip, Icon],
   template: `
     <div class="head">
-      <h1>Porumbarul meu</h1>
-      <a routerLink="/porumbei/nou" class="btn primary">＋ Porumbel nou</a>
+      <h1>Lista porumbeilor</h1>
+      <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Porumbel nou</a>
     </div>
 
     <div class="card stack filters">
@@ -47,7 +48,7 @@ const PAGE = 50;
           <p>Niciun porumbel nu se potrivește căutării.</p>
         } @else {
           <p>Porumbarul e gol deocamdată.</p>
-          <a routerLink="/porumbei/nou" class="btn primary">＋ Adaugă primul porumbel</a>
+          <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Adaugă primul porumbel</a>
         }
       </div>
     }

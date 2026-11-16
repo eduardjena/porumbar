@@ -68,6 +68,32 @@ interface Card {
         }
       }
     </div>
+
+    <!-- Pe telefon: câte o generație pe ecran, glisezi între ele; fiecare card spune ce rudă e. -->
+    <div class="gens" aria-label="Generațiile (glisează)">
+      @for (g of genList; track g) {
+        <section class="gen">
+          <h3>{{ genName(g) }} <span class="muted">{{ g < 4 ? 'glisează →' : '' }}</span></h3>
+          @for (c of cardsOf(g); track c.key) {
+            @if (c.id != null && pigeons()[c.id]; as p) {
+              <button type="button" class="m-card" [class.sel]="c.id === selectedId()" (click)="select.emit(c.id!)" (dblclick)="open.emit(c.id!)">
+                <span class="role">{{ role(c.path) }}</span>
+                <span class="line1">
+                  <span class="av" [class]="'av sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
+                  <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+                  @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
+                  @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
+                </span>
+                @if (p.name || p.text) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
+                <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">alt porumbar</span> } @else { <span class="mine">al tău</span> }</span>
+              </button>
+            } @else if (g <= 2) {
+              <div class="m-card empty">{{ role(c.path) }}: necunoscut</div>
+            }
+          }
+        </section>
+      }
+    </div>
   `,
   styles: `
     :host { display: block; overflow-x: auto; padding-bottom: 8px; }
@@ -99,11 +125,18 @@ interface Card {
     .meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
     .tag { background: var(--surface-2); border-radius: 999px; padding: 0 7px; font-weight: 700; }
     .mine { color: var(--ok); font-weight: 700; }
+    .gens { display: none; }
     @media (max-width: 767px) {
-      .heads { display: none; }
-      .board { width: auto !important; height: auto !important; display: flex; flex-direction: column; gap: 8px; }
-      .links { display: none; }
-      .card-p { position: static; transform: none; width: auto !important; }
+      :host { overflow: visible; }
+      .heads, .board { display: none; }
+      .gens { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+      .gen { flex: 0 0 calc(100% - 28px); scroll-snap-align: start; display: flex; flex-direction: column; gap: 8px; }
+      .gen h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; }
+      .gen h3 .muted { font-size: 0.85rem; font-weight: 600; }
+      .m-card { display: flex; flex-direction: column; align-items: stretch; gap: 3px; text-align: left; padding: 10px 12px; border-radius: 14px; font-weight: 400; background: var(--surface); }
+      .m-card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #f3d3c3; }
+      .m-card.empty { color: var(--muted); background: var(--surface-2); border: 1px dashed var(--border); }
+      .m-card .txt { white-space: normal; }
     }
   `,
 })
@@ -122,6 +155,8 @@ export class VedereCarduri {
   protected readonly pigeons = computed<Record<number, TreePigeon>>(() => this.data().pigeons);
   protected readonly counts = computed(() => repeatCounts(this.data().tree));
   protected readonly value = (id: number) => this.data().values[id] ?? null;
+  protected readonly genList = [0, 1, 2, 3, 4];
+  protected readonly cardsOf = (g: number) => this.cards().filter((c) => c.gen === g);
 
   /** Locul fiecărei căsuțe: generația g, indexul i (tatăl = 2i, mama = 2i + 1). */
   protected readonly cards = computed<Card[]>(() => {

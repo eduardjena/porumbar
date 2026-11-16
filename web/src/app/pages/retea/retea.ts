@@ -6,6 +6,7 @@ import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { lastRoot, rememberRoot } from './arbore-data';
 
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -131,6 +132,7 @@ export default class Retea implements OnDestroy {
       const all = !!this.tot();
       untracked(() => {
         this.rootId.set(id);
+        if (id) rememberRoot(id);
         if (id || all) this.load();
         else this.startFromBest();
       });
@@ -162,8 +164,10 @@ export default class Retea implements OnDestroy {
     this.cy?.destroy();
     this.cy = null;
     try {
-      const best = (await this.api.get<{ pigeons: PigeonSummary[] }>('/board')).pigeons[0];
-      if (best) this.router.navigate(['/arbore'], { queryParams: { porumbel: best.id, vedere: 'retea' }, replaceUrl: true });
+      // Ca în celelalte vederi: ultimul porumbel ales, altfel cel mai valoros.
+      const pigeons = (await this.api.get<{ pigeons: PigeonSummary[] }>('/board')).pigeons;
+      const start = pigeons.find((p) => p.id === lastRoot()) ?? pigeons[0];
+      if (start) this.router.navigate(['/arbore'], { queryParams: { porumbel: start.id, vedere: 'retea' }, replaceUrl: true });
     } catch (e) {
       this.error.set(errorMessage(e));
     }

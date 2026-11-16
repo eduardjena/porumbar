@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { bloodlines } from '../src/bloodlines.js';
+import { bloodlines, roundPercents } from '../src/bloodlines.js';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
 import { newAccount } from './helpers/accounts.js';
@@ -52,6 +52,13 @@ test('fondator fără linie: crescătorul, altfel „Fără linie” (Review Foc
   const r = bloodlines(3, rows([1, null, null, [], 'Govaerts'], [2], [3, 1, 2]));
   assert.equal(pct(r, 'Govaerts'), 50);
   assert.equal(pct(r, 'Fără linie'), 50);
+});
+
+test('procentele rotunjite dau mereu 100 (nu 99,99)', () => {
+  const shares = [0.00390625, 0.00390625, 0.00390625, 0.00390625, 0.0078125, 0.0078125, 0.0078125, 0.0078125, 0.953125];
+  const p = roundPercents(shares);
+  assert.equal(Math.round(p.reduce((s, x) => s + x, 0) * 100) / 100, 100);
+  assert.ok(p.every((x, i) => Math.abs(x - shares[i] * 100) < 0.02));
 });
 
 test('ciclu în date nu blochează (Review Focus 5)', () => {

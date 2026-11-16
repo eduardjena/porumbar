@@ -46,7 +46,9 @@ export function roleName(path: ('F' | 'M')[]): string {
   const who = (p: 'F' | 'M') => (p === 'F' ? 'Tatăl' : 'Mama');
   if (path.length === 1) return who(path[0]);
   if (path.length === 2) return `${who(path[1])} ${path[0] === 'F' ? 'tatălui' : 'mamei'}`;
-  return ['', '', '', 'Străbunic', 'Răstrăbunic'][path.length] ?? 'Strămoș';
+  // Străbunicii și răstrăbunicii: femininul după ultima literă (M = mamă) și partea din care vin.
+  const base = ['', '', '', 'Străbunic', 'Răstrăbunic'][path.length] ?? 'Strămoș';
+  return `${base}${path[path.length - 1] === 'M' ? 'ă' : ''} · linia ${path[0] === 'F' ? 'tatălui' : 'mamei'}`;
 }
 
 export const GENERATION_NAMES = ['Porumbelul', 'Părinți', 'Bunici', 'Străbunici', 'Răstrăbunici'];

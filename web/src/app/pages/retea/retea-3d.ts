@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnDestroy, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { MOUSE, TOUCH } from 'three';
+import { CanvasTexture, MOUSE, Sprite, SpriteMaterial, TOUCH } from 'three';
 import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
@@ -31,7 +31,7 @@ const EXTERNAL = '#c9b49b';
 const ROOT = '#ff7a4d';
 const FATHER = '#8fb6e6';
 const MOTHER = '#e7a3cc';
-const DIM = '#3a3029';
+const DIM = '#2a221c';
 
 @Component({
   selector: 'app-retea-3d',
@@ -79,8 +79,7 @@ const DIM = '#3a3029';
         <span><i class="line" style="background:#e7a3cc"></i>mamă</span>
       </div>
     </div>
-    </div>
-
+    <!-- Cardul porumbelului ales stă în vizualizator, ca să se vadă și pe ecran întreg. -->
     @if (selected(); as s) {
       <aside class="selected card" aria-live="polite">
         <div class="sel-body">
@@ -91,12 +90,21 @@ const DIM = '#3a3029';
           </div>
           <button type="button" class="icon-btn" aria-label="Închide" title="Închide" (click)="clearSelection()"><app-icon name="inchide" /></button>
         </div>
+        <div class="parents">
+          <button type="button" class="parent father" [disabled]="!selFather()" (click)="select(selFather()!.id)" title="Arată tatăl">
+            <span class="tag">Tatăl</span><span class="mono">{{ selFather()?.ring ?? 'necunoscut' }}</span>
+          </button>
+          <button type="button" class="parent mother" [disabled]="!selMother()" (click)="select(selMother()!.id)" title="Arată mama">
+            <span class="tag">Mama</span><span class="mono">{{ selMother()?.ring ?? 'necunoscută' }}</span>
+          </button>
+        </div>
         <div class="row">
           <a class="btn primary" [routerLink]="['/porumbei', s.id]" [queryParams]="from()"><app-icon name="fisa" />Deschide fișa</a>
           <a class="btn" [routerLink]="['/arbore/3d']" [queryParams]="{ porumbel: s.id }"><app-icon name="retea" />Pornește de aici</a>
         </div>
       </aside>
     }
+    </div>
   `,
   styles: `
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
@@ -119,6 +127,13 @@ const DIM = '#3a3029';
     .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
     .line { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
     .selected { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .viewer { position: relative; }
+    .viewer.full .selected, .viewer:fullscreen .selected { position: absolute; right: 28px; bottom: 28px; width: min(440px, calc(100% - 56px)); margin: 0; box-shadow: 0 18px 50px -12px rgb(0 0 0 / 45%); }
+    .parents { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .parent { justify-content: center; border-radius: 14px; flex-direction: column; align-items: flex-start; gap: 0; padding: 6px 14px; }
+    .parent .tag { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .parent.father { border-color: #8fb6e6; background: #eef4fb; color: #1f4a73; }
+    .parent.mother { border-color: #e7a3cc; background: #fbeff6; color: #7a2a62; }
     .sel-body { display: flex; gap: 14px; align-items: center; }
     .sel-body > div { flex: 1; min-width: 0; }
     .name { font-weight: 700; margin-left: 6px; }
@@ -142,6 +157,9 @@ export default class Retea3d implements OnDestroy {
   };
 
   readonly selected = signal<NetworkNode | null>(null);
+  readonly selFather = signal<NetworkNode | null>(null);
+  readonly selMother = signal<NetworkNode | null>(null);
+  private selectFn: ((id: number) => void) | null = null;
   readonly error = signal('');
   readonly spinning = signal(true);
   /** Ce face tragerea cu mouse-ul / degetul: rotește sau mută arborele. */
@@ -197,7 +215,20 @@ export default class Retea3d implements OnDestroy {
     const years = net.nodes.map((n) => n.year).filter((y): y is number => y != null);
     const mid = years.length ? (Math.min(...years) + Math.max(...years)) / 2 : 2015;
     // Înălțimea fixă după an: fiecare an = 14 unități; cei fără an plutesc liber.
-    const nodes: Node3D[] = net.nodes.map((n) => ({ ...n, fy: n.year != null ? (n.year - mid) * 14 : undefined }));
+    // Porumbeii fără an (strămoși fără inel, „pedigreu distrus”) primesc un an estimat după pui (cu 3 ani înainte),
+    // ca să stea la etajul generației lor, nu să plutească departe și să micșoreze tot arborele la încadrare.
+    const estYear = new Map<number, number>();
+    for (const n of net.nodes) if (n.year != null) estYear.set(n.id, n.year);
+    for (let pass = 0; pass < 10; pass++) {
+      for (const e of net.edges) {
+        if (estYear.has(e.from) || !estYear.has(e.to)) continue;
+        estYear.set(e.from, estYear.get(e.to)! - 3);
+      }
+    }
+    const nodes: Node3D[] = net.nodes.map((n) => {
+      const y = estYear.get(n.id);
+      return { ...n, fy: y != null ? (y - mid) * 14 : undefined };
+    });
     const links: Link3D[] = net.edges.map((e) => ({ source: e.from, target: e.to, role: e.role }));
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const parents = new Map<number, number[]>();
@@ -221,6 +252,50 @@ export default class Retea3d implements OnDestroy {
       return n.kind === 'external' ? EXTERNAL : BAND[n.band] ?? BAND[0];
     };
     const linkOn = (l: Link3D) => !this.lit || (this.lit.has(idOf(l.source)) && this.lit.has(idOf(l.target)));
+    const fatherOf = new Map<number, number>();
+    const motherOf = new Map<number, number>();
+    for (const e of net.edges) (e.role === 'father' ? fatherOf : motherOf).set(e.to, e.from);
+
+    // Etichete scrise deasupra sferelor: porumbelul ales, tatăl și mama lui (desenate pe o pânză, ca imagine în scenă).
+    const label = (text: string, bg: string, fg: string) => {
+      const c = document.createElement('canvas');
+      const ctx = c.getContext('2d')!;
+      const font = '700 44px system-ui, sans-serif';
+      ctx.font = font;
+      const w = Math.ceil(ctx.measureText(text).width) + 48;
+      c.width = w;
+      c.height = 80;
+      ctx.font = font;
+      ctx.fillStyle = bg;
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, 80, 40);
+      ctx.fill();
+      ctx.fillStyle = fg;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 24, 42);
+      const sprite = new Sprite(new SpriteMaterial({ map: new CanvasTexture(c), depthTest: false, transparent: true, sizeAttenuation: false }));
+      // Aceeași mărime pe ecran oricât de aproape sau departe e camera (citibil și când vezi tot arborele).
+      sprite.scale.set((0.05 * w) / 80, 0.05, 1);
+      sprite.position.set(0, 16, 0);
+      sprite.renderOrder = 10;
+      return sprite;
+    };
+    const nodeObject = (n: Node3D) => {
+      const sel = this.selected();
+      if (!sel) return null;
+      if (n.id === sel.id) return label(`${n.ring}${n.name ? ' · ' + n.name : ''}`, '#fffdf9', '#2b2117');
+      if (n.id === fatherOf.get(sel.id)) return label(`TATĂL · ${n.ring}`, '#dbe9f8', '#1f4a73');
+      if (n.id === motherOf.get(sel.id)) return label(`MAMA · ${n.ring}`, '#f8dfee', '#7a2a62');
+      return null;
+    };
+    this.selectFn = (id: number) => {
+      this.lit = related(id);
+      this.selected.set(byId.get(id) ?? null);
+      this.selFather.set(byId.get(fatherOf.get(id) ?? -1) ?? null);
+      this.selMother.set(byId.get(motherOf.get(id) ?? -1) ?? null);
+      this.refreshColors();
+      this.setSpin(false); // camera rămâne unde a lăsat-o omul
+    };
 
     this.graph?._destructor();
     const el = this.scene().nativeElement;
@@ -232,18 +307,20 @@ export default class Retea3d implements OnDestroy {
       .width(el.clientWidth)
       .height(el.clientHeight)
       .nodeRelSize(6)
-      .nodeVal((n: Node3D) => (n.kind === 'external' ? 1.2 : 2 + Math.min(n.offspringCount, 25) * 0.6))
+      .nodeVal((n: Node3D) => (n.kind === 'external' ? 1.2 : 2 + Math.min(n.offspringCount, 25) * 0.6) * (n.id === this.selected()?.id ? 3 : 1))
       .nodeOpacity(0.95)
       .nodeResolution(20)
       .nodeColor(nodeColor)
+      .nodeThreeObjectExtend(true)
+      .nodeThreeObject(nodeObject)
       .nodeLabel(
         (n: Node3D) =>
           `<div style="font:600 15px system-ui;padding:6px 10px;background:#fffdf9;color:#2b2117;border-radius:10px">${n.ring}${n.name ? ' · ' + n.name : ''}${n.year ? ' · ' + n.year : ''}</div>`,
       )
       .linkColor((l: Link3D) => (linkOn(l) ? (l.role === 'father' ? FATHER : MOTHER) : DIM))
-      .linkOpacity(0.55)
-      .linkWidth((l: Link3D) => (this.lit && linkOn(l) ? 1.6 : 0.6))
-      .linkDirectionalParticles((l: Link3D) => (linkOn(l) ? 2 : 0))
+      .linkOpacity(0.7)
+      .linkWidth((l: Link3D) => (this.lit ? (linkOn(l) ? 3 : 0.2) : 0.6))
+      .linkDirectionalParticles((l: Link3D) => (linkOn(l) ? (this.lit ? 4 : 2) : 0))
       .linkDirectionalParticleSpeed(0.006)
       .linkDirectionalParticleWidth(1.6)
       .linkDirectionalParticleColor(() => '#ffe3bf')
@@ -254,10 +331,7 @@ export default class Retea3d implements OnDestroy {
           return;
         }
         this.lastClick = { id: n.id, at: now };
-        this.lit = related(n.id);
-        this.selected.set(byId.get(n.id) ?? null);
-        this.refreshColors();
-        this.setSpin(false); // camera rămâne unde a lăsat-o omul
+        this.select(n.id);
       })
       // Sferele nu se trag cu mouse-ul: tragerea rotește / mută vederea, iar arborele nu se rearanjează.
       .enableNodeDrag(false)
@@ -283,24 +357,36 @@ export default class Retea3d implements OnDestroy {
       this.fit();
     });
     // Apăsat pe o sferă și tras: rotirea se face în jurul acelui porumbel (vine ușor în centru).
-    el.addEventListener(
-      'pointerdown',
-      (e: PointerEvent) => {
-        if (e.button === 0 && this.mode() === 'rotate' && this.hovered) this.pivotOn(this.hovered);
-      },
-      { capture: true },
-    );
+    // Pivotul se schimbă doar când omul începe să tragă (nu la un simplu clic, care alege porumbelul).
+    let press: { node: Node3D; x: number; y: number } | null = null;
+    el.addEventListener('pointerdown', (e: PointerEvent) => {
+      press = e.button === 0 && this.mode() === 'rotate' && this.hovered ? { node: this.hovered, x: e.clientX, y: e.clientY } : null;
+    }, { capture: true });
+    el.addEventListener('pointermove', (e: PointerEvent) => {
+      if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) {
+        this.pivotOn(press.node);
+        press = null;
+      }
+    }, { capture: true });
+    el.addEventListener('pointerup', () => (press = null), { capture: true });
 
     this.resize?.disconnect();
     this.resize = new ResizeObserver(() => this.graph?.width(el.clientWidth).height(el.clientHeight));
     this.resize.observe(el);
   }
 
+  /** Alege un porumbel (din scenă sau din butoanele Tatăl / Mama ale cardului). */
+  select(id: number) {
+    this.selectFn?.(id);
+  }
+
   private refreshColors() {
     if (!this.graph) return;
-    // Biblioteca recalculează culorile doar când primește din nou funcțiile.
+    // Biblioteca recalculează culorile, mărimile și etichetele doar când primește din nou funcțiile.
     this.graph
       .nodeColor(this.graph.nodeColor())
+      .nodeVal(this.graph.nodeVal())
+      .nodeThreeObject(this.graph.nodeThreeObject())
       .linkColor(this.graph.linkColor())
       .linkWidth(this.graph.linkWidth())
       .linkDirectionalParticles(this.graph.linkDirectionalParticles());
@@ -378,6 +464,8 @@ export default class Retea3d implements OnDestroy {
 
   clearSelection() {
     this.selected.set(null);
+    this.selFather.set(null);
+    this.selMother.set(null);
     this.lit = null;
     this.refreshColors();
   }

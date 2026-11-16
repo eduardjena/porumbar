@@ -16,7 +16,11 @@ export const routes: Routes = [
   { path: 'porumbei/pedigree', canActivate: [authGuard], title: 'Pedigree pe hârtie · Porumbar', loadComponent: () => import('./pages/pedigree-hartie/pedigree-hartie') },
   { path: 'porumbei/nou', canActivate: [authGuard], title: 'Porumbel nou', loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: 'Editează porumbelul', loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
+  { path: 'porumbei/:id/tiparire', canActivate: [authGuard], title: 'Tipărește pedigree-ul · Porumbar', loadComponent: () => import('./pages/porumbel/tiparire') },
   { path: 'porumbei/:id', canActivate: [authGuard], title: 'Porumbel', loadComponent: () => import('./pages/porumbel/porumbel') },
+  { path: 'vanzari', canActivate: [authGuard], title: 'Vânzări · Porumbar', loadComponent: () => import('./pages/vanzari/vanzari') },
+  // Pagina deschisă de codul QR: fără cont.
+  { path: 'p/:token', title: 'Pedigree · Porumbar', loadComponent: () => import('./pages/public/public-pedigree') },
   { path: 'cont', canActivate: [authGuard], title: 'Contul meu', loadComponent: () => import('./pages/auth/cont') },
   { path: '**', redirectTo: 'panou' },
 ];

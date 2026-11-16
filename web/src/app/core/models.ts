@@ -5,6 +5,9 @@ export interface Account {
   phone: string | null;
   address: string | null;
   treeView?: string;
+  showPhone?: boolean;
+  showAddress?: boolean;
+  showEmail?: boolean;
 }
 
 export interface CodeLabel {
@@ -137,3 +140,31 @@ export interface JournalEntry {
   text: string;
 }
 
+
+/** Formatul deschis „porumbar-pedigree” v1 (linkul public, QR, tiparul). */
+export interface PedigreeV1Node {
+  ring: string | null;
+  ringRaw: string | null;
+  sex: Sex | null;
+  name: string | null;
+  breed: string | null;
+  lines: string[];
+  color: string | null;
+  colorLabel: string | null;
+  colorPa: boolean;
+  colorText: string | null;
+  eyeColor: string | null;
+  year: number | null;
+  hatchedOn: string | null;
+  breeder: string | null;
+  pedigreeText: string | null;
+  father: PedigreeV1Node | null;
+  mother: PedigreeV1Node | null;
+}
+export interface PedigreeV1 {
+  format: 'porumbar-pedigree';
+  version: 1;
+  generatedAt: string;
+  owner: { name: string; phone?: string; address?: string; email?: string };
+  root: PedigreeV1Node;
+}

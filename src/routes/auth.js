@@ -66,7 +66,11 @@ export function authRouter() {
     const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
     const address = b.address === undefined ? req.account.address : text(b.address, 'adresă', { max: 300, optional: true });
     const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'vederea Arborelui');
-    await run('UPDATE accounts SET name = ?, phone = ?, address = ?, tree_view = ? WHERE id = ?', name, phone, address, treeView, req.account.id);
+    const flag = (key) => (b[key] === undefined ? req.account[key] : Boolean(b[key]));
+    await run(
+      'UPDATE accounts SET name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ? WHERE id = ?',
+      name, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'), req.account.id,
+    );
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });
 

@@ -1,13 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { Icon } from '../../shared/icon';
 import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
 
+const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
+
 @Component({
   selector: 'app-cont',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink, Icon],
+  styles: `.show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0; }`,
   template: `
     <h1>Contul meu</h1>
     <form class="card stack" (ngSubmit)="save()">
@@ -22,10 +26,20 @@ import { ConfirmService, changes } from '../../core/confirm';
         <textarea name="address" [(ngModel)]="address" autocomplete="street-address"></textarea>
       </label>
       <p class="muted">Email: {{ auth.account()?.email }}</p>
+      <fieldset class="stack show">
+        <legend>Ce apare pe pedigree (linkul public, codul QR, foaia tipărită)</legend>
+        <p class="muted">Numele apare mereu. Restul doar dacă bifezi.</p>
+        <label class="check"><input type="checkbox" name="showPhone" [(ngModel)]="showPhone" /> Telefonul</label>
+        <label class="check"><input type="checkbox" name="showAddress" [(ngModel)]="showAddress" /> Adresa</label>
+        <label class="check"><input type="checkbox" name="showEmail" [(ngModel)]="showEmail" /> Emailul</label>
+      </fieldset>
       @if (saved()) { <div class="notice" role="status">Salvat.</div> }
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
       <button class="primary" type="submit">Salvează</button>
     </form>
+
+    <h2>Vânzări</h2>
+    <a class="btn wide" routerLink="/vanzari"><app-icon name="vinde" />Porumbei primiți și vânduți</a>
 
     <h2>Ieșire</h2>
     <button type="button" class="wide" (click)="logout()">Ieși din cont</button>
@@ -49,6 +63,9 @@ export default class Cont {
   name = this.auth.account()?.name ?? '';
   phone = this.auth.account()?.phone ?? '';
   address = this.auth.account()?.address ?? '';
+  showPhone = !!this.auth.account()?.showPhone;
+  showAddress = !!this.auth.account()?.showAddress;
+  showEmail = !!this.auth.account()?.showEmail;
   deletePassword = '';
   readonly saved = signal(false);
   readonly error = signal('');
@@ -62,11 +79,17 @@ export default class Cont {
       { label: 'Nume', before: a?.name, after: this.name },
       { label: 'Telefon', before: a?.phone, after: this.phone },
       { label: 'Adresă', before: a?.address, after: this.address },
+      { label: 'Telefonul pe pedigree', before: yes(a?.showPhone), after: yes(this.showPhone) },
+      { label: 'Adresa pe pedigree', before: yes(a?.showAddress), after: yes(this.showAddress) },
+      { label: 'Emailul pe pedigree', before: yes(a?.showEmail), after: yes(this.showEmail) },
     ]);
     if (!diff.length) return this.saved.set(true);
     if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
     try {
-      await this.auth.update({ name: this.name, phone: this.phone || null, address: this.address || null });
+      await this.auth.update({
+        name: this.name, phone: this.phone || null, address: this.address || null,
+        showPhone: this.showPhone, showAddress: this.showAddress, showEmail: this.showEmail,
+      });
       this.saved.set(true);
     } catch (e) {
       this.error.set(errorMessage(e));

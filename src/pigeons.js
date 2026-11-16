@@ -40,6 +40,7 @@ export function toPigeon(row) {
     hatchedOn: row.hatched_on,
     breederText: row.breeder_text,
     pedigreeText: row.pedigree_text,
+    sourceNote: row.source_note ?? null,
     fatherId: row.father_id,
     motherId: row.mother_id,
     evaluation: row.evaluation,

@@ -17,6 +17,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { path: '/panou', label: 'Panou', icon: 'panou' },
   { path: '/arbore', label: 'Arbore', icon: 'copac' },
+  { path: '/perechi', label: 'Perechi', icon: 'ou' },
   { path: '/porumbei/nou', label: 'Adaugă', icon: 'plus', exact: true },
   { path: '/cont', label: 'Cont', icon: 'cont' },
 ];
@@ -107,7 +108,7 @@ const NAV: NavItem[] = [
       main { padding: 16px 16px 24px; }
       main.with-bottom { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
       .bottom-nav {
-        display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+        display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
         background: rgb(255 253 249 / 97%); border-top: 1px solid var(--border); backdrop-filter: saturate(1.4) blur(10px);
         padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
       }
@@ -151,7 +152,7 @@ export class App {
   /** Adminul (vânzătorul) are în plus consola. */
   /** Vânzătorul (adminul) vede doar consola și contul lui; porumbarul nu-l interesează. */
   protected readonly nav = computed<NavItem[]>(() =>
-    this.auth.account()?.isAdmin ? [{ path: '/vanzator', label: 'Vânzător', icon: 'vinde' }, NAV[3]] : NAV,
+    this.auth.account()?.isAdmin ? [{ path: '/vanzator', label: 'Vânzător', icon: 'vinde' }, NAV[NAV.length - 1]] : NAV,
   );
   /** Banda de sus pentru crescători: „doar citire” sau abonamentul care expiră curând. */
   protected readonly banner = computed(() => {

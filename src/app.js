@@ -8,6 +8,7 @@ import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
 import { resultsRouter } from './routes/results.js';
+import { breedingRouter } from './routes/breeding.js';
 import { viewsRouter } from './routes/views.js';
 import { pedigreesRouter } from './routes/pedigrees.js';
 import { requireAccount } from './accounts.js';
@@ -81,6 +82,7 @@ export function createApp() {
   app.use('/api', familyRouter());
   app.use('/api', journalRouter());
   app.use('/api', resultsRouter());
+  app.use('/api', breedingRouter());
   app.use('/api', viewsRouter());
   app.use('/api', pedigreesRouter());
   app.use('/api', publicRouter());

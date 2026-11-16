@@ -8,6 +8,7 @@ import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
 import { photosRouter } from './routes/photos.js';
+import { viewsRouter } from './routes/views.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
 const WEB_INDEX = path.join(WEB_DIR, 'index.html');
@@ -60,6 +61,7 @@ export function createApp() {
   app.use('/api', familyRouter());
   app.use('/api', journalRouter());
   app.use('/api', photosRouter());
+  app.use('/api', viewsRouter());
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));

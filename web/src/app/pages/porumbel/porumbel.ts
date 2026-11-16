@@ -80,6 +80,14 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           <h2>Părinții</h2>
           <app-parents-editor [pigeonId]="p.id" [initialFather]="family()?.father ?? null" [initialMother]="family()?.mother ?? null"
                               (saved)="parentsSaved($event)" />
+
+          <!-- Ștergerea: doar acest porumbel, cu confirmare; departe de restul butoanelor, ca să nu fie apăsată din greșeală. -->
+          <section class="card stack delete-zone">
+            <h3>Ștergerea porumbelului</h3>
+            <p class="muted">Se șterge doar acest porumbel. Dacă are pui în program, nu se poate șterge: schimbă-i starea (de ex. Mort, Pierdut, Vândut).</p>
+            @if (deleteError()) { <div class="error" role="alert">{{ deleteError() }}</div> }
+            <div><button type="button" class="danger" (click)="removePigeon(p)">Șterge porumbelul {{ p.ring?.display ?? '' }}</button></div>
+          </section>
         }
         @case ('rude') {
           @if (family(); as f) {
@@ -129,6 +137,9 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     }
   `,
   styles: `
+    .delete-zone { margin-top: 28px; border-color: #e7b4ae; }
+    .delete-zone h3 { margin: 0; }
+    .delete-zone p { margin: 0; }
     .title { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
@@ -232,6 +243,31 @@ export default class Porumbel {
       this.journal.set((await this.api.get<{ entries: JournalEntry[] }>(`/pigeons/${this.id()}/journal`)).entries);
     } catch (e) {
       this.jError.set(errorMessage(e));
+    }
+  }
+
+  readonly deleteError = signal('');
+
+  /** Șterge porumbelul deschis (unul singur), după o confirmare care spune exact ce se pierde. */
+  async removePigeon(p: Pigeon) {
+    this.deleteError.set('');
+    const who = [p.ring?.display ?? 'fără inel', p.name ? `„${p.name}”` : ''].filter(Boolean).join(' ');
+    const ok = await this.confirm.ask({
+      title: `Ștergi porumbelul ${who}?`,
+      lines: [
+        'Se șterg fișa lui, notele și jurnalul. Dacă are link public, codul QR nu mai merge; o vânzare în așteptare se anulează.',
+        'Ceilalți porumbei rămân neatinși.',
+        'Nu se poate da înapoi.',
+      ],
+      confirmLabel: 'Da, șterge-l definitiv',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await this.api.delete(`/pigeons/${p.id}`);
+      this.router.navigate(['/panou']);
+    } catch (e) {
+      this.deleteError.set(errorMessage(e));
     }
   }
 

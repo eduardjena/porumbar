@@ -58,7 +58,8 @@ export function authRouter() {
     // Comparația rulează și fără cont, ca durata să nu spună dacă emailul există.
     dummyHash ??= await hashPassword('fara-cont-fara-cont');
     const ok = await checkPassword(account?.password_hash ?? dummyHash, req.body?.password);
-    if (!account || !ok) throw new HttpError(401, 'Email sau parolă greșită.');
+    // Același mesaj pentru orice greșeală (nu spune cine are cont), cu un îndemn pentru cei făcuți de vânzător.
+    if (!account || !ok) throw new HttpError(401, 'Email sau parolă greșită. Dacă ți-a făcut contul vânzătorul, deschide întâi linkul primit de la el.');
     await createSession(res, account.id, req.headers['user-agent']);
     res.json({ account: publicAccount(account) });
   });
@@ -130,7 +131,7 @@ export function authRouter() {
       if (!row) throw badRequest('Linkul a expirat sau a fost folosit.');
       // Linkul folosit și toate celelalte linkuri încă nefolosite ale contului nu mai merg.
       await run('UPDATE password_resets SET used_at = now() WHERE account_id = ? AND used_at IS NULL', row.account_id);
-      await run('UPDATE accounts SET password_hash = ? WHERE id = ?', await hashPassword(password), row.account_id);
+      await run('UPDATE accounts SET password_hash = ?, invited = false WHERE id = ?', await hashPassword(password), row.account_id);
       // Parola nouă închide toate sesiunile vechi (cineva poate fi intrat cu parola veche).
       await run('DELETE FROM sessions WHERE account_id = ?', row.account_id);
       return row.account_id;

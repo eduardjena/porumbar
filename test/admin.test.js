@@ -149,3 +149,61 @@ test('memento: cu o lună înainte, un singur email, și apare în consolă', as
   await sendReminders();
   assert.equal(mail.sentMails.slice(before).filter((m) => m.to === a.email).length, 1);
 });
+
+/* „Crescător nou” din consolă: contul fără parolă, cu link de activare (parola o alege omul). */
+
+const createBreeder = (body, cookie = admin) => call('/api/admin/accounts', { method: 'POST', cookie, body });
+
+test('crescător nou din consolă: cont fără parolă, link de activare pe 7 zile, apoi își alege singur parola', async () => {
+  const before = mail.sentMails.length;
+  const r = await createBreeder({ name: 'Gheorghe Test', email: 'gheorghe.nou@exemplu.test', phone: '0700 111 222' });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.match(r.data.link, /\/parola-noua\/[A-Za-z0-9_-]+$/);
+  assert.equal(r.data.account.status, 'pending');
+  assert.equal(r.data.account.invited, true);
+  assert.equal(r.data.account.phone, '0700 111 222');
+  // Emailul cu linkul a plecat la el.
+  const sent = mail.sentMails.slice(before).find((m) => m.to === 'gheorghe.nou@exemplu.test');
+  assert.ok(sent && sent.text.includes(r.data.link));
+  // Fără parolă nu intră; mesajul îl trimite la link.
+  const login = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: 'gheorghe.nou@exemplu.test', password: 'orice-parola-123' } });
+  assert.equal(login.status, 401);
+  assert.match(login.data.error, /linkul/);
+  // Își alege parola din link și intră.
+  const token = r.data.link.split('/').pop();
+  const set = await call('/api/auth/reset', { method: 'POST', auth: 'none', body: { token, password: 'parola-aleasa-de-el' } });
+  assert.equal(set.status, 200);
+  assert.equal((await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: 'gheorghe.nou@exemplu.test', password: 'parola-aleasa-de-el' } })).status, 200);
+  const row = (await call(`/api/admin/accounts/${r.data.account.id}`, { cookie: admin })).data;
+  assert.equal(row.account.invited, false);
+  assert.ok(row.events.some((e) => e.kind === 'created'));
+});
+
+test('crescător nou care a plătit deja: activat și cu credit din același pas', async () => {
+  const r = await createBreeder({ name: 'Ion Plătit', email: 'ion.platit@exemplu.test', activate: true, start: today(), credit: 5, note: 'plătit cash' });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.account.status, 'active');
+  assert.equal(r.data.account.aiCredit, 5);
+  const detail = await call(`/api/admin/accounts/${r.data.account.id}`, { cookie: admin });
+  const kinds = detail.data.events.map((e) => e.kind);
+  for (const k of ['created', 'subscription', 'credit']) assert.ok(kinds.includes(k), k);
+});
+
+test('crescător nou: emailuri greșite sau ocupate, emailul adminului, cont care nu e admin', async () => {
+  assert.equal((await createBreeder({ name: 'X', email: 'nu-e-email' })).status, 400);
+  assert.equal((await createBreeder({ name: '', email: 'gol@exemplu.test' })).status, 400);
+  assert.equal((await createBreeder({ name: 'Dublură', email: 'GHEORGHE.NOU@exemplu.test' })).status, 409);
+  assert.equal((await createBreeder({ name: 'Admin', email: process.env.ADMIN_EMAIL })).status, 409);
+  assert.equal((await createBreeder({ name: 'Ion', email: 'ion2@exemplu.test', credit: '5' })).status, 400);
+  const c = await newAccount(call, 'Simplu');
+  assert.equal((await createBreeder({ name: 'Y', email: 'y@exemplu.test' }, c)).status, 403);
+});
+
+test('crescătorul invitat care a pierdut linkul: „Link de parolă nouă” din consolă îi dă unul nou, tot pe 7 zile', async () => {
+  const r = await createBreeder({ name: 'Uituc Invitat', email: 'uituc.invitat@exemplu.test' });
+  const again = await call(`/api/admin/accounts/${r.data.account.id}/password-link`, { method: 'POST', cookie: admin });
+  assert.equal(again.status, 200);
+  assert.equal(again.data.hours, 168);
+  const token = again.data.link.split('/').pop();
+  assert.equal((await call('/api/auth/reset', { method: 'POST', auth: 'none', body: { token, password: 'parola-lui-noua-1' } })).status, 200);
+});

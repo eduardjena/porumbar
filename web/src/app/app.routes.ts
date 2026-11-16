@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard } from './core/auth';
+import { adminGuard, authGuard, guestGuard, sellerHomeGuard } from './core/auth';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'panou' },
-  { path: 'panou', canActivate: [authGuard], title: 'Panou · Porumbar', loadComponent: () => import('./pages/panou/panou') },
+  { path: 'panou', canActivate: [authGuard, sellerHomeGuard], title: 'Panou · Porumbar', loadComponent: () => import('./pages/panou/panou') },
   // Adresa veche a vederii 3D: acum 3D e în pagina Arbore (comutatorul 2D / 3D).
   { path: 'arbore/3d', redirectTo: ({ queryParams }) => `/arbore?${new URLSearchParams({ ...queryParams, vedere: '3d' })}` },
   { path: 'arbore', canActivate: [authGuard], title: 'Arbore · Porumbar', loadComponent: () => import('./pages/retea/arbore') },

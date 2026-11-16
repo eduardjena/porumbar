@@ -35,7 +35,7 @@ test('parolă prea scurtă și email dublat', async () => {
 test('login greșit, logout', async () => {
   const bad = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: 'ion@exemplu.test', password: 'gresita-1234' } });
   assert.equal(bad.status, 401);
-  assert.equal(bad.data.error, 'Email sau parolă greșită.');
+  assert.match(bad.data.error, /^Email sau parolă greșită./);
   const ok = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: 'ion@exemplu.test', password: PASS } });
   assert.equal(ok.status, 200);
   const other = cookieOf(ok);

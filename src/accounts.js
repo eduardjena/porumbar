@@ -63,6 +63,8 @@ export async function createSession(res, accountId, userAgent) {
     'INSERT INTO sessions (token_hash, account_id, created_at, last_seen_at, user_agent) VALUES (?, ?, ?, ?, ?)',
     sha256(token), accountId, now, now, String(userAgent ?? '').slice(0, 300) || null,
   );
+  // Ultima intrare în cont (o vede vânzătorul în consolă).
+  await run('UPDATE accounts SET last_login_at = ?, last_seen_at = ? WHERE id = ?', now, now, accountId);
   res.cookie(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
@@ -93,7 +95,11 @@ export async function requireAccount(req, res, next) {
     );
     if (!row) throw new HttpError(401, 'Trebuie să intri în cont.');
     // Actualizat cel mult o dată pe oră, ca sesiunea să nu expire cât e folosită.
-    if (Date.now() - Date.parse(row.last_seen_at) > 3600_000) await run('UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?', nowIso(), hash);
+    if (Date.now() - Date.parse(row.last_seen_at) > 3600_000) {
+      const now = nowIso();
+      await run('UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?', now, hash);
+      await run('UPDATE accounts SET last_seen_at = ? WHERE id = (SELECT account_id FROM sessions WHERE token_hash = ?)', now, hash);
+    }
     req.account = publicAccount(row);
     req.sessionHash = hash;
     // Fără abonament activ: doar citire. Setările contului (/api/auth) și consola (/api/admin) merg oricum.

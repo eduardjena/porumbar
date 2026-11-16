@@ -8,6 +8,7 @@ import { Clutch, Pair, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
 import { STATUS_LABEL, roDate } from './perechi';
+import { CuloriPui } from './culori-pui';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -30,7 +31,7 @@ interface ClutchForm {
  */
 @Component({
   selector: 'app-pereche',
-  imports: [FormsModule, RouterLink, Icon, Breadcrumbs],
+  imports: [FormsModule, RouterLink, Icon, Breadcrumbs, CuloriPui],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (pair(); as p) {
@@ -70,6 +71,8 @@ interface ClutchForm {
         </form>
       }
       @if (p.note) { <p class="pre">{{ p.note }}</p> }
+
+      <app-culori-pui [pairId]="p.id" />
 
       <h2>Ponte</h2>
       @if (p.status !== 'planificata') {

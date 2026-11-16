@@ -47,6 +47,8 @@ const DIM = '#3a3029';
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
+    <!-- Vizualizatorul (comenzi + scenă) poate trece pe tot ecranul. -->
+    <div #viewer class="viewer" [class.full]="full()">
     <!-- Comenzile, mari și cu nume, deasupra scenei: ce face tragerea (rotește / mută), mărire, arată tot, rotire automată. -->
     <div class="toolbar" role="toolbar" aria-label="Comenzi pentru vederea 3D">
       <div class="seg" role="group" aria-label="Ce face tragerea">
@@ -61,6 +63,9 @@ const DIM = '#3a3029';
       <button type="button" (click)="toggleSpin()" [attr.aria-pressed]="spinning()" [title]="spinning() ? 'Oprește rotirea automată' : 'Pornește rotirea automată'">
         {{ spinning() ? 'Oprește rotirea' : 'Rotire automată' }}
       </button>
+      <button type="button" class="primary full-btn" (click)="toggleFull()" [title]="full() ? 'Ieși din ecranul întreg (Esc)' : 'Ecran întreg'">
+        <app-icon [name]="full() ? 'inchide' : 'mutare'" />{{ full() ? 'Ieși din ecran întreg' : 'Ecran întreg' }}
+      </button>
     </div>
     <p class="how">{{ mode() === 'rotate' ? 'Trage cu mouse-ul sau cu degetul ca să rotești arborele.' : 'Trage cu mouse-ul sau cu degetul ca să muți arborele.' }} Rotița mouse-ului sau două degete îl măresc.</p>
 
@@ -73,6 +78,7 @@ const DIM = '#3a3029';
         <span><i class="line" style="background:#8fb6e6"></i>tată</span>
         <span><i class="line" style="background:#e7a3cc"></i>mamă</span>
       </div>
+    </div>
     </div>
 
     @if (selected(); as s) {
@@ -96,6 +102,11 @@ const DIM = '#3a3029';
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
     .head h1 { margin-bottom: 4px; }
     .intro { margin: 0 0 12px; max-width: 70ch; }
+    .viewer.full { position: fixed; inset: 0; z-index: 100; background: var(--bg); padding: 12px 16px 16px; display: flex; flex-direction: column; }
+    .viewer:fullscreen { background: var(--bg); padding: 12px 16px 16px; display: flex; flex-direction: column; }
+    .viewer.full .stage, .viewer:fullscreen .stage { flex: 1; min-height: 0; }
+    .viewer.full .scene, .viewer:fullscreen .scene { height: 100%; }
+    .full-btn { margin-left: auto; }
     .stage { position: relative; border-radius: var(--radius); overflow: hidden; background: ${BG}; box-shadow: var(--shadow); }
     .scene { height: max(460px, calc(100dvh - 300px)); }
     .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
@@ -124,6 +135,11 @@ export default class Retea3d implements OnDestroy {
   readonly porumbel = input<string>();
   readonly tot = input<string>();
   private readonly scene = viewChild.required<ElementRef<HTMLDivElement>>('scene');
+  private readonly viewer = viewChild.required<ElementRef<HTMLDivElement>>('viewer');
+  readonly full = signal(false);
+  private readonly onFsChange = () => {
+    if (!document.fullscreenElement) this.full.set(false);
+  };
 
   readonly selected = signal<NetworkNode | null>(null);
   readonly error = signal('');
@@ -144,6 +160,7 @@ export default class Retea3d implements OnDestroy {
   protected back = () => (this.rootId ? { porumbel: this.rootId } : this.tot() ? { tot: 1 } : {});
 
   constructor() {
+    document.addEventListener('fullscreenchange', this.onFsChange);
     effect(() => {
       const id = Number(this.porumbel()) || null;
       const all = !!this.tot();
@@ -152,6 +169,8 @@ export default class Retea3d implements OnDestroy {
   }
 
   ngOnDestroy() {
+    document.removeEventListener('fullscreenchange', this.onFsChange);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
     this.resize?.disconnect();
     this.graph?._destructor();
   }
@@ -317,6 +336,18 @@ export default class Retea3d implements OnDestroy {
     const t = c.target;
     this.graph.cameraPosition({ x: t.x + (p.x - t.x) * factor, y: t.y + (p.y - t.y) * factor, z: t.z + (p.z - t.z) * factor }, t, 300);
     this.setSpin(false);
+  }
+
+  /** Ecran întreg: Fullscreen API unde se poate; altfel (iPhone) vizualizatorul acoperă toată pagina. */
+  async toggleFull() {
+    if (this.full()) {
+      this.full.set(false);
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined);
+      return;
+    }
+    this.full.set(true);
+    const el = this.viewer().nativeElement;
+    if (el.requestFullscreen) await el.requestFullscreen().catch(() => undefined);
   }
 
   toggleSpin() {

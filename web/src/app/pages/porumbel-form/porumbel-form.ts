@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { Kind, Pigeon, Sex } from '../../core/models';
@@ -61,7 +61,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [FormsModule, RouterLink, RingInput],
+  imports: [FormsModule, RingInput],
   template: `
     <h1>{{ id() ? 'Editează porumbelul' : 'Porumbel nou' }}</h1>
     @if (restored()) {
@@ -163,7 +163,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
         <div class="actions">
           <button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Se salvează…' : 'Salvează' }}</button>
-          <a class="btn" [routerLink]="id() ? ['/porumbei', id()] : ['/porumbar']">Renunță</a>
+          <button type="button" (click)="cancel()">Renunță</button>
         </div>
       </form>
     }
@@ -213,6 +213,12 @@ export default class PorumbelForm implements OnInit {
     writeDraft(this.id(), null);
     this.restored.set(false);
     this.ngOnInit();
+  }
+
+  /** „Renunță” aruncă și ciorna: altfel modificările lăsate baltă ar reapărea data viitoare peste datele salvate. */
+  cancel() {
+    writeDraft(this.id(), null);
+    this.router.navigate(this.id() ? ['/porumbei', this.id()] : ['/porumbar']);
   }
 
   setScore(code: string, n: number) {

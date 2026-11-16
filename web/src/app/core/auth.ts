@@ -3,6 +3,15 @@ import { CanActivateFn, Router } from '@angular/router';
 import { Api } from './api';
 import { Account } from './models';
 
+/** Ciornele formularelor (porumbar.ciorna.*) nu trebuie să rămână pentru următorul cont de pe același telefon. */
+export function clearDrafts() {
+  try {
+    for (const key of Object.keys(localStorage)) if (key.startsWith('porumbar.ciorna.')) localStorage.removeItem(key);
+  } catch {
+    /* fără acces la spațiul local */
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(Api);
@@ -41,6 +50,7 @@ export class AuthService {
   async logout(): Promise<void> {
     await this.api.post('/auth/logout').catch(() => undefined);
     this.account.set(null);
+    clearDrafts();
   }
 }
 

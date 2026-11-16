@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpInterceptorFn } from '@angular/commo
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
+import { AuthService } from './auth';
 
 /** Mesajul de eroare trimis de server (`{ error }`) sau unul pe înțelesul omului. */
 export function errorMessage(err: unknown): string {
@@ -47,10 +48,16 @@ export class Api {
 /** La sesiune expirată, omul ajunge la pagina de intrare. */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const auth = inject(AuthService);
   return next(req).pipe(
     catchError((err: unknown) => {
       const authCall = req.url.startsWith('/api/auth/');
-      if (err instanceof HttpErrorResponse && err.status === 401 && !authCall) router.navigateByUrl('/intra');
+      if (err instanceof HttpErrorResponse && err.status === 401 && !authCall) {
+        // Sesiunea a expirat (sau parola s-a schimbat pe alt dispozitiv): fără cont în memorie, altfel pagina de
+        // intrare ne-ar trimite înapoi în porumbar și omul ar rămâne blocat pe eroare.
+        auth.account.set(null);
+        router.navigateByUrl('/intra');
+      }
       return throwError(() => err);
     }),
   );

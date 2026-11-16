@@ -183,6 +183,13 @@ const COLS = `kind, ring_raw, ring_key, ring_country, ring_year, ring_club, ring
 export async function createPigeon(accountId, input) {
   const p = validate(input ?? {});
   return tx(async () => {
+    // Inelul există deja ca strămoș în cont (de ex. tatăl unui porumbel cumpărat, cumpărat și el acum):
+    // devine porumbelul propriu, cu tot cu părinții și puii lui, ca genealogia să nu se rupă în două.
+    const key = ringKey(p.ring);
+    if (p.kind === 'own' && key) {
+      const ext = await one(`SELECT id FROM pigeons WHERE account_id = ? AND kind = 'external' AND ring_key = ?`, accountId, key);
+      if (ext) return updatePigeon(accountId, ext.id, { ...input, kind: 'own' });
+    }
     await checkDuplicate(accountId, p);
     const now = nowIso();
     const id = await insert(

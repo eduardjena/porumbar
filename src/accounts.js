@@ -24,7 +24,13 @@ export function parseCookies(header = '') {
   const out = {};
   for (const part of header.split(';')) {
     const i = part.indexOf('=');
-    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+    if (i <= 0) continue;
+    // Alte aplicații de pe același domeniu pot avea cookie-uri cu „%” invalid: le ignorăm, nu cădem.
+    try {
+      out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+    } catch {
+      /* cookie străin, ignorat */
+    }
   }
   return out;
 }

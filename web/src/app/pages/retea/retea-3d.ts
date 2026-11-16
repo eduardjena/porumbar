@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { MOUSE, TOUCH } from 'three';
 import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
@@ -46,21 +47,31 @@ const DIM = '#3a3029';
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
+    <!-- Comenzile, mari și cu nume, deasupra scenei: ce face tragerea (rotește / mută), mărire, arată tot, rotire automată. -->
+    <div class="toolbar" role="toolbar" aria-label="Comenzi pentru vederea 3D">
+      <div class="seg" role="group" aria-label="Ce face tragerea">
+        <button type="button" [class.on]="mode() === 'rotate'" [attr.aria-pressed]="mode() === 'rotate'" (click)="setMode('rotate')" title="Tragerea rotește arborele"><app-icon name="rotire" />Rotește</button>
+        <button type="button" [class.on]="mode() === 'pan'" [attr.aria-pressed]="mode() === 'pan'" (click)="setMode('pan')" title="Tragerea mută arborele"><app-icon name="mutare" />Mută</button>
+      </div>
+      <div class="seg" role="group" aria-label="Mărire">
+        <button type="button" (click)="zoom(0.75)" title="Mărește" aria-label="Mărește"><app-icon name="plus" /></button>
+        <button type="button" (click)="zoom(1.33)" title="Micșorează" aria-label="Micșorează"><app-icon name="minus" /></button>
+      </div>
+      <button type="button" (click)="fit()" title="Arată tot arborele"><app-icon name="panou" />Arată tot</button>
+      <button type="button" (click)="toggleSpin()" [attr.aria-pressed]="spinning()" [title]="spinning() ? 'Oprește rotirea automată' : 'Pornește rotirea automată'">
+        {{ spinning() ? 'Oprește rotirea' : 'Rotire automată' }}
+      </button>
+    </div>
+    <p class="how">{{ mode() === 'rotate' ? 'Trage cu mouse-ul sau cu degetul ca să rotești arborele.' : 'Trage cu mouse-ul sau cu degetul ca să muți arborele.' }} Rotița mouse-ului sau două degete îl măresc.</p>
+
     <div class="stage">
       <div #scene class="scene" role="img" aria-label="Arborele porumbarului în trei dimensiuni"></div>
-      <div class="hint" aria-hidden="true">Trage ca să rotești · rotița sau două degete pentru mărire</div>
       <div class="legend">
         <span><i class="dot" style="background:#5a9a2a"></i>notă mare</span>
         <span><i class="dot" style="background:#cfe3a6"></i>notă mică</span>
         <span><i class="dot" style="background:#c9b49b"></i>din alt porumbar</span>
         <span><i class="line" style="background:#8fb6e6"></i>tată</span>
         <span><i class="line" style="background:#e7a3cc"></i>mamă</span>
-      </div>
-      <div class="tools">
-        <button type="button" (click)="toggleSpin()" [attr.aria-pressed]="spinning()" [title]="spinning() ? 'Oprește rotirea' : 'Pornește rotirea'">
-          {{ spinning() ? 'Oprește rotirea' : 'Rotește' }}
-        </button>
-        <button type="button" (click)="fit()" title="Arată tot arborele"><app-icon name="panou" />Arată tot</button>
       </div>
     </div>
 
@@ -87,13 +98,15 @@ const DIM = '#3a3029';
     .intro { margin: 0 0 12px; max-width: 70ch; }
     .stage { position: relative; border-radius: var(--radius); overflow: hidden; background: ${BG}; box-shadow: var(--shadow); }
     .scene { height: max(460px, calc(100dvh - 300px)); }
-    .hint { position: absolute; left: 16px; top: 14px; color: #e9dccb; font-size: 0.9rem; opacity: 0.85; pointer-events: none; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .seg { display: inline-flex; padding: 4px; gap: 4px; background: var(--surface-2); border-radius: 999px; }
+    .seg button { border: 0; background: none; min-width: 52px; }
+    .seg button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
+    .how { margin: 0 0 10px; color: var(--muted); }
     .legend { position: absolute; left: 16px; bottom: 14px; display: flex; flex-wrap: wrap; gap: 6px 14px; color: #f3e7d7; font-size: 0.85rem; pointer-events: none; }
     .legend span { display: inline-flex; align-items: center; gap: 6px; }
     .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
     .line { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
-    .tools { position: absolute; right: 12px; top: 12px; display: flex; gap: 8px; }
-    .tools button { background: rgb(255 253 249 / 92%); }
     .selected { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; }
     .sel-body { display: flex; gap: 14px; align-items: center; }
     .sel-body > div { flex: 1; min-width: 0; }
@@ -102,8 +115,6 @@ const DIM = '#3a3029';
     .icon-btn { width: 52px; padding: 0; border: 0; background: var(--surface-2); }
     @media (max-width: 767px) {
       .scene { height: max(420px, calc(100dvh - 330px)); }
-      .tools { top: auto; bottom: 56px; }
-      .hint { right: 16px; }
     }
   `,
 })
@@ -117,6 +128,8 @@ export default class Retea3d implements OnDestroy {
   readonly selected = signal<NetworkNode | null>(null);
   readonly error = signal('');
   readonly spinning = signal(true);
+  /** Ce face tragerea cu mouse-ul / degetul: rotește sau mută arborele. */
+  readonly mode = signal<'rotate' | 'pan'>('rotate');
   protected readonly sexText = sexLabel;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private graph: any = null;
@@ -124,6 +137,7 @@ export default class Retea3d implements OnDestroy {
   private lit: Set<number> | null = null;
   private rootId: number | null = null;
   private lastClick = { id: 0, at: 0 };
+  private hovered: Node3D | null = null;
 
   /** De unde vine omul în fișă: firimiturile îl întorc aici. */
   protected from = () => ({ din: 'arbore3d', radacina: this.rootId ?? undefined });
@@ -230,6 +244,7 @@ export default class Retea3d implements OnDestroy {
         this.setSpin(false);
       })
       .onBackgroundClick(() => this.clearSelection())
+      .onNodeHover((n: Node3D | null) => (this.hovered = n))
       .graphData({ nodes, links });
 
     // Sferele se resping mai tare: generațiile se desfac în lățime, nu stau una peste alta.
@@ -240,7 +255,17 @@ export default class Retea3d implements OnDestroy {
     controls.autoRotate = this.spinning();
     controls.autoRotateSpeed = 0.7;
     controls.addEventListener('start', () => this.setSpin(false));
-    this.graph.onEngineStop(() => this.graph.zoomToFit(600, 40));
+    this.applyMode();
+    // Când arborele s-a așezat: încape tot în ecran și se rotește în jurul mijlocului lui (nu al porumbelului de jos).
+    this.graph.onEngineStop(() => this.fit());
+    // Apăsat pe o sferă și tras: rotirea se face în jurul acelui porumbel (vine ușor în centru).
+    el.addEventListener(
+      'pointerdown',
+      (e: PointerEvent) => {
+        if (e.button === 0 && this.mode() === 'rotate' && this.hovered) this.pivotOn(this.hovered);
+      },
+      { capture: true },
+    );
 
     this.resize?.disconnect();
     this.resize = new ResizeObserver(() => this.graph?.width(el.clientWidth).height(el.clientHeight));
@@ -262,12 +287,57 @@ export default class Retea3d implements OnDestroy {
     if (this.graph) this.graph.controls().autoRotate = on;
   }
 
+  setMode(m: 'rotate' | 'pan') {
+    this.mode.set(m);
+    this.applyMode();
+    this.setSpin(false);
+  }
+
+  /** Tragerea cu butonul stâng / un deget face ce e ales; clic dreapta mută mereu, rotița mărește. */
+  private applyMode() {
+    const c = this.graph?.controls();
+    if (!c) return;
+    const pan = this.mode() === 'pan';
+    c.enablePan = true;
+    c.screenSpacePanning = true;
+    c.mouseButtons = { LEFT: pan ? MOUSE.PAN : MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: pan ? MOUSE.ROTATE : MOUSE.PAN };
+    c.touches = { ONE: pan ? TOUCH.PAN : TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN };
+  }
+
+  /** Mărire cu butoanele: camera se apropie / se depărtează de punctul la care se uită. */
+  zoom(factor: number) {
+    if (!this.graph) return;
+    const c = this.graph.controls();
+    const p = this.graph.cameraPosition();
+    const t = c.target;
+    this.graph.cameraPosition({ x: t.x + (p.x - t.x) * factor, y: t.y + (p.y - t.y) * factor, z: t.z + (p.z - t.z) * factor }, t, 300);
+    this.setSpin(false);
+  }
+
   toggleSpin() {
     this.setSpin(!this.spinning());
   }
 
   fit() {
-    this.graph?.zoomToFit(600, 40);
+    if (!this.graph) return;
+    this.graph.zoomToFit(600, 40);
+    // Punctul în jurul căruia se rotește: mijlocul tuturor porumbeilor.
+    const nodes: Node3D[] = this.graph.graphData().nodes;
+    if (!nodes.length) return;
+    const min = { x: Infinity, y: Infinity, z: Infinity };
+    const max = { x: -Infinity, y: -Infinity, z: -Infinity };
+    for (const n of nodes) for (const k of ['x', 'y', 'z'] as const) {
+      min[k] = Math.min(min[k], n[k] ?? 0);
+      max[k] = Math.max(max[k], n[k] ?? 0);
+    }
+    const center = { x: (min.x + max.x) / 2, y: (min.y + max.y) / 2, z: (min.z + max.z) / 2 };
+    setTimeout(() => this.graph?.cameraPosition(this.graph.cameraPosition(), center, 300), 650);
+  }
+
+  /** Rotirea în jurul porumbelului apăsat: camera rămâne pe loc și se întoarce lin spre el. */
+  private pivotOn(n: Node3D) {
+    this.graph.cameraPosition(this.graph.cameraPosition(), { x: n.x ?? 0, y: n.y ?? 0, z: n.z ?? 0 }, 250);
+    this.setSpin(false);
   }
 
   clearSelection() {

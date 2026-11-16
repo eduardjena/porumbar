@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { HttpError, badRequest } from './http.js';
-import { insert, one } from './db.js';
+import { insert, one, run as runSql } from './db.js';
+import { isAdminEmail } from './subscriptions.js';
 import { MAX_GENERATIONS } from './pedigree-import.js';
 
 /*
@@ -19,6 +20,10 @@ export const MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application
 const MAX_BYTES = 12 * 1024 * 1024;
 const SLOTS = 2 ** MAX_GENERATIONS - 1; // 31
 const MODEL = 'claude-opus-5-5';
+// Prețul lui claude-opus-5-5: 4 $ / milion de jetoane intrare, 20 $ / milion ieșire → microdolari pe jeton.
+const MICROS_PER_INPUT = 4;
+const MICROS_PER_OUTPUT = 20;
+const costOf = (usage) => Math.round((Number(usage?.input_tokens) || 0) * MICROS_PER_INPUT + (Number(usage?.output_tokens) || 0) * MICROS_PER_OUTPUT);
 
 const readsPerDay = () => Number(process.env.PEDIGREE_READS_PER_DAY) || 20;
 
@@ -89,7 +94,7 @@ async function claudeModel({ mime, data }) {
   if (response.stop_reason === 'refusal') throw new HttpError(422, 'Fișierul nu a putut fi citit. Încearcă altă poză.');
   if (response.stop_reason === 'max_tokens') throw new HttpError(422, 'Pedigree-ul e prea lung pentru o citire. Încearcă o poză cu mai puține generații.');
   const text = response.content.find((b) => b.type === 'text')?.text ?? '';
-  return JSON.parse(text);
+  return { ...JSON.parse(text), usage: response.usage };
 }
 
 /** Lista plată de căsuțe → arbore { ring, name, color, text, breeder, sex?, father, mother }. */
@@ -126,9 +131,15 @@ export async function readPedigree(accountId, body) {
   const run = model ?? (process.env.ANTHROPIC_API_KEY ? claudeModel : null);
   if (!run) throw new HttpError(503, 'Citirea din poză nu e pornită încă pe acest server. Completează căsuțele de mână.');
 
+  // Creditul pus de vânzător după plată (adminul citește fără credit).
+  const acc = await one('SELECT email, ai_credit_micros FROM accounts WHERE id = ?', accountId);
+  const admin = isAdminEmail(acc.email);
+  if (!admin && Number(acc.ai_credit_micros) <= 0) {
+    throw new HttpError(402, 'Nu mai ai credit pentru citirea pozelor. Poți completa căsuțele de mână (inelele pe care le ai deja se completează singure) sau ceri credit de la cel de la care ai primit programul.');
+  }
   const used = await one(`SELECT count(*)::int AS n FROM pedigree_reads WHERE account_id = ? AND created_at > now() - interval '1 day'`, accountId);
   if (used.n >= readsPerDay()) throw new HttpError(429, `Ai folosit cele ${readsPerDay()} citiri de azi. Mai poți citi mâine sau completezi căsuțele de mână.`);
-  await insert('INSERT INTO pedigree_reads (account_id, created_at) VALUES (?, now())', accountId);
+  const readId = await insert('INSERT INTO pedigree_reads (account_id, created_at) VALUES (?, now())', accountId);
 
   let out;
   try {
@@ -139,6 +150,10 @@ export async function readPedigree(accountId, body) {
     console.error('[porumbar] Citirea pedigree-ului a eșuat:', e?.message);
     throw new HttpError(502, 'Citirea nu a mers acum. Încearcă din nou sau completează de mână.');
   }
+  // Costul real al citirii se scade din credit (nu sub zero) și rămâne lângă citire.
+  const cost = costOf(out?.usage);
+  await runSql('UPDATE pedigree_reads SET cost_micros = ? WHERE id = ?', cost, readId);
+  if (!admin) await runSql('UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros - ?) WHERE id = ?', cost, accountId);
   const { root, filled } = toTree(out?.slots, out?.rootSex);
   const notes = typeof out?.notes === 'string' ? out.notes.trim() : '';
   if (!root) throw new HttpError(422, notes || 'Nu am găsit niciun porumbel în fișier. Încearcă o poză mai clară.');

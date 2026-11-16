@@ -53,3 +53,14 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
   - **vânzarea**: emailul cumpărătorului, care o primește în „Vânzări”; la vânzător porumbelul rămâne „Vândut”;
   - **pedigree tipărit** pe A4 orizontal, cu QR-ul; ce apare pe el (telefon, adresă, email) se alege în „Contul meu”.
 - `PUBLIC_BASE_URL` trebuie să fie domeniul final înainte de a tipări coduri QR (codul conține adresa).
+
+## Consola vânzătorului și abonamentele
+
+- Un singur admin: contul cu emailul din `ADMIN_EMAIL` (îl faci normal, cu „Cont nou”). Are în meniu „Vânzător”.
+- Un cont nou e **doar citire** până îl activezi: vede și tipărește, dar nu adaugă și nu schimbă nimic. La fel după expirare;
+  datele nu se pierd niciodată.
+- În consolă: toți crescătorii (fără porumbeii lor), filtre (Neactivați, Activi, Expiră curând, Expirați), căutare;
+  **Activează / Prelungește** (un an de la data aleasă, după ce ai primit banii), **Adaugă credit** pentru citirea pozelor
+  (în dolari; fiecare citire scade costul ei real), **link de parolă nouă** (24 h; parola o alege doar omul), istoricul.
+- Cu 30 de zile înainte de expirare pleacă un email de memento (o dată), iar contul apare la „Expiră curând”.
+  Emailurile pleacă doar cu `SMTP_URL`; `SELLER_CONTACT` spune crescătorilor cum te contactează pentru plată.

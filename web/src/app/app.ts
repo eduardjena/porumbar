@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth';
 import { Icon, IconName } from './shared/icon';
 import { ConfirmDialog } from './core/confirm';
+
+const fmt = (d: string | null) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('ro-RO') : '');
 
 interface NavItem {
   path: string;
@@ -31,7 +33,7 @@ const NAV: NavItem[] = [
           Porumbar
         </a>
         <nav class="top-nav" aria-label="Meniu">
-          @for (n of nav; track n.path) {
+          @for (n of nav(); track n.path) {
             <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }">
               <app-icon [name]="n.icon" [size]="22" />{{ n.label }}
             </a>
@@ -43,12 +45,13 @@ const NAV: NavItem[] = [
     }
     <app-confirm-dialog />
     <main [class.with-bottom]="auth.account()">
+      @if (banner(); as b) { <div class="sub-banner no-print" [class]="'sub-banner ' + b.kind" role="status">{{ b.text }}</div> }
       <router-outlet />
     </main>
     @if (auth.account()) {
       <!-- Pe telefon, meniul stă jos, la îndemâna degetului mare. -->
       <nav class="bottom-nav" aria-label="Meniu">
-        @for (n of nav; track n.path) {
+        @for (n of nav(); track n.path) {
           <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [class.add]="n.icon === 'plus'">
             <span class="ico"><app-icon [name]="n.icon" [size]="n.icon === 'plus' ? 30 : 28" /></span>
             <span class="lbl">{{ n.label }}</span>
@@ -58,6 +61,7 @@ const NAV: NavItem[] = [
     }
   `,
   styles: `
+    .sub-banner { margin-bottom: 14px; font-weight: 600; }
     .top {
       background: rgb(255 253 249 / 94%); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
@@ -103,7 +107,23 @@ const NAV: NavItem[] = [
 export class App {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  protected readonly nav = NAV;
+  /** Adminul (vânzătorul) are în plus consola. */
+  protected readonly nav = computed<NavItem[]>(() =>
+    this.auth.account()?.isAdmin ? [...NAV.slice(0, 3), { path: '/vanzator', label: 'Vânzător', icon: 'vinde' }, NAV[3]] : NAV,
+  );
+  /** Banda de sus pentru crescători: „doar citire” sau abonamentul care expiră curând. */
+  protected readonly banner = computed(() => {
+    const a = this.auth.account();
+    const s = a?.subscription;
+    if (!a || a.isAdmin || !s) return null;
+    const how = a.sellerContact ? `Pentru activare: ${a.sellerContact}.` : 'Pentru activare, ia legătura cu cel de la care ai primit programul.';
+    if (!s.active) {
+      const why = s.status === 'expired' ? `Abonamentul a expirat pe ${fmt(s.end)}` : 'Contul nu este activ încă';
+      return { kind: 'warning', text: `${why}: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic. ${how}` };
+    }
+    if (s.status === 'expiring') return { kind: 'notice', text: `Abonamentul expiră pe ${fmt(s.end)} (peste ${s.daysLeft} ${s.daysLeft === 1 ? 'zi' : 'zile'}). ${how}` };
+    return null;
+  });
 
   async logout() {
     await this.auth.logout();

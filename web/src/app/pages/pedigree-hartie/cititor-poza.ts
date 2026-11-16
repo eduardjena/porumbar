@@ -1,5 +1,6 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { Api, errorMessage } from '../../core/api';
+import { AuthService } from '../../core/auth';
 import { Icon } from '../../shared/icon';
 
 /** Un porumbel citit din poză (aceeași formă ca la import). */
@@ -50,12 +51,17 @@ function toBase64(blob: Blob): Promise<string> {
     <section class="card reader">
       <div class="text">
         <h2>Ai pedigree-ul în poză sau în PDF?</h2>
-        <p class="muted">Programul îl citește și completează căsuțele. Tu doar verifici și corectezi. Poza nu se păstrează.</p>
+        <p class="muted">Programul îl citește și completează căsuțele. Tu doar verifici și corectezi. Poza nu se păstrează.
+          @if (!isAdmin()) { Credit pentru citiri: <strong>{{ credit() }}</strong>. }</p>
       </div>
-      <label class="btn primary pick" [class.busy]="busy()">
-        <app-icon name="poze" />{{ busy() ? 'Se citește… (până la un minut)' : 'Citește din poză sau PDF' }}
-        <input type="file" accept="image/*,application/pdf" (change)="pick($event)" [disabled]="busy()" />
-      </label>
+      @if (noCredit()) {
+        <p class="warning">Nu mai ai credit pentru citirea pozelor. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere credit{{ contact() ? ': ' + contact() : ' de la cel de la care ai primit programul' }}.</p>
+      } @else {
+        <label class="btn primary pick" [class.busy]="busy()">
+          <app-icon name="poze" />{{ busy() ? 'Se citește… (până la un minut)' : 'Citește din poză sau PDF' }}
+          <input type="file" accept="image/*,application/pdf" (change)="pick($event)" [disabled]="busy()" />
+        </label>
+      }
       @if (message(); as m) { <div [class]="m.kind" role="status">{{ m.text }}</div> }
     </section>
   `,
@@ -72,7 +78,12 @@ function toBase64(blob: Blob): Promise<string> {
 })
 export class CititorPoza {
   private readonly api = inject(Api);
+  private readonly auth = inject(AuthService);
   readonly read = output<PedigreeNode>();
+  protected readonly isAdmin = computed(() => !!this.auth.account()?.isAdmin);
+  protected readonly contact = computed(() => this.auth.account()?.sellerContact ?? null);
+  protected readonly credit = computed(() => `${(this.auth.account()?.aiCredit ?? 0).toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`);
+  protected readonly noCredit = computed(() => !this.isAdmin() && (this.auth.account()?.aiCredit ?? 0) <= 0);
   readonly busy = signal(false);
   readonly message = signal<{ kind: 'notice' | 'warning' | 'error'; text: string } | null>(null);
 
@@ -87,6 +98,7 @@ export class CititorPoza {
       const body = await prepare(file);
       const r = await this.api.post<{ root: PedigreeNode; filled: number; notes: string }>('/pedigrees/read', body);
       this.read.emit(r.root);
+      this.auth.refresh().catch(() => undefined); // creditul rămas
       const text = `Am completat ${r.filled} ${r.filled === 1 ? 'căsuță' : 'căsuțe'}. Verifică fiecare inel înainte să salvezi.${r.notes ? ' ' + r.notes : ''}`;
       this.message.set({ kind: r.notes ? 'warning' : 'notice', text });
     } catch (e) {

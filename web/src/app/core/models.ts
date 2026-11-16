@@ -8,6 +8,19 @@ export interface Account {
   showPhone?: boolean;
   showAddress?: boolean;
   showEmail?: boolean;
+  isAdmin?: boolean;
+  sellerContact?: string | null;
+  subscription?: Subscription;
+  /** Creditul pentru citirea pozelor, în dolari. */
+  aiCredit?: number;
+}
+
+export interface Subscription {
+  start: string | null;
+  end: string | null;
+  status: 'pending' | 'active' | 'expiring' | 'expired';
+  daysLeft: number | null;
+  active: boolean;
 }
 
 export interface CodeLabel {

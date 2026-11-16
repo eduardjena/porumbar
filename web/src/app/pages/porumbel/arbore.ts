@@ -1,6 +1,6 @@
 import { Component, inject, input, output, signal, effect } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, percent, ringText, sexShort } from '../../core/catalog';
 import { CoiResult, PigeonSummary, TreeNode } from '../../core/models';
@@ -42,7 +42,8 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
 
     <ng-template #branch let-node let-depth="depth">
       <div class="branch">
-        <div class="box" [style.background]="node.repeat ? color(node.repeat) : null" [class.root]="depth === 0">
+        <div class="box" [style.background]="node.repeat ? color(node.repeat) : null" [class.root]="depth === 0"
+             (dblclick)="openPigeon(node.id)" title="Dublu clic: deschide fișa">
           @if (pigeons()[node.id]; as p) {
             <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
             <span><span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>@if (p.year) { <span class="year"> · {{ p.year }}</span> }</span>
@@ -96,6 +97,7 @@ const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#
 })
 export class Arbore {
   private readonly api = inject(Api);
+  private readonly router = inject(Router);
   protected readonly catalog = inject(CatalogService);
   readonly pigeonId = input.required<number>();
   /** Crește când se schimbă părinții, ca arborele să se reîncarce. */
@@ -118,6 +120,10 @@ export class Arbore {
       this.version();
       this.load(this.pigeonId(), this.gen());
     });
+  }
+
+  openPigeon(id: number) {
+    this.router.navigate(['/porumbei', id]);
   }
 
   setGen(n: number) {

@@ -341,6 +341,8 @@ export default class Retea implements OnDestroy {
       related.edges().addClass('lit');
       this.selected.set(byId.get(Number(node.id())) ?? null);
     });
+    // Dublu clic (sau dublă atingere) pe un porumbel: deschide fișa lui.
+    this.cy.on('dbltap', 'node', (evt) => this.router.navigate(['/porumbei', Number((evt.target as NodeSingular).id())]));
     this.cy.on('tap', (evt) => {
       if (evt.target === this.cy) this.clearSelection();
     });

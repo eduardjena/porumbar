@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth';
+import { adminGuard, authGuard, guestGuard } from './core/auth';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'panou' },
@@ -18,6 +18,7 @@ export const routes: Routes = [
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: 'Editează porumbelul', loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/tiparire', canActivate: [authGuard], title: 'Tipărește pedigree-ul · Porumbar', loadComponent: () => import('./pages/porumbel/tiparire') },
   { path: 'porumbei/:id', canActivate: [authGuard], title: 'Porumbel', loadComponent: () => import('./pages/porumbel/porumbel') },
+  { path: 'vanzator', canActivate: [adminGuard], title: 'Consola vânzătorului · Porumbar', loadComponent: () => import('./pages/admin/consola') },
   { path: 'vanzari', canActivate: [authGuard], title: 'Vânzări · Porumbar', loadComponent: () => import('./pages/vanzari/vanzari') },
   // Pagina deschisă de codul QR: fără cont.
   { path: 'p/:token', title: 'Pedigree · Porumbar', loadComponent: () => import('./pages/public/public-pedigree') },

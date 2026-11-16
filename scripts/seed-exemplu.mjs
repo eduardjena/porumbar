@@ -2,6 +2,7 @@
  * npm run seed:exemplu — pune în serverul pornit local (implicit http://localhost:3100) un cont de exemplu cu cele două
  * pedigree-uri din docs/exemple/, ca porumbarul, arborele și consangvinizarea să se poată încerca pe date reale.
  * Contul de exemplu (doar pentru dezvoltare): exemplu@porumbar.local / exemplu-porumbar-2026
+ * Adminul (consola vânzătorului, cu ADMIN_EMAIL=admin@porumbar.local în .env): admin@porumbar.local / admin-porumbar-2026
  */
 import { apiCaller } from '../test/helpers/api.js';
 import { loadPedigree } from '../test/helpers/load-pedigree.js';
@@ -17,6 +18,25 @@ let r = await call('/api/auth/login', { method: 'POST', body: { email: EMAIL, pa
 if (r.status !== 200) r = await call('/api/auth/register', { method: 'POST', body: { email: EMAIL, password: PASSWORD, name: 'Porumbar de exemplu' } });
 if (![200, 201].includes(r.status)) throw new Error(`Contul de exemplu: ${r.status} ${JSON.stringify(r.data)}`);
 const cookie = r.res.headers.get('set-cookie').split(';')[0];
+const exampleId = r.data.account.id;
+
+// Adminul (vânzătorul): activează contul de exemplu și îi dă credit pentru citiri, ca la un crescător care a plătit.
+const ADMIN_EMAIL = 'admin@porumbar.local';
+const ADMIN_PASSWORD = 'admin-porumbar-2026';
+let ra = await call('/api/auth/login', { method: 'POST', body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } });
+if (ra.status !== 200) ra = await call('/api/auth/register', { method: 'POST', body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD, name: 'Vânzătorul' } });
+if (![200, 201].includes(ra.status)) throw new Error(`Adminul: ${ra.status} ${JSON.stringify(ra.data)}`);
+if (!ra.data.account.isAdmin) {
+  console.log('Atenție: pune ADMIN_EMAIL=admin@porumbar.local în .env și repornește serverul, apoi rulează din nou.');
+} else {
+  const admin = ra.res.headers.get('set-cookie').split(';')[0];
+  if (!r.data.account.subscription?.active) {
+    await call(`/api/admin/accounts/${exampleId}/subscription`, { method: 'POST', cookie: admin, body: { start: new Date().toISOString().slice(0, 10), note: 'cont de exemplu' } });
+  }
+  if (!(r.data.account.aiCredit > 0)) {
+    await call(`/api/admin/accounts/${exampleId}/credit`, { method: 'POST', cookie: admin, body: { amount: 5, note: 'cont de exemplu' } });
+  }
+}
 
 const EXAMPLES = [
   {
@@ -81,4 +101,4 @@ for (let i = 1; i <= 40; i++) {
   added++;
 }
 if (added) console.log(`Am adăugat ${added} pui de test.`);
-console.log(`Intră cu ${EMAIL} / ${PASSWORD}`);
+console.log(`Intră cu ${EMAIL} / ${PASSWORD}; consola vânzătorului: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);

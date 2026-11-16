@@ -27,6 +27,12 @@ export class AuthService {
     return this.loaded;
   }
 
+  /** Citește din nou contul (de ex. creditul rămas după o citire, abonamentul după activare). */
+  async refresh(): Promise<void> {
+    const r = await this.api.get<{ account: Account }>('/auth/me');
+    this.account.set(r.account);
+  }
+
   async login(email: string, password: string): Promise<void> {
     const r = await this.api.post<{ account: Account }>('/auth/login', { email, password });
     this.account.set(r.account);
@@ -81,6 +87,15 @@ export const authGuard: CanActivateFn = async () => {
   const router = inject(Router);
   await auth.load();
   return auth.account() ? true : router.parseUrl('/intra');
+};
+
+/** Consola vânzătorului: doar adminul. */
+export const adminGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  await auth.load();
+  if (!auth.account()) return router.parseUrl('/intra');
+  return auth.account()?.isAdmin ? true : router.parseUrl('/panou');
 };
 
 /** Paginile de intrare: cine e deja în cont merge la porumbar. */

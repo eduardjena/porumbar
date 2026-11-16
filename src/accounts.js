@@ -34,6 +34,7 @@ export const publicAccount = (a) => ({
   showAddress: !!a.show_address,
   showEmail: !!a.show_email,
   isAdmin: isAdminEmail(a.email),
+  sellerContact: config.sellerContact,
   subscription: subscriptionOf(a),
   // Creditul pentru citirea pedigree-urilor din poze, în dolari (2 zecimale).
   aiCredit: Math.round(Number(a.ai_credit_micros ?? 0) / 1e4) / 100,

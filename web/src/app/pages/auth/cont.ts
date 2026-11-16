@@ -11,9 +11,23 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
 @Component({
   selector: 'app-cont',
   imports: [FormsModule, RouterLink, Icon],
-  styles: `.show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0; }`,
+  styles: `.subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; } .show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0; }`,
   template: `
     <h1>Contul meu</h1>
+    @if (auth.account(); as a) {
+      @if (!a.isAdmin && a.subscription; as s) {
+        <section class="card stack subs">
+          <h2>Abonament</h2>
+          @if (s.start) {
+            <p>{{ s.active ? 'Activ' : 'Expirat' }}: de pe <strong>{{ day(s.start) }}</strong> până pe <strong>{{ day(s.end) }}</strong>@if (s.active) { (mai sunt {{ s.daysLeft }} zile) }.</p>
+          } @else {
+            <p>Contul nu este activ încă. Până la activare poți doar să vezi porumbeii.</p>
+          }
+          <p>Credit pentru citirea pedigree-urilor din poze: <strong>{{ money(a.aiCredit ?? 0) }}</strong> <span class="muted">(o citire costă în jur de 0,10–0,15 $)</span></p>
+          @if (a.sellerContact) { <p class="muted">Plată, activare și credit: {{ a.sellerContact }}</p> }
+        </section>
+      }
+    }
     <form class="card stack" (ngSubmit)="save()">
       <p class="muted">Aceste date pot apărea pe pedigree-urile tipărite, doar dacă alegi tu.</p>
       <label class="field">Nume
@@ -70,6 +84,8 @@ export default class Cont {
   readonly saved = signal(false);
   readonly error = signal('');
   readonly deleteError = signal('');
+  protected readonly day = (d: string | null) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('ro-RO') : '');
+  protected readonly money = (n: number) => `${n.toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`;
 
   async save() {
     this.saved.set(false);

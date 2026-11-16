@@ -26,6 +26,13 @@ const cases = [
   ['DV-10-01063-714 M', { country: 'DV', year: 2010, club: '1063', number: '714', sex: 'M' }],
   ['AUS 18-301-1405 M', { country: 'AT', year: 2018, club: '301', number: '1405', sex: 'M' }],
   ['AUS-11-335-216 F', { country: 'AT', year: 2011, club: '335', number: '216', sex: 'F' }],
+  // Spania (ESP), țara la final după cratimă, anul întreg la final după țară.
+  ['159989/19 ESP', { country: 'ES', year: 2019, number: '159989' }],
+  ['0561385-2017-RO', { country: 'RO', year: 2017, number: '561385' }],
+  ['1783831-2009-NL', { country: 'NL', year: 2009, number: '1783831' }],
+  ['Ro 439175 - 2020', { country: 'RO', year: 2020, number: '439175' }],
+  ['B 6024428 - 2019', { country: 'BE', year: 2019, number: '6024428' }],
+  ['B 6203712-2012', { country: 'BE', year: 2012, number: '6203712' }],
 ];
 
 for (const [raw, exp] of cases) {
@@ -81,4 +88,11 @@ test('inele cu club scrise cu anul în față: aceeași cheie ca forma obișnuit
   assert.equal(formatRing(parseRing('AUS 18-301-1405 M', { now })), 'AT-18-301-1405');
   assert.equal(k('AUS 18-301-1405'), k('AT-18-301-1405'));
   assert.notEqual(k('AUS 18-301-1405'), k('AUS 18-302-1405'));
+});
+
+test('aceleași inele scrise pe pedigree-uri diferite dau aceeași cheie', () => {
+  const k = (r) => ringKey(parseRing(r, { now }));
+  assert.equal(k('0561385-2017-RO'), k('RO-17-561385'));
+  assert.equal(k('B 6024428 - 2019'), k('BE-19-6024428'));
+  assert.equal(k('159989/19 ESP'), k('ES-19-159989'));
 });

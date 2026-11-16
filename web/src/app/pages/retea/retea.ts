@@ -18,19 +18,9 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
   selector: 'app-retea',
   imports: [FormsModule, RouterLink, Icon],
   template: `
-    <div class="head">
-      <h1>Arborele porumbarului</h1>
-      <p class="muted intro">Fiecare porumbel apare o singură dată. Chenarul gros arată strămoșii comuni, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.</p>
-    </div>
-
+    <p class="muted intro">Fiecare porumbel apare o singură dată. Chenarul gros arată strămoșii comuni, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.</p>
     <div class="controls">
-      <label class="search">
-        <app-icon name="cautare" />
-        <input type="search" placeholder="Inel sau nume" aria-label="Porumbelul de la care pornești"
-               [(ngModel)]="q" (ngModelChange)="suggest()" />
-      </label>
       <button type="button" [class.primary]="!!tot() && !rootId()" (click)="showAll()"><app-icon name="retea" />Tot porumbarul</button>
-      <a class="btn" [routerLink]="['/arbore/3d']" [queryParams]="rootId() ? { porumbel: rootId() } : tot() ? { tot: 1 } : {}" title="Vezi arborele în trei dimensiuni"><app-icon name="retea" />Vedere 3D</a>
     </div>
     @if (suggestions().length) {
       <ul class="suggestions card">
@@ -81,9 +71,9 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
     }
   `,
   styles: `
-    .head h1 { margin-bottom: 4px; }
+
     .intro { margin: 0 0 16px; max-width: 70ch; }
-    .controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; }
+    .controls { display: flex; gap: 10px; }
     .search { position: relative; display: block; }
     .search app-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
     .search input { padding-left: 50px; border-radius: 999px; }
@@ -130,7 +120,7 @@ export default class Retea implements OnDestroy {
   readonly error = signal('');
   protected readonly sexText = sexLabel;
   /** De unde vine omul în fișă: firimiturile îl întorc în Arbore, la același porumbel. */
-  protected from = () => ({ din: 'arbore', radacina: this.rootId() ?? undefined, tot: this.tot() ? 1 : undefined });
+  protected from = () => ({ din: 'arbore', radacina: this.rootId() ?? undefined, tot: this.tot() ? 1 : undefined, vedere: 'retea' });
   private cy: Core | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private request = 0;
@@ -173,7 +163,7 @@ export default class Retea implements OnDestroy {
     this.cy = null;
     try {
       const best = (await this.api.get<{ pigeons: PigeonSummary[] }>('/board')).pigeons[0];
-      if (best) this.router.navigate(['/arbore'], { queryParams: { porumbel: best.id }, replaceUrl: true });
+      if (best) this.router.navigate(['/arbore'], { queryParams: { porumbel: best.id, vedere: 'retea' }, replaceUrl: true });
     } catch (e) {
       this.error.set(errorMessage(e));
     }
@@ -182,15 +172,15 @@ export default class Retea implements OnDestroy {
   pick(p: PigeonSummary) {
     this.q = '';
     this.suggestions.set([]);
-    this.router.navigate(['/arbore'], { queryParams: { porumbel: p.id } });
+    this.router.navigate(['/arbore'], { queryParams: { porumbel: p.id, vedere: 'retea' } });
   }
 
   startFrom(n: NetworkNode) {
-    this.router.navigate(['/arbore'], { queryParams: { porumbel: n.id } });
+    this.router.navigate(['/arbore'], { queryParams: { porumbel: n.id, vedere: 'retea' } });
   }
 
   showAll() {
-    this.router.navigate(['/arbore'], { queryParams: { tot: 1 } });
+    this.router.navigate(['/arbore'], { queryParams: { tot: 1, vedere: 'retea' } });
   }
 
   zoom(factor: number) {

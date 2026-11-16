@@ -5,7 +5,7 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'panou' },
   { path: 'panou', canActivate: [authGuard], title: 'Panou · Porumbar', loadComponent: () => import('./pages/panou/panou') },
   { path: 'arbore/3d', canActivate: [authGuard], title: 'Arbore 3D · Porumbar', loadComponent: () => import('./pages/retea/retea-3d') },
-  { path: 'arbore', canActivate: [authGuard], title: 'Arbore · Porumbar', loadComponent: () => import('./pages/retea/retea') },
+  { path: 'arbore', canActivate: [authGuard], title: 'Arbore · Porumbar', loadComponent: () => import('./pages/retea/arbore') },
   { path: 'retea', redirectTo: 'arbore' },
   { path: 'intra', canActivate: [guestGuard], title: 'Intră în cont · Porumbar', loadComponent: () => import('./pages/auth/intra') },
   { path: 'cont-nou', canActivate: [guestGuard], title: 'Cont nou · Porumbar', loadComponent: () => import('./pages/auth/cont-nou') },

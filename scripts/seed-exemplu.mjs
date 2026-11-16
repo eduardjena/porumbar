@@ -46,6 +46,20 @@ for (const { pedigree, extra } of EXAMPLES) {
   await call(`/api/pigeons/${id}`, { method: 'PATCH', cookie, body: extra });
   console.log(`Gata: ${base}/porumbei/${id}`);
 }
+// Liniile fondatorilor din pedigree-ul foto (din numele crescătorilor de pe original), pentru vederea „Linii de sânge”.
+const FOUNDER_LINES = {
+  'NL-00-5027686': 'Van Heteren', '2552146/94 NL F': 'Van Heteren', 'NL-01-5125329': 'Van Heteren', 'NL-02-5218055': 'Van Heteren',
+  'NL-00-2467210': 'Den Haan', 'NL-02-2354101': 'Den Haan', 'NL-04-1954746': 'Den Haan',
+  'NL-04-2050319': 'Verkerk', 'NL-05-2195846': 'Schaerlaeckens', 'NL-05-1441788': 'Reedijk', 'NL-04-1643587': 'Roording',
+  '6008107/08 BELG M': 'Belgia',
+};
+for (const [ring, line] of Object.entries(FOUNDER_LINES)) {
+  const found = (await call(`/api/pigeons/lookup?ring=${encodeURIComponent(ring)}`, { cookie })).data.matches[0];
+  if (found && !found.pigeon.lines?.length) await call(`/api/pigeons/${found.pigeon.id}`, { method: 'PATCH', cookie, body: { lines: [line] } });
+}
+const govaerts = (await call('/api/pigeons?q=govaerts&kind=external', { cookie })).data.pigeons[0];
+if (govaerts) await call(`/api/pigeons/${govaerts.id}`, { method: 'PATCH', cookie, body: { lines: ['Govaerts'] } });
+
 // 40 de pui inventați (date de test), ca grila și rețeaua să arate ca un porumbar adevărat: părinți din exemple,
 // note diferite, unii marcați reproducători.
 const own = async (ring) => (await call(`/api/pigeons/lookup?ring=${encodeURIComponent(ring)}`, { cookie })).data.matches.find((m) => m.pigeon.kind === 'own')?.pigeon;

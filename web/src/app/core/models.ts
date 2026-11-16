@@ -4,6 +4,7 @@ export interface Account {
   name: string;
   phone: string | null;
   address: string | null;
+  treeView?: string;
 }
 
 export interface CodeLabel {

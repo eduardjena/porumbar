@@ -138,7 +138,11 @@ export function familyRouter() {
     const ids = new Set();
     const collect = (t) => t && (ids.add(t.id), collect(t.father), collect(t.mother));
     collect(tree);
-    res.json({ tree, pigeons: await summaries(accountId, [...ids]) });
+    // Pentru cardurile arborelui: și un text scurt de pe pedigree (titluri, palmares).
+    const map = await summaries(accountId, [...ids]);
+    const texts = await all('SELECT id, pedigree_text FROM pigeons WHERE account_id = ? AND id = ANY(?::bigint[])', accountId, [...ids]);
+    for (const t of texts) if (map[t.id] && t.pedigree_text) map[t.id].text = t.pedigree_text.slice(0, 120);
+    res.json({ tree, pigeons: map });
   });
 
   r.get('/pigeons/:id/coi', requireAccount, async (req, res) => {

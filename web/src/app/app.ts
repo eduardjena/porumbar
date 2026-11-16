@@ -24,6 +24,8 @@ const NAV: NavItem[] = [
   template: `
     @if (auth.account()) {
       <header class="top">
+        <!-- Conținutul antetului are aceeași lățime ca pagina: meniul se aliniază cu marginea din dreapta a conținutului. -->
+        <div class="top-inner">
         <a routerLink="/panou" class="brand" aria-label="Porumbar, panoul">
           <img class="brand-mark" src="/icon.svg" alt="" width="40" height="40" />
           Porumbar
@@ -36,6 +38,7 @@ const NAV: NavItem[] = [
           }
           <button type="button" class="ghost" (click)="logout()"><app-icon name="iesire" [size]="22" />Ieși</button>
         </nav>
+        </div>
       </header>
     }
     <app-confirm-dialog />
@@ -56,10 +59,14 @@ const NAV: NavItem[] = [
   `,
   styles: `
     .top {
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
-      padding: 10px 24px; background: rgb(255 255 255 / 92%); border-bottom: 1px solid var(--border);
+      background: rgb(255 255 255 / 92%); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
     }
+    .top-inner {
+      max-width: 1120px; margin: 0 auto; padding: 10px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
     .top-nav { display: flex; gap: 4px; align-items: center; }
@@ -72,7 +79,7 @@ const NAV: NavItem[] = [
     main { max-width: 1120px; margin: 0 auto; padding: 20px 24px 40px; }
     .bottom-nav { display: none; }
     @media (max-width: 767px) {
-      .top { padding: 8px 16px; }
+      .top-inner { padding: 8px 16px; }
       .top-nav { display: none; }
       main { padding: 16px 16px 24px; }
       main.with-bottom { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }

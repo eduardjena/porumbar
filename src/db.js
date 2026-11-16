@@ -1,0 +1,124 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+import pg from 'pg';
+import { config } from './config.js';
+
+/*
+ * Stratul de date: PostgreSQL (DATABASE_URL).
+ *
+ * Migrări versionate în tabelul schema_version. Se adaugă doar la final; o migrare deja rulată nu se modifică.
+ * Momentele de timp sunt TIMESTAMPTZ, văzute de aplicație ca text ISO 8601 UTC. ID-urile sunt BIGINT (numere în JS).
+ */
+const MIGRATIONS = [
+  // 1: începutul (schema_version e creată de migrateTo).
+  'SELECT 1',
+];
+
+export const SCHEMA_VERSION = MIGRATIONS.length;
+
+pg.types.setTypeParser(pg.types.builtins.INT8, Number);
+pg.types.setTypeParser(pg.types.builtins.NUMERIC, Number);
+const parseTimestamp = pg.types.getTypeParser(pg.types.builtins.TIMESTAMPTZ);
+pg.types.setTypeParser(pg.types.builtins.TIMESTAMPTZ, (v) => parseTimestamp(v).toISOString());
+// DATE ca text YYYY-MM-DD (fără fus orar).
+pg.types.setTypeParser(pg.types.builtins.DATE, (v) => v);
+
+/** Scrierea cu `?` în cod; PostgreSQL primește $1, $2… (textele între ghilimele rămân neatinse). */
+function placeholders(sql) {
+  let out = '';
+  let n = 0;
+  let quote = null;
+  for (const ch of sql) {
+    if (quote) {
+      if (ch === quote) quote = null;
+    } else if (ch === "'" || ch === '"') {
+      quote = ch;
+    } else if (ch === '?') {
+      out += `$${++n}`;
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+const bind = (v) => (v === undefined || (typeof v === 'number' && !Number.isFinite(v)) ? null : v);
+
+let pool = null;
+const current = new AsyncLocalStorage();
+
+function query(sql, params) {
+  if (!pool) throw new Error('Baza de date nu este inițializată (initDb).');
+  return (current.getStore()?.client ?? pool).query(placeholders(sql), params.map(bind));
+}
+
+export const nowIso = () => new Date().toISOString();
+export const one = async (sql, ...params) => (await query(sql, params)).rows[0];
+export const all = async (sql, ...params) => (await query(sql, params)).rows;
+export const run = async (sql, ...params) => ({ changes: (await query(sql, params)).rowCount });
+/** INSERT care întoarce ID-ul rândului nou. */
+export const insert = async (sql, ...params) => (await query(`${sql} RETURNING id`, params)).rows[0].id;
+
+/** Tranzacție re-entrantă (apelurile imbricate rulează în tranzacția exterioară). */
+export async function tx(fn) {
+  if (current.getStore()) return fn();
+  const client = await pool.connect();
+  const onError = (err) => console.error('[porumbar] Conexiune PostgreSQL pierdută:', err.message);
+  client.on('error', onError);
+  let broken = false;
+  try {
+    await client.query('BEGIN');
+    const result = await current.run({ client }, fn);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {
+      broken = true;
+    });
+    throw err;
+  } finally {
+    client.off('error', onError);
+    client.release(broken);
+  }
+}
+
+async function migrateTo(target) {
+  // O singură migrare odată, chiar dacă pornesc două procese.
+  await run('SELECT pg_advisory_xact_lock(4210001)');
+  await run('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
+  const row = await one('SELECT version FROM schema_version');
+  if (!row) await run('INSERT INTO schema_version (version) VALUES (0)');
+  const from = row?.version ?? 0;
+  if (from > MIGRATIONS.length) {
+    throw new Error(`Baza de date are schema ${from}, mai nouă decât a acestei versiuni (${MIGRATIONS.length}). Actualizează aplicația.`);
+  }
+  for (let v = from; v < target; v++) {
+    const m = MIGRATIONS[v];
+    if (typeof m === 'function') await m();
+    else await current.getStore().client.query(m);
+    await run('UPDATE schema_version SET version = ?', v + 1);
+  }
+}
+
+export async function initDb() {
+  if (pool) return;
+  if (!config.databaseUrl) throw new Error('Lipsește DATABASE_URL (ex. postgres://porumbar:parola@localhost:5432/porumbar).');
+  pool = new pg.Pool({
+    connectionString: config.databaseUrl,
+    max: Number(process.env.PG_POOL_MAX) || 10,
+    allowExitOnIdle: true,
+    keepAlive: true,
+    connectionTimeoutMillis: 10_000,
+    statement_timeout: 120_000,
+    idle_in_transaction_session_timeout: 120_000,
+  });
+  pool.on('error', (err) => console.error('[porumbar] Conexiune PostgreSQL pierdută:', err.message));
+  const { encoding } = await one(`SELECT current_setting('server_encoding') AS encoding`);
+  if (encoding !== 'UTF8') throw new Error(`Baza de date trebuie creată cu encoding UTF8 (are ${encoding}).`);
+  await tx(() => migrateTo(MIGRATIONS.length));
+}
+
+export async function closeDb() {
+  const p = pool;
+  pool = null;
+  await p?.end();
+}

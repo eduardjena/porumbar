@@ -16,7 +16,7 @@ import { PedigreePage } from '../../shared/pedigree-page';
   imports: [RouterLink, Icon, PedigreePage],
   template: `
     <div class="bar no-print">
-      <a class="btn" [routerLink]="['/porumbei', id()]" [queryParams]="{ fila: 'qr' }"><app-icon name="inapoi" />Înapoi la porumbel</a>
+      <a class="btn" [routerLink]="['/porumbei', id()]" [queryParams]="{ fila: inapoi() === 'arbore' ? 'arbore' : 'qr' }"><app-icon name="inapoi" />Înapoi la porumbel</a>
       @if (!url() && loaded()) {
         <button type="button" (click)="startLink()"><app-icon name="qr" />Pune și codul QR (pornește linkul)</button>
       }
@@ -42,6 +42,8 @@ export default class Tiparire {
   private readonly api = inject(Api);
   private readonly confirm = inject(ConfirmService);
   readonly id = input.required<string>();
+  /** De unde s-a venit (?inapoi=arbore din fila Pedigree), ca „Înapoi” să ducă tot acolo; altfel la fila QR. */
+  readonly inapoi = input<string>();
   readonly data = signal<PedigreeV1 | null>(null);
   readonly url = signal<string | null>(null);
   readonly loaded = signal(false);

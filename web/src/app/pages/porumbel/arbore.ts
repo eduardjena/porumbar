@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, percent, ringText, sexShort } from '../../core/catalog';
 import { CoiResult, PigeonSummary, TreeNode } from '../../core/models';
+import { Icon } from '../../shared/icon';
 
 // Culori deschise pentru strămoșii care se repetă (textul negru rămâne lizibil pe toate).
 const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#ffd6b0'];
@@ -24,12 +25,14 @@ interface Cell {
  */
 @Component({
   selector: 'app-arbore',
-  imports: [RouterLink],
+  imports: [RouterLink, Icon],
   template: `
     <div class="bar row">
       <button type="button" (click)="setGen(gen() - 1)" [disabled]="gen() <= 1">− generații</button>
       <span><strong>{{ gen() + 1 }}</strong> generații</span>
       <button type="button" (click)="setGen(gen() + 1)" [disabled]="gen() >= 5">+ generații</button>
+      <!-- Tipărirea pedigree-ului direct de aici (pagina de tipar, foaia A4 cu 5 generații). -->
+      <a class="btn print" [routerLink]="['/porumbei', pigeonId(), 'tiparire']" [queryParams]="{ inapoi: 'arbore' }"><app-icon name="tipar" />Tipărește</a>
     </div>
     @if (coi(); as c) {
       <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'">
@@ -82,6 +85,7 @@ interface Cell {
   `,
   styles: `
     .bar { margin-bottom: 12px; }
+    .bar .print { margin-left: auto; }
     .scroll { overflow-x: auto; padding: 8px 0 16px; -webkit-overflow-scrolling: touch; }
     /*
      * Ca pe fișa tipărită: coloanele se împart lățimea ecranului (prima puțin mai îngustă), căsuțele umplu tot locul

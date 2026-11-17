@@ -76,16 +76,16 @@ import { QrCode } from '../../shared/qr-code';
     header { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; height: 24mm; }
     .title h1 { margin: 0; font-size: 15pt; letter-spacing: 0.01em; }
     .title h1 .mono { font-size: 1em; }
-    .title p { margin: 1.5mm 0 0; font-size: 9pt; }
+    .title p { margin: 1.5mm 0 0; font-size: 10pt; }
     .qr { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.8mm; width: 24mm; font-size: 5.5pt; text-align: center; line-height: 1.15; }
     .qr app-qr-code { width: 22mm; }
     .sheet-area { flex: 1; min-height: 0; }
     footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; min-height: 18mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
-    .owner { display: flex; flex-direction: column; font-size: 8.5pt; line-height: 1.3; }
-    .owner strong { font-size: 11pt; }
+    .owner { display: flex; flex-direction: column; font-size: 9.5pt; line-height: 1.3; }
+    .owner strong { font-size: 12pt; }
     /* Adresa pe rândurile scrise în Cont (strada / localitatea), cel mult 3. */
     .owner .addr { white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-    .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 6.5pt; color: #6b5d4f; }
+    .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 7pt; color: #6b5d4f; }
     .stamp .made { display: inline-flex; align-items: center; gap: 0.8mm; }
     .stamp .made img { width: 3.6mm; height: 3.6mm; }
     .stamp .site { font-weight: 700; color: #2b2117; }

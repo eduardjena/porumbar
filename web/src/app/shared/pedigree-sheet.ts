@@ -77,15 +77,15 @@ interface Box {
     :host(.paper) { height: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     :host(.paper) .heads { display: none; }
     :host(.paper) .sheet { height: 100%; grid-template-columns: 18% 20.5% 20.5% 20.5% 20.5% !important; grid-template-rows: repeat(16, minmax(0, 1fr)) !important; gap: 1.2mm 1.6mm; }
-    :host(.paper) .box { align-self: stretch; overflow: hidden; padding: 0.9mm 1.3mm; border-radius: 1.4mm; border: 0.25mm solid #8f8476; background: #fff; box-shadow: 0.6mm 0.6mm 0 #3a3129; font-size: 6.6pt; line-height: 1.22; }
-    :host(.paper) .box.g0 { align-self: center; height: 34%; min-height: 34mm; font-size: 8.5pt; border: 0.5mm solid #a33d1c; }
-    :host(.paper) .box.g1 { font-size: 7.4pt; }
-    :host(.paper) .box.g2 { font-size: 7pt; }
-    :host(.paper) .box.g4 { font-size: 6.2pt; padding: 0.6mm 1.1mm; }
+    :host(.paper) .box { align-self: stretch; overflow: hidden; padding: 0.9mm 1.3mm; border-radius: 1.4mm; border: 0.25mm solid #8f8476; background: #fff; box-shadow: 0.6mm 0.6mm 0 #3a3129; font-size: 7.3pt; line-height: 1.22; }
+    :host(.paper) .box.g0 { align-self: center; height: 34%; min-height: 34mm; font-size: 9.5pt; border: 0.5mm solid #a33d1c; }
+    :host(.paper) .box.g1 { font-size: 8.2pt; }
+    :host(.paper) .box.g2 { font-size: 7.7pt; }
+    :host(.paper) .box.g4 { font-size: 6.8pt; padding: 0.6mm 1.1mm; }
     /* Pe hârtie inelul nu se taie niciodată: dacă nu încape, trece pe rândul următor. */
     :host(.paper) .line1 { align-items: flex-start; }
     :host(.paper) .line1 strong { color: #a33d1c; font-size: 1.05em; white-space: normal; overflow-wrap: anywhere; }
-    :host(.paper) .sx { width: 3mm; height: 3mm; font-size: 5pt; }
+    :host(.paper) .sx { width: 3.3mm; height: 3.3mm; font-size: 5.5pt; }
     :host(.paper) .meta, :host(.paper) .txt { font-size: 1em; color: #2b2117; }
     :host(.paper) .txt.t0 { -webkit-line-clamp: 14; }
     :host(.paper) .txt.t1 { -webkit-line-clamp: 26; }

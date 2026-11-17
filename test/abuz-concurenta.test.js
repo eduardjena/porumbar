@@ -114,7 +114,9 @@ test('același pedigree importat de 10 ori deodată în același cont: fără du
   const ok = rs.filter((r) => r.status === 201);
   assert.ok(ok.length >= 1);
   assert.equal(new Set(ok.map((r) => r.data.pigeonId)).size, 1);
-  assert.equal((await list(c)).length, ok[0].data.created, 'fiecare inel o singură dată');
+  // Oricare din cele 10 poate fi cel care creează porumbeii (celelalte îi găsesc gata): se adună ce au creat toate.
+  const created = ok.reduce((sum, r) => sum + r.data.created, 0);
+  assert.equal((await list(c)).length, created, 'fiecare inel o singură dată');
 });
 
 test('același pedigree importat de 10 ori deodată (dublu-clic pe „Salvează”): toate reușesc, ca la rând', async () => {

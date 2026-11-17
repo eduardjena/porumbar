@@ -6,6 +6,8 @@ import { getPigeonRow, getPigeon, loadNodes, toPigeon, toSummary } from '../pige
 import { parseRing, formatRing, ringKey } from '../rings.js';
 import { buildTree, wrightCoi, coiOf, ancestorIds } from '../genealogy.js';
 import { bloodlines } from '../bloodlines.js';
+import { COLORS } from '../catalog.js';
+import { pedigreeLines } from '../results.js';
 
 /*
  * Familia unui porumbel: alegerea părinților după inel (cu istoricul lor), rudele, arborele și consangvinizarea.
@@ -141,8 +143,23 @@ export function familyRouter() {
     collect(tree);
     // Pentru cardurile arborelui: și un text scurt de pe pedigree (titluri, palmares).
     const map = await summaries(accountId, [...ids]);
-    const texts = await all('SELECT id, pedigree_text FROM pigeons WHERE account_id = ? AND id = ANY(?::bigint[])', accountId, [...ids]);
-    for (const t of texts) if (map[t.id] && t.pedigree_text) map[t.id].text = t.pedigree_text.slice(0, 120);
+    const texts = await all(
+      'SELECT id, pedigree_text, color, color_pa, color_text, breeder_text FROM pigeons WHERE account_id = ? AND id = ANY(?::bigint[])',
+      accountId,
+      [...ids],
+    );
+    const lines = await pedigreeLines(accountId);
+    for (const t of texts) {
+      if (!map[t.id]) continue;
+      if (t.pedigree_text) map[t.id].text = t.pedigree_text.slice(0, 120);
+      // Ce scrie în căsuța de pe fișa tipărită (arborele din fila Pedigree arată la fel).
+      const label = COLORS.find((c) => c.code === t.color)?.label;
+      map[t.id].sheet = {
+        color: t.color_text || (label ? `${label}${t.color_pa ? ' p.a.' : ''}` : null),
+        breeder: t.breeder_text || null,
+        text: [(lines.get(t.id) ?? []).join('; '), t.pedigree_text].filter(Boolean).join('; ') || null,
+      };
+    }
     res.json({ tree, pigeons: map });
   });
 

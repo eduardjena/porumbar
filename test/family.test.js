@@ -119,3 +119,17 @@ test('arborele cu repetări și consangvinizarea', async () => {
   assert.equal((await call(`/api/pairs/coi?sireId=${pui[0].id}&damId=${fiica.id}`, { cookie: b })).status, 404);
   assert.equal((await call(`/api/pigeons/${nepot.id}/tree?generations=11`, { cookie: a })).status, 400);
 });
+
+test('arborele are pentru fiecare porumbel tot ce e pe fișa tipărită: culoarea, crescătorul, rezultatele și textul', async () => {
+  const tataF = await mk('RO-21-310001', { color: 'albastru', colorPa: true, breederText: 'Ionescu Petre', pedigreeText: 'Tatăl campionilor' });
+  const puiF = await mk('RO-25-310002', { colorText: 'Solzat închis', sex: 'F' });
+  assert.equal((await parents(puiF.id, tataF.id, null)).status, 200);
+  const race = { number: 1, organizer: 'Vâlcea', category: 'viteza', date: '2026-05-04', releasePlace: 'Yablanița', releaseTime: '08:01', entered: 10023 };
+  const r = await call(`/api/pigeons/${tataF.id}/results`, { method: 'POST', cookie: a, body: { race, place: 1, distanceKm: 196.608 } });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const t = await call(`/api/pigeons/${puiF.id}/tree?generations=4`, { cookie: a });
+  assert.equal(t.status, 200);
+  const { pigeons } = t.data;
+  assert.deepEqual(pigeons[tataF.id].sheet, { color: 'Albastru p.a.', breeder: 'Ionescu Petre', text: "1e-197KM-10023P-'26; Tatăl campionilor" });
+  assert.deepEqual(pigeons[puiF.id].sheet, { color: 'Solzat închis', breeder: null, text: null });
+});

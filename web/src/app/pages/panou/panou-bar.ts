@@ -23,13 +23,13 @@ type Panel = 'sort' | 'group' | 'filter' | null;
       </label>
       <div class="tools">
         <button type="button" class="tool" [class.on]="open() === 'sort'" [attr.aria-expanded]="open() === 'sort'" (click)="toggle('sort')">
-          <app-icon name="ordonare" [size]="20" /><span class="txt"><span class="what">Ordonează</span><strong>{{ sortLabel() }}</strong></span><app-icon class="chev" name="jos" [size]="18" />
+          <app-icon name="ordonare" [size]="20" /><span class="txt"><span class="what">Ordonează</span><strong>{{ sortLabel() }}</strong></span><span class="short">{{ sortLabel() }}</span><app-icon class="chev" name="jos" [size]="18" />
         </button>
         <button type="button" class="tool" [class.on]="open() === 'group'" [attr.aria-expanded]="open() === 'group'" (click)="toggle('group')">
-          <app-icon name="grupare" [size]="20" /><span class="txt"><span class="what">Grupează</span><strong>{{ groupLabel() }}</strong></span><app-icon class="chev" name="jos" [size]="18" />
+          <app-icon name="grupare" [size]="20" /><span class="txt"><span class="what">Grupează</span><strong>{{ groupLabel() }}</strong></span><span class="short">{{ state().group === 'none' ? 'Grupează' : groupLabel() }}</span><app-icon class="chev" name="jos" [size]="18" />
         </button>
         <button type="button" class="tool" [class.on]="open() === 'filter'" [attr.aria-expanded]="open() === 'filter'" (click)="toggle('filter')">
-          <app-icon name="filtru" [size]="20" /><span class="txt"><span class="what">Filtre</span><strong>{{ count() ? (count() === 1 ? '1 pus' : count() + ' puse') : 'niciunul' }}</strong></span>@if (count()) { <span class="count">{{ count() }}</span> }<app-icon class="chev" name="jos" [size]="18" />
+          <app-icon name="filtru" [size]="20" /><span class="txt"><span class="what">Filtre</span><strong>{{ count() ? (count() === 1 ? '1 pus' : count() + ' puse') : 'niciunul' }}</strong></span><span class="short">Filtre</span>@if (count()) { <span class="count">{{ count() }}</span> }<app-icon class="chev" name="jos" [size]="18" />
         </button>
       </div>
 
@@ -91,10 +91,10 @@ type Panel = 'sort' | 'group' | 'filter' | null;
     <ng-template #quick>
       <button type="button" class="qchip" [class.on]="state().sex === 'M'" [attr.aria-pressed]="state().sex === 'M'" (click)="patch({ sex: state().sex === 'M' ? '' : 'M' })">Masculi</button>
       <button type="button" class="qchip" [class.on]="state().sex === 'F'" [attr.aria-pressed]="state().sex === 'F'" (click)="patch({ sex: state().sex === 'F' ? '' : 'F' })">Femele</button>
-      <button type="button" class="qchip" [class.on]="state().young" [attr.aria-pressed]="state().young" (click)="patch({ young: !state().young })">Puii anului {{ year }}</button>
-      <button type="button" class="qchip" [class.on]="state().prizes" [attr.aria-pressed]="state().prizes" (click)="patch({ prizes: !state().prizes })">Cu premii</button>
-      <button type="button" class="qchip" [class.on]="state().breeding" [attr.aria-pressed]="state().breeding" (click)="patch({ breeding: !state().breeding })">Reproducători</button>
-      <button type="button" class="qchip" [class.on]="state().todo" [attr.aria-pressed]="state().todo" (click)="patch({ todo: !state().todo })">De completat</button>
+      <button type="button" class="qchip" [class.on]="state().young" [attr.aria-pressed]="state().young" (click)="patch({ young: !state().young })"><span class="l">Puii anului</span><span class="s">Pui</span><span>{{ year }}</span></button>
+      <button type="button" class="qchip" [class.on]="state().prizes" [attr.aria-pressed]="state().prizes" (click)="patch({ prizes: !state().prizes })"><span class="l">Cu premii</span><span class="s">Premiați</span></button>
+      <button type="button" class="qchip more" [class.on]="state().breeding" [attr.aria-pressed]="state().breeding" (click)="patch({ breeding: !state().breeding })">Reproducători</button>
+      <button type="button" class="qchip more" [class.on]="state().todo" [attr.aria-pressed]="state().todo" (click)="patch({ todo: !state().todo })">De completat</button>
     </ng-template>
   `,
   styles: `
@@ -114,6 +114,7 @@ type Panel = 'sort' | 'group' | 'filter' | null;
     .tool strong { font-weight: 800; overflow: hidden; text-overflow: ellipsis; }
     .tool .chev { color: var(--muted); }
     .tool.on { border-color: var(--accent); background: var(--accent-soft); }
+    .tool .short, .qchip .s { display: none; }
     .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: var(--accent); color: #fff; font-size: 0.8rem; font-weight: 800; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chips.quick { margin-top: 10px; }
@@ -122,6 +123,7 @@ type Panel = 'sort' | 'group' | 'filter' | null;
       color: var(--text); font-weight: 700; font-size: 0.95rem; box-shadow: none;
     }
     .qchip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .qchip { gap: 0.3em; }
     .backdrop { position: fixed; inset: 0; z-index: 30; background: transparent; }
     .panel {
       position: absolute; right: 0; top: calc(100% + 8px); z-index: 31; width: min(400px, 100%); max-height: min(70vh, 620px); overflow: auto;
@@ -141,29 +143,34 @@ type Panel = 'sort' | 'group' | 'filter' | null;
     .sub { margin: 10px 6px 6px; font-weight: 800; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
     .panel .chips { padding: 0 6px; }
     .panel-foot { display: flex; justify-content: space-between; gap: 10px; padding: 14px 6px 4px; }
+    /* Tabletă / calculator îngust: căutarea și cele trei butoane pe un rând, butoanele ca pastile mici. */
     @media (max-width: 1060px) {
-      .bar { grid-template-columns: 1fr; }
-      .tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .tool { justify-content: center; padding: 4px 10px; min-width: 0; min-height: 56px; border-radius: 16px; }
-      /* Pe ecrane înguste: ce face butonul, iar dedesubt alegerea de acum. */
-      .tool .txt { flex-direction: column; gap: 0; align-items: flex-start; line-height: 1.15; }
-      .tool .what { color: var(--text); font-weight: 800; }
-      .tool .what::after { content: none; }
-      .tool .txt strong { color: var(--muted); font-weight: 600; font-size: 0.85em; max-width: 100%; white-space: nowrap; }
+      .bar { grid-template-columns: minmax(200px, 1fr) auto; }
+      .tool { min-height: 48px; padding: 0 12px; gap: 6px; font-size: 0.9rem; max-width: 170px; }
+      .tool .txt { display: none; }
+      .tool .short { display: block; font-weight: 800; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+      .tool .chev { display: none; }
+      .qchip { min-height: 42px; padding: 0 12px; font-size: 0.85rem; }
     }
     @media (max-width: 767px) {
-      .tool { flex-direction: column; gap: 2px; min-height: 68px; font-size: 0.85rem; padding: 4px 6px; position: relative; }
-      .tool .txt { align-items: center; max-width: 100%; }
-      .tool .chev { display: none; }
-      .tool .count { position: absolute; top: 4px; right: 8px; }
-      .chips.quick { flex-wrap: nowrap; overflow-x: auto; margin: 10px -16px 0; padding: 0 16px 4px; scrollbar-width: none; }
-      .chips.quick .qchip { flex: none; }
-      /* Pe telefon: de jos în sus, peste tot ecranul, cu fundal întunecat. */
+      .bar { grid-template-columns: 1fr; gap: 8px; }
+      .tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .tool { justify-content: center; max-width: none; min-height: 44px; padding: 0 6px; gap: 4px; font-size: 0.82rem; min-width: 0; }
+      .tool app-icon ::ng-deep svg { width: 17px; height: 17px; }
+      .tool .count { min-width: 20px; height: 20px; font-size: 0.75rem; padding: 0 5px; }
+      /* Butoanele rapide: patru pe un rând (Reproducători și De completat sunt în „Filtre”, la „Rapide”). */
+      .chips.quick { flex-wrap: nowrap; gap: 6px; margin-top: 8px; }
+      .chips.quick .qchip { flex: 1 1 auto; min-width: 0; padding: 0 8px; min-height: 40px; font-size: 0.78rem; white-space: nowrap; }
+      .chips.quick .more { display: none; }
+      .qchip .l { display: none; }
+      .qchip .s { display: inline; }
+      /* Pe telefon: alegerile de jos în sus, peste tot ecranul, cu fundal întunecat. */
       .backdrop { background: rgb(20 14 8 / 45%); }
       .panel {
         position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: 82vh; border-radius: 24px 24px 0 0;
         padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
       }
+      .panel .qchip { font-size: 0.9rem; }
     }
   `,
 })

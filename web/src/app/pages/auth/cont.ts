@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { Icon } from '../../shared/icon';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
@@ -10,7 +9,7 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
 
 @Component({
   selector: 'app-cont',
-  imports: [FormsModule, RouterLink, Icon],
+  imports: [FormsModule],
   styles: `.subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; } .show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0; }`,
   template: `
     <h1>Contul meu</h1>
@@ -54,9 +53,6 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
       <button class="primary" type="submit">Salvează</button>
     </form>
-
-    <h2>Vânzări</h2>
-    <a class="btn wide" routerLink="/vanzari"><app-icon name="vinde" />Porumbei primiți și vânduți</a>
 
     <h2>Ieșire</h2>
     <button type="button" class="wide" (click)="logout()">Ieși din cont</button>

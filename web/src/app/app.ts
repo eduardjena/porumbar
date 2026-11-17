@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IncomingService } from './core/incoming';
 import { AuthService } from './core/auth';
@@ -19,6 +19,8 @@ const NAV: NavItem[] = [
   { path: '/arbore', label: 'Arbore', icon: 'copac' },
   { path: '/perechi', label: 'Perechi', icon: 'ou' },
   { path: '/porumbei/nou', label: 'Adaugă', icon: 'plus', exact: true },
+  // Vânzări: porumbeii trimiși de alți crescători (cu numărul lor deasupra) și cei vânduți de om.
+  { path: '/vanzari', label: 'Vânzări', icon: 'vinde' },
   { path: '/cont', label: 'Cont', icon: 'cont' },
 ];
 
@@ -36,8 +38,8 @@ const NAV: NavItem[] = [
         </a>
         <nav class="top-nav" aria-label="Meniu">
           @for (n of nav(); track n.path) {
-            <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }">
-              <app-icon [name]="n.icon" [size]="22" />{{ n.label }}
+            <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [attr.aria-label]="ariaOf(n)">
+              <span class="ico"><app-icon [name]="n.icon" [size]="22" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>{{ n.label }}
             </a>
           }
           <button type="button" class="ghost" (click)="logout()"><app-icon name="iesire" [size]="22" />Ieși</button>
@@ -48,14 +50,6 @@ const NAV: NavItem[] = [
     <app-confirm-dialog />
     <main [class.with-bottom]="auth.account()">
       @if (banner(); as b) { <div class="sub-banner no-print" [class]="'sub-banner ' + b.kind" role="status">{{ b.text }}</div> }
-      @if (showIncoming()) {
-        <!-- Pe orice pagină, până primește (sau refuză) porumbeii trimiși de alți crescători. -->
-        <a class="notice incoming no-print" routerLink="/vanzari" role="status">
-          <app-icon name="vinde" />
-          <span>{{ incoming.count() === 1 ? 'Cineva ți-a trimis (vândut) un porumbel.' : 'Ai ' + incoming.count() + ' porumbei trimiși de alți crescători.' }}
-            <strong>Apasă aici ca să-l primești.</strong></span>
-        </a>
-      }
       <router-outlet />
       <!-- Semnătura: pe calculator mic în colțul din dreapta jos, pe telefon la capătul paginii. -->
       <a class="made-by no-print" href="https://www.soopra.com" target="_blank" rel="noopener">Soopra</a>
@@ -64,8 +58,8 @@ const NAV: NavItem[] = [
       <!-- Pe telefon, meniul stă jos, la îndemâna degetului mare. -->
       <nav class="bottom-nav" aria-label="Meniu">
         @for (n of nav(); track n.path) {
-          <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [class.add]="n.icon === 'plus'">
-            <span class="ico"><app-icon [name]="n.icon" [size]="n.icon === 'plus' ? 30 : 28" /></span>
+          <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [class.add]="n.icon === 'plus'" [attr.aria-label]="ariaOf(n)">
+            <span class="ico"><app-icon [name]="n.icon" [size]="n.icon === 'plus' ? 30 : 28" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>
             <span class="lbl">{{ n.label }}</span>
           </a>
         }
@@ -74,8 +68,14 @@ const NAV: NavItem[] = [
   `,
   styles: `
     .sub-banner { margin-bottom: 14px; font-weight: 600; }
-    .incoming { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 14px; font-weight: 600; min-height: 48px; }
-    .incoming strong { text-decoration: underline; }
+    /* Numărul de porumbei trimiși de alți crescători, ca o notificare deasupra iconiței Vânzări. */
+    .top-nav .ico, .bottom-nav .ico { position: relative; }
+    .top-nav .ico { display: inline-grid; }
+    .badge {
+      position: absolute; top: -7px; right: -9px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+      display: grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; line-height: 1;
+      box-shadow: 0 0 0 2px var(--surface);
+    }
     .top {
       background: rgb(255 253 249 / 94%); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
@@ -94,6 +94,14 @@ const NAV: NavItem[] = [
     }
     .top-nav a:hover, .top-nav .ghost:hover { background: var(--surface-2); color: var(--text); }
     .top-nav a.on { background: var(--accent-soft); color: var(--accent-strong); }
+    /* Calculatoare mai înguste / tablete: meniul de sus mai strâns (iconița deasupra textului), ca să încapă tot. */
+    @media (min-width: 768px) and (max-width: 1060px) {
+      .top-nav a, .top-nav .ghost { flex-direction: column; gap: 2px; padding: 4px 10px; font-size: 0.8rem; border-radius: 14px; }
+      .top-nav > :last-child { margin-right: -10px; }
+    }
+    @media (min-width: 768px) and (max-width: 900px) {
+      .brand { font-size: 0; gap: 0; }
+    }
     main { max-width: 1120px; margin: 0 auto; padding: 20px 24px 40px; }
     .bottom-nav { display: none; }
     .made-by {
@@ -114,9 +122,10 @@ const NAV: NavItem[] = [
       }
       .bottom-nav a {
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-        min-height: 64px; color: var(--muted); text-decoration: none; font-size: 0.85rem; font-weight: 700;
+        min-height: 64px; min-width: 0; color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
       }
-      .bottom-nav .ico { width: 56px; height: 40px; border-radius: 999px; display: grid; place-items: center; transition: background-color 0.2s var(--ease); }
+      .bottom-nav .badge { top: -4px; right: 2px; min-width: 22px; height: 22px; font-size: 0.8rem; }
+      .bottom-nav .ico { width: 52px; height: 40px; border-radius: 999px; display: grid; place-items: center; transition: background-color 0.2s var(--ease); }
       .bottom-nav a.on { color: var(--accent-strong); }
       .bottom-nav a.on .ico { background: var(--accent-soft); }
       .bottom-nav a.add .ico { width: 52px; height: 40px; background: var(--accent); color: #fff; border-radius: 14px; }
@@ -128,21 +137,24 @@ export class App {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   protected readonly incoming = inject(IncomingService);
-  private readonly url = signal('');
-  /** Anunțul porumbeilor de primit: pentru crescători, pe orice pagină în afară de Vânzări (unde sunt chiar ei). */
-  protected readonly showIncoming = computed(() => {
-    const a = this.auth.account();
-    return !!a && !a.isAdmin && this.incoming.count() > 0 && !this.url().startsWith('/vanzari');
-  });
+  /** Numărul de deasupra iconiței Vânzări: porumbeii trimiși de alți crescători, care așteaptă să fie primiți. */
+  protected badgeOf(n: NavItem): string | null {
+    if (n.path !== '/vanzari') return null;
+    const c = this.incoming.count();
+    return c > 0 ? (c > 9 ? '9+' : String(c)) : null;
+  }
+  protected ariaOf(n: NavItem): string | null {
+    const c = n.path === '/vanzari' ? this.incoming.count() : 0;
+    return c > 0 ? `${n.label}: ${c === 1 ? 'un porumbel trimis' : c + ' porumbei trimiși'} de primit` : null;
+  }
 
   constructor() {
     this.router.events.subscribe((e) => {
       if (!(e instanceof NavigationEnd)) return;
-      this.url.set(e.urlAfterRedirects);
       const a = this.auth.account();
       if (a && !a.isAdmin) this.incoming.refresh();
     });
-    // La intrarea în cont se verifică imediat; la ieșire anunțul dispare.
+    // La intrarea în cont se verifică imediat; la ieșire numărul dispare.
     effect(() => {
       const a = this.auth.account();
       if (a && !a.isAdmin) this.incoming.refresh(true);

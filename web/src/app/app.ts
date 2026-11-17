@@ -71,6 +71,8 @@ const NAV: NavItem[] = [
     /* Numărul de porumbei trimiși de alți crescători, ca o notificare deasupra iconiței Vânzări. */
     .top-nav .ico, .bottom-nav .ico { position: relative; }
     .top-nav .ico { display: inline-grid; }
+    /* Sus, în meniul de pe calculator: bulina mai mică, deasupra iconiței, fără să intre peste text. */
+    .top-nav .badge { top: -9px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.7rem; }
     .badge {
       position: absolute; top: -7px; right: -9px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
       display: grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; line-height: 1;

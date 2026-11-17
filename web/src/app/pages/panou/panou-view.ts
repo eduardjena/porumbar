@@ -27,31 +27,32 @@ export const DEFAULT_VIEW: ViewState = {
   q: '', sort: 'nota', group: 'none', sex: '', young: false, prizes: false, breeding: false, todo: false, statuses: [], years: [],
 };
 
-export const SORTS: { key: SortKey; label: string; hint: string }[] = [
-  { key: 'nota', label: 'Notă', hint: 'cei mai valoroși primii' },
-  { key: 'inel', label: 'Inel', hint: 'anul, apoi numărul' },
-  { key: 'tineri', label: 'Cei mai tineri', hint: 'după data eclozării sau anul inelului' },
-  { key: 'batrani', label: 'Cei mai bătrâni', hint: 'după data eclozării sau anul inelului' },
-  { key: 'nume', label: 'Nume', hint: 'A–Z, cei fără nume la sfârșit' },
-  { key: 'loc', label: 'Cel mai bun loc', hint: 'din rezultatele la concursuri' },
-  { key: 'premii', label: 'Cele mai multe premii', hint: 'premiu = în primii 20% din înscriși' },
-  { key: 'coef', label: 'Cel mai bun coeficient', hint: 'locul × 1000 / înscriși, mai mic e mai bine' },
-  { key: 'pui', label: 'Cei mai mulți pui', hint: 'puii din porumbar' },
-  { key: 'recent', label: 'Adăugați recent', hint: 'cei puși ultimii în program' },
+/** `short`: pe pastila din bară (un cuvânt, ca bara să încapă pe un rând orice s-ar alege). */
+export const SORTS: { key: SortKey; label: string; short: string; hint: string }[] = [
+  { key: 'nota', label: 'Notă', short: 'Notă', hint: 'cei mai valoroși primii' },
+  { key: 'inel', label: 'Inel', short: 'Inel', hint: 'anul, apoi numărul' },
+  { key: 'tineri', label: 'Cei mai tineri', short: 'Tineri', hint: 'după data eclozării sau anul inelului' },
+  { key: 'batrani', label: 'Cei mai bătrâni', short: 'Bătrâni', hint: 'după data eclozării sau anul inelului' },
+  { key: 'nume', label: 'Nume', short: 'Nume', hint: 'A–Z, cei fără nume la sfârșit' },
+  { key: 'loc', label: 'Cel mai bun loc', short: 'Loc', hint: 'din rezultatele la concursuri' },
+  { key: 'premii', label: 'Cele mai multe premii', short: 'Premii', hint: 'premiu = în primii 20% din înscriși' },
+  { key: 'coef', label: 'Cel mai bun coeficient', short: 'Coef.', hint: 'locul × 1000 / înscriși, mai mic e mai bine' },
+  { key: 'pui', label: 'Cei mai mulți pui', short: 'Pui', hint: 'puii din porumbar' },
+  { key: 'recent', label: 'Adăugați recent', short: 'Recenți', hint: 'cei puși ultimii în program' },
 ];
 
-export const GROUPS: { key: GroupKey; label: string; hint: string }[] = [
-  { key: 'none', label: 'Fără grupare', hint: 'toți la un loc' },
-  { key: 'sex', label: 'Sex', hint: 'masculi, femele, nesexați' },
-  { key: 'an', label: 'An', hint: 'puii fiecărui an' },
-  { key: 'stare', label: 'Stare', hint: 'concurenți, reproducători, tineri…' },
-  { key: 'nota', label: 'Notă', hint: 'cele 5 trepte de culoare' },
-  { key: 'rezultate', label: 'Rezultate', hint: 'premiați, cu rezultate, fără rezultate' },
-  { key: 'categorie', label: 'Categoria de concurs', hint: 'unde au cel mai bun rezultat' },
-  { key: 'pereche', label: 'Pereche', hint: 'fiecare cuplu din sezon, cu puii lui' },
-  { key: 'linie', label: 'Crescător / linie', hint: 'de unde vin' },
-  { key: 'culoare', label: 'Culoare', hint: 'după culoarea penajului' },
-  { key: 'generatie', label: 'Generația în porumbar', hint: 'aduși, puii lor, nepoții…' },
+export const GROUPS: { key: GroupKey; label: string; short: string; hint: string }[] = [
+  { key: 'none', label: 'Fără grupare', short: 'Grupează', hint: 'toți la un loc' },
+  { key: 'sex', label: 'Sex', short: 'Sex', hint: 'masculi, femele, nesexați' },
+  { key: 'an', label: 'An', short: 'An', hint: 'puii fiecărui an' },
+  { key: 'stare', label: 'Stare', short: 'Stare', hint: 'concurenți, reproducători, tineri…' },
+  { key: 'nota', label: 'Notă', short: 'Notă', hint: 'cele 5 trepte de culoare' },
+  { key: 'rezultate', label: 'Rezultate', short: 'Rezultate', hint: 'premiați, cu rezultate, fără rezultate' },
+  { key: 'categorie', label: 'Categoria de concurs', short: 'Categorie', hint: 'unde au cel mai bun rezultat' },
+  { key: 'pereche', label: 'Pereche', short: 'Pereche', hint: 'fiecare cuplu din sezon, cu puii lui' },
+  { key: 'linie', label: 'Crescător / linie', short: 'Linie', hint: 'de unde vin' },
+  { key: 'culoare', label: 'Culoare', short: 'Culoare', hint: 'după culoarea penajului' },
+  { key: 'generatie', label: 'Generația în porumbar', short: 'Generație', hint: 'aduși, puii lor, nepoții…' },
 ];
 
 const BAND_LABEL: Record<number, string> = { 5: 'Nota 80–100', 4: 'Nota 60–79', 3: 'Nota 40–59', 2: 'Nota 20–39', 1: 'Nota sub 20', 0: 'Fără notă' };

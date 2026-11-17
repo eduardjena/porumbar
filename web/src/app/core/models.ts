@@ -62,6 +62,8 @@ export interface PigeonSummary {
   status: string | null;
   /** Anul nașterii: din data eclozării sau din inel. */
   year: number | null;
+  /** Doar în arbore: ce scrie în căsuța de pe fișa tipărită (culoarea, crescătorul, rezultatele + textul de pedigree). */
+  sheet?: { color: string | null; breeder: string | null; text: string | null };
 }
 
 export interface Value {

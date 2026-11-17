@@ -72,9 +72,31 @@ export interface Value {
   parts: { evaluare?: number; pui: number; reproducator: number };
 }
 
+/** Ce trimite panoul în plus, pentru ordonare, grupare și filtre (bara de sus). */
+export interface BoardFacts {
+  colorLabel: string | null;
+  breeder: string | null;
+  lines: string[];
+  hatchedOn: string | null;
+  createdAt: string;
+  fatherId: number | null;
+  motherId: number | null;
+  /** Rezultatele pe scurt; premiu = în primii 20% din înscriși. */
+  results: { count: number; prizes: number; bestPlace: number | null; bestPenalty: number | null; bestCategory: string | null } | null;
+  /** Perechea din ultimul sezon cu perechi (ca părinte sau ca pui inelat dintr-o pontă a ei). */
+  pair: { id: number; season: number; label: string } | null;
+  /** Reproducător: starea „Reproducător” sau într-o pereche împerecheată (nedespărțită). */
+  breeding: boolean;
+  /** Generația în porumbar: 1 = adus din afară, 2 = puii lor… */
+  loftGen: number;
+  /** Ce e de completat: sex, culoare, parinti / tata / mama. */
+  missing: string[];
+}
+
 export interface BoardPigeon extends PigeonSummary {
   offspringCount: number;
   value: Value;
+  facts: BoardFacts;
 }
 
 export interface NetworkNode {

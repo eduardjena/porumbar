@@ -43,25 +43,27 @@ interface Cell {
     @if (tree()) {
       <!-- Așezat ca pe fișa de pedigree: o coloană pe generație, fiecare porumbel în dreptul puiului lui, strâns pe verticală. -->
       <div class="scroll" tabindex="0" aria-label="Arborele genealogic; se poate derula în lateral">
-        <div class="sheet" [style.grid-template-columns]="'repeat(' + (gen() + 1) + ', 190px)'" [style.grid-template-rows]="'repeat(' + rows() + ', auto)'">
+        <div class="sheet" [style.grid-template-columns]="'repeat(' + (gen() + 1) + ', minmax(160px, 220px))'" [style.grid-template-rows]="'repeat(' + rows() + ', auto)'">
           @for (c of cells(); track c.key) {
-            @if (c.node; as node) {
-              <div class="box" [class.root]="c.depth === 0" [class.f]="c.side === 'father'" [class.m]="c.side === 'mother'"
-                   [style.grid-column]="c.depth + 1" [style.grid-row]="c.row" [style.background]="node.repeat ? color(node.repeat) : null"
-                   (dblclick)="openPigeon(node.id)" title="Dublu clic: deschide fișa">
-                @if (pigeons()[node.id]; as p) {
-                  <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
-                  <span><span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>@if (p.year) { <span class="year"> · {{ p.year }}</span> }</span>
-                  @if (p.name) { <span class="name">„{{ p.name }}”</span> }
-                  @if (p.color) { <span class="muted">{{ catalog.label('colors', p.color) }}</span> }
-                }
-              </div>
-            } @else {
-              <button type="button" class="box empty" [style.grid-column]="c.depth + 1" [style.grid-row]="c.row"
-                      (click)="addParent.emit({ id: c.childId!, side: c.side! })">
-                + Adaugă {{ c.side === 'father' ? 'tatăl' : 'mama' }}
-              </button>
-            }
+            <!-- Celula ocupă toate rândurile porumbelului (ca să știe unde-i e mijlocul); liniile spre pui se desenează din ea. -->
+            <div class="cell" [class.f]="c.side === 'father'" [class.m]="c.side === 'mother'" [class.has-parents]="c.node && c.depth < gen()"
+                 [style.grid-column]="c.depth + 1" [style.grid-row]="c.row">
+              @if (c.node; as node) {
+                <div class="box" [class.root]="c.depth === 0" [style.background]="node.repeat ? color(node.repeat) : null"
+                     (dblclick)="openPigeon(node.id)" title="Dublu clic: deschide fișa">
+                  @if (pigeons()[node.id]; as p) {
+                    <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
+                    <span><span [class]="'sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>@if (p.year) { <span class="year"> · {{ p.year }}</span> }</span>
+                    @if (p.name) { <span class="name">„{{ p.name }}”</span> }
+                    @if (p.color) { <span class="muted">{{ catalog.label('colors', p.color) }}</span> }
+                  }
+                </div>
+              } @else {
+                <button type="button" class="box empty" (click)="addParent.emit({ id: c.childId!, side: c.side! })">
+                  + Adaugă {{ c.side === 'father' ? 'tatăl' : 'mama' }}
+                </button>
+              }
+            </div>
           }
         </div>
       </div>
@@ -78,16 +80,22 @@ interface Cell {
     .bar { margin-bottom: 12px; }
     .scroll { overflow-x: auto; padding: 8px 0 16px; -webkit-overflow-scrolling: touch; }
     /* Ca pe fișă: rândurile le dă ultima generație; fiecare porumbel stă la mijlocul rândurilor puiului lui. */
-    .sheet { display: grid; gap: 4px 10px; width: max-content; }
+    .sheet { display: grid; gap: 4px 24px; width: 100%; justify-content: start; }
+    .cell { position: relative; display: flex; align-items: center; min-width: 0; }
+    /*
+     * Liniile clasice de pedigree: din pui iese o linie spre dreapta, care se desparte spre tată (sus, albastru) și mamă
+     * (jos, roz). Linia verticală e la jumătatea spațiului dintre coloane (12 px), din mijlocul tatălui până în mijlocul mamei.
+     */
+    .cell.has-parents::after { content: ''; position: absolute; left: 100%; top: 50%; width: 12px; border-top: 2px solid var(--border-strong); }
+    .cell.f::before, .cell.m::before { content: ''; position: absolute; left: -12px; width: 12px; }
+    .cell.f::before { top: 50%; bottom: -4px; border-left: 2px solid #8fa9c4; border-top: 2px solid #8fa9c4; border-top-left-radius: 6px; }
+    .cell.m::before { top: 0; height: 50%; border-left: 2px solid #c995be; border-bottom: 2px solid #c995be; border-bottom-left-radius: 6px; }
     .box {
-      align-self: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
       padding: 5px 10px; display: flex; flex-direction: column; font-size: 0.85rem; line-height: 1.3; text-align: left; min-width: 0;
     }
-    /* Tatăl (sus) cu dungă albastră, mama (jos) cu dungă roz, ca liniile de dinainte. */
-    .box.f { box-shadow: inset 4px 0 0 #8fa9c4; }
-    .box.m { box-shadow: inset 4px 0 0 #c995be; }
     .box.root { border: 2px solid var(--accent); }
-    .box.empty { border-style: dashed; color: var(--muted); font-weight: 400; min-height: 48px; justify-content: center; box-shadow: none; background: transparent; }
+    .box.empty { border-style: dashed; color: var(--muted); font-weight: 400; min-height: 48px; justify-content: center; background: transparent; }
     .ring { font-weight: 700; }
     .year { color: var(--muted); font-weight: 700; }
     .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }

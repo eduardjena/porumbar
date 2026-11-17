@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
  */
 export type IconName =
   | 'panou' | 'retea' | 'plus' | 'cont' | 'lista' | 'cautare' | 'editeaza' | 'arbore' | 'jurnal' | 'poze' | 'rude'
-  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'copie' | 'vinde' | 'cupa' | 'ou';
+  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou';
 
 @Component({
   selector: 'app-icon',
@@ -43,6 +43,10 @@ export type IconName =
         @case ('qr') { <rect width="5" height="5" x="3" y="3" rx="1" /><rect width="5" height="5" x="16" y="3" rx="1" /><rect width="5" height="5" x="3" y="16" rx="1" /><path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" /> }
         @case ('tipar') { <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect width="12" height="8" x="6" y="14" /> }
         @case ('trimite') { <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /> }
+        @case ('ordonare') { <path d="m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16" /> }
+        @case ('grupare') { <path d="M12.8 2.2a2 2 0 0 0-1.6 0L2.6 6.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.6 0l8.6-3.9a1 1 0 0 0 0-1.8z" /><path d="m22 17.7-9.2 4.1a2 2 0 0 1-1.6 0L2 17.7M22 12.7l-9.2 4.1a2 2 0 0 1-1.6 0L2 12.7" /> }
+        @case ('filtru') { <path d="M10 20a1 1 0 0 0 .6.9l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .5-1.3l7.2-8A1 1 0 0 0 21 3H3a1 1 0 0 0-.7 1.7l7.2 8A2 2 0 0 1 10 14z" /> }
+        @case ('jos') { <path d="m6 9 6 6 6-6" /> }
         @case ('copie') { <rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2" /> }
         @case ('ou') { <path d="M12 22c6.2 0 7.9-5.6 7.5-10-.4-4.3-3.9-10-7.5-10S4.9 7.7 4.5 12c-.4 4.4 1.3 10 7.5 10z" /> }
         @case ('cupa') { <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8" /><path d="M18 2H6v7a6 6 0 0 0 12 0z" /> }

@@ -90,3 +90,49 @@ test('parametri greșiți', async () => {
   assert.equal((await call(`/api/network?rootId=${rootId}&up=11`, { cookie: a })).status, 400);
   assert.equal((await call(`/api/network?rootId=${rootId}&down=-1`, { cookie: a })).status, 400);
 });
+
+test('panoul are pentru fiecare porumbel ce trebuie la ordonare și grupare: rezultate, pereche, generație, ce lipsește', async () => {
+  const c = await newAccount(call, 'Bara');
+  const mk = async (body) => {
+    const r = await call('/api/pigeons', { method: 'POST', cookie: c, body: { kind: 'own', ...body } });
+    assert.equal(r.status, 201, JSON.stringify(r.data));
+    return r.data.pigeon;
+  };
+  const tata = await mk({ ring: 'RO-20-610001', sex: 'M', color: 'albastru', breederText: 'Herbots', lines: ['Janssen'] });
+  const mama = await mk({ ring: 'RO-21-610002', sex: 'F', color: 'solzat', status: 'reproducator' });
+  const fiu = await mk({ ring: 'RO-24-610003' });
+  assert.equal((await call(`/api/pigeons/${fiu.id}/parents`, { method: 'PUT', cookie: c, body: { fatherId: tata.id, motherId: mama.id } })).status, 200);
+  const nepot = await mk({ ring: 'RO-25-610004', sex: 'M', color: 'rosu' });
+  assert.equal((await call(`/api/pigeons/${nepot.id}/parents`, { method: 'PUT', cookie: c, body: { fatherId: fiu.id, motherId: null } })).status, 200);
+  // Două rezultate ale tatălui: locul 5 din 100 (premiat, în primii 20%) și locul 50 din 100 (fără premiu).
+  const race = (n, date, category) => ({ number: n, organizer: 'Vâlcea', category, date, releasePlace: 'Yablanița', releaseTime: '08:00', entered: 100 });
+  for (const [n, place, category] of [[1, 5, 'fond'], [2, 50, 'viteza']]) {
+    const r = await call(`/api/pigeons/${tata.id}/results`, { method: 'POST', cookie: c, body: { race: race(n, `2026-05-0${n}`, category), place, distanceKm: 500 } });
+    assert.equal(r.status, 201, JSON.stringify(r.data));
+  }
+  const singur = await mk({ ring: 'RO-26-610005' });
+  const pair = (await call('/api/pairs', { method: 'POST', cookie: c, body: { cockId: tata.id, henId: mama.id, pairedOn: '2026-02-10' } })).data.pair;
+
+  const clutch = (await call(`/api/pairs/${pair.id}/clutches`, { method: 'POST', cookie: c, body: { egg1On: '2026-02-20', egg2On: '2026-02-22' } })).data.clutch;
+  const pui = await call(`/api/clutches/${clutch.id}/young`, { method: 'POST', cookie: c, body: { ring: 'RO-26-610009' } });
+  assert.equal(pui.status, 201, JSON.stringify(pui.data));
+
+  const board = (await call('/api/board', { cookie: c })).data.pigeons;
+  const f = (p) => board.find((x) => x.id === p.id).facts;
+  assert.deepEqual(f(tata).results, { count: 2, prizes: 1, bestPlace: 5, bestPenalty: 50, bestCategory: 'fond' });
+  assert.equal(f(mama).results, null);
+  assert.deepEqual(f(tata).pair, { id: pair.id, season: 2026, label: 'RO-20-610001 × RO-21-610002' });
+  assert.equal(f(pui.data.pigeon).pair.id, pair.id, 'puiul inelat din pontă stă la perechea lui');
+  assert.equal(f(tata).breeding, true, 'în perechea activă');
+  assert.equal(f(mama).breeding, true, 'reproducătoare');
+  assert.equal(f(fiu).breeding, false);
+  assert.deepEqual([f(tata).loftGen, f(mama).loftGen, f(fiu).loftGen, f(nepot).loftGen], [1, 1, 2, 3]);
+  assert.deepEqual(f(tata).missing, ['parinti'], 'fără părinți: de completat');
+  assert.deepEqual(f(fiu).missing, ['culoare'], 'sexul i s-a pus când a devenit tată');
+  assert.deepEqual(f(singur).missing, ['sex', 'culoare', 'parinti']);
+  assert.deepEqual(f(nepot).missing, ['mama']);
+  assert.equal(f(tata).breeder, 'Herbots');
+  assert.deepEqual(f(tata).lines, ['Janssen']);
+  assert.equal(f(tata).colorLabel, 'Albastru');
+  assert.ok(f(tata).createdAt);
+});

@@ -1,11 +1,12 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, sexShort } from '../../core/catalog';
 import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
+import { PanouBar } from './panou-bar';
+import { GROUPS, SORTS, ViewState, buildGroups, loadView, resultsLine, saveView } from './panou-view';
 import { SharePdfService } from '../../core/share-pdf';
 
 const BANDS = [
@@ -28,12 +29,12 @@ function reasons(p: BoardPigeon): string {
 
 @Component({
   selector: 'app-panou',
-  imports: [FormsModule, RouterLink, Icon, ViewToggle],
+  imports: [RouterLink, Icon, ViewToggle, PanouBar],
   template: `
     <div class="head">
       <div>
         <h1>Porumbarul meu</h1>
-        @if (loaded()) { <p class="muted count">{{ all().length }} {{ all().length === 1 ? 'porumbel' : 'porumbei' }}, cei mai valoroși primii</p> }
+        @if (loaded()) { <p class="muted count">{{ countLine() }}</p> }
       </div>
       <div class="row actions">
         <app-view-toggle current="grila" />
@@ -43,21 +44,7 @@ function reasons(p: BoardPigeon): string {
       </div>
     </div>
 
-    <div class="filters">
-      <label class="search">
-        <app-icon name="cautare" />
-        <input type="search" placeholder="Caută după inel sau nume" aria-label="Caută după inel sau nume" [(ngModel)]="q" />
-      </label>
-      <select [(ngModel)]="status" aria-label="Starea">
-        <option value="">Orice stare</option>
-        @for (s of catalog.catalog()?.statuses ?? []; track s.code) { <option [value]="s.code">{{ s.label }}</option> }
-      </select>
-      <select [(ngModel)]="sexF" aria-label="Sexul">
-        <option value="">Masculi și femele</option>
-        <option value="M">Masculi</option>
-        <option value="F">Femele</option>
-      </select>
-    </div>
+    @if (all().length) { <app-panou-bar [(state)]="view" [statuses]="catalog.catalog()?.statuses ?? []" [years]="years()" /> }
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (shareNote(); as n) { <div class="notice" role="status">{{ n }}</div> }
@@ -69,38 +56,48 @@ function reasons(p: BoardPigeon): string {
         <p class="muted">Adaugă primul porumbel. Durează un minut.</p>
         <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Adaugă primul porumbel</a>
       </div>
-    } @else if (loaded() && !shown().length) {
-      <p class="muted">Niciun porumbel nu se potrivește căutării.</p>
+    } @else if (loaded() && !shownCount()) {
+      <p class="muted">Niciun porumbel nu se potrivește căutării sau filtrelor.</p>
     }
 
-    <!-- Grilă compactă: încap zeci de porumbei pe ecran (2 pe rând pe telefon, 5–6 pe calculator). -->
-    <ol class="grid">
-      @for (p of shown(); track p.id) {
-        <li>
-          <a [routerLink]="['/porumbei', p.id]" class="tile" [title]="why(p)">
-            <span class="top">
-              <span class="score" [class]="'score band-' + p.value.band" [attr.aria-label]="p.value.score == null ? 'fără notă' : 'nota ' + p.value.score">
-                {{ p.value.score ?? '–' }}
-              </span>
-              <span [class]="'sex sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
-            </span>
-            <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
-            <span class="name">{{ p.name || ' ' }}</span>
-            <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
-            <span class="why">{{ why(p) }}</span>
-          </a>
-          <!-- Tipărirea direct din panou, în colțul din dreapta sus al casetei (nu în link-ul casetei: link în link nu se poate). -->
-          <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" title="Tipărește pedigree-ul" [attr.aria-label]="'Tipărește pedigree-ul lui ' + (p.ring?.display ?? p.name ?? 'porumbel')">
-            <app-icon name="tipar" [size]="22" />
-          </a>
-          <!-- Trimite fișa ca PDF (WhatsApp, mail…), în colțul din dreapta jos: sus nu mai e loc lângă notă pe telefon. -->
-          <button type="button" class="share" (click)="send(p.id)" [disabled]="share.busy() === p.id" [attr.aria-busy]="share.busy() === p.id"
-                  title="Trimite fișa (PDF)" [attr.aria-label]="'Trimite fișa ca PDF pentru ' + (p.ring?.display ?? p.name ?? 'porumbel')">
-            <app-icon name="trimite" [size]="22" />
-          </button>
-        </li>
+    <!-- Grilă compactă: încap zeci de porumbei pe ecran (2 pe rând pe telefon, 5–6 pe calculator); cu grupare, câte o secțiune pe grupă. -->
+    @for (g of groups(); track g.key) {
+      @if (g.label) {
+        <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has(g.key)" (click)="toggleGroup(g.key)">
+          <app-icon name="jos" [size]="22" [class.shut]="collapsed().has(g.key)" />
+          <span>{{ g.label }}</span><span class="n">{{ g.items.length }}</span>
+        </button>
       }
-    </ol>
+      @if (!collapsed().has(g.key)) {
+        <ol class="grid">
+          @for (p of g.items; track p.id) {
+            <li>
+              <a [routerLink]="['/porumbei', p.id]" class="tile" [title]="why(p)">
+                <span class="top">
+                  <span class="score" [class]="'score band-' + p.value.band" [attr.aria-label]="p.value.score == null ? 'fără notă' : 'nota ' + p.value.score">
+                    {{ p.value.score ?? '–' }}
+                  </span>
+                  <span [class]="'sex sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
+                </span>
+                <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+                <span class="name">{{ p.name || ' ' }}</span>
+                <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
+                <span class="why">{{ resultsMode() ? resultsLine(p) : why(p) }}</span>
+              </a>
+              <!-- Tipărirea direct din panou, în colțul din dreapta sus al casetei (nu în link-ul casetei: link în link nu se poate). -->
+              <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" title="Tipărește pedigree-ul" [attr.aria-label]="'Tipărește pedigree-ul lui ' + (p.ring?.display ?? p.name ?? 'porumbel')">
+                <app-icon name="tipar" [size]="22" />
+              </a>
+              <!-- Trimite fișa ca PDF (WhatsApp, mail…), în colțul din dreapta jos: sus nu mai e loc lângă notă pe telefon. -->
+              <button type="button" class="share" (click)="send(p.id)" [disabled]="share.busy() === p.id" [attr.aria-busy]="share.busy() === p.id"
+                      title="Trimite fișa (PDF)" [attr.aria-label]="'Trimite fișa ca PDF pentru ' + (p.ring?.display ?? p.name ?? 'porumbel')">
+                <app-icon name="trimite" [size]="22" />
+              </button>
+            </li>
+          }
+        </ol>
+      }
+    }
 
     @if (all().length) {
       <div class="legend" aria-label="Culorile notei">
@@ -114,11 +111,14 @@ function reasons(p: BoardPigeon): string {
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .head h1 { margin-bottom: 2px; }
     .count { margin: 0; }
-    .filters { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 18px; }
-    .filters select { width: auto; }
-    .search { position: relative; display: block; }
-    .search app-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
-    .search input { padding-left: 50px; border-radius: 999px; }
+        .group-head {
+      display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; margin: 18px 0 8px; padding: 6px 4px; border: 0;
+      border-bottom: 2px solid var(--border); border-radius: 0; background: none; box-shadow: none; color: var(--text); font-size: 1.1rem; font-weight: 800; text-align: left;
+    }
+    .group-head:first-of-type { margin-top: 4px; }
+    .group-head app-icon { color: var(--muted); transition: transform 0.2s var(--ease); }
+    .group-head app-icon.shut { transform: rotate(-90deg); }
+    .group-head .n { margin-left: auto; min-width: 32px; padding: 2px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 0.95rem; text-align: center; }
     .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 10px; }
     .tile {
       display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: var(--radius); background: var(--surface);
@@ -156,8 +156,6 @@ function reasons(p: BoardPigeon): string {
     .empty-ico { width: 88px; height: 88px; border-radius: 28px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
     @media (max-width: 767px) {
       .actions .add { display: none; }
-      .filters { grid-template-columns: 1fr 1fr; }
-      .search { grid-column: 1 / -1; }
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
       .tile { padding: 10px; }
     }
@@ -184,30 +182,46 @@ export default class Panou {
       this.error.set(`Fișa nu s-a putut pregăti: ${errorMessage(e)}`);
     }
   }
-  readonly qS = signal('');
-  readonly statusS = signal('');
-  readonly sexS = signal('');
-
-  get q() { return this.qS(); }
-  set q(v: string) { this.qS.set(v); }
-  get status() { return this.statusS(); }
-  set status(v: string) { this.statusS.set(v); }
-  get sexF() { return this.sexS(); }
-  set sexF(v: string) { this.sexS.set(v); }
-
-  protected readonly shown = computed(() => {
-    const q = this.qS().trim().toLowerCase().replace(/[\s/-]+/g, '');
-    return this.all().filter((p) => {
-      if (this.statusS() && p.status !== this.statusS()) return false;
-      if (this.sexS() && p.sex !== this.sexS()) return false;
-      if (!q) return true;
-      const hay = `${p.ring?.display ?? ''}${p.ring?.raw ?? ''}${p.name ?? ''}`.toLowerCase().replace(/[\s/-]+/g, '');
-      return hay.includes(q) || hay.includes(q.replace(/^0+/, ''));
-    });
+  /** Ce arată bara: căutarea, ordonarea, gruparea, filtrele (ținute minte, fără căutare). */
+  readonly view = signal<ViewState>(loadView());
+  /** Grupele strânse (se deschid la loc când se schimbă gruparea). */
+  readonly collapsed = signal<Set<string>>(new Set());
+  protected readonly resultsLine = resultsLine;
+  protected readonly groups = computed(() => buildGroups(this.all(), this.view(), this.catalog.catalog()));
+  protected readonly shownCount = computed(() => this.groups().reduce((n, g) => n + g.items.length, 0));
+  protected readonly years = computed(() => [...new Set(this.all().map((p) => p.year).filter((y): y is number => !!y))].sort((a, b) => b - a));
+  /** Rândul de jos al casetei arată rezultatele când ordonarea sau gruparea e după ele. */
+  protected readonly resultsMode = computed(() => ['loc', 'premii', 'coef'].includes(this.view().sort) || ['rezultate', 'categorie'].includes(this.view().group));
+  protected readonly countLine = computed(() => {
+    const n = this.all().length;
+    const v = this.view();
+    const shown = this.shownCount();
+    const sort = SORTS.find((s) => s.key === v.sort);
+    const parts = [`${n} ${n === 1 ? 'porumbel' : 'porumbei'}`];
+    if (shown !== n) parts.push(`${shown} ${shown === 1 ? 'afișat' : 'afișați'}`);
+    parts.push(v.sort === 'nota' ? 'cei mai valoroși primii' : `după ${sort?.label.toLowerCase()}`);
+    if (v.group !== 'none') parts.push(`grupați: ${GROUPS.find((g) => g.key === v.group)?.label.toLowerCase()}`);
+    return parts.join(' · ');
   });
+
+  toggleGroup(key: string) {
+    const next = new Set(this.collapsed());
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.collapsed.set(next);
+  }
 
   constructor() {
     this.load();
+    let group = this.view().group;
+    effect(() => {
+      const v = this.view();
+      saveView(v);
+      if (v.group !== group) {
+        group = v.group;
+        this.collapsed.set(new Set());
+      }
+    });
   }
 
   private async load() {

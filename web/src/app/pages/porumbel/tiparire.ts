@@ -5,6 +5,7 @@ import { ConfirmService } from '../../core/confirm';
 import { PedigreeV1 } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { PedigreePage } from '../../shared/pedigree-page';
+import { ShareButton } from '../../shared/share-button';
 
 /*
  * Pedigree-ul tipărit (A4 vertical, ca fișele de pedigree pe hârtie): 5 generații în căsuțe, strămoșii repetați colorați, jos datele
@@ -13,7 +14,7 @@ import { PedigreePage } from '../../shared/pedigree-page';
  */
 @Component({
   selector: 'app-tiparire',
-  imports: [RouterLink, Icon, PedigreePage],
+  imports: [RouterLink, Icon, PedigreePage, ShareButton],
   template: `
     <div class="bar no-print">
       <a class="btn" [routerLink]="['/porumbei', id()]" [queryParams]="{ fila: inapoi() === 'arbore' ? 'arbore' : 'qr' }"><app-icon name="inapoi" />Înapoi la porumbel</a>
@@ -21,6 +22,7 @@ import { PedigreePage } from '../../shared/pedigree-page';
         <button type="button" (click)="startLink()"><app-icon name="qr" />Pune și codul QR (pornește linkul)</button>
       }
       <button type="button" class="primary" (click)="print()"><app-icon name="tipar" />Tipărește / Salvează PDF</button>
+      <app-share-button [pigeonId]="+id()" />
     </div>
     @if (error()) { <div class="error no-print" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 

@@ -4,6 +4,7 @@ import { Api, errorMessage } from '../../core/api';
 import { CatalogService, percent, ringText, sexShort } from '../../core/catalog';
 import { CoiResult, PigeonSummary, TreeNode } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { ShareButton } from '../../shared/share-button';
 
 // Culori deschise pentru strămoșii care se repetă (textul negru rămâne lizibil pe toate).
 const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#ffd6b0'];
@@ -25,7 +26,7 @@ interface Cell {
  */
 @Component({
   selector: 'app-arbore',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, ShareButton],
   template: `
     <div class="bar row">
       <button type="button" (click)="setGen(gen() - 1)" [disabled]="gen() <= 1">− generații</button>
@@ -33,6 +34,7 @@ interface Cell {
       <button type="button" (click)="setGen(gen() + 1)" [disabled]="gen() >= 5">+ generații</button>
       <!-- Tipărirea pedigree-ului direct de aici (pagina de tipar, foaia A4 cu 5 generații). -->
       <a class="btn print" [routerLink]="['/porumbei', pigeonId(), 'tiparire']" [queryParams]="{ inapoi: 'arbore' }"><app-icon name="tipar" />Tipărește</a>
+      <app-share-button [pigeonId]="pigeonId()" />
     </div>
     @if (coi(); as c) {
       <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'">

@@ -6,6 +6,7 @@ import { CatalogService, sexShort } from '../../core/catalog';
 import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
+import { SharePdfService } from '../../core/share-pdf';
 
 const BANDS = [
   { band: 5, label: '80–100' },
@@ -59,6 +60,7 @@ function reasons(p: BoardPigeon): string {
     </div>
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
+    @if (shareNote(); as n) { <div class="notice" role="status">{{ n }}</div> }
 
     @if (loaded() && !all().length) {
       <div class="empty card">
@@ -91,6 +93,11 @@ function reasons(p: BoardPigeon): string {
           <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" title="Tipărește pedigree-ul" [attr.aria-label]="'Tipărește pedigree-ul lui ' + (p.ring?.display ?? p.name ?? 'porumbel')">
             <app-icon name="tipar" [size]="22" />
           </a>
+          <!-- Trimite fișa ca PDF (WhatsApp, mail…), în colțul din dreapta jos: sus nu mai e loc lângă notă pe telefon. -->
+          <button type="button" class="share" (click)="send(p.id)" [disabled]="share.busy() === p.id" [attr.aria-busy]="share.busy() === p.id"
+                  title="Trimite fișa (PDF)" [attr.aria-label]="'Trimite fișa ca PDF pentru ' + (p.ring?.display ?? p.name ?? 'porumbel')">
+            <app-icon name="trimite" [size]="22" />
+          </button>
         </li>
       }
     </ol>
@@ -126,7 +133,15 @@ function reasons(p: BoardPigeon): string {
       position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
       color: var(--muted); text-decoration: none; transition: color 0.15s, background 0.15s;
     }
-    .print:hover, .print:focus-visible { color: var(--accent); background: var(--accent-soft); }
+    .share {
+      position: absolute; bottom: 6px; right: 6px; width: 44px; height: 44px; min-height: 0; padding: 0; border: 0; border-radius: 12px;
+      display: grid; place-items: center; background: transparent; box-shadow: none; color: var(--muted); transition: color 0.15s, background 0.15s;
+    }
+    .print:hover, .print:focus-visible, .share:hover, .share:focus-visible { color: var(--accent); background: var(--accent-soft); }
+    .share[aria-busy='true'] { opacity: 1; color: var(--accent); animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.35; } }
+    /* Textele de jos lasă loc butonului de trimis. */
+    .tile .meta, .tile .why { padding-right: 42px; }
     .score { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 1.25rem; font-weight: 800; }
     .sex { font-size: 1rem; padding-top: 2px; }
     .ring { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -157,6 +172,18 @@ export default class Panou {
   readonly all = signal<BoardPigeon[]>([]);
   readonly loaded = signal(false);
   readonly error = signal('');
+  protected readonly share = inject(SharePdfService);
+  /** Mesajul de după „Trimite” (de ex. PDF-ul s-a descărcat, unde browserul nu poate trimite fișiere). */
+  readonly shareNote = signal('');
+
+  async send(id: number) {
+    this.shareNote.set('');
+    try {
+      if ((await this.share.sharePigeon(id)) === 'downloaded') this.shareNote.set('Fișa s-a descărcat ca PDF; o poți trimite de acolo.');
+    } catch (e) {
+      this.error.set(`Fișa nu s-a putut pregăti: ${errorMessage(e)}`);
+    }
+  }
   readonly qS = signal('');
   readonly statusS = signal('');
   readonly sexS = signal('');

@@ -6,7 +6,7 @@ import { CatalogService, sexLabel } from '../../core/catalog';
 import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
-import { Arbore } from './arbore';
+import { PedigreeFila } from './pedigree-fila';
 import { Partajare } from './partajare';
 import { Rezultate } from './rezultate';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
@@ -25,7 +25,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, Rezultate],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, PedigreeFila, Icon, Breadcrumbs, Partajare, Rezultate],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -106,7 +106,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           }
         }
         @case ('arbore') {
-          <app-arbore [pigeonId]="p.id" [version]="version()" (addParent)="openParent($event.id)" />
+          <app-pedigree-fila [pigeonId]="p.id" [version]="version()" (addParent)="openParent($event.id)" />
         }
         @case ('rezultate') {
           <app-rezultate [pigeonId]="p.id" />

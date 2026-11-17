@@ -104,7 +104,8 @@ export class Arbore {
   readonly version = input(0);
   readonly addParent = output<{ id: number; side: string }>();
 
-  readonly gen = signal(3);
+  // 5 generații (porumbelul + 4), ca pe fișa tipărită.
+  readonly gen = signal(4);
   readonly tree = signal<TreeNode | null>(null);
   readonly pigeons = signal<Record<number, PigeonSummary>>({});
   readonly coi = signal<CoiResult | null>(null);

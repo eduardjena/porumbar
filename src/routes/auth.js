@@ -49,6 +49,20 @@ export function authRouter() {
       email, name, await hashPassword(password), nowIso(),
     );
     await createSession(res, id, req.headers['user-agent']);
+    // Vânzătorul află de contul nou, ca să-l contacteze și să-i activeze abonamentul. Un mail eșuat nu oprește contul.
+    if (config.adminEmail) {
+      try {
+        await sendMail({
+          to: config.adminEmail,
+          subject: `Cont nou în Porumbar: ${name}`,
+          text:
+            `Și-a făcut cont în Porumbar:\n\nNume: ${name}\nEmail: ${email}\nData: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}\n\n` +
+            `Contul e doar citire până îl activezi. Îl găsești în consola vânzătorului, la „Neactivați”:\n${config.publicBaseUrl}/vanzator\n`,
+        });
+      } catch (err) {
+        console.error('[porumbar] Mailul despre contul nou nu a plecat:', err.message);
+      }
+    }
     res.status(201).json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', id)) });
   });
 

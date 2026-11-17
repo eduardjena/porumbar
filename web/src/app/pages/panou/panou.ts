@@ -87,6 +87,10 @@ function reasons(p: BoardPigeon): string {
             <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
             <span class="why">{{ why(p) }}</span>
           </a>
+          <!-- Tipărirea direct din panou, în colțul din dreapta sus al casetei (nu în link-ul casetei: link în link nu se poate). -->
+          <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" title="Tipărește pedigree-ul" [attr.aria-label]="'Tipărește pedigree-ul lui ' + (p.ring?.display ?? p.name ?? 'porumbel')">
+            <app-icon name="tipar" [size]="22" />
+          </a>
         </li>
       }
     </ol>
@@ -116,7 +120,13 @@ function reasons(p: BoardPigeon): string {
     }
     .tile:hover { border-color: var(--accent); }
     .tile:active { transform: scale(0.98); }
-    .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .grid > li { position: relative; }
+    .top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 6px; padding-right: 40px; }
+    .print {
+      position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+      color: var(--muted); text-decoration: none; transition: color 0.15s, background 0.15s;
+    }
+    .print:hover, .print:focus-visible { color: var(--accent); background: var(--accent-soft); }
     .score { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 1.25rem; font-weight: 800; }
     .sex { font-size: 1rem; padding-top: 2px; }
     .ring { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -1,10 +1,10 @@
 import crypto from 'node:crypto';
-import { isLang } from './i18n.js';
+import { isLang, setCurrentLang } from './i18n.js';
 import bcrypt from 'bcryptjs';
 import { config } from './config.js';
 import { one, run, nowIso } from './db.js';
 import { HttpError, badRequest } from './http.js';
-import { isAdminEmail, readOnlyMessage, subscriptionOf } from './subscriptions.js';
+import { isAdminEmail, readOnlyError, subscriptionOf } from './subscriptions.js';
 
 export const SESSION_COOKIE = 'porumbar_session';
 const SESSION_DAYS = 90;
@@ -15,8 +15,8 @@ export const hashPassword = (password) => bcrypt.hash(password, 12);
 export const checkPassword = (hash, password) => bcrypt.compare(String(password ?? ''), hash);
 
 export function validatePassword(password) {
-  if (typeof password !== 'string' || [...password].length < 10) throw badRequest('Parola trebuie să aibă cel puțin 10 caractere.');
-  if (password.length > 200) throw badRequest('Parola este prea lungă.');
+  if (typeof password !== 'string' || [...password].length < 10) throw badRequest('eroare.parola_scurta');
+  if (password.length > 200) throw badRequest('eroare.parola_lunga');
   return password;
 }
 
@@ -94,7 +94,7 @@ export async function endSession(req, res) {
 export async function requireAccount(req, res, next) {
   try {
     const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
-    if (!token) throw new HttpError(401, 'Trebuie să intri în cont.');
+    if (!token) throw new HttpError(401, 'eroare.trebuie_cont');
     const hash = sha256(token);
     const row = await one(
       `SELECT a.id, a.email, a.name, a.pedigree_name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
@@ -104,7 +104,7 @@ export async function requireAccount(req, res, next) {
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
       hash, SESSION_DAYS,
     );
-    if (!row) throw new HttpError(401, 'Trebuie să intri în cont.');
+    if (!row) throw new HttpError(401, 'eroare.trebuie_cont');
     // Actualizat cel mult o dată pe oră, ca sesiunea să nu expire cât e folosită.
     if (Date.now() - Date.parse(row.last_seen_at) > 3600_000) {
       const now = nowIso();
@@ -113,11 +113,12 @@ export async function requireAccount(req, res, next) {
     }
     req.account = publicAccount(row);
     req.lang = req.account.lang;
+    setCurrentLang(req.lang);
     req.sessionHash = hash;
     // Fără abonament activ: doar citire. Setările contului (/api/auth) și consola (/api/admin) merg oricum.
     const writes = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
     const exempt = /^\/api\/(auth|admin)(\/|$)/.test(req.originalUrl);
-    if (writes && !exempt && !req.account.subscription.active) throw new HttpError(402, readOnlyMessage(req.account.subscription.status));
+    if (writes && !exempt && !req.account.subscription.active) throw readOnlyError(req.account.subscription.status);
     next();
   } catch (err) {
     next(err);

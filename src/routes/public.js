@@ -19,13 +19,13 @@ const urlOf = (token) => (token ? `${config.publicBaseUrl}/p/${token}` : null);
 
 async function ownRow(accountId, id) {
   const row = await getPigeonRow(accountId, id);
-  if (row.kind !== 'own') throw badRequest('Doar porumbeii din porumbarul tău pot avea link public.');
+  if (row.kind !== 'own') throw badRequest('eroare.link_doar_proprii');
   return row;
 }
 
 async function byToken(token) {
   const row = /^[A-Za-z0-9_-]{16,64}$/.test(String(token)) ? await one('SELECT id, account_id FROM pigeons WHERE public_token = ?', token) : null;
-  if (!row) throw notFound('Linkul nu mai este valabil. Cere-i crescătorului unul nou.');
+  if (!row) throw notFound('eroare.link_invalid');
   return row;
 }
 
@@ -73,7 +73,7 @@ export function publicRouter() {
   // Cu cont: „Preia în porumbarul meu” – o copie (implicit „din alt porumbar”; „own” dacă e acum al lui).
   r.post('/public/:token/import', requireAccount, publicLimit, async (req, res) => {
     const row = await byToken(req.params.token);
-    if (row.account_id === req.account.id) throw badRequest('Porumbelul este deja în porumbarul tău.');
+    if (row.account_id === req.account.id) throw badRequest('eroare.deja_al_tau');
     const kind = req.body?.kind === 'own' ? 'own' : 'external';
     const ped = await pedigreeV1(row.account_id, row.id);
     const result = await importPedigree(req.account.id, toImportNode(ped.root), kind);

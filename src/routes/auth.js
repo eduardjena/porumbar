@@ -9,13 +9,13 @@ import {
   publicAccount, randomToken, sha256, TREE_VIEWS,
 } from '../accounts.js';
 import { isAdminEmail } from '../subscriptions.js';
-import { isLang, isPublicLang } from '../i18n.js';
+import { isLang, isPublicLang, t } from '../i18n.js';
 
 const RESET_MINUTES = 60;
 let dummyHash = null;
 const emailOf = (v) => {
-  const e = text(v, 'email', { max: 200 });
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw badRequest('Adresa de email nu pare corectă.');
+  const e = text(v, 'camp.email', { max: 200 });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw badRequest('eroare.email_gresit');
   return e;
 };
 
@@ -39,14 +39,14 @@ export function authRouter() {
     const email = emailOf(req.body?.email);
     // Contul vânzătorului se face doar la pornirea serverului (ADMIN_EMAIL + ADMIN_PASSWORD), niciodată din formular:
     // altfel primul care se înregistra cu acel email devenea admin.
-    if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
+    if (isAdminEmail(email)) throw new HttpError(409, 'eroare.email_exista');
     const password = validatePassword(req.body?.password);
-    const name = text(req.body?.name, 'nume', { max: 120 });
+    const name = text(req.body?.name, 'camp.nume', { max: 120 });
     // Limba de pe ecran; una „în probă” (nepublică) o poate pune doar vânzătorul.
     const lang = req.body?.lang ?? 'ro';
-    if (!isPublicLang(lang)) throw badRequest('Limba aleasă nu este disponibilă.');
+    if (!isPublicLang(lang)) throw badRequest('eroare.limba_indisponibila');
     if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) {
-      throw new HttpError(409, 'Există deja un cont cu acest email.');
+      throw new HttpError(409, 'eroare.email_exista');
     }
     const id = await insert(
       'INSERT INTO accounts (email, name, password_hash, created_at, lang) VALUES (?, ?, ?, ?, ?)',
@@ -58,13 +58,14 @@ export function authRouter() {
       try {
         await sendMail({
           to: config.adminEmail,
-          subject: `Cont nou în Porumbar: ${name}`,
+          // Pentru vânzător: în română.
+          subject: `Cont nou în Porumbar: ${name}`, // i18n: ro
           text:
-            `Și-a făcut cont în Porumbar:\n\nNume: ${name}\nEmail: ${email}\nData: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}\n\n` +
-            `Contul e doar citire până îl activezi. Îl găsești în consola vânzătorului, la „Neactivați”:\n${config.publicBaseUrl}/vanzator\n`,
+            `Și-a făcut cont în Porumbar:\n\nNume: ${name}\nEmail: ${email}\nData: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}\n\n` + // i18n: ro
+            `Contul e doar citire până îl activezi. Îl găsești în consola vânzătorului, la „Neactivați”:\n${config.publicBaseUrl}/vanzator\n`, // i18n: ro
         });
       } catch (err) {
-        console.error('[porumbar] Mailul despre contul nou nu a plecat:', err.message);
+        console.error('[porumbar] Mailul despre contul nou nu a plecat:', err.message); // i18n: ro
       }
     }
     res.status(201).json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', id)) });
@@ -77,7 +78,7 @@ export function authRouter() {
     dummyHash ??= await hashPassword('fara-cont-fara-cont');
     const ok = await checkPassword(account?.password_hash ?? dummyHash, req.body?.password);
     // Același mesaj pentru orice greșeală (nu spune cine are cont), cu un îndemn pentru cei făcuți de vânzător.
-    if (!account || !ok) throw new HttpError(401, 'Email sau parolă greșită. Dacă ți-a făcut contul vânzătorul, deschide întâi linkul primit de la el.');
+    if (!account || !ok) throw new HttpError(401, 'eroare.login_gresit');
     await createSession(res, account.id, req.headers['user-agent']);
     res.json({ account: publicAccount(account) });
   });
@@ -95,25 +96,25 @@ export function authRouter() {
     // Adminul (vânzătorul) își schimbă singur datele lui.
     const locked = ['name', 'pedigreeName', 'phone', 'address'].filter((k) => b[k] !== undefined);
     if (locked.length && !req.account.isAdmin) {
-      throw new HttpError(403, 'Numele, numele de pe fișă, telefonul și adresa le schimbă doar cel de la care ai primit programul (vânzătorul).');
+      throw new HttpError(403, 'eroare.date_doar_vanzator');
     }
-    const name = b.name === undefined ? req.account.name : text(b.name, 'nume', { max: 120 });
-    const pedigreeName = b.pedigreeName === undefined ? req.account.pedigreeName : text(b.pedigreeName, 'numele de pe pedigree', { max: 120, optional: true });
-    const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
-    const address = b.address === undefined ? req.account.address : text(b.address, 'adresă', { max: 300, optional: true });
+    const name = b.name === undefined ? req.account.name : text(b.name, 'camp.nume', { max: 120 });
+    const pedigreeName = b.pedigreeName === undefined ? req.account.pedigreeName : text(b.pedigreeName, 'camp.nume_fisa', { max: 120, optional: true });
+    const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'camp.telefon', { max: 40, optional: true });
+    const address = b.address === undefined ? req.account.address : text(b.address, 'camp.adresa', { max: 300, optional: true });
     // Limba: oricare publică sau cea pe care o are deja; una în probă o pune doar vânzătorul.
     let lang = req.account.lang;
     if (b.lang !== undefined) {
-      if (!isLang(b.lang)) throw badRequest('Limba aleasă nu este disponibilă.');
+      if (!isLang(b.lang)) throw badRequest('eroare.limba_indisponibila');
       if (b.lang !== lang && !isPublicLang(b.lang) && !req.account.isAdmin) {
-        throw new HttpError(403, 'Această limbă ți-o poate pune doar cel de la care ai primit programul (vânzătorul).');
+        throw new HttpError(403, 'eroare.limba_doar_vanzator');
       }
       lang = b.lang;
     }
-    const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'vederea Arborelui');
+    const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'camp.vedere_arbore');
     const flag = (key) => {
       if (b[key] === undefined) return req.account[key];
-      if (typeof b[key] !== 'boolean') throw badRequest('Bifele trebuie să fie da sau nu.');
+      if (typeof b[key] !== 'boolean') throw badRequest('eroare.bife');
       return b[key];
     };
     await run(
@@ -127,7 +128,7 @@ export function authRouter() {
 
   r.delete('/me', requireAccount, loginLimit, async (req, res) => {
     const account = await one('SELECT * FROM accounts WHERE id = ?', req.account.id);
-    if (!(await checkPassword(account.password_hash, req.body?.password))) throw new HttpError(401, 'Parola nu este corectă.');
+    if (!(await checkPassword(account.password_hash, req.body?.password))) throw new HttpError(401, 'eroare.parola_gresita');
     await tx(async () => {
       await onAccountDeleted(account.id);
       await run('DELETE FROM accounts WHERE id = ?', account.id);
@@ -148,11 +149,8 @@ export function authRouter() {
       const link = `${config.publicBaseUrl}/parola-noua/${token}`;
       await sendMail({
         to: account.email,
-        subject: 'Parolă nouă pentru Porumbar',
-        text:
-          `Bună, ${account.name}!\n\nCineva (sperăm că tu) a cerut o parolă nouă pentru contul tău Porumbar.\n` +
-          `Deschide linkul de mai jos în cel mult o oră și alege parola nouă:\n\n${link}\n\n` +
-          'Dacă nu ai cerut tu, nu face nimic: parola ta rămâne aceeași.\n',
+        subject: t(account.lang, 'mail.parola.subiect'),
+        text: t(account.lang, 'mail.parola_uitata.text', { nume: account.name, link }),
       });
     }
     // Același răspuns pentru orice email: nu se află cine are cont.
@@ -164,7 +162,7 @@ export function authRouter() {
     const hash = sha256(String(req.body?.token ?? ''));
     const accountId = await tx(async () => {
       const row = await one('SELECT * FROM password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > now() FOR UPDATE', hash);
-      if (!row) throw badRequest('Linkul a expirat sau a fost folosit.');
+      if (!row) throw badRequest('eroare.link_expirat');
       // Linkul folosit și toate celelalte linkuri încă nefolosite ale contului nu mai merg.
       await run('UPDATE password_resets SET used_at = now() WHERE account_id = ? AND used_at IS NULL', row.account_id);
       await run('UPDATE accounts SET password_hash = ?, invited = false WHERE id = ?', await hashPassword(password), row.account_id);

@@ -5,7 +5,7 @@ import { HttpError, badRequest, notFound, realDate, text } from '../http.js';
 import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.js';
 import { sendMail } from '../mail.js';
 import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscriptions.js';
-import { isLang } from '../i18n.js';
+import { isLang, t } from '../i18n.js';
 
 /*
  * Consola vânzătorului (un singur admin: contul cu ADMIN_EMAIL). Vede datele de cont ale crescătorilor (nume,
@@ -30,7 +30,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const STATUSES = ['pending', 'active', 'expiring', 'expired'];
 
 function requireAdmin(req, res, next) {
-  if (!req.account?.isAdmin) return next(new HttpError(403, 'Doar vânzătorul are acces aici.'));
+  if (!req.account?.isAdmin) return next(new HttpError(403, 'Doar vânzătorul are acces aici.')); // i18n: ro
   next();
 }
 
@@ -52,13 +52,13 @@ export function validCnp(cnp) {
  */
 function identityOf(b) {
   const kind = b.kind ?? 'pf';
-  if (!['pf', 'firma'].includes(kind)) throw badRequest('Alege „persoană fizică” sau „firmă”.');
+  if (!['pf', 'firma'].includes(kind)) throw badRequest('Alege „persoană fizică” sau „firmă”.'); // i18n: ro
   const out = {
     kind,
     name: text(b.name, 'nume', { max: 120 }),
-    sheetName: text(b.sheetName, 'numele de pe fișă', { max: 120, optional: true }),
+    sheetName: text(b.sheetName, 'numele de pe fișă', { max: 120, optional: true }), // i18n: ro
     phone: text(b.phone, 'telefon', { max: 40, optional: true }),
-    address: text(b.address, 'adresă', { max: 300, optional: true }),
+    address: text(b.address, 'adresă', { max: 300, optional: true }), // i18n: ro
     // Lipsă = rămâne cea de acum.
     lang: b.lang ?? null,
     cnp: null,
@@ -66,11 +66,11 @@ function identityOf(b) {
     cui: null,
     regCom: null,
   };
-  if (out.lang !== null && !isLang(out.lang)) throw badRequest('Limba aleasă nu este disponibilă.');
+  if (out.lang !== null && !isLang(out.lang)) throw badRequest('Limba aleasă nu este disponibilă.'); // i18n: ro
   if (kind === 'pf') {
     // Lipit din alt document poate avea spații între cifre.
     out.cnp = text(typeof b.cnp === 'string' ? b.cnp.replace(/\s+/g, '') : b.cnp, 'CNP', { max: 13, optional: true });
-    if (out.cnp && !validCnp(out.cnp)) throw badRequest('CNP-ul nu pare corect (13 cifre, verifică-l încă o dată).');
+    if (out.cnp && !validCnp(out.cnp)) throw badRequest('CNP-ul nu pare corect (13 cifre, verifică-l încă o dată).'); // i18n: ro
   } else {
     out.companyName = text(b.companyName, 'denumirea firmei', { max: 200, optional: true });
     const cui = text(b.cui, 'CUI', { max: 14, optional: true });
@@ -84,7 +84,7 @@ function identityOf(b) {
 const IDENTITY_SQL = `UPDATE accounts SET legal_kind = ?, name = ?, pedigree_name = ?, phone = ?, address = ?, cnp = ?, company_name = ?,
   company_cui = ?, company_reg = ?, lang = COALESCE(?, lang) WHERE id = ?`;
 const identityParams = (i, id) => [i.kind, i.name, i.sheetName, i.phone, i.address, i.cnp, i.companyName, i.cui, i.regCom, i.lang, id];
-const NEED_SHEET_NAME = 'Pune întâi numele de pe fișă (la „Date pe fișă”), apoi activează abonamentul.';
+const NEED_SHEET_NAME = 'Pune întâi numele de pe fișă (la „Date pe fișă”), apoi activează abonamentul.'; // i18n: ro
 
 function row(a) {
   const sub = subscriptionOf(a);
@@ -127,7 +127,7 @@ const ACCOUNT_SQL = `
 
 async function accountRow(id) {
   const a = await one(`${ACCOUNT_SQL} WHERE a.id = ?`, Number(id) || 0);
-  if (!a) throw notFound('Contul nu a fost găsit.');
+  if (!a) throw notFound('Contul nu a fost găsit.'); // i18n: ro
   return a;
 }
 
@@ -155,24 +155,24 @@ export function adminRouter() {
     const b = req.body ?? {};
     const ident = identityOf(b);
     const email = text(b.email, 'email', { max: 200 });
-    if (!EMAIL_RE.test(email)) throw badRequest('Adresa de email nu pare corectă.');
+    if (!EMAIL_RE.test(email)) throw badRequest('Adresa de email nu pare corectă.'); // i18n: ro
     const { name, phone } = ident;
     const activate = b.activate === true;
     if (activate && !ident.sheetName) throw badRequest(NEED_SHEET_NAME);
-    const start = activate ? validDate(b.start, 'Data de început') : null;
+    const start = activate ? validDate(b.start, 'Data de început') : null; // i18n: ro
     const credit = b.credit == null || b.credit === 0 ? 0 : b.credit;
-    if (typeof credit !== 'number' || !Number.isFinite(credit) || credit < 0 || credit > 1000) throw badRequest('Creditul se scrie în dolari, de exemplu 5.');
-    const note = text(b.note, 'notă', { max: 300, optional: true });
-    if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
+    if (typeof credit !== 'number' || !Number.isFinite(credit) || credit < 0 || credit > 1000) throw badRequest('Creditul se scrie în dolari, de exemplu 5.'); // i18n: ro
+    const note = text(b.note, 'notă', { max: 300, optional: true }); // i18n: ro
+    if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.'); // i18n: ro
     const created = await tx(async () => {
-      if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
+      if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) throw new HttpError(409, 'Există deja un cont cu acest email.'); // i18n: ro
       // Parola de pornire nu o știe nimeni (o valoare aleatoare); omul își alege parola din link.
       const id = await insert(
         'INSERT INTO accounts (email, name, phone, password_hash, invited, created_at) VALUES (?, ?, ?, ?, true, ?)',
         email, name, phone, await hashPassword(randomToken()), nowIso(),
       );
       await run(IDENTITY_SQL, ...identityParams(ident, id));
-      await logEvent(id, 'created', { note: note ?? 'făcut din consolă' });
+      await logEvent(id, 'created', { note: note ?? 'făcut din consolă' }); // i18n: ro
       if (activate) {
         await run('UPDATE accounts SET subscription_start = ?, subscription_end = ? WHERE id = ?', start, plusOneYear(start), id);
         await logEvent(id, 'subscription', { note: [`${start} → ${plusOneYear(start)}`, note].filter(Boolean).join(' · ') });
@@ -188,11 +188,9 @@ export function adminRouter() {
     try {
       await sendMail({
         to: email,
-        subject: 'Contul tău Porumbar',
-        text:
-          `Bună, ${name}!\n\nȚi-am făcut un cont în Porumbar, programul pentru evidența porumbeilor și a pedigree-urilor.\n` +
-          `Deschide linkul de mai jos în cel mult 7 zile și alege-ți parola; apoi intri direct în porumbarul tău:\n\n${created.link}\n\n` +
-          'Parola o alegi doar tu; nimeni altcineva nu o vede.\n',
+        // Pentru crescător: în limba contului lui.
+        subject: t(ident.lang ?? 'ro', 'mail.cont_nou.subiect'),
+        text: t(ident.lang ?? 'ro', 'mail.cont_nou.text', { nume: name, link: created.link }),
       });
     } catch {
       emailed = false;
@@ -211,10 +209,10 @@ export function adminRouter() {
 
   // Activare / prelungire după plată: data de început; sfârșitul = un an mai târziu (sau altă dată aleasă).
   r.post('/accounts/:id/subscription', async (req, res) => {
-    const start = validDate(req.body?.start, 'Data de început');
-    const end = req.body?.end ? validDate(req.body.end, 'Data de sfârșit') : plusOneYear(start);
-    if (end <= start) throw badRequest('Sfârșitul trebuie să fie după început.');
-    const note = text(req.body?.note, 'notă', { max: 300, optional: true });
+    const start = validDate(req.body?.start, 'Data de început'); // i18n: ro
+    const end = req.body?.end ? validDate(req.body.end, 'Data de sfârșit') : plusOneYear(start); // i18n: ro
+    if (end <= start) throw badRequest('Sfârșitul trebuie să fie după început.'); // i18n: ro
+    const note = text(req.body?.note, 'notă', { max: 300, optional: true }); // i18n: ro
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
       if (!acc.pedigree_name) throw badRequest(NEED_SHEET_NAME);
@@ -231,11 +229,11 @@ export function adminRouter() {
     const ident = identityOf(req.body ?? {});
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
-      if (!ident.sheetName && acc.subscription_start) throw badRequest('Numele de pe fișă nu poate rămâne gol la un cont activat.');
+      if (!ident.sheetName && acc.subscription_start) throw badRequest('Numele de pe fișă nu poate rămâne gol la un cont activat.'); // i18n: ro
       await run(IDENTITY_SQL, ...identityParams(ident, acc.id));
       // În istoric: ce era și ce e acum (la o neînțelegere se vede cine ce a avut pe fișă).
-      const was = { nume: acc.name, 'pe fișă': acc.pedigree_name, telefon: acc.phone, adresa: acc.address, limba: acc.lang };
-      const now = { nume: ident.name, 'pe fișă': ident.sheetName, telefon: ident.phone, adresa: ident.address, limba: ident.lang ?? acc.lang };
+      const was = { nume: acc.name, 'pe fișă': acc.pedigree_name, telefon: acc.phone, adresa: acc.address, limba: acc.lang }; // i18n: ro
+      const now = { nume: ident.name, 'pe fișă': ident.sheetName, telefon: ident.phone, adresa: ident.address, limba: ident.lang ?? acc.lang }; // i18n: ro
       const changed = Object.keys(was)
         .filter((k) => (was[k] ?? null) !== (now[k] ?? null))
         .map((k) => `${k}: ${was[k] ?? '—'} → ${now[k] ?? '—'}`)
@@ -250,10 +248,10 @@ export function adminRouter() {
   r.post('/accounts/:id/credit', async (req, res) => {
     const amount = req.body?.amount;
     if (typeof amount !== 'number' || !Number.isFinite(amount) || amount === 0 || Math.abs(amount) > 1000) {
-      throw badRequest('Scrie suma în dolari, de exemplu 5.');
+      throw badRequest('Scrie suma în dolari, de exemplu 5.'); // i18n: ro
     }
     const micros = Math.round(amount * 1e6);
-    const note = text(req.body?.note, 'notă', { max: 300, optional: true });
+    const note = text(req.body?.note, 'notă', { max: 300, optional: true }); // i18n: ro
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
       const { ai_credit_micros: before } = await one('SELECT ai_credit_micros FROM accounts WHERE id = ? FOR UPDATE', acc.id);
@@ -277,10 +275,8 @@ export function adminRouter() {
     try {
       await sendMail({
         to: a.email,
-        subject: 'Parolă nouă pentru Porumbar',
-        text:
-          `Bună, ${a.name}!\n\nCa să intri în contul tău Porumbar, deschide linkul de mai jos în cel mult ${a.invited ? '7 zile' : '24 de ore'} ` +
-          `și alege-ți o parolă nouă:\n\n${link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n`,
+        subject: t(a.lang, 'mail.parola.subiect'),
+        text: t(a.lang, a.invited ? 'mail.parola_link.text_7zile' : 'mail.parola_link.text_24ore', { nume: a.name, link }),
       });
     } catch {
       emailed = false;

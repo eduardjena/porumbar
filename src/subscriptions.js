@@ -1,4 +1,6 @@
 import { config } from './config.js';
+import { t, ref, localeOf } from './i18n.js';
+import { HttpError } from './http.js';
 import { all, insert, run } from './db.js';
 import { sendMail } from './mail.js';
 
@@ -39,11 +41,11 @@ export function subscriptionOf(a, now = new Date()) {
   return { start: a.subscription_start ?? null, end, status, daysLeft, active: admin || status === 'active' || status === 'expiring' };
 }
 
-/** Mesajul pentru un cont „doar citire” (402). */
-export function readOnlyMessage(status) {
-  const why = status === 'expired' ? 'Abonamentul tău a expirat' : 'Contul tău nu este activ încă';
-  const how = config.sellerContact ? ` Pentru activare: ${config.sellerContact}.` : ' Pentru activare, ia legătura cu cel de la care ai primit programul.';
-  return `${why}, așa că acum e doar citire: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.${how}`;
+/** Eroarea pentru un cont „doar citire” (402). */
+export function readOnlyError(status) {
+  const key = status === 'expired' ? 'eroare.doar_citire_expirat' : 'eroare.doar_citire_neactivat';
+  const how = config.sellerContact ? ref('eroare.activare_contact', { contact: config.sellerContact }) : ref('eroare.activare_vanzator');
+  return new HttpError(402, key, { activare: how });
 }
 
 export const logEvent = (accountId, kind, { amountMicros = null, note = null } = {}) =>
@@ -54,28 +56,28 @@ export async function sendReminders(now = new Date()) {
   const today = isoDate(now);
   const limit = isoDate(new Date(now.getTime() + REMIND_DAYS * DAY));
   const due = await all(
-    `SELECT id, email, name, subscription_end FROM accounts
+    `SELECT id, email, name, lang, subscription_end FROM accounts
       WHERE subscription_end > ? AND subscription_end <= ? AND reminder_sent_for IS DISTINCT FROM subscription_end`,
     today, limit,
   );
   for (const a of due) {
-    const end = new Date(`${a.subscription_end}T00:00:00Z`).toLocaleDateString('ro-RO', { timeZone: 'UTC' });
-    const how = config.sellerContact ? `Pentru plată și activare: ${config.sellerContact}.` : 'Pentru plată și activare, ia legătura cu cel de la care ai primit programul.';
+    const lang = a.lang ?? 'ro';
+    const end = new Date(`${a.subscription_end}T00:00:00Z`).toLocaleDateString(localeOf(lang), { timeZone: 'UTC' });
+    const how = config.sellerContact ? ref('mail.memento.plata_contact', { contact: config.sellerContact }) : ref('mail.memento.plata_vanzator');
     try {
       await sendMail({
         to: a.email,
-        subject: 'Abonamentul Porumbar expiră în curând',
-        text:
-          `Bună, ${a.name}!\n\nAbonamentul tău Porumbar expiră pe ${end}.\n` +
-          `Ca să poți adăuga și schimba porumbei și după această dată, achită abonamentul pentru încă un an. ${how}\n\n` +
-          'Datele tale nu se pierd: și fără abonament îți poți vedea și tipări porumbeii.\n',
+        subject: t(lang, 'mail.memento.subiect'),
+        text: t(lang, 'mail.memento.text', { nume: a.name, data: end, plata: how }),
       });
     } catch (e) {
       console.error(`[porumbar] Memento-ul pentru ${a.email} nu a plecat:`, e.message);
       continue;
     }
     await run('UPDATE accounts SET reminder_sent_for = subscription_end, reminder_sent_at = now() WHERE id = ?', a.id);
-    await logEvent(a.id, 'reminder', { note: `expiră pe ${end}` });
+    // Nota din istoric e pentru consola vânzătorului (în română, cu data ca înainte).
+    const endRo = new Date(`${a.subscription_end}T00:00:00Z`).toLocaleDateString('ro-RO', { timeZone: 'UTC' });
+    await logEvent(a.id, 'reminder', { note: `expiră pe ${endRo}` }); // i18n: ro
   }
   return due.length;
 }

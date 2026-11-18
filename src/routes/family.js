@@ -58,7 +58,7 @@ async function coiResponse(accountId, result) {
 const idOrNull = (v) => {
   if (v == null || v === '') return null;
   const n = Number(v);
-  if (!Number.isSafeInteger(n) || n <= 0) throw badRequest('Părintele ales este invalid.');
+  if (!Number.isSafeInteger(n) || n <= 0) throw badRequest('eroare.parinte_invalid');
   return n;
 };
 
@@ -87,13 +87,13 @@ export function familyRouter() {
       const child = await getPigeonRow(accountId, req.params.id);
       const father = fatherId ? await getPigeonRow(accountId, fatherId) : null;
       const mother = motherId ? await getPigeonRow(accountId, motherId) : null;
-      if (father?.id === child.id || mother?.id === child.id) throw badRequest('Un porumbel nu poate fi propriul părinte.');
-      if (father && mother && father.id === mother.id) throw badRequest('Tatăl și mama nu pot fi același porumbel.');
-      if (father?.sex === 'F') throw badRequest('Tatăl trebuie să fie mascul.');
-      if (mother?.sex === 'M') throw badRequest('Mama trebuie să fie femelă.');
+      if (father?.id === child.id || mother?.id === child.id) throw badRequest('eroare.propriul_parinte');
+      if (father && mother && father.id === mother.id) throw badRequest('eroare.tata_mama_acelasi');
+      if (father?.sex === 'F') throw badRequest('eroare.tata_mascul');
+      if (mother?.sex === 'M') throw badRequest('eroare.mama_femela');
       const nodes = await loadNodes(accountId);
       for (const parent of [father, mother]) {
-        if (parent && ancestorIds(parent.id, nodes).has(child.id)) throw badRequest('Porumbelul ales e deja urmașul acestui porumbel.');
+        if (parent && ancestorIds(parent.id, nodes).has(child.id)) throw badRequest('eroare.deja_urmas');
       }
       if (father && !father.sex) await run(`UPDATE pigeons SET sex = 'M' WHERE id = ?`, father.id);
       if (mother && !mother.sex) await run(`UPDATE pigeons SET sex = 'F' WHERE id = ?`, mother.id);
@@ -134,7 +134,7 @@ export function familyRouter() {
     const accountId = req.account.id;
     const generations = req.query.generations === undefined ? 4 : Number(req.query.generations);
     if (!Number.isInteger(generations) || generations < 1 || generations > MAX_GENERATIONS) {
-      throw badRequest(`Numărul de generații este de la 1 la ${MAX_GENERATIONS}.`);
+      throw badRequest('eroare.generatii_interval', { max: MAX_GENERATIONS });
     }
     const root = await getPigeonRow(accountId, req.params.id);
     const tree = buildTree(root.id, await loadNodes(accountId), generations);

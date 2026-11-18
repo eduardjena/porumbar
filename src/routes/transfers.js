@@ -1,4 +1,5 @@
 import express from 'express';
+import { tr } from '../i18n.js';
 import { all, insert, one, run, tx } from '../db.js';
 import { HttpError, badRequest, notFound } from '../http.js';
 import { requireAccount } from '../accounts.js';
@@ -18,8 +19,8 @@ const today = () => new Date().toLocaleDateString('ro-RO', { day: '2-digit', mon
 /** Vânzarea în așteptare, blocată până la sfârșitul tranzacției (două apăsări pe „Primesc” nu fac două copii). */
 async function pendingFor(id, accountId, side) {
   const t = await one(`SELECT * FROM transfers WHERE id = ? AND ${side} = ? FOR UPDATE`, Number(id) || 0, accountId);
-  if (!t) throw notFound('Vânzarea nu a fost găsită.');
-  if (t.status !== 'pending') throw new HttpError(409, t.status === 'accepted' ? 'Vânzarea a fost deja primită.' : 'Vânzarea a fost anulată.');
+  if (!t) throw notFound('eroare.vanzare_negasita');
+  if (t.status !== 'pending') throw new HttpError(409, t.status === 'accepted' ? 'eroare.vanzare_primita' : 'eroare.vanzare_anulata');
   return t;
 }
 
@@ -28,17 +29,17 @@ export function transfersRouter() {
 
   r.post('/pigeons/:id/transfers', requireAccount, async (req, res) => {
     const pigeon = await getPigeonRow(req.account.id, req.params.id);
-    if (pigeon.kind !== 'own') throw badRequest('Poți vinde doar porumbei din porumbarul tău.');
+    if (pigeon.kind !== 'own') throw badRequest('eroare.vinde_doar_proprii');
     const email = String(req.body?.email ?? '').trim();
-    if (!email) throw badRequest('Scrie emailul cumpărătorului.');
+    if (!email) throw badRequest('eroare.email_cumparator');
     const buyer = await one('SELECT id FROM accounts WHERE lower(email) = lower(?)', email);
-    if (!buyer) throw notFound('Nu există un cont cu acest email. Cumpărătorul trebuie să-și facă întâi cont în Porumbar, iar contul să fie activ.');
-    if (buyer.id === req.account.id) throw badRequest('Acesta e emailul contului tău.');
+    if (!buyer) throw notFound('eroare.cumparator_fara_cont');
+    if (buyer.id === req.account.id) throw badRequest('eroare.emailul_tau');
     if (await one(`SELECT 1 FROM transfers WHERE pigeon_id = ? AND status = 'accepted'`, pigeon.id)) {
-      throw new HttpError(409, 'Porumbelul a fost deja vândut.');
+      throw new HttpError(409, 'eroare.deja_vandut');
     }
     if (await one(`SELECT 1 FROM transfers WHERE pigeon_id = ? AND status = 'pending'`, pigeon.id)) {
-      throw new HttpError(409, 'Porumbelul are deja o vânzare în așteptare. Anuleaz-o întâi.');
+      throw new HttpError(409, 'eroare.vanzare_in_asteptare');
     }
     const id = await insert(
       `INSERT INTO transfers (pigeon_id, from_account, to_account, include_private, status, created_at) VALUES (?, ?, ?, ?, 'pending', now())`,
@@ -89,7 +90,7 @@ export function transfersRouter() {
                 status = CASE WHEN status = 'vandut' THEN NULL ELSE status END
                 ${copyPrivate ? ', evaluation = ?' : ''}
           WHERE id = ? AND account_id = ?`,
-        `Cumpărat de la ${seller.name} pe ${today()}`, src.breed, src.lines, src.eye_color, src.hatched_on,
+        tr('text.cumparat_de_la', { vanzator: seller.name, data: today() }), src.breed, src.lines, src.eye_color, src.hatched_on,
         ...(copyPrivate ? [JSON.stringify(src.evaluation ?? {})] : []), imported.pigeonId, buyer,
       );
       if (copyPrivate) {
@@ -111,8 +112,8 @@ export function transfersRouter() {
     await tx(async () => {
       // Blocat ca la acceptare: dacă cumpărătorul tocmai a primit porumbelul, anularea vede „primit” și se oprește.
       const t = await one('SELECT * FROM transfers WHERE id = ? AND (from_account = ? OR to_account = ?) FOR UPDATE', Number(req.params.id) || 0, me, me);
-      if (!t) throw notFound('Vânzarea nu a fost găsită.');
-      if (t.status !== 'pending') throw new HttpError(409, t.status === 'accepted' ? 'Porumbelul a fost deja primit; vânzarea nu se mai poate anula.' : 'Vânzarea nu mai e în așteptare.');
+      if (!t) throw notFound('eroare.vanzare_negasita');
+      if (t.status !== 'pending') throw new HttpError(409, t.status === 'accepted' ? 'eroare.vanzare_nu_se_anuleaza' : 'eroare.vanzare_nu_asteapta');
       await run(`UPDATE transfers SET status = 'cancelled', decided_at = now() WHERE id = ? AND status = 'pending'`, t.id);
     });
     res.json({ ok: true });

@@ -1,4 +1,5 @@
 import { one, all, insert, run, tx, nowIso } from './db.js';
+import { ref } from './i18n.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { RACE_CATEGORIES, codes, fold } from './catalog.js';
 
@@ -15,11 +16,11 @@ const round = (n, d) => Math.round(n * 10 ** d) / 10 ** d;
 function number(value, label, { min, max, integer = false, optional = false }) {
   if (value === undefined || value === null || value === '') {
     if (optional) return null;
-    throw badRequest(`Câmpul „${label}” este obligatoriu.`);
+    throw badRequest('eroare.camp_obligatoriu', { camp: ref(label) });
   }
   const n = typeof value === 'number' ? value : typeof value === 'string' && /^\s*\d+([.,]\d+)?\s*$/.test(value) ? Number(value.trim().replace(',', '.')) : NaN;
-  if (!Number.isFinite(n) || (integer && !Number.isInteger(n))) throw badRequest(`„${label}” trebuie să fie un număr${integer ? ' întreg' : ''}.`);
-  if (n < min || n > max) throw badRequest(`„${label}” trebuie să fie între ${min} și ${max}.`);
+  if (!Number.isFinite(n) || (integer && !Number.isInteger(n))) throw badRequest(integer ? 'eroare.numar_intreg' : 'eroare.numar', { camp: ref(label) });
+  if (n < min || n > max) throw badRequest('eroare.intre', { camp: ref(label), min, max });
   return n;
 }
 
@@ -27,10 +28,10 @@ function number(value, label, { min, max, integer = false, optional = false }) {
 function clock(value, label, { optional = true } = {}) {
   if (value === undefined || value === null || value === '') {
     if (optional) return null;
-    throw badRequest(`Câmpul „${label}” este obligatoriu.`);
+    throw badRequest('eroare.camp_obligatoriu', { camp: ref(label) });
   }
   const m = typeof value === 'string' ? /^\s*(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*$/.exec(value) : null;
-  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59 || Number(m[3] ?? 0) > 59) throw badRequest(`„${label}” trebuie să fie o oră de forma 10:15 sau 10:15:43.`);
+  if (!m || Number(m[1]) > 23 || Number(m[2]) > 59 || Number(m[3] ?? 0) > 59) throw badRequest('eroare.ora_forma', { camp: ref(label) });
   return `${m[1].padStart(2, '0')}:${m[2]}:${m[3] ?? '00'}`;
 }
 
@@ -39,13 +40,13 @@ const seconds = (t) => t.split(':').reduce((acc, x) => acc * 60 + Number(x), 0);
 function parseRace(body) {
   if (!body || typeof body !== 'object') throw badRequest('Lipsesc datele concursului.');
   const race = {
-    number: number(body.number, 'Nr. concursului', { min: 1, max: 9999, integer: true, optional: true }),
-    organizer: text(body.organizer, 'Organizator', { max: 120 }),
-    category: oneOf(body.category, codes(RACE_CATEGORIES), 'Categoria'),
-    date: realDate(body.date, 'Data concursului'),
-    releasePlace: text(body.releasePlace, 'Locul lansării', { max: 120 }),
-    releaseTime: clock(body.releaseTime, 'Ora lansării'),
-    entered: number(body.entered, 'Porumbei angajați', { min: 1, max: 200000, integer: true, optional: true }),
+    number: number(body.number, 'camp.nr_concurs', { min: 1, max: 9999, integer: true, optional: true }),
+    organizer: text(body.organizer, 'camp.organizator', { max: 120 }),
+    category: oneOf(body.category, codes(RACE_CATEGORIES), 'camp.categoria'),
+    date: realDate(body.date, 'camp.data_concurs'),
+    releasePlace: text(body.releasePlace, 'camp.locul_lansarii', { max: 120 }),
+    releaseTime: clock(body.releaseTime, 'camp.ora_lansarii'),
+    entered: number(body.entered, 'camp.porumbei_angajati', { min: 1, max: 200000, integer: true, optional: true }),
   };
   race.key = [fold(race.organizer), race.date, fold(race.releasePlace), race.category].join('|');
   return race;
@@ -53,14 +54,14 @@ function parseRace(body) {
 
 function parseResult(body) {
   const arrival = body?.arrival && typeof body.arrival === 'object' ? body.arrival : {};
-  const time = clock(arrival.time, 'Ora sosirii');
+  const time = clock(arrival.time, 'camp.ora_sosirii');
   return {
-    place: number(body?.place, 'Locul', { min: 1, max: 200000, integer: true }),
-    distanceM: Math.round(number(body?.distanceKm, 'Distanța (km)', { min: 0.1, max: 3000 }) * 1000),
-    arrivalDay: time ? number(arrival.day ?? 1, 'Ziua sosirii', { min: 1, max: 3, integer: true }) : null,
+    place: number(body?.place, 'camp.locul', { min: 1, max: 200000, integer: true }),
+    distanceM: Math.round(number(body?.distanceKm, 'camp.distanta_km', { min: 0.1, max: 3000 }) * 1000),
+    arrivalDay: time ? number(arrival.day ?? 1, 'camp.ziua_sosirii', { min: 1, max: 3, integer: true }) : null,
     arrivalTime: time,
-    speed: number(body?.speed, 'Viteza (m/min)', { min: 50, max: 3000, optional: true }),
-    fci: number(body?.fci, 'Coeficient FCI', { min: 0, max: 1000000, optional: true }),
+    speed: number(body?.speed, 'camp.viteza', { min: 50, max: 3000, optional: true }),
+    fci: number(body?.fci, 'camp.coeficient', { min: 0, max: 1000000, optional: true }),
     onPedigree: body?.onPedigree !== false,
   };
 }
@@ -140,7 +141,7 @@ export async function pedigreeLines(accountId) {
 
 const getResult = async (accountId, id) => {
   const row = Number.isSafeInteger(Number(id)) ? await one(`${SELECT} WHERE rr.id = ? AND rr.account_id = ?`, Number(id), accountId) : null;
-  if (!row) throw notFound('Rezultatul nu a fost găsit.');
+  if (!row) throw notFound('eroare.rezultat_negasit');
   return row;
 };
 
@@ -150,9 +151,9 @@ async function save(accountId, pigeonId, body, resultId = null) {
   const res = parseResult(body);
   const id = await tx(async () => {
     const r = await upsertRace(accountId, race);
-    if (r.entered && res.place > r.entered) throw badRequest(`Locul ${res.place} e mai mare decât numărul de porumbei angajați (${r.entered}).`);
+    if (r.entered && res.place > r.entered) throw badRequest('eroare.loc_prea_mare', { loc: res.place, angajati: r.entered });
     const dup = await one('SELECT id FROM race_results WHERE race_id = ? AND pigeon_id = ? AND id <> ?', r.id, pigeonId, resultId ?? 0);
-    if (dup) throw new HttpError(409, 'Porumbelul are deja un rezultat la acest concurs. Schimbă-l pe cel existent.');
+    if (dup) throw new HttpError(409, 'eroare.rezultat_dublu');
     const values = [r.id, res.place, res.distanceM, res.arrivalDay, res.arrivalTime, res.speed, res.fci, res.onPedigree];
     if (resultId) {
       await run(

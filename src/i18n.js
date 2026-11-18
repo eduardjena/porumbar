@@ -5,6 +5,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const DIR = path.join(import.meta.dirname, '..', 'i18n');
 const readJson = (file) => JSON.parse(fs.readFileSync(path.join(DIR, file), 'utf8'));
@@ -33,7 +34,13 @@ function entry(lang, key) {
   return DICTS.get(lang)?.[key] ?? DICTS.get('ro')[key];
 }
 
-/** Textul cheii în limba dată; `{nume}` se înlocuiește din `vars`; cu `vars.count` număr se alege forma de plural. */
+/** O valoare tradusă și ea la afișare (de ex. numele câmpului într-un mesaj de eroare): `ref('camp.nume')`. */
+export const ref = (key, vars) => ({ $t: key, vars });
+
+/**
+ * Textul cheii în limba dată; `{nume}` se înlocuiește din `vars` (o valoare `ref(...)` se traduce și ea); cu
+ * `vars.count` număr se alege forma de plural.
+ */
 export function t(lang, key, vars = {}) {
   const lng = isLang(lang) ? lang : 'ro';
   let v = entry(lng, key);
@@ -45,7 +52,11 @@ export function t(lang, key, vars = {}) {
       v = v[form] ?? v.other;
     }
   }
-  return String(v).replace(/\{(\w+)\}/g, (m, name) => (vars[name] === undefined || vars[name] === null ? m : String(vars[name])));
+  return String(v).replace(/\{(\w+)\}/g, (m, name) => {
+    const x = vars[name];
+    if (x === undefined || x === null) return m;
+    return typeof x === 'object' && x.$t ? t(lng, x.$t, x.vars) : String(x);
+  });
 }
 
 /** Dicționarul fără sensuri, pentru interfață. */
@@ -67,3 +78,17 @@ export function requestLang(header) {
   }
   return 'ro';
 }
+
+/*
+ * Limba cererii în curs, fără s-o mai dăm din mână în mână: middleware-ul din app.js pornește fiecare cerere cu
+ * `langScope`, iar requireAccount o schimbă în limba contului. În afara unei cereri (teste, sarcini de fundal): română.
+ */
+const scope = new AsyncLocalStorage();
+export const langScope = (lang, fn) => scope.run({ lang }, fn);
+export const currentLang = () => scope.getStore()?.lang ?? 'ro';
+export function setCurrentLang(lang) {
+  const s = scope.getStore();
+  if (s) s.lang = lang;
+}
+/** `t` în limba cererii în curs. */
+export const tr = (key, vars) => t(currentLang(), key, vars);

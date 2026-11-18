@@ -109,8 +109,10 @@ function writeDraft(d: Draft | null) {
         <app-cititor-poza (read)="fillFromReading($event)" />
 
         <section class="card top-fields">
+          <h2>{{ 'hartie.sau_de_mana' | t }}</h2>
           <fieldset class="kind">
-            <legend>{{ 'hartie.porumbelul_este' | t }}</legend>
+            <!-- Pentru cititoarele de ecran; pe ecran titlul de mai sus și textul butoanelor spun destul. -->
+            <legend class="vh">{{ 'hartie.porumbelul_este' | t }}</legend>
             <label><input type="radio" name="kind" value="own" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> {{ 'hartie.al_meu' | t }}</label>
             <label><input type="radio" name="kind" value="external" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> {{ 'hartie.nu_al_meu' | t }} <span class="muted">{{ 'hartie.imprumutat' | t }}</span></label>
           </fieldset>
@@ -170,6 +172,8 @@ function writeDraft(d: Draft | null) {
     .top-fields { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-end; margin: 12px 0; }
     .kind { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 24px; }
     .kind legend { font-weight: 700; margin-bottom: 6px; }
+    .top-fields h2 { flex-basis: 100%; margin: 0; }
+    .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .kind label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
     .sex { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
     .heads { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 16px 0 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85rem; color: var(--muted); }

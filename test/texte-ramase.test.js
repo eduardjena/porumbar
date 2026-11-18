@@ -26,9 +26,6 @@ const EXCEPTII = {
 const DE_MUTAT = new Set([
   'web/src/app/app.routes.ts',
   'web/src/app/app.ts',
-  'web/src/app/core/api.ts',
-  'web/src/app/core/catalog.ts',
-  'web/src/app/core/confirm.ts',
   'web/src/app/core/share-pdf.ts',
   'web/src/app/pages/auth/cont-nou.ts',
   'web/src/app/pages/auth/cont.ts',

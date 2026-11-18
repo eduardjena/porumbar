@@ -281,5 +281,15 @@
   "eroare.citire_limita_zi": "Felhasználtad a mai {numar} beolvasást. Holnap újra olvashatsz, vagy töltsd ki a mezőket kézzel.",
   "eroare.citire_ocupata": "A beolvasás most foglalt. Próbáld újra egy perc múlva.",
   "eroare.citire_esuata": "A beolvasás most nem sikerült. Próbáld újra, vagy töltsd ki kézzel.",
-  "eroare.citire_niciun_porumbel": "Nem találtunk galambot a fájlban. Próbálj élesebb fényképet."
+  "eroare.citire_niciun_porumbel": "Nem találtunk galambot a fájlban. Próbálj élesebb fényképet.",
+  "eroare.fara_server": "Nem sikerült elérni a szervert. Ellenőrizd az internetkapcsolatot, és próbáld újra.",
+  "eroare.cod": "Hiba történt ({cod}).",
+  "eroare.oarecare": "Hiba történt.",
+  "sex.mascul": "Hím",
+  "sex.femela": "Tojó",
+  "sex.necunoscut": "Ismeretlen ivar",
+  "sex.m": "H",
+  "sex.f": "T",
+  "text.fara_inel_mare": "Gyűrű nélkül",
+  "actiune.renunta": "Mégse"
 }

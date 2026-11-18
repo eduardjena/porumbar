@@ -349,5 +349,21 @@
   "eroare.citire_limita_zi": "Ai folosit cele {numar} citiri de azi. Mai poți citi mâine sau completezi căsuțele de mână.",
   "eroare.citire_ocupata": "Citirea e ocupată acum. Încearcă din nou peste un minut.",
   "eroare.citire_esuata": "Citirea nu a mers acum. Încearcă din nou sau completează de mână.",
-  "eroare.citire_niciun_porumbel": "Nu am găsit niciun porumbel în fișier. Încearcă o poză mai clară."
+  "eroare.citire_niciun_porumbel": "Nu am găsit niciun porumbel în fișier. Încearcă o poză mai clară.",
+  "eroare.fara_server": "Nu s-a putut ajunge la server. Verifică internetul și încearcă din nou.",
+  "eroare.cod": "A apărut o eroare ({cod}).",
+  "eroare.oarecare": "A apărut o eroare.",
+  "sex.mascul": "Mascul",
+  "sex.femela": "Femelă",
+  "sex.necunoscut": "Sex necunoscut",
+  "sex.m": {
+    "text": "M",
+    "sens": "Litera pentru mascul (M); în maghiară H (hím)."
+  },
+  "sex.f": {
+    "text": "F",
+    "sens": "Litera pentru femelă (F); în maghiară T (tojó)."
+  },
+  "text.fara_inel_mare": "Fără inel",
+  "actiune.renunta": "Renunță"
 }

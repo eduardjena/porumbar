@@ -1,4 +1,5 @@
 import { Component, Injectable, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
+import { TPipe } from './i18n';
 import { Icon } from '../shared/icon';
 
 export interface ConfirmOptions {
@@ -43,7 +44,7 @@ export function changes(fields: { label: string; before: unknown; after: unknown
 
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [Icon],
+  imports: [Icon, TPipe],
   template: `
     <dialog #dlg (cancel)="$event.preventDefault(); svc.answer(false)" aria-labelledby="confirm-title">
       @if (svc.pending(); as p) {
@@ -57,7 +58,7 @@ export function changes(fields: { label: string; before: unknown; after: unknown
           }
         </div>
         <div class="actions">
-          <button type="button" (click)="svc.answer(false)">{{ p.cancelLabel ?? 'Renunță' }}</button>
+          <button type="button" (click)="svc.answer(false)">{{ p.cancelLabel ?? ('actiune.renunta' | t) }}</button>
           <button type="button" [class]="p.danger ? 'danger-solid' : 'primary'" (click)="svc.answer(true)" autofocus>{{ p.confirmLabel }}</button>
         </div>
       }

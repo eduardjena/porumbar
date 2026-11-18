@@ -3,15 +3,16 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { AuthService } from './auth';
+import { currentLang, t } from './i18n';
 
 /** Mesajul de eroare trimis de server (`{ error }`) sau unul pe înțelesul omului. */
 export function errorMessage(err: unknown): string {
   if (err instanceof HttpErrorResponse) {
     const msg = (err.error as { error?: string } | null)?.error;
     if (msg) return msg;
-    return err.status === 0 ? 'Nu s-a putut ajunge la server. Verifică internetul și încearcă din nou.' : `A apărut o eroare (${err.status}).`;
+    return err.status === 0 ? t('eroare.fara_server') : t('eroare.cod', { cod: err.status });
   }
-  return err instanceof Error ? err.message : 'A apărut o eroare.';
+  return err instanceof Error ? err.message : t('eroare.oarecare');
 }
 
 @Injectable({ providedIn: 'root' })
@@ -45,6 +46,8 @@ export class Api {
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const auth = inject(AuthService);
+  // Limba ecranului (serverul o folosește doar pentru limbile publice; cu cont contează limba contului).
+  if (req.url.startsWith('/api/')) req = req.clone({ setHeaders: { 'Accept-Language': currentLang() } });
   return next(req).pipe(
     catchError((err: unknown) => {
       const authCall = req.url.startsWith('/api/auth/');

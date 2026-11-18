@@ -3,6 +3,8 @@
 Evidența porumbeilor pentru columbofili: fișa porumbelului, rasa și liniile, părinții aleși după inel (cu istoricul lor),
 rudele, arborele genealogic și consangvinizarea. Design: `docs/superpowers/specs/2026-11-16-porumbar-design.md`.
 
+Harta proiectului (structura, limbile, publicarea, regulile): `CLAUDE.md`.
+
 ## Pornire locală
 
 Ai nevoie de Node.js 24+ și PostgreSQL instalat pe calculator (doar programele; serviciul nu e obligatoriu).
@@ -51,8 +53,13 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
   - **link public / cod QR** pe fiecare porumbel (fila „QR”): pedigree-ul pe 5 generații fără cont, în formatul deschis
     `porumbar-pedigree` v1; cine are cont îl **preia** în porumbarul lui (strămoșii existenți nu se dublează);
   - **vânzarea**: emailul cumpărătorului, care o primește în „Vânzări”; la vânzător porumbelul rămâne „Vândut”;
-  - **pedigree tipărit** pe A4 orizontal, cu QR-ul; ce apare pe el (telefon, adresă, email) se alege în „Contul meu”.
+  - **pedigree tipărit** pe A4 vertical, cu QR-ul; ce apare pe el (telefon, adresă, email) se alege în „Contul meu”.
 - `PUBLIC_BASE_URL` trebuie să fie domeniul final înainte de a tipări coduri QR (codul conține adresa).
+
+## Limbi
+
+Textele vin din `i18n/<limba>.json` (româna și maghiara; maghiara e „în probă” până o verifică un crescător maghiar și o
+pune doar vânzătorul, din consolă). Orice text nou intră în toate dicționarele; detalii în `CLAUDE.md`.
 
 ## Consola vânzătorului și abonamentele
 

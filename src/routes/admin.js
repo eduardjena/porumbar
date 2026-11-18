@@ -111,7 +111,7 @@ function row(a) {
     status: isAdminEmail(a.email) ? 'admin' : sub.status,
     daysLeft: sub.daysLeft,
     // Citirile din poze: în anul curent de abonament (folosite / limită, costul în dolari) și de la început.
-    reads: readsOfRow(a),
+    reads: (({ used, allowed, costUsd }) => ({ used, allowed, costUsd }))(readsOfRow(a)),
     pigeons: Number(a.pigeons ?? 0),
     readsTotal: Number(a.reads ?? 0),
     reminderSentAt: a.reminder_sent_for && a.reminder_sent_for === a.subscription_end ? a.reminder_sent_at : null,

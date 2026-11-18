@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { readsOf } from './reads.js';
+import { budgetUsd, readsOf } from './reads.js';
+import { parseRing } from './rings.js';
 import { currentLang } from './i18n.js';
 import { HttpError, badRequest } from './http.js';
 import { insert, one, run as runSql } from './db.js';
@@ -22,21 +23,45 @@ export const MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application
 const MAX_BYTES = 12 * 1024 * 1024;
 const SLOTS = 2 ** MAX_GENERATIONS - 1; // 31
 /*
- * Modelul și prețul lui se pot schimba din variabilele serverului (Railway), fără cod:
- * PEDIGREE_MODEL (implicit claude-opus-5-5), PEDIGREE_PRICE_INPUT / PEDIGREE_PRICE_OUTPUT în dolari pe milion de
- * jetoane (implicit prețul lui claude-opus-5-5: 4 $ intrare, 20 $ ieșire). Prețul doar socotește costul din consolă.
+ * Modelele (docs/superpowers/specs/2026-11-18-citire-ieftina-design.md): citirea obișnuită pe Claude Haiku 5.5, fără
+ * „gândire”; „Recitește cu precizie maximă” pe Claude Sonnet 5.5. Se schimbă din variabilele serverului (Railway), fără
+ * cod: PEDIGREE_MODEL, PEDIGREE_MODEL_PRECISE; prețul modelului principal: PEDIGREE_PRICE_INPUT / PEDIGREE_PRICE_OUTPUT.
  */
-export const readerModel = () => process.env.PEDIGREE_MODEL?.trim() || 'claude-opus-5-5';
-const pricePerMillion = (name, fallback) => {
-  const v = Number(process.env[name]);
-  return Number.isFinite(v) && v > 0 ? v : fallback;
+export const readerModel = () => process.env.PEDIGREE_MODEL?.trim() || 'claude-haiku-5-5';
+export const preciseModel = () => process.env.PEDIGREE_MODEL_PRECISE?.trim() || 'claude-sonnet-5-5';
+
+// Dolari pe milion de jetoane (intrare / ieșire), din documentația Anthropic (2026-11). Haiku 5.5: prețul pentru cereri
+// de cel mult 100.000 de jetoane (o poză e mult sub). Un model necunoscut se socotește la prețul cel mai mare.
+const PRICES = {
+  'claude-haiku-5-5': [0.1, 0.5],
+  'claude-sonnet-5-5': [2, 10],
+  'claude-opus-5-5': [4, 20],
 };
+const envPrice = (name) => {
+  const v = Number(process.env[name]);
+  return Number.isFinite(v) && v > 0 ? v : null;
+};
+function pricesOf(model) {
+  const [inp, out] = PRICES[model] ?? PRICES['claude-opus-5-5'];
+  if (model !== readerModel()) return [inp, out];
+  return [envPrice('PEDIGREE_PRICE_INPUT') ?? inp, envPrice('PEDIGREE_PRICE_OUTPUT') ?? out];
+}
 /** Costul unei citiri, în microdolari (1 $ pe milion de jetoane = 1 microdolar pe jeton). */
-export const costOf = (usage) =>
-  Math.round(
-    (Number(usage?.input_tokens) || 0) * pricePerMillion('PEDIGREE_PRICE_INPUT', 4) +
-      (Number(usage?.output_tokens) || 0) * pricePerMillion('PEDIGREE_PRICE_OUTPUT', 20),
-  );
+export function costOf(usage, model = readerModel()) {
+  const [inp, out] = pricesOf(model);
+  return Math.round((Number(usage?.input_tokens) || 0) * inp + (Number(usage?.output_tokens) || 0) * out);
+}
+
+/**
+ * Cum se cere fiecărui model: fără „gândire” acolo unde se poate (o fișă se transcrie, nu se rezolvă), efort mic.
+ * Haiku 5.5: `disabled`; Sonnet 5.5: `between_tools` (la el `disabled` dă eroare); Opus 5.5: gândirea nu se poate opri.
+ * Modelul de rezervă la refuz (server-side fallback) doar la Opus, unde a fost și până acum.
+ */
+export function requestFor(model) {
+  if (model.startsWith('claude-haiku-5')) return { thinking: { type: 'disabled' }, output_config_effort: 'low', fallback: false };
+  if (model.startsWith('claude-sonnet-5-5')) return { thinking: { type: 'between_tools' }, output_config_effort: 'low', fallback: false };
+  return { thinking: null, output_config_effort: 'low', fallback: model.startsWith('claude-opus') };
+}
 
 const readsPerDay = () => Number(process.env.PEDIGREE_READS_PER_DAY) || 20;
 
@@ -51,7 +76,8 @@ const SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['slot', 'ring', 'name', 'color', 'text', 'breeder'],
+        // Doar numărul căsuței e obligatoriu: ce nu scrie lipsește (mai puțin de scris = mai ieftin).
+        required: ['slot'],
         properties: {
           slot: { type: 'integer' },
           ring: nullable('string'),
@@ -92,20 +118,21 @@ export function setPedigreeModel(fn) {
   model = fn;
 }
 
-async function claudeModel({ mime, data }) {
+async function claudeModel({ mime, data, model: modelName }) {
   const client = new Anthropic();
   const b64 = data.toString('base64');
   const file =
     mime === 'application/pdf'
       ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } }
       : { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } };
+  const how = requestFor(modelName);
   const response = await client.beta.messages.create({
-    model: readerModel(),
+    model: modelName,
     max_tokens: 16000,
-    // Dacă modelul refuză (rar, de exemplu din greșeală), cererea trece singură pe un model de rezervă.
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
+    // La Opus: dacă modelul refuză (rar, de exemplu din greșeală), cererea trece singură pe un model de rezervă.
+    ...(how.fallback ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
+    ...(how.thinking ? { thinking: how.thinking } : {}),
+    output_config: { effort: how.output_config_effort, format: { type: 'json_schema', schema: SCHEMA } },
     messages: [{ role: 'user', content: [file, { type: 'text', text: instructionsFor(currentLang()) }] }],
   });
   // Și o citire nereușită se plătește: costul ei pleacă împreună cu eroarea, ca să fie trecut lângă citire.
@@ -121,6 +148,13 @@ async function claudeModel({ mime, data }) {
 }
 
 /** Lista plată de căsuțe → arbore { ring, name, color, text, breeder, sex?, father, mother }. */
+/** Câte inele scrise pe fișă nu se pot citi (semn că merită recitit cu precizie maximă). */
+function unclearRings(node) {
+  if (!node) return 0;
+  const here = node.ring && !parseRing(node.ring).ok ? 1 : 0;
+  return here + unclearRings(node.father) + unclearRings(node.mother);
+}
+
 function toTree(slots, rootSex) {
   const bySlot = new Map();
   for (const s of slots ?? []) {
@@ -143,7 +177,10 @@ function toTree(slots, rootSex) {
   return { root, filled: bySlot.size };
 }
 
-/** Citește fișierul pentru contul dat. Întoarce { root, filled, notes }. */
+/**
+ * Citește fișierul pentru contul dat. Întoarce { root, filled, notes, unclear, precise }: `unclear` = câte inele scrise
+ * nu s-au putut citi (atunci interfața arată mai vizibil „Recitește cu precizie maximă”).
+ */
 export async function readPedigree(accountId, body) {
   const mime = String(body?.mime ?? '');
   if (!MIME_TYPES.includes(mime)) throw badRequest('eroare.citire_tip_fisier');
@@ -160,7 +197,7 @@ export async function readPedigree(accountId, body) {
   if (reading.has(accountId)) throw new HttpError(429, 'eroare.citire_in_curs');
   reading.add(accountId);
   try {
-    return await readLocked(accountId, mime, data, run);
+    return await readLocked(accountId, mime, data, run, body?.precise === true);
   } finally {
     reading.delete(accountId);
   }
@@ -168,25 +205,27 @@ export async function readPedigree(accountId, body) {
 
 const reading = new Set();
 
-async function readLocked(accountId, mime, data, run) {
-  // Citirile incluse în abonament (adminul citește fără limită pe an).
+async function readLocked(accountId, mime, data, run, precise) {
+  // Citirile incluse în abonament și plafonul de bani pe an (adminul citește fără limită).
   const acc = await one('SELECT email FROM accounts WHERE id = ?', accountId);
   const admin = isAdminEmail(acc.email);
   if (!admin) {
     const reads = await readsOf(accountId);
     if (reads.used >= reads.allowed) throw new HttpError(402, 'eroare.citire_epuizate', { numar: reads.allowed });
+    if (reads.costUsd >= budgetUsd()) throw new HttpError(402, 'eroare.citire_plafon');
   }
+  const modelName = precise ? preciseModel() : readerModel();
   const used = await one(`SELECT count(*)::int AS n FROM pedigree_reads WHERE account_id = ? AND created_at > now() - interval '1 day'`, accountId);
   if (used.n >= readsPerDay()) throw new HttpError(429, 'eroare.citire_limita_zi', { numar: readsPerDay() });
   const readId = await insert('INSERT INTO pedigree_reads (account_id, created_at) VALUES (?, now())', accountId);
 
   const charge = async (usage) => {
-    const cost = costOf(usage);
+    const cost = costOf(usage, modelName);
     await runSql('UPDATE pedigree_reads SET cost_micros = ? WHERE id = ?', cost, readId);
   };
   let out;
   try {
-    out = await run({ mime, data });
+    out = await run({ mime, data, model: modelName });
   } catch (e) {
     if (e?.usage) await charge(e.usage);
     if (e instanceof HttpError) throw e;
@@ -199,5 +238,5 @@ async function readLocked(accountId, mime, data, run) {
   const { root, filled } = toTree(out?.slots, out?.rootSex);
   const notes = typeof out?.notes === 'string' ? out.notes.trim() : '';
   if (!root) throw new HttpError(422, notes || 'eroare.citire_niciun_porumbel');
-  return { root, filled, notes };
+  return { root, filled, notes, unclear: unclearRings(root), precise };
 }

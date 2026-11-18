@@ -36,9 +36,9 @@ after(() => {
 
 test('un cont activat citește fără credit; la limita pe an se oprește cu mesaj clar', async () => {
   const c = await newAccount(call, 'Cititor');
-  assert.deepEqual((await me(c)).reads, { used: 0, allowed: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 0, allowed: 3, precise: true });
   for (let i = 0; i < 3; i++) assert.equal((await read(c)).status, 200, `citirea ${i + 1}`);
-  assert.deepEqual((await me(c)).reads, { used: 3, allowed: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 3, allowed: 3, precise: true });
   const over = await read(c);
   assert.equal(over.status, 402);
   assert.match(over.data.error, /3 citiri/);
@@ -53,7 +53,7 @@ test('vânzătorul dă citiri în plus; la prelungirea abonamentului ele se pun 
   assert.equal(plus.status, 200, JSON.stringify(plus.data));
   assert.equal(plus.data.account.reads.allowed, 5);
   assert.equal((await read(c)).status, 200);
-  assert.deepEqual((await me(c)).reads, { used: 4, allowed: 5 });
+  assert.deepEqual((await me(c)).reads, { used: 4, allowed: 5, precise: true });
   const detail = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data;
   assert.ok(detail.events.some((e) => e.kind === 'reads' && e.note?.includes('a cerut')));
   await call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body: { start: today() } });
@@ -70,10 +70,61 @@ test('lista din consolă: câte citiri a făcut fiecare din câte are și cât a
   await read(c);
   const list = (await call('/api/admin/accounts', { cookie: admin })).data.accounts;
   const row = list.find((r) => r.id === id);
-  assert.deepEqual(row.reads, { used: 2, allowed: 3, costUsd: 0.28 });
+  assert.deepEqual(row.reads, { used: 2, allowed: 3, costUsd: 0.01 }); // 2 × (10.000 × 0,10 + 5.000 × 0,50) µ$ pe Haiku
   assert.equal(row.aiCredit, undefined, 'creditul nu mai există');
 });
 
 test('adminul (vânzătorul) citește fără limită pe an', async () => {
   for (let i = 0; i < 4; i++) assert.equal((await read(admin)).status, 200, `citirea ${i + 1}`);
+});
+
+test('citirea obișnuită merge pe Haiku; „precizie maximă” pe Sonnet; răspunsul spune câte inele n-au ieșit clar', async () => {
+  const c = await newAccount(call, 'Precizie');
+  const seen = [];
+  reader.setPedigreeModel(async ({ model }) => {
+    seen.push(model);
+    return {
+      slots: [{ slot: 1, ring: 'RO-20-1' }, { slot: 2, ring: 'mâzgălit' }, { slot: 3, ring: 'RO-19-7' }],
+      rootSex: null,
+      notes: '',
+      usage: { input_tokens: 1000, output_tokens: 1000 },
+    };
+  });
+  const r1 = await read(c);
+  assert.equal(r1.status, 200, JSON.stringify(r1.data));
+  assert.equal(r1.data.unclear, 1);
+  assert.equal(r1.data.precise, false);
+  const r2 = await call('/api/pedigrees/read', { method: 'POST', cookie: c, body: { ...photo, precise: true } });
+  assert.equal(r2.status, 200, JSON.stringify(r2.data));
+  assert.equal(r2.data.precise, true);
+  assert.deepEqual(seen, ['claude-haiku-5-5', 'claude-sonnet-5-5']);
+  // Costul fiecărei citiri, după modelul ei: 1000 × (0,10 + 0,50) + 1000 × (2 + 10) microdolari = 0,0006 + 0,012 $.
+  const id = (await me(c)).id;
+  const row = (await call('/api/admin/accounts', { cookie: admin })).data.accounts.find((x) => x.id === id);
+  assert.equal(row.reads.used, 2);
+  assert.equal(row.reads.costUsd, 0.01);
+});
+
+test('plafonul de bani pe an: peste el citirea se oprește, iar „precizie maximă” dispare din Cont', async () => {
+  const prev = process.env.PEDIGREE_BUDGET_USD;
+  process.env.PEDIGREE_BUDGET_USD = '0.15';
+  try {
+    const c = await newAccount(call, 'Plafon');
+    reader.setPedigreeModel(async () => ({
+      slots: [{ slot: 1, ring: 'RO-20-1' }],
+      rootSex: null,
+      notes: '',
+      usage: { input_tokens: 1_000_000, output_tokens: 0 }, // 0,10 $ pe Haiku
+    }));
+    assert.equal((await me(c)).reads.precise, true);
+    assert.equal((await read(c)).status, 200);
+    assert.equal((await read(c)).status, 200); // 0,10 $ < 0,15 $ la pornire
+    const over = await read(c);
+    assert.equal(over.status, 402);
+    assert.match(over.data.error, /citiri/i);
+    assert.equal((await me(c)).reads.precise, false);
+  } finally {
+    if (prev === undefined) delete process.env.PEDIGREE_BUDGET_USD;
+    else process.env.PEDIGREE_BUDGET_USD = prev;
+  }
 });

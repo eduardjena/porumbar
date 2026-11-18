@@ -1742,5 +1742,19 @@
   "hartie.sau_de_mana": {
     "text": "Sau introdu toate datele de mână",
     "sens": "Titlul celei de-a doua variante de la „Importă pedigree” (după citirea din poză)."
+  },
+  "eroare.citire_plafon": {
+    "text": "Ai folosit toate citirile din poze incluse în abonament pentru anul acesta. Poți completa căsuțele de mână (inelele pe care le ai deja se completează singure) sau ceri citiri în plus de la cel de la care ai primit programul.",
+    "sens": "Plafonul de bani pe an (implicit 3 $) e atins; omului nu i se spune de bani, doar că s-au terminat citirile."
+  },
+  "cititor.precizie": {
+    "text": "Recitește cu precizie maximă",
+    "sens": "Buton după o citire din poză: aceeași poză, citită cu un model mai bun (mai scump)."
+  },
+  "cititor.neclar": {
+    "one": "{count} inel n-a ieșit clar.",
+    "few": "{count} inele n-au ieșit clar.",
+    "other": "{count} de inele n-au ieșit clar.",
+    "sens": "După citire: câte inele nu s-au putut citi; urmează butonul de recitire."
   }
 }

@@ -87,8 +87,11 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
   `railway up <folder> --path-as-root --service porumbar --detach`; urmărești `railway deployment list --service porumbar`;
   verifici că `main-*.js` de pe site e același cu cel din build-ul local și că `/api/health` răspunde 200.
 - Variabilele secrete (`ADMIN_PASSWORD`, `ANTHROPIC_API_KEY`, SMTP) le pune vânzătorul în Railway, niciodată prin chat.
-- Citirea din poze: cheia în `ANTHROPIC_API_KEY`; modelul în `PEDIGREE_MODEL` (implicit `claude-opus-5-5`), cu prețul lui
-  în `PEDIGREE_PRICE_INPUT` / `PEDIGREE_PRICE_OUTPUT` (dolari pe milion de jetoane, doar pentru costul din consolă).
+- Citirea din poze: cheia în `ANTHROPIC_API_KEY` (cheie API de pe console.anthropic.com, plătită separat de abonamentul
+  Claude). Citirea obișnuită: `PEDIGREE_MODEL` (implicit `claude-haiku-5-5`, fără „gândire”); „Recitește cu precizie
+  maximă”: `PEDIGREE_MODEL_PRECISE` (implicit `claude-sonnet-5-5`); plafon pe an pe crescător: `PEDIGREE_BUDGET_USD`
+  (implicit 3 $). Prețurile modelelor sunt în `src/pedigree-reader.js`; `PEDIGREE_PRICE_INPUT` / `PEDIGREE_PRICE_OUTPUT`
+  le înlocuiesc pe ale modelului principal.
   Altă firmă decât Anthropic = schimbare de cod, doar în `src/pedigree-reader.js` (funcția `claudeModel`).
 
 ## Regulile vânzătorului (de respectat mereu)

@@ -4,7 +4,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { adminCookie, newAccount, today } from './helpers/accounts.js';
+import { adminCookie, newAccount, setIdentity, today } from './helpers/accounts.js';
 import { PEDIGREE_FOTO } from './fixtures/pedigree-foto.js';
 
 let server;
@@ -302,6 +302,7 @@ test('20 de adăugări de credit deodată (+1 $): niciuna pierdută; istoricul a
 test('10 activări de abonament deodată, cu date diferite: început și sfârșit din aceeași cerere', async () => {
   const c = await newAccount(call, 'Abonament', { active: false });
   const id = (await meOf(c)).id;
+  await setIdentity(call, id, { name: 'Abonament', sheetName: 'Abonament' });
   const starts = Array.from({ length: 10 }, (_, i) => `2026-0${(i % 9) + 1}-1${i % 10}`);
   const rs = await Promise.all(starts.map((start) => call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body: { start } })));
   no500(rs, 'abonament x10');

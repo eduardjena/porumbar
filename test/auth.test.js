@@ -44,10 +44,12 @@ test('login greșit, logout', async () => {
   assert.equal((await call('/api/auth/me')).status, 200, 'sesiunea cealaltă rămâne');
 });
 
-test('datele contului se pot schimba', async () => {
+test('numele și telefonul nu le schimbă crescătorul (le pune vânzătorul); bifele da', async () => {
   const r = await call('/api/auth/me', { method: 'PATCH', body: { name: 'Ion P.', phone: '0700 000 000', address: 'Str. Exemplu 1' } });
-  assert.equal(r.status, 200);
-  assert.equal(r.data.account.phone, '0700 000 000');
+  assert.equal(r.status, 403);
+  const ok = await call('/api/auth/me', { method: 'PATCH', body: { showEmail: true } });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.data.account.showEmail, true);
 });
 
 test('parola uitată', async () => {

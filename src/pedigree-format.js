@@ -50,15 +50,24 @@ function node(row, byId, depth, lines) {
   };
 }
 
-/** Pedigree-ul porumbelului (al contului dat) în formatul deschis. */
-export async function pedigreeV1(accountId, rootId) {
-  const account = await one('SELECT name, pedigree_name, phone, address, email, show_phone, show_address, show_email FROM accounts WHERE id = ?', accountId);
+/**
+ * Pedigree-ul porumbelului (al contului dat) în formatul deschis. `forPrint`: pentru foaia tipărită / PDF-ul omului
+ * (bifele print_*, implicit tot); altfel pentru link, cod QR, preluare și vânzare (bifele show_*, implicit doar numele).
+ * Numele de jos e doar numele de pe fișă pus de vânzător (nu cade pe numele contului).
+ */
+export async function pedigreeV1(accountId, rootId, { forPrint = false } = {}) {
+  const account = await one(
+    `SELECT pedigree_name, phone, address, email, show_phone, show_address, show_email, print_phone, print_address, print_email
+       FROM accounts WHERE id = ?`,
+    accountId,
+  );
   const rows = await all('SELECT * FROM pigeons WHERE account_id = ?', accountId);
   const byId = new Map(rows.map((r) => [r.id, r]));
-  const owner = { name: account.pedigree_name || account.name };
-  if (account.show_phone && account.phone) owner.phone = account.phone;
-  if (account.show_address && account.address) owner.address = account.address;
-  if (account.show_email) owner.email = account.email;
+  const shows = (what) => (forPrint ? account[`print_${what}`] : account[`show_${what}`]);
+  const owner = { name: account.pedigree_name ?? '' };
+  if (shows('phone') && account.phone) owner.phone = account.phone;
+  if (shows('address') && account.address) owner.address = account.address;
+  if (shows('email')) owner.email = account.email;
   return { format: FORMAT, version: VERSION, generatedAt: new Date().toISOString(), owner, root: node(byId.get(rootId), byId, 0, await pedigreeLines(accountId)) };
 }
 

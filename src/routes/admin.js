@@ -35,6 +35,52 @@ function requireAdmin(req, res, next) {
 
 const validDate = (v, field) => realDate(v, field);
 
+/** CNP-ul românesc: 13 cifre, ultima e cifra de control (cheia 279146358279). */
+export function validCnp(cnp) {
+  if (!/^[1-9]\d{12}$/.test(cnp)) return false;
+  const key = '279146358279';
+  let sum = 0;
+  for (let i = 0; i < 12; i++) sum += Number(cnp[i]) * Number(key[i]);
+  const control = sum % 11 === 10 ? 1 : sum % 11;
+  return control === Number(cnp[12]);
+}
+
+/*
+ * „Date pe fișă” din consolă: persoană fizică (nume, CNP) sau firmă (denumire, CUI, Reg. Com.), plus ce apare jos pe
+ * fișă: numele de pe fișă, telefonul, adresa. CNP-ul și datele firmei rămân doar în consolă.
+ */
+function identityOf(b) {
+  const kind = b.kind ?? 'pf';
+  if (!['pf', 'firma'].includes(kind)) throw badRequest('Alege „persoană fizică” sau „firmă”.');
+  const out = {
+    kind,
+    name: text(b.name, 'nume', { max: 120 }),
+    sheetName: text(b.sheetName, 'numele de pe fișă', { max: 120, optional: true }),
+    phone: text(b.phone, 'telefon', { max: 40, optional: true }),
+    address: text(b.address, 'adresă', { max: 300, optional: true }),
+    cnp: null,
+    companyName: null,
+    cui: null,
+    regCom: null,
+  };
+  if (kind === 'pf') {
+    out.cnp = text(b.cnp, 'CNP', { max: 13, optional: true });
+    if (out.cnp && !validCnp(out.cnp)) throw badRequest('CNP-ul nu pare corect (13 cifre, verifică-l încă o dată).');
+  } else {
+    out.companyName = text(b.companyName, 'denumirea firmei', { max: 200, optional: true });
+    const cui = text(b.cui, 'CUI', { max: 14, optional: true });
+    out.cui = cui ? cui.replace(/\s+/g, '').toUpperCase() : null;
+    if (out.cui && !/^(RO)?\d{2,10}$/.test(out.cui)) throw badRequest('CUI-ul nu pare corect (de exemplu RO12345678).');
+    out.regCom = text(b.regCom, 'Nr. Reg. Com.', { max: 40, optional: true });
+  }
+  return out;
+}
+
+const IDENTITY_SQL = `UPDATE accounts SET legal_kind = ?, name = ?, pedigree_name = ?, phone = ?, address = ?, cnp = ?, company_name = ?,
+  company_cui = ?, company_reg = ? WHERE id = ?`;
+const identityParams = (i, id) => [i.kind, i.name, i.sheetName, i.phone, i.address, i.cnp, i.companyName, i.cui, i.regCom, id];
+const NEED_SHEET_NAME = 'Pune întâi numele de pe fișă (la „Date pe fișă”), apoi activează abonamentul.';
+
 function row(a) {
   const sub = subscriptionOf(a);
   return {
@@ -42,6 +88,14 @@ function row(a) {
     name: a.name,
     email: a.email,
     phone: a.phone ?? null,
+    // Date pe fișă (le pune doar vânzătorul).
+    kind: a.legal_kind ?? 'pf',
+    sheetName: a.pedigree_name ?? null,
+    address: a.address ?? null,
+    cnp: a.cnp ?? null,
+    companyName: a.company_name ?? null,
+    cui: a.company_cui ?? null,
+    regCom: a.company_reg ?? null,
     createdAt: a.created_at,
     lastLoginAt: a.last_login_at ?? null,
     lastSeenAt: a.last_seen_at ?? a.last_seen ?? null,
@@ -83,7 +137,7 @@ export function adminRouter() {
     for (const a of rows) counts[a.status]++;
     const shown = rows
       .filter((a) => !filter || a.status === filter)
-      .filter((a) => !q || [a.name, a.email, a.phone].some((x) => String(x ?? '').toLowerCase().includes(q)));
+      .filter((a) => !q || [a.name, a.sheetName, a.companyName, a.email, a.phone].some((x) => String(x ?? '').toLowerCase().includes(q)));
     // De încasat primele: cele care expiră curând, după zile rămase.
     if (filter === 'expiring') shown.sort((a, b) => a.daysLeft - b.daysLeft);
     res.json({ accounts: shown, counts, mailConfigured: !!config.smtpUrl });
@@ -93,11 +147,12 @@ export function adminRouter() {
   // Opțional, în același pas: abonamentul (a plătit deja) și credit pentru citiri.
   r.post('/accounts', async (req, res) => {
     const b = req.body ?? {};
-    const name = text(b.name, 'nume', { max: 120 });
+    const ident = identityOf(b);
     const email = text(b.email, 'email', { max: 200 });
     if (!EMAIL_RE.test(email)) throw badRequest('Adresa de email nu pare corectă.');
-    const phone = text(b.phone, 'telefon', { max: 40, optional: true });
+    const { name, phone } = ident;
     const activate = b.activate === true;
+    if (activate && !ident.sheetName) throw badRequest(NEED_SHEET_NAME);
     const start = activate ? validDate(b.start, 'Data de început') : null;
     const credit = b.credit == null || b.credit === 0 ? 0 : b.credit;
     if (typeof credit !== 'number' || !Number.isFinite(credit) || credit < 0 || credit > 1000) throw badRequest('Creditul se scrie în dolari, de exemplu 5.');
@@ -110,6 +165,7 @@ export function adminRouter() {
         'INSERT INTO accounts (email, name, phone, password_hash, invited, created_at) VALUES (?, ?, ?, ?, true, ?)',
         email, name, phone, await hashPassword(randomToken()), nowIso(),
       );
+      await run(IDENTITY_SQL, ...identityParams(ident, id));
       await logEvent(id, 'created', { note: note ?? 'făcut din consolă' });
       if (activate) {
         await run('UPDATE accounts SET subscription_start = ?, subscription_end = ? WHERE id = ?', start, plusOneYear(start), id);
@@ -155,8 +211,25 @@ export function adminRouter() {
     const note = text(req.body?.note, 'notă', { max: 300, optional: true });
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
+      if (!acc.pedigree_name) throw badRequest(NEED_SHEET_NAME);
       await run('UPDATE accounts SET subscription_start = ?, subscription_end = ? WHERE id = ?', start, end, acc.id);
       await logEvent(acc.id, 'subscription', { note: [`${start} → ${end}`, note].filter(Boolean).join(' · ') });
+      return accountRow(acc.id);
+    });
+    res.json({ account: row(a) });
+  });
+
+  // „Date pe fișă”: tipul (persoană fizică / firmă), CNP / CUI, numele de pe fișă, telefonul, adresa. Crescătorul nu le
+  // poate schimba; cu abonament activ numele de pe fișă nu se poate goli.
+  r.patch('/accounts/:id/identity', async (req, res) => {
+    const ident = identityOf(req.body ?? {});
+    const a = await tx(async () => {
+      const acc = await accountRow(req.params.id);
+      if (!ident.sheetName && acc.subscription_start) throw badRequest('Numele de pe fișă nu poate rămâne gol la un cont activat.');
+      await run(IDENTITY_SQL, ...identityParams(ident, acc.id));
+      const changed = [acc.pedigree_name !== ident.sheetName && `pe fișă: ${ident.sheetName ?? '—'}`, acc.name !== ident.name && `nume: ${ident.name}`]
+        .filter(Boolean).join(' · ');
+      await logEvent(acc.id, 'identity', { note: changed || 'date actualizate' });
       return accountRow(acc.id);
     });
     res.json({ account: row(a) });

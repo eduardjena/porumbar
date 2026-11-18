@@ -450,7 +450,7 @@ test('prototype pollution: cheile __proto__ / constructor din JSON nu schimbă n
   const created = await send('POST', '/api/pigeons', '{"kind":"own","ring":"RO-26-660001","__proto__":{"polluted":"da","isAdmin":true,"kind":"external"},"constructor":{"prototype":{"polluted":"da"}}}');
   assert.equal(created.status, 201, created.text);
   assert.equal(created.data.pigeon.kind, 'own');
-  const meR = await send('PATCH', '/api/auth/me', '{"name":"Vasile P","__proto__":{"isAdmin":true,"showEmail":true}}');
+  const meR = await send('PATCH', '/api/auth/me', '{"treeView":"evantai","__proto__":{"isAdmin":true,"showEmail":true}}');
   assert.equal(meR.status, 200);
   assert.equal(meR.data.account.isAdmin, false);
   assert.equal(meR.data.account.showEmail, false);

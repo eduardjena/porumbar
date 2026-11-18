@@ -1,5 +1,4 @@
 import { Component, DestroyRef, ElementRef, effect, inject, input, signal, viewChild } from '@angular/core';
-import { AuthService } from '../core/auth';
 import { PedigreeV1 } from '../core/models';
 import { PedigreeSheet } from './pedigree-sheet';
 import { QrCode } from './qr-code';
@@ -81,7 +80,6 @@ import { QrCode } from './qr-code';
   `,
 })
 export class PedigreePage {
-  private readonly auth = inject(AuthService);
   readonly data = input.required<PedigreeV1>();
   /** Linkul public (codul QR de pe foaie); fără link, foaia nu are cod. */
   readonly url = input<string | null>(null);
@@ -90,11 +88,9 @@ export class PedigreePage {
   private readonly preview = viewChild<ElementRef<HTMLElement>>('preview');
   protected readonly today = new Date().toLocaleDateString('ro-RO');
 
-  /** Datele crescătorului de jos: tot ce a completat în Cont (foaia e a lui); fără cont încărcat, ce vine cu pedigree-ul. */
+  /** Datele crescătorului de jos: cum le dă serverul (numele de pe fișă pus de vânzător + ce a bifat omul pentru fișă). */
   protected owner() {
-    const a = this.auth.account();
-    if (!a) return this.data().owner;
-    return { name: a.pedigreeName || a.name, address: a.address, phone: a.phone, email: a.email };
+    return this.data().owner;
   }
 
   /** Rândul de sub titlu: sexul, anul, culoarea, crescătorul (ce se știe). */

@@ -2,7 +2,7 @@ export interface Account {
   id: number;
   email: string;
   name: string;
-  /** Numele scris jos pe pedigree (echipa / crescătoria); gol = numele contului. */
+  /** Numele scris jos pe fișă (echipa / crescătoria); îl pune vânzătorul. */
   pedigreeName?: string | null;
   phone: string | null;
   address: string | null;
@@ -10,6 +10,10 @@ export interface Account {
   showPhone?: boolean;
   showAddress?: boolean;
   showEmail?: boolean;
+  /** Ce apare pe foaia tipărită și în PDF, pe lângă nume (implicit tot). */
+  printPhone?: boolean;
+  printAddress?: boolean;
+  printEmail?: boolean;
   isAdmin?: boolean;
   sellerContact?: string | null;
   subscription?: Subscription;

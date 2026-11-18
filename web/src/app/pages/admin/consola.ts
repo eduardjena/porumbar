@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { Icon } from '../../shared/icon';
+import { IdentityFields, IdentityForm, emptyIdentity, identityBody } from './identity-fields';
 
 type Status = 'pending' | 'active' | 'expiring' | 'expired';
 interface Row {
@@ -10,6 +11,13 @@ interface Row {
   name: string;
   email: string;
   phone: string | null;
+  kind: 'pf' | 'firma';
+  sheetName: string | null;
+  address: string | null;
+  cnp: string | null;
+  companyName: string | null;
+  cui: string | null;
+  regCom: string | null;
   createdAt: string;
   lastSeenAt: string | null;
   lastLoginAt: string | null;
@@ -24,7 +32,7 @@ interface Row {
   invited: boolean;
 }
 interface Event {
-  kind: 'subscription' | 'credit' | 'password-link' | 'reminder';
+  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity';
   amount: number | null;
   note: string | null;
   createdAt: string;
@@ -39,7 +47,9 @@ const FILTERS: { id: '' | Status; label: string }[] = [
   { id: 'expired', label: 'Expirați' },
 ];
 const STATUS_LABEL: Record<Status, string> = { pending: 'Neactivat', active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat' };
-const EVENT_LABEL: Record<Event['kind'], string> = { subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis' };
+const EVENT_LABEL: Record<Event['kind'], string> = {
+  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă',
+};
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 function plusOneYear(start: string) {
@@ -56,7 +66,7 @@ function plusOneYear(start: string) {
  */
 @Component({
   selector: 'app-consola',
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icon, IdentityFields],
   template: `
     <div class="wide">
       <div class="title-row">
@@ -68,10 +78,9 @@ function plusOneYear(start: string) {
         <section class="card stack new">
           <h2>Crescător nou</h2>
           <p class="muted">Faci contul pentru el. Primește un link (7 zile) cu care își alege singur parola și intră direct în porumbarul lui.</p>
+          <app-identity-fields [form]="nbIdent" id="nb" />
           <div class="grid2">
-            <label class="field">Nume <input [(ngModel)]="nb.name" name="nbName" autocomplete="off" /></label>
             <label class="field">Email <input type="email" [(ngModel)]="nb.email" name="nbEmail" autocomplete="off" /></label>
-            <label class="field">Telefon (pentru WhatsApp) <input type="tel" [(ngModel)]="nb.phone" name="nbPhone" autocomplete="off" placeholder="07xx xxx xxx" /></label>
             <label class="field">Notă (opțional) <input [(ngModel)]="nb.note" name="nbNote" placeholder="de ex. plătit cash, 150 lei" /></label>
           </div>
           <label class="check"><input type="checkbox" [(ngModel)]="nb.activate" name="nbAct" /> A plătit deja: activează abonamentul</label>
@@ -126,7 +135,7 @@ function plusOneYear(start: string) {
           <div class="thead" aria-hidden="true"><span>Crescător</span><span>Abonament</span><span>Ultima intrare</span><span>Credit</span><span>Porumbei</span></div>
           @for (r of shown(); track r.id) {
             <button type="button" class="tr" [class.sel]="r.id === selectedId()" (click)="open(r.id)">
-              <span class="who"><strong>{{ r.name }}</strong><span class="muted">{{ r.email }}@if (r.phone) { · {{ r.phone }} }</span></span>
+              <span class="who"><strong>{{ r.name }}</strong><span class="muted">@if (r.sheetName && r.sheetName !== r.name) { pe fișă: {{ r.sheetName }} · }{{ r.email }}@if (r.phone) { · {{ r.phone }} }</span></span>
               <span class="sub">
                 <span class="st" [class]="'st ' + r.status">{{ statusLabel[r.status] }}@if (r.invited) { <span class="inv">· n-a intrat încă</span> }</span>
                 @if (r.subscriptionEnd) { <span class="muted">până pe {{ date(r.subscriptionEnd) }}@if (r.status === 'expiring') { ({{ r.daysLeft }} zile) }</span> }
@@ -148,6 +157,30 @@ function plusOneYear(start: string) {
             </div>
             @if (d.invited) { <p class="warning">Nu și-a ales încă parola. Dacă a pierdut linkul, trimite-i unul nou mai jos („Link de parolă nouă”, 7 zile).</p> }
             <p class="muted">{{ d.email }}@if (d.phone) { · {{ d.phone }} }<br />Cont din {{ date(d.createdAt) }} · ultima intrare: {{ d.lastLoginAt ? when(d.lastLoginAt) : 'încă niciuna' }} · ultima activitate: {{ d.lastSeenAt ? when(d.lastSeenAt) : '—' }} · {{ d.pigeons }} porumbei · {{ d.reads }} citiri din poze</p>
+
+            <section class="stack box">
+              <h3>Date pe fișă</h3>
+              @if (editIdent(); as f) {
+                <app-identity-fields [form]="f" id="ed" />
+                <div class="row">
+                  <button type="button" class="primary" (click)="saveIdentity(d, f)"><app-icon name="bifa" />Salvează</button>
+                  <button type="button" (click)="editIdent.set(null)">Renunță</button>
+                </div>
+              } @else {
+                @if (d.sheetName) {
+                  <div class="sheet">
+                    <strong>{{ d.sheetName }}</strong>
+                    @if (d.address) { <span class="addr">{{ d.address }}</span> }
+                    @if (d.phone) { <span>Tel.: {{ d.phone }}</span> }
+                    <span>{{ d.email }}</span>
+                  </div>
+                } @else {
+                  <p class="warning">Nu are încă nume pe fișă. Fără el abonamentul nu se poate activa.</p>
+                }
+                <p class="muted">@if (d.kind === 'firma') { Firmă: {{ d.companyName || '—' }} · CUI {{ d.cui || '—' }} · Reg. Com. {{ d.regCom || '—' }} · contact: {{ d.name }} } @else { Persoană fizică: {{ d.name }} · CNP {{ d.cnp || '—' }} }</p>
+                <button type="button" (click)="startEdit(d)"><app-icon name="editeaza" />Modifică datele de pe fișă</button>
+              }
+            </section>
 
             <section class="stack box">
               <h3>Abonament <span class="st" [class]="'st ' + d.status">{{ statusLabel[d.status] }}</span></h3>
@@ -239,6 +272,9 @@ function plusOneYear(start: string) {
     .icon-btn { width: 48px; padding: 0; }
     .link { word-break: break-all; background: var(--surface-2); padding: 8px 10px; border-radius: 10px; font-size: 0.85rem; }
     .ev { font-size: 0.92rem; }
+    .sheet { display: flex; flex-direction: column; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: #fff; color: #2b2117; line-height: 1.35; }
+    .sheet strong { font-size: 1.1rem; }
+    .sheet .addr { white-space: pre-line; }
     @media (max-width: 1000px) {
       .wide { width: 100%; margin-left: 0; }
       .layout { grid-template-columns: 1fr; }
@@ -269,7 +305,10 @@ export default class Consola implements OnInit {
   readonly copied = signal(false);
   readonly showNew = signal(false);
   readonly invite = signal<{ name: string; phone: string | null; link: string; emailed: boolean } | null>(null);
-  nb = { name: '', email: '', phone: '', note: '', activate: false, start: iso(new Date()), credit: 0 };
+  nb = { email: '', note: '', activate: false, start: iso(new Date()), credit: 0 };
+  nbIdent: IdentityForm = emptyIdentity();
+  /** Formularul „Date pe fișă” deschis în fișa crescătorului (null = doar se văd). */
+  readonly editIdent = signal<IdentityForm | null>(null);
   startDate = '';
   subNote = '';
   creditAmount = 5;
@@ -277,7 +316,7 @@ export default class Consola implements OnInit {
 
   protected readonly shown = computed(() => {
     const q = this.q().trim().toLowerCase();
-    return this.rows().filter((r) => !q || [r.name, r.email, r.phone].some((x) => String(x ?? '').toLowerCase().includes(q)));
+    return this.rows().filter((r) => !q || [r.name, r.sheetName, r.companyName, r.email, r.phone].some((x) => String(x ?? '').toLowerCase().includes(q)));
   });
   protected readonly detail = computed(() => this.rows().find((r) => r.id === this.selectedId()) ?? null);
   protected readonly date = (v: string) => new Date(v.length === 10 ? `${v}T12:00:00Z` : v).toLocaleDateString('ro-RO');
@@ -326,6 +365,7 @@ export default class Consola implements OnInit {
   async open(id: number) {
     this.selectedId.set(id);
     this.link.set(null);
+    this.editIdent.set(null);
     const r = this.rows().find((x) => x.id === id);
     // Prelungirea pornește de unde se termină abonamentul de acum; altfel de azi.
     this.startDate = r && (r.status === 'active' || r.status === 'expiring') && r.subscriptionEnd ? r.subscriptionEnd : iso(new Date());
@@ -364,23 +404,46 @@ export default class Consola implements OnInit {
     return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
   }
 
+  startEdit(d: Row) {
+    this.editIdent.set({
+      kind: d.kind, name: d.name, cnp: d.cnp ?? '', companyName: d.companyName ?? '', cui: d.cui ?? '', regCom: d.regCom ?? '',
+      sheetName: d.sheetName ?? '', phone: d.phone ?? '', address: d.address ?? '',
+    });
+  }
+
+  async saveIdentity(d: Row, f: IdentityForm) {
+    if (!f.name.trim()) return this.error.set('Scrie numele.');
+    try {
+      await this.api.patch(`/admin/accounts/${d.id}/identity`, identityBody(f));
+      this.editIdent.set(null);
+      this.error.set('');
+      await this.refresh(d.id);
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    }
+  }
+
   async createBreeder() {
     const b = this.nb;
-    if (!b.name.trim() || !b.email.trim()) return this.error.set('Scrie numele și emailul crescătorului.');
+    const ident = identityBody(this.nbIdent);
+    if (!ident.name || !b.email.trim()) return this.error.set('Scrie numele și emailul crescătorului.');
+    if (b.activate && !ident.sheetName) return this.error.set('Ca să activezi abonamentul, scrie și numele de pe fișă.');
     const credit = Number(b.credit) || 0;
-    const lines = [`${b.name.trim()} · ${b.email.trim()}${b.phone.trim() ? ' · ' + b.phone.trim() : ''}`];
+    const lines = [`${ident.name} · ${b.email.trim()}${ident.phone ? ' · ' + ident.phone : ''}`];
+    if (ident.sheetName) lines.push(`Pe fișă: ${ident.sheetName}.`);
     lines.push(b.activate ? `Abonament de pe ${this.date(b.start)} până pe ${this.date(plusOneYear(b.start))} (confirmă doar dacă ai primit banii).` : 'Fără abonament deocamdată: contul e doar pentru citire până îl activezi.');
     if (credit > 0) lines.push(`Credit pentru citiri: ${this.money(credit)}.`);
     const ok = await this.confirm.ask({ title: 'Faci contul acestui crescător?', lines, confirmLabel: 'Da, fă contul' });
     if (!ok) return;
     try {
       const r = await this.api.post<{ account: Row; link: string; emailed: boolean }>('/admin/accounts', {
-        name: b.name.trim(), email: b.email.trim(), phone: b.phone.trim() || null, note: b.note.trim() || null,
+        ...ident, email: b.email.trim(), note: b.note.trim() || null,
         activate: b.activate, start: b.activate ? b.start : undefined, credit,
       });
       this.invite.set({ name: r.account.name, phone: r.account.phone, link: r.link, emailed: r.emailed });
       this.showNew.set(false);
-      this.nb = { name: '', email: '', phone: '', note: '', activate: false, start: iso(new Date()), credit: 0 };
+      this.nb = { email: '', note: '', activate: false, start: iso(new Date()), credit: 0 };
+      this.nbIdent = emptyIdentity();
       this.filter.set('');
       await this.load();
       await this.open(r.account.id);
@@ -391,6 +454,7 @@ export default class Consola implements OnInit {
   }
 
   async activate(d: Row) {
+    if (!d.sheetName) return this.error.set('Pune întâi numele de pe fișă (la „Date pe fișă”), apoi activează abonamentul.');
     if (!this.startDate) return this.error.set('Alege data de început.');
     const ok = await this.confirm.ask({
       title: `${d.subscriptionStart ? 'Prelungești' : 'Activezi'} abonamentul lui ${d.name}?`,

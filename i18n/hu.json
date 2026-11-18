@@ -1107,7 +1107,7 @@
   "hartie.am_pastrat": "Megőriztem, amit legutóbb beírtál.",
   "hartie.de_la_zero": "Kezdd elölről",
   "hartie.porumbelul_este": "A származási lapon szereplő galamb",
-  "hartie.al_meu": "Az én dúcomból való",
+  "hartie.al_meu": "A galamb az én dúcomból való",
   "hartie.nu_al_meu": "Nincs a dúcomban",
   "hartie.imprumutat": "(pl. fiókanevelésre kölcsönkapott)",
   "hartie.sexul": "A galamb ivara",
@@ -1168,5 +1168,6 @@
   "cititor.citiri_din": "{folosite} / {total}",
   "cititor.fara_citiri": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat attól, akitől a programot kaptad.",
   "cititor.fara_citiri_contact": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat: {contact}.",
-  "eroare.inel_hu_asociatie": "A magyar gyűrűknél írd be a szervezet számát is, ahogy a gyűrűn áll: HU-2023-29-14530."
+  "eroare.inel_hu_asociatie": "A magyar gyűrűknél írd be a szervezet számát is, ahogy a gyűrűn áll: HU-2023-29-14530.",
+  "hartie.sau_de_mana": "Vagy add meg kézzel az összes adatot"
 }

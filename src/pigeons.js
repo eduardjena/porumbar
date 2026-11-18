@@ -126,7 +126,7 @@ function validate(input, existing = null) {
   const ringText = pick('ring', existing?.ring?.raw ?? null);
   const raw = ringText == null || String(ringText).trim() === '' ? null : text(ringText, 'camp.inel', { max: 80 });
   const ring = raw ? parseRing(raw) : null;
-  if (kind === 'own' && (!ring?.ok || ring.unringed)) throw badRequest('eroare.inel_necitit');
+  if (kind === 'own' && (!ring?.ok || ring.unringed)) throw badRequest(ring?.needsClub ? 'eroare.inel_hu_asociatie' : 'eroare.inel_necitit');
 
   let sex = pick('sex', existing?.sex ?? null);
   if (sex === '') sex = null;

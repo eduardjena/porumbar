@@ -1166,5 +1166,6 @@
   "eroare.lipsa_culoare": "Hiányoznak a szín adatai.",
   "eroare.prea_multe_linii": "Legfeljebb {max} vonal.",
   "eroare.an_invalid": "Az év érvénytelen.",
-  "eroare.lipsa_concurs": "Hiányoznak a verseny adatai."
+  "eroare.lipsa_concurs": "Hiányoznak a verseny adatai.",
+  "eroare.inel_hu_asociatie": "A magyar gyűrűknél írd be a szervezet számát is, ahogy a gyűrűn áll: HU-2023-29-14530."
 }

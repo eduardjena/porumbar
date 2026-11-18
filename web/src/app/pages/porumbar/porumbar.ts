@@ -2,7 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
-import { CatalogService, sexShort } from '../../core/catalog';
+import { CatalogService, ringText, sexShort } from '../../core/catalog';
+import { TPipe } from '../../core/i18n';
 import { PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
@@ -10,43 +11,43 @@ import { ViewToggle } from '../../shared/view-toggle';
 /** Lista porumbeilor: toți odată, pe rânduri compacte, cu căutare și filtre (și pe cei din alte porumbare, dacă îi alegi). */
 @Component({
   selector: 'app-porumbar',
-  imports: [FormsModule, RouterLink, Icon, ViewToggle],
+  imports: [FormsModule, RouterLink, Icon, ViewToggle, TPipe],
   template: `
     <div class="head">
       <div>
-        <h1>Porumbarul meu</h1>
-        @if (loaded()) { <p class="muted count">{{ pigeons().length }} {{ pigeons().length === 1 ? 'porumbel' : 'porumbei' }}</p> }
+        <h1>{{ 'panou.titlu' | t }}</h1>
+        @if (loaded()) { <p class="muted count">{{ 'panou.numar_porumbei' | t: { count: pigeons().length } }}</p> }
       </div>
       <div class="row actions">
         <app-view-toggle current="lista" />
-        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />Porumbel nou</a>
+        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
       </div>
     </div>
 
     <div class="filters">
       <label class="search">
         <app-icon name="cautare" />
-        <input type="search" placeholder="Caută după inel sau nume" aria-label="Caută după inel sau nume" [(ngModel)]="q" (ngModelChange)="search()" />
+        <input type="search" [placeholder]="'porumbar.cauta' | t" [attr.aria-label]="'porumbar.cauta' | t" [(ngModel)]="q" (ngModelChange)="search()" />
       </label>
-      <select [(ngModel)]="kind" (ngModelChange)="load()" aria-label="Ce porumbei">
-        <option value="own">Din porumbarul meu</option>
-        <option value="external">Nu sunt în porumbarul meu</option>
-        <option value="">Toți</option>
+      <select [(ngModel)]="kind" (ngModelChange)="load()" [attr.aria-label]="'porumbar.ce_porumbei' | t">
+        <option value="own">{{ 'porumbel.din_porumbarul_meu' | t }}</option>
+        <option value="external">{{ 'porumbar.nu_sunt_ai_mei' | t }}</option>
+        <option value="">{{ 'porumbar.toti' | t }}</option>
       </select>
-      <select [(ngModel)]="status" (ngModelChange)="load()" aria-label="Starea">
-        <option value="">Orice stare</option>
+      <select [(ngModel)]="status" (ngModelChange)="load()" [attr.aria-label]="'porumbel.starea' | t">
+        <option value="">{{ 'porumbar.orice_stare' | t }}</option>
         @for (s of catalog.catalog()?.statuses ?? []; track s.code) { <option [value]="s.code">{{ s.label }}</option> }
       </select>
-      <select [(ngModel)]="sex" (ngModelChange)="load()" aria-label="Sexul">
-        <option value="">Masculi și femele</option>
-        <option value="M">Masculi</option>
-        <option value="F">Femele</option>
+      <select [(ngModel)]="sex" (ngModelChange)="load()" [attr.aria-label]="'porumbel.sexul' | t">
+        <option value="">{{ 'porumbar.masculi_si_femele' | t }}</option>
+        <option value="M">{{ 'porumbel.masculi' | t }}</option>
+        <option value="F">{{ 'porumbel.femele' | t }}</option>
       </select>
     </div>
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (loaded() && !pigeons().length) {
-      <p class="muted">{{ q || status || sex || kind !== 'own' ? 'Niciun porumbel nu se potrivește căutării.' : 'Porumbarul e gol deocamdată.' }}</p>
+      <p class="muted">{{ (q || status || sex || kind !== 'own' ? 'porumbar.nimic_gasit' : 'porumbar.gol') | t }}</p>
     }
 
     @if (pigeons().length) {
@@ -54,11 +55,11 @@ import { ViewToggle } from '../../shared/view-toggle';
         @for (p of pigeons(); track p.id) {
           <li>
             <a [routerLink]="['/porumbei', p.id]" [queryParams]="{ din: 'lista' }">
-              <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+              <span class="mono ring">{{ ring(p) }}</span>
               <span [class]="'sex sex-' + (p.sex ?? '')">{{ sexS(p.sex) }}</span>
               <span class="name">{{ p.name ?? '' }}</span>
               <span class="muted year">{{ p.year ?? '' }}</span>
-              <span class="muted status">{{ p.kind === 'external' ? 'nu e în porumbarul meu' : catalog.label('statuses', p.status) }}</span>
+              <span class="muted status">{{ p.kind === 'external' ? ('porumbel.nu_e_al_meu_mic' | t) : catalog.label('statuses', p.status) }}</span>
               <app-icon name="inainte" [size]="20" class="go" />
             </a>
           </li>
@@ -101,6 +102,7 @@ export default class Porumbar {
   private readonly api = inject(Api);
   protected readonly catalog = inject(CatalogService);
   protected readonly sexS = sexShort;
+  protected readonly ring = ringText;
   q = '';
   kind = 'own';
   status = '';

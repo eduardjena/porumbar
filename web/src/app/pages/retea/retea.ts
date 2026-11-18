@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import type { Core, ElementDefinition, NodeSingular } from 'cytoscape';
 import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
+import { TPipe } from '../../core/i18n';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { lastRoot, rememberRoot } from './arbore-data';
@@ -17,40 +18,40 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
  */
 @Component({
   selector: 'app-retea',
-  imports: [FormsModule, RouterLink, Icon],
+  imports: [FormsModule, RouterLink, Icon, TPipe],
   template: `
-    <p class="muted intro">Fiecare porumbel apare o singură dată. Chenarul gros arată strămoșii comuni, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.</p>
+    <p class="muted intro">{{ 'retea.intro' | t }}</p>
     <div class="controls">
-      <button type="button" [class.primary]="!!tot() && !rootId()" (click)="showAll()"><app-icon name="retea" />Tot porumbarul</button>
+      <button type="button" [class.primary]="!!tot() && !rootId()" (click)="showAll()"><app-icon name="retea" />{{ 'retea.tot_porumbarul' | t }}</button>
     </div>
     @if (suggestions().length) {
       <ul class="suggestions card">
         @for (s of suggestions(); track s.id) {
           <li><button type="button" (click)="pick(s)">
-            <span class="mono">{{ s.ring?.display ?? 'Fără inel' }}</span>
+            <span class="mono">{{ s.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
             @if (s.name) { <span>{{ s.name }}</span> }
-            @if (s.kind === 'external') { <span class="badge">nu e în porumbarul meu</span> }
+            @if (s.kind === 'external') { <span class="badge">{{ 'text.nu_e_in_porumbarul_meu' | t }}</span> }
           </button></li>
         }
       </ul>
     }
 
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
-    @if (net()?.truncated) { <div class="warning"><app-icon name="alerta" />Arăt doar cei mai tineri {{ net()!.nodes.length }} porumbei. Alege un porumbel ca să vezi rudele lui.</div> }
+    @if (net()?.truncated) { <div class="warning"><app-icon name="alerta" />{{ 'retea.doar_cei_mai_tineri' | t: { n: net()!.nodes.length } }}</div> }
     @if (!rootId() && !tot()) {
-      <div class="notice"><app-icon name="cautare" />Adaugă primul porumbel, apoi îl vezi aici cu strămoșii și urmașii lui.</div>
+      <div class="notice"><app-icon name="cautare" />{{ 'retea.adauga_primul' | t }}</div>
     }
-    @if (rootLabel()) { <p class="from">Pornind de la <strong class="mono">{{ rootLabel() }}</strong>: strămoșii pe 5 generații și urmașii pe 3.</p> }
+    @if (rootLabel()) { <p class="from">{{ 'retea.pornind_de_la' | t }} <strong class="mono">{{ rootLabel() }}</strong>{{ 'retea.pornind_rest' | t }}</p> }
 
     <div class="graph-wrap">
-      <div #graph class="graph" role="img" aria-label="Arborele porumbarului"></div>
+      <div #graph class="graph" role="img" [attr.aria-label]="'arbore.titlu_porumbar' | t"></div>
       @if (net() && !net()!.nodes.length) {
-        <div class="graph-empty muted">Niciun porumbel de arătat încă.</div>
+        <div class="graph-empty muted">{{ 'retea.graf_gol' | t }}</div>
       }
       <div class="zoom">
-        <button type="button" aria-label="Mărește" title="Mărește" (click)="zoom(1.25)"><app-icon name="plus" /></button>
-        <button type="button" aria-label="Micșorează" title="Micșorează" (click)="zoom(0.8)"><app-icon name="minus" /></button>
-        <button type="button" aria-label="Arată tot arborele" title="Arată tot arborele" (click)="fit()"><app-icon name="panou" /></button>
+        <button type="button" [attr.aria-label]="'actiune.mareste' | t" [title]="'actiune.mareste' | t" (click)="zoom(1.25)"><app-icon name="plus" /></button>
+        <button type="button" [attr.aria-label]="'actiune.micsoreaza' | t" [title]="'actiune.micsoreaza' | t" (click)="zoom(0.8)"><app-icon name="minus" /></button>
+        <button type="button" [attr.aria-label]="'retea.arata_tot' | t" [title]="'retea.arata_tot' | t" (click)="fit()"><app-icon name="panou" /></button>
       </div>
     </div>
 
@@ -60,13 +61,13 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
           <span class="score" [class]="'score band-' + s.band">{{ s.score ?? '–' }}</span>
           <div>
             <div><strong class="mono">{{ s.ring }}</strong> @if (s.name) { <span class="name">{{ s.name }}</span> }</div>
-            <div class="muted">{{ sexText(s.sex) }}@if (s.year) { · {{ s.year }} } · {{ s.offspringCount }} pui@if (s.kind === 'external') { · nu e în porumbarul tău }</div>
+            <div class="muted">{{ sexText(s.sex) }}@if (s.year) { · {{ s.year }} } · {{ 'arbore.n_pui' | t: { n: s.offspringCount } }}@if (s.kind === 'external') { · {{ 'text.nu_e_in_porumbarul_tau' | t }} }</div>
           </div>
-          <button type="button" class="icon-btn" aria-label="Închide" (click)="clearSelection()"><app-icon name="inchide" /></button>
+          <button type="button" class="icon-btn" [attr.aria-label]="'actiune.inchide' | t" (click)="clearSelection()"><app-icon name="inchide" /></button>
         </div>
         <div class="row">
-          <a class="btn primary" [routerLink]="['/porumbei', s.id]" [queryParams]="from()"><app-icon name="fisa" />Deschide fișa</a>
-          <button type="button" (click)="startFrom(s)"><app-icon name="retea" />Pornește de aici</button>
+          <a class="btn primary" [routerLink]="['/porumbei', s.id]" [queryParams]="from()"><app-icon name="fisa" />{{ 'actiune.deschide_fisa' | t }}</a>
+          <button type="button" (click)="startFrom(s)"><app-icon name="retea" />{{ 'actiune.porneste_de_aici' | t }}</button>
         </div>
       </aside>
     }

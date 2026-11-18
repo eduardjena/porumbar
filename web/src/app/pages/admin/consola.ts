@@ -1,3 +1,4 @@
+import { UpperCasePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
@@ -7,6 +8,7 @@ import { IdentityFields, IdentityForm, emptyIdentity, identityBody } from './ide
 
 type Status = 'pending' | 'active' | 'expiring' | 'expired';
 interface Row {
+  lang?: string;
   id: number;
   name: string;
   email: string;
@@ -66,7 +68,7 @@ function plusOneYear(start: string) {
  */
 @Component({
   selector: 'app-consola',
-  imports: [FormsModule, Icon, IdentityFields],
+  imports: [FormsModule, Icon, IdentityFields, UpperCasePipe],
   template: `
     <div class="wide">
       <div class="title-row">
@@ -135,7 +137,7 @@ function plusOneYear(start: string) {
           <div class="thead" aria-hidden="true"><span>Crescător</span><span>Abonament</span><span>Ultima intrare</span><span>Credit</span><span>Porumbei</span></div>
           @for (r of shown(); track r.id) {
             <button type="button" class="tr" [class.sel]="r.id === selectedId()" (click)="open(r.id)">
-              <span class="who"><strong>{{ r.name }}</strong><span class="muted">@if (r.sheetName && r.sheetName !== r.name) { pe fișă: {{ r.sheetName }} · }{{ r.email }}@if (r.phone) { · {{ r.phone }} }</span></span>
+              <span class="who"><strong>{{ r.name }}</strong><span class="muted">@if (r.sheetName && r.sheetName !== r.name) { pe fișă: {{ r.sheetName }} · }@if (r.lang && r.lang !== 'ro') { limba: {{ r.lang | uppercase }} · }{{ r.email }}@if (r.phone) { · {{ r.phone }} }</span></span>
               <span class="sub">
                 <span class="st" [class]="'st ' + r.status">{{ statusLabel[r.status] }}@if (r.invited) { <span class="inv">· n-a intrat încă</span> }</span>
                 @if (r.subscriptionEnd) { <span class="muted">până pe {{ date(r.subscriptionEnd) }}@if (r.status === 'expiring') { ({{ r.daysLeft }} zile) }</span> }
@@ -407,7 +409,7 @@ export default class Consola implements OnInit {
   startEdit(d: Row) {
     this.editIdent.set({
       kind: d.kind, name: d.name, cnp: d.cnp ?? '', companyName: d.companyName ?? '', cui: d.cui ?? '', regCom: d.regCom ?? '',
-      sheetName: d.sheetName ?? '', phone: d.phone ?? '', address: d.address ?? '',
+      sheetName: d.sheetName ?? '', phone: d.phone ?? '', address: d.address ?? '', lang: d.lang ?? 'ro',
     });
   }
 

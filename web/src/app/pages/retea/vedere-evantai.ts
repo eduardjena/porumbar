@@ -1,5 +1,6 @@
 import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { TreeNode } from '../../core/models';
+import { t, TPipe } from '../../core/i18n';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
 
 /*
@@ -48,8 +49,9 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
 
 @Component({
   selector: 'app-vedere-evantai',
+  imports: [TPipe],
   template: `
-    <svg [attr.viewBox]="viewBox()" class="fan" role="img" aria-label="Evantaiul strămoșilor">
+    <svg [attr.viewBox]="viewBox()" class="fan" role="img" [attr.aria-label]="'arbore.aria_evantai' | t">
       @for (s of slices(); track s.key) {
         <g class="slice" [class.sel]="s.id != null && s.id === selectedId()" (click)="s.id != null && select.emit(s.id)" (dblclick)="s.id != null && open.emit(s.id)">
           <path [attr.d]="s.d" [attr.fill]="s.fill" stroke="#fffdf9" stroke-width="2" />
@@ -71,10 +73,10 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
         <text [attr.x]="cx" [attr.y]="cy - 22" text-anchor="middle" [attr.fill]="rootInk()" font-size="14" font-weight="800">{{ rootName() }}</text>
         <text [attr.x]="cx" [attr.y]="cy - 7" text-anchor="middle" [attr.fill]="rootInk()" font-size="11">{{ rootRing() }}</text>
       </g>
-      <text [attr.x]="cx - outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#2b5a86">← familia tatălui</text>
-      <text [attr.x]="cx + outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">familia mamei →</text>
+      <text [attr.x]="cx - outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#2b5a86">{{ 'arbore.familia_tatalui' | t }}</text>
+      <text [attr.x]="cx + outer()" [attr.y]="cy + 22" font-size="15" font-weight="800" fill="#8c357f" text-anchor="end">{{ 'arbore.familia_mamei' | t }}</text>
     </svg>
-    <p class="muted how">Atinge o felie ca s-o alegi; dublu clic deschide fișa. Culoarea = nota (gri = nu e în porumbarul tău), dunga = mascul / femelă, conturul colorat = strămoș care se repetă.</p>
+    <p class="muted how">{{ 'arbore.evantai_cum' | t }}</p>
   `,
   styles: `
     :host { display: block; }
@@ -142,7 +144,7 @@ export class VedereEvantai {
         // Text: de-a lungul arcului în inelele interioare (părinți, bunici: feliile sunt late), de-a lungul razei în
         // cele exterioare (feliile sunt înguste); niciodată cu capul în jos, niciodată peste felia vecină.
         const rot = gen <= 2 ? 90 - mid : mid > 90 ? 180 - mid : -mid;
-        const ring = p?.ring?.display ?? (node ? 'fără inel' : '');
+        const ring = p?.ring?.display ?? (node ? t('text.fara_inel') : '');
         out.push({
           key: key || 'r',
           id: node?.id ?? null,

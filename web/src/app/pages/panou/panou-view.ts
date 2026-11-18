@@ -1,4 +1,5 @@
 import { BoardPigeon, Catalog } from '../../core/models';
+import { formatNumber, localeOf, t } from '../../core/i18n';
 
 /*
  * Bara panoului: cum se ordonează, se grupează și se filtrează porumbeii. Totul se face pe telefon, din datele panoului
@@ -27,35 +28,34 @@ export const DEFAULT_VIEW: ViewState = {
   q: '', sort: 'nota', group: 'none', sex: '', young: false, prizes: false, breeding: false, todo: false, statuses: [], years: [],
 };
 
-/** `short`: pe pastila din bară (un cuvânt, ca bara să încapă pe un rând orice s-ar alege). */
-export const SORTS: { key: SortKey; label: string; short: string; hint: string }[] = [
-  { key: 'nota', label: 'Notă', short: 'Notă', hint: 'cei mai valoroși primii' },
-  { key: 'inel', label: 'Inel', short: 'Inel', hint: 'anul, apoi numărul' },
-  { key: 'tineri', label: 'Cei mai tineri', short: 'Tineri', hint: 'după data eclozării sau anul inelului' },
-  { key: 'batrani', label: 'Cei mai bătrâni', short: 'Bătrâni', hint: 'după data eclozării sau anul inelului' },
-  { key: 'nume', label: 'Nume', short: 'Nume', hint: 'A–Z, cei fără nume la sfârșit' },
-  { key: 'loc', label: 'Cel mai bun loc', short: 'Loc', hint: 'din rezultatele la concursuri' },
-  { key: 'premii', label: 'Cele mai multe premii', short: 'Premii', hint: 'premiu = în primii 20% din înscriși' },
-  { key: 'coef', label: 'Cel mai bun coeficient', short: 'Coef.', hint: 'locul × 1000 / înscriși, mai mic e mai bine' },
-  { key: 'pui', label: 'Cei mai mulți pui', short: 'Pui', hint: 'puii din porumbar' },
-  { key: 'recent', label: 'Adăugați recent', short: 'Recenți', hint: 'cei puși ultimii în program' },
-];
+/**
+ * O variantă de ordonare / grupare; textele vin din dicționar (`panou.ordonare.<cheie>`, `…_scurt`, `…_ajutor`), citite
+ * la fiecare folosire, ca să urmeze limba ecranului. `short`: pe pastila din bară (un cuvânt, ca bara să încapă pe un rând).
+ */
+export interface ViewOption<K extends string> {
+  key: K;
+  readonly label: string;
+  readonly short: string;
+  readonly hint: string;
+}
+const option = <K extends string>(group: 'ordonare' | 'grupare', key: K): ViewOption<K> => ({
+  key,
+  get label() { return t(`panou.${group}.${key}`); },
+  get short() { return t(`panou.${group}.${key}_scurt`); },
+  get hint() { return t(`panou.${group}.${key}_ajutor`); },
+});
 
-export const GROUPS: { key: GroupKey; label: string; short: string; hint: string }[] = [
-  { key: 'none', label: 'Fără grupare', short: 'Grupează', hint: 'toți la un loc' },
-  { key: 'sex', label: 'Sex', short: 'Sex', hint: 'masculi, femele, nesexați' },
-  { key: 'an', label: 'An', short: 'An', hint: 'puii fiecărui an' },
-  { key: 'stare', label: 'Stare', short: 'Stare', hint: 'concurenți, reproducători, tineri…' },
-  { key: 'nota', label: 'Notă', short: 'Notă', hint: 'cele 5 trepte de culoare' },
-  { key: 'rezultate', label: 'Rezultate', short: 'Rezultate', hint: 'premiați, cu rezultate, fără rezultate' },
-  { key: 'categorie', label: 'Categoria de concurs', short: 'Categorie', hint: 'unde au cel mai bun rezultat' },
-  { key: 'pereche', label: 'Pereche', short: 'Pereche', hint: 'fiecare cuplu din sezon, cu puii lui' },
-  { key: 'linie', label: 'Crescător / linie', short: 'Linie', hint: 'de unde vin' },
-  { key: 'culoare', label: 'Culoare', short: 'Culoare', hint: 'după culoarea penajului' },
-  { key: 'generatie', label: 'Generația în porumbar', short: 'Generație', hint: 'aduși, puii lor, nepoții…' },
-];
+export const SORTS: ViewOption<SortKey>[] = (['nota', 'inel', 'tineri', 'batrani', 'nume', 'loc', 'premii', 'coef', 'pui', 'recent'] as const).map((k) =>
+  option('ordonare', k),
+);
 
-const BAND_LABEL: Record<number, string> = { 5: 'Nota 80–100', 4: 'Nota 60–79', 3: 'Nota 40–59', 2: 'Nota 20–39', 1: 'Nota sub 20', 0: 'Fără notă' };
+export const GROUPS: ViewOption<GroupKey>[] = (
+  ['none', 'sex', 'an', 'stare', 'nota', 'rezultate', 'categorie', 'pereche', 'linie', 'culoare', 'generatie'] as const
+).map((k) => option('grupare', k));
+
+const BAND_RANGE: Record<number, string> = { 5: '80–100', 4: '60–79', 3: '40–59', 2: '20–39' };
+const bandLabel = (band: number) =>
+  BAND_RANGE[band] ? t('panou.grupa.nota', { interval: BAND_RANGE[band] }) : band === 1 ? t('panou.grupa.nota_sub20') : t('panou.grupa.fara_nota');
 
 export interface Group {
   key: string;
@@ -97,7 +97,7 @@ const byRing = (a: BoardPigeon, b: BoardPigeon) =>
   (a.ring?.year ?? 9999) - (b.ring?.year ?? 9999) ||
   (a.ring?.country ?? '').localeCompare(b.ring?.country ?? '') ||
   ringNumber(a) - ringNumber(b) ||
-  (a.ring?.display ?? '').localeCompare(b.ring?.display ?? '', 'ro');
+  (a.ring?.display ?? '').localeCompare(b.ring?.display ?? '', localeOf());
 /** Vârsta: data eclozării; fără ea, 1 iulie al anului (mijlocul sezonului). */
 const born = (p: BoardPigeon) => (p.facts.hatchedOn ? Date.parse(p.facts.hatchedOn) : p.year ? Date.UTC(p.year, 6, 1) : NaN);
 /** Pune golurile (null / NaN) la sfârșit, oricare ar fi sensul. */
@@ -114,7 +114,7 @@ function comparator(sort: SortKey): (a: BoardPigeon, b: BoardPigeon) => number {
     case 'inel': return byRing;
     case 'tineri': return (a, b) => nullsLast(born(a), born(b), -1);
     case 'batrani': return (a, b) => nullsLast(born(a), born(b), 1);
-    case 'nume': return (a, b) => (a.name ? 0 : 1) - (b.name ? 0 : 1) || (a.name ?? '').localeCompare(b.name ?? '', 'ro');
+    case 'nume': return (a, b) => (a.name ? 0 : 1) - (b.name ? 0 : 1) || (a.name ?? '').localeCompare(b.name ?? '', localeOf());
     case 'loc': return (a, b) => nullsLast(a.facts.results?.bestPlace, b.facts.results?.bestPlace, 1);
     case 'premii': return (a, b) => (b.facts.results?.prizes ?? -1) - (a.facts.results?.prizes ?? -1) || (b.facts.results?.count ?? -1) - (a.facts.results?.count ?? -1);
     case 'coef': return (a, b) => nullsLast(a.facts.results?.bestPenalty, b.facts.results?.bestPenalty, 1);
@@ -134,44 +134,44 @@ function groupOf(p: BoardPigeon, g: GroupKey, cat: Catalog | null): { key: strin
     case 'none':
       return { key: 'all', label: '', order: 0 };
     case 'sex':
-      return p.sex === 'M' ? { key: 'M', label: 'Masculi', order: 0 } : p.sex === 'F' ? { key: 'F', label: 'Femele', order: 1 } : { key: '-', label: 'Nesexați', order: 2 };
+      return p.sex === 'M' ? { key: 'M', label: t('porumbel.masculi'), order: 0 } : p.sex === 'F' ? { key: 'F', label: t('porumbel.femele'), order: 1 } : { key: '-', label: t('panou.grupa.nesexati'), order: 2 };
     case 'an':
-      return p.year ? { key: String(p.year), label: p.year === currentYear() ? `Puii anului ${p.year}` : `Anul ${p.year}`, order: -p.year } : { key: '-', label: 'Fără an', order: 99999 };
+      return p.year ? { key: String(p.year), label: t(p.year === currentYear() ? 'panou.grupa.puii_anului' : 'panou.grupa.anul', { an: p.year }), order: -p.year } : { key: '-', label: t('panou.grupa.fara_an'), order: 99999 };
     case 'stare':
-      return p.status ? { key: p.status, label: label(cat?.statuses, p.status), order: idx(cat?.statuses, p.status) } : { key: '-', label: 'Fără stare', order: 9999 };
+      return p.status ? { key: p.status, label: label(cat?.statuses, p.status), order: idx(cat?.statuses, p.status) } : { key: '-', label: t('panou.grupa.fara_stare'), order: 9999 };
     case 'nota':
-      return { key: String(p.value.band), label: BAND_LABEL[p.value.band] ?? 'Fără notă', order: p.value.band === 0 ? 99 : -p.value.band };
+      return { key: String(p.value.band), label: bandLabel(p.value.band), order: p.value.band === 0 ? 99 : -p.value.band };
     case 'rezultate': {
       const r = p.facts.results;
-      if (r?.prizes) return { key: 'premiati', label: 'Premiați', order: 0 };
-      if (r?.count) return { key: 'rezultate', label: 'Cu rezultate, fără premiu', order: 1 };
-      return { key: '-', label: 'Fără rezultate', order: 2 };
+      if (r?.prizes) return { key: 'premiati', label: t('panou.grupa.premiati'), order: 0 };
+      if (r?.count) return { key: 'rezultate', label: t('panou.grupa.cu_rezultate'), order: 1 };
+      return { key: '-', label: t('panou.grupa.fara_rezultate'), order: 2 };
     }
     case 'categorie': {
       const c = p.facts.results?.bestCategory ?? null;
-      return c ? { key: c, label: label(cat?.raceCategories, c), order: idx(cat?.raceCategories, c) } : { key: '-', label: 'Fără rezultate', order: 9999 };
+      return c ? { key: c, label: label(cat?.raceCategories, c), order: idx(cat?.raceCategories, c) } : { key: '-', label: t('panou.grupa.fara_rezultate'), order: 9999 };
     }
     case 'pereche': {
       const x = p.facts.pair;
-      return x ? { key: String(x.id), label: `Perechea ${x.label} (${x.season})`, order: x.label } : { key: '-', label: 'Fără pereche în sezon', order: '￿' };
+      return x ? { key: String(x.id), label: t('panou.grupa.perechea', { pereche: x.label, sezon: x.season }), order: x.label } : { key: '-', label: t('panou.grupa.fara_pereche'), order: '￿' };
     }
     case 'linie': {
       const line = p.facts.lines[0];
-      if (line) return { key: `l:${fold(line)}`, label: `Linia ${line}`, order: `0${fold(line)}` };
-      if (p.facts.breeder) return { key: `c:${fold(p.facts.breeder)}`, label: `Crescător: ${p.facts.breeder}`, order: `1${fold(p.facts.breeder)}` };
-      if (p.facts.loftGen > 1) return { key: 'own', label: 'Crescuți în porumbarul meu', order: '2' };
-      return { key: '-', label: 'Fără crescător sau linie', order: '3' };
+      if (line) return { key: `l:${fold(line)}`, label: t('panou.grupa.linia', { linie: line }), order: `0${fold(line)}` };
+      if (p.facts.breeder) return { key: `c:${fold(p.facts.breeder)}`, label: t('panou.grupa.crescator', { crescator: p.facts.breeder }), order: `1${fold(p.facts.breeder)}` };
+      if (p.facts.loftGen > 1) return { key: 'own', label: t('panou.grupa.crescuti_acasa'), order: '2' };
+      return { key: '-', label: t('panou.grupa.fara_linie'), order: '3' };
     }
     case 'culoare': {
       // Culoarea din listă, când e aleasă (așa „Albastră” scris la import și „Albastru” ales stau împreună); altfel textul scris.
       if (p.color) return { key: `c:${p.color}`, label: label(cat?.colors, p.color), order: idx(cat?.colors, p.color) };
       const c = p.facts.colorLabel;
-      if (!c) return { key: '-', label: 'Fără culoare', order: 99999 };
+      if (!c) return { key: '-', label: t('panou.grupa.fara_culoare'), order: 99999 };
       return { key: `t:${fold(c).replace(/[^a-z0-9]+/g, ' ').trim()}`, label: c, order: 5000 };
     }
     case 'generatie': {
       const n = p.facts.loftGen;
-      const text = n <= 1 ? 'Aduși din afară (fondatori)' : n === 2 ? 'Generația 2: puii lor' : n === 3 ? 'Generația 3: nepoții' : `Generația ${n}`;
+      const text = t(n <= 1 ? 'panou.grupa.fondatori' : n === 2 ? 'panou.grupa.generatia2' : n === 3 ? 'panou.grupa.generatia3' : 'panou.grupa.generatia', { numar: n });
       return { key: String(n), label: text, order: n };
     }
   }
@@ -188,18 +188,18 @@ export function buildGroups(all: BoardPigeon[], v: ViewState, cat: Catalog | nul
     groups.get(g.key)!.items.push(p);
   }
   return [...groups.values()].sort((a, b) =>
-    typeof a.order === 'number' && typeof b.order === 'number' ? a.order - b.order || a.label.localeCompare(b.label, 'ro') : String(a.order).localeCompare(String(b.order), 'ro'),
+    typeof a.order === 'number' && typeof b.order === 'number' ? a.order - b.order || a.label.localeCompare(b.label, localeOf()) : String(a.order).localeCompare(String(b.order), localeOf()),
   );
 }
 
 /** Rândul de jos al casetei, când ordonarea sau gruparea e după rezultate: „2 rezultate · 1 premiu · locul 5”. */
 export function resultsLine(p: BoardPigeon): string {
   const r = p.facts.results;
-  if (!r) return 'Fără rezultate la concursuri';
-  const parts = [r.count === 1 ? '1 rezultat' : `${r.count} rezultate`];
-  if (r.prizes) parts.push(r.prizes === 1 ? '1 premiu' : `${r.prizes} premii`);
-  if (r.bestPlace != null) parts.push(`locul ${r.bestPlace}`);
-  if (r.bestPenalty != null) parts.push(`coef. ${String(r.bestPenalty).replace('.', ',')}`);
+  if (!r) return t('panou.fara_rezultate_concurs');
+  const parts = [t('panou.rezultate', { count: r.count })];
+  if (r.prizes) parts.push(t('panou.premii', { count: r.prizes }));
+  if (r.bestPlace != null) parts.push(t('panou.locul', { loc: r.bestPlace }));
+  if (r.bestPenalty != null) parts.push(t('panou.coef', { coef: formatNumber(r.bestPenalty, { useGrouping: false, maximumFractionDigits: 20 }) }));
   return parts.join(' · ');
 }
 

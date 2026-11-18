@@ -1,4 +1,5 @@
 import { ApplicationRef, EnvironmentInjector, Injectable, createComponent, inject, signal } from '@angular/core';
+import { currentLang, ensureLang, t } from './i18n';
 import { Api } from './api';
 import { ConfirmService } from './confirm';
 import { PedigreeV1 } from './models';
@@ -12,6 +13,9 @@ export type ShareOutcome = 'shared' | 'cancelled' | 'downloaded';
  * într-un PDF A4. Apoi o dăm meniului de partajare al telefonului (Web Share); unde browserul nu poate trimite fișiere
  * (de ex. Firefox pe calculator), PDF-ul se descarcă. Bibliotecile se încarcă doar la prima apăsare.
  */
+/** Limba aleasă pentru fișă (pe pagina de tipărire); `null` = limba ecranului. O folosește și PDF-ul de la „Trimite”. */
+export const sheetLang = signal<string | null>(null);
+
 @Injectable({ providedIn: 'root' })
 export class SharePdfService {
   private readonly api = inject(Api);
@@ -37,7 +41,8 @@ export class SharePdfService {
   }
 
   /** Fișa A4 ca PDF (o pagină, imagine la ~280 dpi). */
-  async makePdf(data: PedigreeV1, url: string | null): Promise<File> {
+  async makePdf(data: PedigreeV1, url: string | null, lang: string = sheetLang() ?? currentLang()): Promise<File> {
+    await ensureLang(lang).catch(() => undefined);
     const [{ toCanvas }, { jsPDF }] = await Promise.all([import('html-to-image'), import('jspdf')]);
     // Lățimea locului: mai mare decât foaia (210 mm ≈ 794 px), ca foaia să nu fie micșorată.
     const host = document.createElement('div');
@@ -49,6 +54,7 @@ export class SharePdfService {
     try {
       ref.setInput('data', data);
       ref.setInput('url', url);
+      ref.setInput('lang', lang);
       this.appRef.attachView(ref.hostView);
       ref.changeDetectorRef.detectChanges();
       await document.fonts.ready;
@@ -95,9 +101,9 @@ export class SharePdfService {
     }
     // Pregătirea a durat și browserul nu mai consideră apăsarea „proaspătă”: încă o apăsare, pe fișa gata.
     const ok = await this.confirm.ask({
-      title: 'Fișa e gata',
-      lines: [`${file.name} se poate trimite acum pe WhatsApp, mail sau unde vrei.`],
-      confirmLabel: 'Trimite fișa',
+      title: t('pdf.gata'),
+      lines: [t('pdf.gata_rand', { fisier: file.name })],
+      confirmLabel: t('pdf.trimite'),
     });
     if (!ok) return 'cancelled';
     try {

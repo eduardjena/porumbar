@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icon } from './icon';
+import { TPipe } from '../core/i18n';
 
 export interface Crumb {
   label: string;
@@ -11,9 +12,9 @@ export interface Crumb {
 /** Drumul până la pagina curentă: „Panou › RO-15-412084 › Editează”. Ultimul pas e pagina curentă (fără legătură). */
 @Component({
   selector: 'app-breadcrumbs',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TPipe],
   template: `
-    <nav class="crumbs" aria-label="Unde ești">
+    <nav class="crumbs" [attr.aria-label]="'drum.unde_esti' | t">
       <ol>
         @for (c of items(); track $index; let last = $last) {
           <li>

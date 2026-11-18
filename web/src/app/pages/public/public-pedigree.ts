@@ -5,7 +5,10 @@ import { AuthService, rememberAfterLogin } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
 import { PedigreeV1 } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { PedigreeSheet } from '../../shared/pedigree-sheet';
+import { PedigreeSheet, colorOf } from '../../shared/pedigree-sheet';
+import { LangSwitch } from '../../shared/lang-switch';
+import { TPipe, currentLang, formatDate, t } from '../../core/i18n';
+import { sexLabel } from '../../core/catalog';
 
 /*
  * Pagina deschisă de codul QR / linkul public (/p/<token>): pedigree-ul pe 5 generații, fără cont. Cu cont:
@@ -13,48 +16,49 @@ import { PedigreeSheet } from '../../shared/pedigree-sheet';
  */
 @Component({
   selector: 'app-public-pedigree',
-  imports: [RouterLink, Icon, PedigreeSheet],
+  imports: [RouterLink, Icon, PedigreeSheet, LangSwitch, TPipe],
   template: `
     <div class="wide">
+      <div class="no-print"><app-lang-switch /></div>
       @if (data(); as d) {
         <header class="top-line">
           <div>
-            <p class="kicker">Pedigree</p>
-            <h1><span class="mono">{{ d.root.ring ?? 'fără inel' }}</span>@if (d.root.name) { „{{ d.root.name }}” }</h1>
+            <p class="kicker">{{ 'public.kicker' | t }}</p>
+            <h1><span class="mono">{{ d.root.ring ?? ('text.fara_inel' | t) }}</span>@if (d.root.name) { „{{ d.root.name }}” }</h1>
             <p class="muted sub">
               {{ sex(d.root.sex) }}@if (d.root.year) { · {{ d.root.year }} }@if (color(); as c) { · {{ c }} }
-              · crescător: <strong>{{ d.owner.name }}</strong>@if (d.owner.phone) { · {{ d.owner.phone }} }@if (d.owner.email) { · {{ d.owner.email }} }
+              · {{ 'public.crescator' | t }} <strong>{{ d.owner.name }}</strong>@if (d.owner.phone) { · {{ d.owner.phone }} }@if (d.owner.email) { · {{ d.owner.email }} }
               @if (d.owner.address) { <br />{{ d.owner.address }} }
             </p>
           </div>
           <div class="acts no-print">
             @if (auth.account()) {
               @if (done(); as id) {
-                <a class="btn primary" [routerLink]="['/porumbei', id]"><app-icon name="fisa" />E în porumbarul tău: deschide fișa</a>
+                <a class="btn primary" [routerLink]="['/porumbei', id]"><app-icon name="fisa" />{{ 'public.e_la_tine' | t }}</a>
               } @else {
-                <button type="button" class="primary" (click)="take()" [disabled]="busy()"><app-icon name="plus" />Preia în porumbarul meu</button>
+                <button type="button" class="primary" (click)="take()" [disabled]="busy()"><app-icon name="plus" />{{ 'public.preia' | t }}</button>
               }
             } @else {
-              <button type="button" class="primary" (click)="go('/intra')"><app-icon name="cont" />Intră ca să-l preiei</button>
-              <button type="button" (click)="go('/cont-nou')">Fă-ți cont</button>
+              <button type="button" class="primary" (click)="go('/intra')"><app-icon name="cont" />{{ 'public.intra_preia' | t }}</button>
+              <button type="button" (click)="go('/cont-nou')">{{ 'public.fa_cont' | t }}</button>
             }
-            <button type="button" (click)="print()"><app-icon name="tipar" />Tipărește</button>
+            <button type="button" (click)="print()"><app-icon name="tipar" />{{ 'actiune.tipareste' | t }}</button>
           </div>
         </header>
         @if (!auth.account()) {
-          <p class="notice no-print">Ții evidența porumbeilor pe hârtie? În Porumbar pedigree-urile se trec dintr-o poză și se dau mai departe cu un cod QR. Ca să preiei porumbei, contul trebuie să fie activ.</p>
+          <p class="notice no-print">{{ 'public.reclama' | t }}</p>
         }
         @if (error()) { <div class="error no-print" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
-        <app-pedigree-sheet [root]="d.root" />
-        <p class="muted foot">Generat de Porumbar pe {{ when(d.generatedAt) }}. Strămoșii colorați la fel apar de mai multe ori în pedigree.</p>
+        <app-pedigree-sheet [root]="d.root" [lang]="lang()" />
+        <p class="muted foot">{{ 'public.generat' | t: { data: when(d.generatedAt) } }}</p>
       } @else if (error()) {
         <section class="card gone">
-          <h1>Pedigree indisponibil</h1>
+          <h1>{{ 'public.indisponibil' | t }}</h1>
           <p>{{ error() }}</p>
-          <a class="btn primary" routerLink="/">Mergi la Porumbar</a>
+          <a class="btn primary" routerLink="/">{{ 'public.mergi' | t }}</a>
         </section>
       } @else {
-        <p class="muted">Se încarcă pedigree-ul…</p>
+        <p class="muted">{{ 'public.se_incarca' | t }}</p>
       }
     </div>
   `,
@@ -84,11 +88,12 @@ export default class PublicPedigree {
   readonly error = signal('');
   readonly busy = signal(false);
   readonly done = signal<number | null>(null);
-  protected readonly when = (iso: string) => new Date(iso).toLocaleDateString('ro-RO');
-  protected readonly sex = (s: string | null) => (s === 'M' ? 'Mascul' : s === 'F' ? 'Femelă' : 'Sex necunoscut');
+  protected readonly lang = currentLang;
+  protected readonly when = (iso: string) => formatDate(iso);
+  protected readonly sex = (s: string | null) => sexLabel(s);
   protected readonly color = computed(() => {
     const r = this.data()?.root;
-    return r ? r.colorText || (r.colorLabel ? `${r.colorLabel}${r.colorPa ? ' p.a.' : ''}` : '') : '';
+    return r ? colorOf(r, this.lang()) : '';
   });
 
   constructor() {
@@ -121,12 +126,9 @@ export default class PublicPedigree {
     if (!d) return;
     // Două feluri: doar pedigree-ul (strămoș / împrumut) sau porumbelul e acum al lui (l-a cumpărat).
     const ok = await this.confirm.ask({
-      title: `Preiei pedigree-ul lui ${d.root.ring ?? ''}?`,
-      lines: [
-        'Se copiază în porumbarul tău ca porumbel care nu e în porumbarul tău (de ex. împrumutat pentru pui), cu strămoșii lui.',
-        'Strămoșii pe care îi ai deja nu se dublează. Dacă l-ai cumpărat, îl poți trece apoi ca al tău din fișa lui.',
-      ],
-      confirmLabel: 'Da, preia',
+      title: t('public.preia_titlu', { inel: d.root.ring ?? '' }),
+      lines: [t('public.preia_rand1'), t('public.preia_rand2')],
+      confirmLabel: t('public.preia_da'),
     });
     if (!ok) return;
     this.busy.set(true);

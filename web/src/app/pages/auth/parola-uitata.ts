@@ -2,28 +2,31 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
+import { TPipe } from '../../core/i18n';
+import { LangSwitch } from '../../shared/lang-switch';
 
 @Component({
   selector: 'app-parola-uitata',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LangSwitch, TPipe],
   template: `
     <div class="auth-page stack">
-      <h1>Ai uitat parola?</h1>
+      <app-lang-switch />
+      <h1>{{ 'parola_uitata.titlu' | t }}</h1>
       @if (sent()) {
         <div class="notice card">
-          Dacă există un cont cu adresa <strong>{{ email }}</strong>, ți-am trimis un email cu un link pentru parola nouă.
-          Linkul merge o oră. Uită-te și în dosarul „Spam”.
+          {{ 'parola_uitata.trimis_1' | t }} <strong>{{ email }}</strong>{{ 'parola_uitata.trimis_2' | t }}
+          {{ 'parola_uitata.trimis_3' | t }}
         </div>
-        <a routerLink="/intra" class="btn wide">Înapoi la intrare</a>
+        <a routerLink="/intra" class="btn wide">{{ 'parola_uitata.inapoi' | t }}</a>
       } @else {
         <form class="card stack" (ngSubmit)="submit()">
-          <p>Scrie emailul contului. Îți trimitem un link cu care îți alegi o parolă nouă.</p>
-          <label class="field">Email
+          <p>{{ 'parola_uitata.explicatie' | t }}</p>
+          <label class="field">{{ 'auth.email' | t }}
             <input type="email" name="email" autocomplete="email" inputmode="email" required [(ngModel)]="email" />
           </label>
           @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
-          <button class="primary wide" type="submit" [disabled]="busy()">Trimite linkul</button>
-          <a routerLink="/intra">Înapoi la intrare</a>
+          <button class="primary wide" type="submit" [disabled]="busy()">{{ 'parola_uitata.trimite' | t }}</button>
+          <a routerLink="/intra">{{ 'parola_uitata.inapoi' | t }}</a>
         </form>
       }
     </div>

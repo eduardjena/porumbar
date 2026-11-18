@@ -38,8 +38,8 @@ export class AuthService {
     this.account.set(r.account);
   }
 
-  async register(name: string, email: string, password: string): Promise<void> {
-    const r = await this.api.post<{ account: Account }>('/auth/register', { name, email, password });
+  async register(name: string, email: string, password: string, lang: string): Promise<void> {
+    const r = await this.api.post<{ account: Account }>('/auth/register', { name, email, password, lang });
     this.account.set(r.account);
   }
 

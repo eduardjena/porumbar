@@ -4,6 +4,7 @@ import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { TPipe, formatDate, t } from '../../core/i18n';
 
 interface Outgoing {
   id: number;
@@ -21,23 +22,23 @@ interface Outgoing {
  */
 @Component({
   selector: 'app-vanzare',
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icon, TPipe],
   template: `
     <section class="card stack sale">
-      <h2><app-icon name="vinde" />Vinde porumbelul</h2>
-      @if (sold(); as t) {
-        <p class="ok">Vândut: {{ t.buyerEmail }} l-a primit pe {{ date(t.decidedAt) }}. La tine rămâne cu tot ce știai despre el.</p>
-      } @else if (pending(); as t) {
-        <p>Așteaptă să-l primească <strong>{{ t.buyerEmail }}</strong> (trimis pe {{ date(t.createdAt) }}){{ t.includePrivate ? ', cu notele și jurnalul' : '' }}.</p>
-        <div class="row"><button type="button" (click)="cancel(t)">Anulează vânzarea</button></div>
+      <h2><app-icon name="vinde" />{{ 'vanzare.titlu' | t }}</h2>
+      @if (sold(); as s) {
+        <p class="ok">{{ 'vanzare.vandut' | t: { email: s.buyerEmail, data: date(s.decidedAt) } }}</p>
+      } @else if (pending(); as s) {
+        <p>{{ 'vanzare.asteapta' | t }} <strong>{{ s.buyerEmail }}</strong> {{ 'vanzare.trimis_pe' | t: { data: date(s.createdAt) } }}{{ s.includePrivate ? ('vanzare.cu_notele' | t) : '' }}.</p>
+        <div class="row"><button type="button" (click)="cancel(s)">{{ 'vanzare.anuleaza' | t }}</button></div>
       } @else {
-        <p class="muted">Cumpărătorul primește porumbelul cu tot pedigree-ul în contul lui. Trebuie să aibă cont activ în Porumbar. Dacă nu are încă, dă-i linkul sau pedigree-ul tipărit de mai sus.</p>
+        <p class="muted">{{ 'vanzare.explicatie' | t }}</p>
         <form class="stack" (ngSubmit)="sell()">
-          <label class="field">Emailul cumpărătorului
-            <input type="email" name="email" [(ngModel)]="email" autocomplete="off" required placeholder="cumparator@exemplu.ro" />
+          <label class="field">{{ 'vanzare.email_cumparator' | t }}
+            <input type="email" name="email" [(ngModel)]="email" autocomplete="off" required [placeholder]="'vanzare.email_exemplu' | t" />
           </label>
-          <label class="check"><input type="checkbox" name="priv" [(ngModel)]="includePrivate" /> Trimite și notele (evaluarea) și jurnalul</label>
-          <div class="row"><button type="submit" class="primary" [disabled]="busy()"><app-icon name="vinde" />Trimite vânzarea</button></div>
+          <label class="check"><input type="checkbox" name="priv" [(ngModel)]="includePrivate" /> {{ 'vanzare.trimite_si_notele' | t }}</label>
+          <div class="row"><button type="submit" class="primary" [disabled]="busy()"><app-icon name="vinde" />{{ 'vanzare.trimite' | t }}</button></div>
         </form>
       }
       @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
@@ -61,7 +62,7 @@ export class Vanzare {
   includePrivate = false;
   protected readonly pending = computed(() => this.mine().find((t) => t.status === 'pending') ?? null);
   protected readonly sold = computed(() => this.mine().find((t) => t.status === 'accepted') ?? null);
-  protected readonly date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('ro-RO') : '');
+  protected readonly date = (iso: string | null) => (iso ? formatDate(iso) : '');
 
   constructor() {
     effect(() => {
@@ -82,16 +83,16 @@ export class Vanzare {
   async sell() {
     this.error.set('');
     const email = this.email.trim();
-    if (!email) return this.error.set('Scrie emailul cumpărătorului.');
+    if (!email) return this.error.set(t('eroare.email_cumparator'));
     const p = this.pigeon();
     const ok = await this.confirm.ask({
-      title: `Vinzi porumbelul ${p.ring?.display ?? ''}?`,
+      title: t('vanzare.confirma_titlu', { inel: p.ring?.display ?? '' }),
       lines: [
-        `Cumpărătorul (${email}) îl va vedea în contul lui și îl primește cu tot pedigree-ul.`,
-        this.includePrivate ? 'Primește și notele (evaluarea) și jurnalul.' : 'Notele și jurnalul rămân doar la tine.',
-        'După ce îl primește, la tine porumbelul rămâne cu starea „Vândut”.',
+        t('vanzare.confirma_rand1', { email }),
+        t(this.includePrivate ? 'vanzare.confirma_cu_note' : 'vanzare.confirma_fara_note'),
+        t('vanzare.confirma_rand3'),
       ],
-      confirmLabel: 'Da, trimite vânzarea',
+      confirmLabel: t('vanzare.confirma_da'),
     });
     if (!ok) return;
     this.busy.set(true);
@@ -106,11 +107,11 @@ export class Vanzare {
     }
   }
 
-  async cancel(t: Outgoing) {
-    const ok = await this.confirm.ask({ title: 'Anulezi vânzarea?', lines: [`${t.buyerEmail} nu va mai putea primi porumbelul.`], confirmLabel: 'Da, anulează', danger: true });
+  async cancel(s: Outgoing) {
+    const ok = await this.confirm.ask({ title: t('vanzare.anuleaza_titlu'), lines: [t('vanzare.anuleaza_rand', { email: s.buyerEmail })], confirmLabel: t('vanzare.anuleaza_da'), danger: true });
     if (!ok) return;
     try {
-      await this.api.post(`/transfers/${t.id}/cancel`);
+      await this.api.post(`/transfers/${s.id}/cancel`);
       await this.load(this.pigeon().id);
     } catch (e) {
       this.error.set(errorMessage(e));

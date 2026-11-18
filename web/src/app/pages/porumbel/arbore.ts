@@ -5,6 +5,7 @@ import { CatalogService, percent, ringText, sexShort } from '../../core/catalog'
 import { CoiResult, PigeonSummary, TreeNode } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ShareButton } from '../../shared/share-button';
+import { TPipe } from '../../core/i18n';
 
 // Culori deschise pentru strămoșii care se repetă (textul negru rămâne lizibil pe toate).
 const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#ffd6b0'];
@@ -26,28 +27,28 @@ interface Cell {
  */
 @Component({
   selector: 'app-arbore',
-  imports: [RouterLink, Icon, ShareButton],
+  imports: [RouterLink, Icon, ShareButton, TPipe],
   template: `
     <div class="bar row">
-      <button type="button" (click)="setGen(gen() - 1)" [disabled]="gen() <= 1">− generații</button>
-      <span><strong>{{ gen() + 1 }}</strong> generații</span>
-      <button type="button" (click)="setGen(gen() + 1)" [disabled]="gen() >= 5">+ generații</button>
+      <button type="button" (click)="setGen(gen() - 1)" [disabled]="gen() <= 1">{{ 'arbore.mai_putine' | t }}</button>
+      <span><strong>{{ gen() + 1 }}</strong> {{ 'arbore.generatii' | t }}</span>
+      <button type="button" (click)="setGen(gen() + 1)" [disabled]="gen() >= 5">{{ 'arbore.mai_multe' | t }}</button>
       <!-- Tipărirea pedigree-ului direct de aici (pagina de tipar, foaia A4 cu 5 generații). -->
-      <a class="btn print" [routerLink]="['/porumbei', pigeonId(), 'tiparire']" [queryParams]="{ inapoi: 'arbore' }"><app-icon name="tipar" />Tipărește</a>
+      <a class="btn print" [routerLink]="['/porumbei', pigeonId(), 'tiparire']" [queryParams]="{ inapoi: 'arbore' }"><app-icon name="tipar" />{{ 'actiune.tipareste' | t }}</a>
       <app-share-button [pigeonId]="pigeonId()" />
     </div>
     @if (coi(); as c) {
       <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'">
-        Consangvinizare: <strong>{{ pct(c.coi) }}</strong>
+        {{ 'arbore.consangvinizare' | t }} <strong>{{ pct(c.coi) }}</strong>
         @if (c.common.length) {
-          — strămoși comuni: @for (x of c.common; track x.pigeon.id; let last = $last) {<span class="mono">{{ ring(x.pigeon) }}</span>{{ last ? '' : ', ' }}}
+          {{ 'arbore.stramosi_comuni' | t }} @for (x of c.common; track x.pigeon.id; let last = $last) {<span class="mono">{{ ring(x.pigeon) }}</span>{{ last ? '' : ', ' }}}
         }
       </div>
     }
     @if (error()) { <div class="error">{{ error() }}</div> }
     @if (tree()) {
       <!-- Așezat ca pe fișa de pedigree: o coloană pe generație, fiecare porumbel în dreptul puiului lui, strâns pe verticală. -->
-      <div class="scroll" tabindex="0" aria-label="Arborele genealogic; se poate derula în lateral">
+      <div class="scroll" tabindex="0" [attr.aria-label]="'arbore.aria' | t">
         <div class="sheet" [style.grid-template-columns]="'minmax(96px, 0.9fr) repeat(' + gen() + ', minmax(96px, 1fr))'" [style.grid-template-rows]="'repeat(' + rows() + ', auto)'">
           @for (c of cells(); track c.key) {
             <!-- Celula ocupă toate rândurile porumbelului (ca să știe unde-i e mijlocul); liniile spre pui se desenează din ea. -->
@@ -55,10 +56,10 @@ interface Cell {
                  [style.grid-column]="c.depth + 1" [style.grid-row]="c.row">
               @if (c.node; as node) {
                 <div class="box" [class]="'box g' + (c.depth > 5 ? 5 : c.depth)" [style.background]="node.repeat ? color(node.repeat) : null"
-                     (dblclick)="openPigeon(node.id)" title="Dublu clic: deschide fișa">
+                     (dblclick)="openPigeon(node.id)" [title]="'arbore.dublu_clic' | t">
                   @if (pigeons()[node.id]; as p) {
                     <div class="line1">
-                      @if (p.sex) { <span class="sx" [class]="'sx s' + p.sex">{{ p.sex }}</span> }
+                      @if (p.sex) { <span class="sx" [class]="'sx s' + p.sex">{{ sex(p.sex) }}</span> }
                       <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
                     </div>
                     @if (p.name) { <div class="nm">„{{ p.name }}”</div> }
@@ -69,7 +70,7 @@ interface Cell {
                 </div>
               } @else {
                 <button type="button" class="box empty" (click)="addParent.emit({ id: c.childId!, side: c.side! })">
-                  + Adaugă {{ c.side === 'father' ? 'tatăl' : 'mama' }}
+                  {{ (c.side === 'father' ? 'arbore.adauga_tatal' : 'arbore.adauga_mama') | t }}
                 </button>
               }
             </div>
@@ -79,7 +80,7 @@ interface Cell {
       @if (legend().length) {
         <p class="muted legend">
           @for (l of legend(); track l.group) {
-            <span class="swatch" [style.background]="color(l.group)"></span><span class="mono">{{ l.ring }}</span> apare de {{ l.count }} ori.
+            <span class="swatch" [style.background]="color(l.group)"></span><span class="mono">{{ l.ring }}</span> {{ 'arbore.apare_de' | t: { count: l.count } }}
           }
         </p>
       }

@@ -23,52 +23,7 @@ const EXCEPTII = {
 };
 
 // Ecranele încă nemutate în dicționar; fiecare pas al planului le scoate pe ale lui, până lista rămâne goală.
-const DE_MUTAT = new Set([
-  'web/src/app/app.routes.ts',
-  'web/src/app/app.ts',
-  'web/src/app/core/share-pdf.ts',
-  'web/src/app/pages/auth/cont-nou.ts',
-  'web/src/app/pages/auth/cont.ts',
-  'web/src/app/pages/auth/intra.ts',
-  'web/src/app/pages/auth/parola-noua.ts',
-  'web/src/app/pages/auth/parola-uitata.ts',
-  'web/src/app/pages/panou/panou-bar.ts',
-  'web/src/app/pages/panou/panou-view.ts',
-  'web/src/app/pages/panou/panou.ts',
-  'web/src/app/pages/pedigree-hartie/cititor-poza.ts',
-  'web/src/app/pages/pedigree-hartie/pedigree-hartie.ts',
-  'web/src/app/pages/perechi/culori-pui.ts',
-  'web/src/app/pages/perechi/pereche.ts',
-  'web/src/app/pages/perechi/perechi.ts',
-  'web/src/app/pages/porumbar/porumbar.ts',
-  'web/src/app/pages/porumbel-form/porumbel-form.ts',
-  'web/src/app/pages/porumbel/arbore.ts',
-  'web/src/app/pages/porumbel/partajare.ts',
-  'web/src/app/pages/porumbel/porumbel.ts',
-  'web/src/app/pages/porumbel/rezultate.ts',
-  'web/src/app/pages/porumbel/tiparire.ts',
-  'web/src/app/pages/porumbel/vanzare.ts',
-  'web/src/app/pages/public/public-pedigree.ts',
-  'web/src/app/pages/retea/arbore-data.ts',
-  'web/src/app/pages/retea/arbore-panou.ts',
-  'web/src/app/pages/retea/arbore.ts',
-  'web/src/app/pages/retea/retea.ts',
-  'web/src/app/pages/retea/vedere-carduri.ts',
-  'web/src/app/pages/retea/vedere-evantai.ts',
-  'web/src/app/pages/retea/vedere-sange.ts',
-  'web/src/app/pages/scaneaza/scaneaza.ts',
-  'web/src/app/pages/vanzari/vanzari.ts',
-  'web/src/app/shared/breadcrumbs.ts',
-  'web/src/app/shared/parents-editor.ts',
-  'web/src/app/shared/password-field.ts',
-  'web/src/app/shared/pedigree-page.ts',
-  'web/src/app/shared/pedigree-sheet.ts',
-  'web/src/app/shared/pigeon-chip.ts',
-  'web/src/app/shared/pigeon-picker.ts',
-  'web/src/app/shared/ring-input.ts',
-  'web/src/app/shared/share-button.ts',
-  'web/src/app/shared/view-toggle.ts',
-]);
+const DE_MUTAT = new Set([]);
 
 const RO = /[ăâîșțĂÂÎȘȚ]/;
 

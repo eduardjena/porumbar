@@ -2,7 +2,8 @@ import { Component, computed, inject, input, signal, effect } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
-import { CatalogService, sexLabel } from '../../core/catalog';
+import { CatalogService, ringText, sexLabel } from '../../core/catalog';
+import { TPipe, t } from '../../core/i18n';
 import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
@@ -15,40 +16,40 @@ import { Icon, IconName } from '../../shared/icon';
 
 type Tab = 'fisa' | 'rezultate' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
-  { id: 'fisa', label: 'Fișa', icon: 'porumbel' },
-  { id: 'rezultate', label: 'Rezultate', icon: 'cupa' },
-  { id: 'rude', label: 'Rude', icon: 'rude' },
-  { id: 'arbore', label: 'Pedigree', icon: 'fisa' },
-  { id: 'jurnal', label: 'Jurnal', icon: 'jurnal' },
-  { id: 'qr', label: 'QR', icon: 'qr' },
+  { id: 'fisa', label: 'porumbel.fila_fisa', icon: 'porumbel' },
+  { id: 'rezultate', label: 'porumbel.fila_rezultate', icon: 'cupa' },
+  { id: 'rude', label: 'porumbel.fila_rude', icon: 'rude' },
+  { id: 'arbore', label: 'porumbel.fila_arbore', icon: 'fisa' },
+  { id: 'jurnal', label: 'porumbel.fila_jurnal', icon: 'jurnal' },
+  { id: 'qr', label: 'porumbel.fila_qr', icon: 'qr' },
 ];
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, Rezultate],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, Rezultate, TPipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
-      <app-breadcrumbs [items]="[origin(), { label: p.ring?.display ?? 'Fără inel' }]" />
+      <app-breadcrumbs [items]="[origin(), { label: ring(p) }]" />
       <div class="title">
         <div>
-          <h1><span class="mono">{{ p.ring?.display ?? 'Fără inel' }}</span>@if (p.name) { <span class="name"> „{{ p.name }}”</span> }</h1>
+          <h1><span class="mono">{{ ring(p) }}</span>@if (p.name) { <span class="name"> „{{ p.name }}”</span> }</h1>
           <p class="row sub">
             <span [class]="'sex-' + (p.sex ?? '')">{{ sexLabel(p.sex) }}</span>
             @if (p.status) { <span class="badge">{{ catalog.label('statuses', p.status) }}</span> }
-            @if (p.kind === 'external') { <span class="badge">nu e în porumbarul meu</span> }
+            @if (p.kind === 'external') { <span class="badge">{{ 'porumbel.nu_e_al_meu_mic' | t }}</span> }
           </p>
         </div>
         <div class="row">
-          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" />Vezi în arbore</a>
-          <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />Editează</a>
+          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" />{{ 'porumbel.vezi_in_arbore' | t }}</a>
+          <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />{{ 'actiune.editeaza' | t }}</a>
         </div>
       </div>
 
       <nav class="tabs" role="tablist">
-        @for (t of tabs; track t.id) {
-          <button type="button" role="tab" [attr.aria-selected]="tab() === t.id" [class.on]="tab() === t.id" (click)="tab.set(t.id)">
-            <app-icon [name]="t.icon" [size]="26" /><span>{{ t.label }}</span>
+        @for (tb of tabs; track tb.id) {
+          <button type="button" role="tab" [attr.aria-selected]="tab() === tb.id" [class.on]="tab() === tb.id" (click)="tab.set(tb.id)">
+            <app-icon [name]="tb.icon" [size]="26" /><span>{{ tb.label | t }}</span>
           </button>
         }
       </nav>
@@ -57,51 +58,51 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         @case ('fisa') {
           <section class="card stack">
             <dl class="facts">
-              <dt>Rasa</dt><dd>{{ catalog.label('breeds', p.breed) }}</dd>
-              @if (p.lines.length) { <dt>Linii</dt><dd>{{ p.lines.join(', ') }}</dd> }
-              <dt>Culoare</dt>
-              <dd>{{ catalog.label('colors', p.color) || '—' }}@if (p.colorPa) {, pene albe}@if (p.colorText) { <span class="muted">({{ p.colorText }})</span>}</dd>
-              @if (p.eyeColor) { <dt>Ochi</dt><dd>{{ catalog.label('eyeColors', p.eyeColor) }}</dd> }
-              @if (p.hatchedOn) { <dt>Eclozat</dt><dd>{{ p.hatchedOn }}</dd> }
-              @if (p.breederText) { <dt>Crescător</dt><dd>{{ p.breederText }}</dd> }
-              @if (p.ring && p.ring.raw !== p.ring.display) { <dt>Inel scris</dt><dd class="mono">{{ p.ring.raw }}</dd> }
+              <dt>{{ 'porumbel.rasa' | t }}</dt><dd>{{ catalog.label('breeds', p.breed) }}</dd>
+              @if (p.lines.length) { <dt>{{ 'porumbel.linii' | t }}</dt><dd>{{ p.lines.join(', ') }}</dd> }
+              <dt>{{ 'porumbel.culoare' | t }}</dt>
+              <dd>{{ catalog.label('colors', p.color) || '—' }}@if (p.colorPa) {, {{ 'porumbel.pene_albe' | t }}}@if (p.colorText) { <span class="muted">({{ p.colorText }})</span>}</dd>
+              @if (p.eyeColor) { <dt>{{ 'porumbel.ochi' | t }}</dt><dd>{{ catalog.label('eyeColors', p.eyeColor) }}</dd> }
+              @if (p.hatchedOn) { <dt>{{ 'porumbel.eclozat' | t }}</dt><dd>{{ p.hatchedOn }}</dd> }
+              @if (p.breederText) { <dt>{{ 'porumbel.crescator' | t }}</dt><dd>{{ p.breederText }}</dd> }
+              @if (p.ring && p.ring.raw !== p.ring.display) { <dt>{{ 'porumbel.inel_scris' | t }}</dt><dd class="mono">{{ p.ring.raw }}</dd> }
             </dl>
-            @if (p.pedigreeText) { <h3>Pe pedigree</h3><p class="pre">{{ p.pedigreeText }}</p> }
+            @if (p.pedigreeText) { <h3>{{ 'porumbel.pe_pedigree' | t }}</h3><p class="pre">{{ p.pedigreeText }}</p> }
             @if (hasEvaluation()) {
-              <h3>Evaluare</h3>
+              <h3>{{ 'porumbel.evaluare' | t }}</h3>
               <dl class="facts">
                 @for (c of catalog.catalog()?.evalCriteria ?? []; track c.code) {
                   @if (p.evaluation.scores?.[c.code]; as s) { <dt>{{ c.label }}</dt><dd>{{ '★'.repeat(s) }}{{ '☆'.repeat(5 - s) }} <span class="muted">{{ s }}/5</span></dd> }
                 }
               </dl>
-              @if (p.evaluation.calitati) { <p><strong>Calități:</strong> {{ p.evaluation.calitati }}</p> }
-              @if (p.evaluation.deDorit) { <p><strong>De dorit:</strong> {{ p.evaluation.deDorit }}</p> }
-              @if (p.evaluation.defecte) { <p><strong>Defecte:</strong> {{ p.evaluation.defecte }}</p> }
+              @if (p.evaluation.calitati) { <p><strong>{{ 'porumbel.calitati' | t }}:</strong> {{ p.evaluation.calitati }}</p> }
+              @if (p.evaluation.deDorit) { <p><strong>{{ 'porumbel.de_dorit' | t }}:</strong> {{ p.evaluation.deDorit }}</p> }
+              @if (p.evaluation.defecte) { <p><strong>{{ 'porumbel.defecte' | t }}:</strong> {{ p.evaluation.defecte }}</p> }
             }
           </section>
-          <h2>Părinții</h2>
+          <h2>{{ 'porumbel.parintii' | t }}</h2>
           <app-parents-editor [pigeonId]="p.id" [initialFather]="family()?.father ?? null" [initialMother]="family()?.mother ?? null"
                               (saved)="parentsSaved($event)" />
 
           <!-- Ștergerea: doar acest porumbel, cu confirmare; departe de restul butoanelor, ca să nu fie apăsată din greșeală. -->
           <section class="card stack delete-zone">
-            <h3>Ștergerea porumbelului</h3>
-            <p class="muted">Se șterge doar acest porumbel. Dacă are pui în program, nu se poate șterge: schimbă-i starea (de ex. Mort, Pierdut, Vândut).</p>
+            <h3>{{ 'porumbel.stergerea' | t }}</h3>
+            <p class="muted">{{ 'porumbel.stergerea_text' | t }}</p>
             @if (deleteError()) { <div class="error" role="alert">{{ deleteError() }}</div> }
-            <div><button type="button" class="danger" (click)="removePigeon(p)">Șterge porumbelul {{ p.ring?.display ?? '' }}</button></div>
+            <div><button type="button" class="danger" (click)="removePigeon(p)">{{ 'porumbel.sterge_buton' | t: { inel: p.ring?.display ?? '' } }}</button></div>
           </section>
         }
         @case ('rude') {
           @if (family(); as f) {
             <section class="card stack">
-              <h3>Tatăl</h3><app-pigeon-chip [pigeon]="f.father" />
-              <h3>Mama</h3><app-pigeon-chip [pigeon]="f.mother" />
-              <h3>Frați și surori ({{ f.fullSiblings.length }})</h3>
-              @for (x of f.fullSiblings; track x.id) { <app-pigeon-chip [pigeon]="x" /> } @empty { <p class="muted">Niciunul în porumbar.</p> }
-              <h3>Frați vitregi — un singur părinte comun ({{ f.halfSiblings.length }})</h3>
-              @for (x of f.halfSiblings; track x.id) { <app-pigeon-chip [pigeon]="x" /> } @empty { <p class="muted">Niciunul în porumbar.</p> }
-              <h3>Pui ({{ f.offspring.length }})</h3>
-              @for (x of f.offspring; track x.id) { <app-pigeon-chip [pigeon]="x" /> } @empty { <p class="muted">Niciunul în porumbar.</p> }
+              <h3>{{ 'porumbel.tatal' | t }}</h3><app-pigeon-chip [pigeon]="f.father" />
+              <h3>{{ 'porumbel.mama' | t }}</h3><app-pigeon-chip [pigeon]="f.mother" />
+              <h3>{{ 'porumbel.frati' | t: { numar: f.fullSiblings.length } }}</h3>
+              @for (x of f.fullSiblings; track x.id) { <app-pigeon-chip [pigeon]="x" /> } @empty { <p class="muted">{{ 'porumbel.niciunul' | t }}</p> }
+              <h3>{{ 'porumbel.frati_vitregi' | t: { numar: f.halfSiblings.length } }}</h3>
+              @for (x of f.halfSiblings; track x.id) { <app-pigeon-chip [pigeon]="x" /> } @empty { <p class="muted">{{ 'porumbel.niciunul' | t }}</p> }
+              <h3>{{ 'porumbel.pui' | t: { numar: f.offspring.length } }}</h3>
+              @for (x of f.offspring; track x.id) { <app-pigeon-chip [pigeon]="x" /> } @empty { <p class="muted">{{ 'porumbel.niciunul' | t }}</p> }
             </section>
           }
         }
@@ -117,25 +118,25 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         @case ('jurnal') {
           <form class="card stack" (ngSubmit)="addEntry()">
             <div class="row">
-              <label class="field grow">Data <input type="date" name="jdate" [(ngModel)]="jDate" required /></label>
-              <label class="field grow">Ce e
+              <label class="field grow">{{ 'camp.data' | t }} <input type="date" name="jdate" [(ngModel)]="jDate" required /></label>
+              <label class="field grow">{{ 'porumbel.jurnal_tip' | t }}
                 <select name="jtype" [(ngModel)]="jType">
-                  @for (t of catalog.catalog()?.journalTypes ?? []; track t.code) { <option [value]="t.code">{{ t.label }}</option> }
+                  @for (jt of catalog.catalog()?.journalTypes ?? []; track jt.code) { <option [value]="jt.code">{{ jt.label }}</option> }
                 </select>
               </label>
             </div>
-            <label class="field">Notă <textarea name="jtext" [(ngModel)]="jText" required></textarea></label>
+            <label class="field">{{ 'camp.nota' | t }} <textarea name="jtext" [(ngModel)]="jText" required></textarea></label>
             @if (jError()) { <div class="error" role="alert">{{ jError() }}</div> }
-            <button class="primary" type="submit" [disabled]="!jText.trim()">Adaugă în jurnal</button>
+            <button class="primary" type="submit" [disabled]="!jText.trim()">{{ 'porumbel.adauga_in_jurnal' | t }}</button>
           </form>
           <ul class="entries">
             @for (e of journal(); track e.id) {
               <li class="card">
                 <div class="row between"><strong>{{ e.date }} · {{ catalog.label('journalTypes', e.type) }}</strong>
-                  <button type="button" class="link" (click)="removeEntry(e)">Șterge</button></div>
+                  <button type="button" class="link" (click)="removeEntry(e)">{{ 'actiune.sterge' | t }}</button></div>
                 <p class="pre">{{ e.text }}</p>
               </li>
-            } @empty { <p class="muted">Nicio notă încă.</p> }
+            } @empty { <p class="muted">{{ 'porumbel.nicio_nota' | t }}</p> }
           </ul>
         }
       }
@@ -182,14 +183,15 @@ export default class Porumbel {
   protected readonly origin = computed<Crumb>(() => {
     const q = { porumbel: this.radacina() || undefined, tot: this.tot() || undefined, vedere: this.vedere() || undefined };
     switch (this.din()) {
-      case 'arbore': return { label: 'Arbore', link: ['/arbore'], query: q };
-      case 'arbore3d': return { label: 'Arbore', link: ['/arbore'], query: { ...q, vedere: undefined } };
-      case 'lista': return { label: 'Listă', link: ['/porumbar'] };
-      default: return { label: 'Panou', link: ['/panou'] };
+      case 'arbore': return { label: t('meniu.arbore'), link: ['/arbore'], query: q };
+      case 'arbore3d': return { label: t('meniu.arbore'), link: ['/arbore'], query: { ...q, vedere: undefined } };
+      case 'lista': return { label: t('porumbel.firimitura_lista'), link: ['/porumbar'] };
+      default: return { label: t('meniu.panou'), link: ['/panou'] };
     }
   });
   protected readonly tabs = TABS;
   protected readonly sexLabel = sexLabel;
+  protected readonly ring = ringText;
 
   readonly tab = signal<Tab>('fisa');
   readonly p = signal<Pigeon | null>(null);
@@ -258,15 +260,11 @@ export default class Porumbel {
   /** Șterge porumbelul deschis (unul singur), după o confirmare care spune exact ce se pierde. */
   async removePigeon(p: Pigeon) {
     this.deleteError.set('');
-    const who = [p.ring?.display ?? 'fără inel', p.name ? `„${p.name}”` : ''].filter(Boolean).join(' ');
+    const who = [p.ring?.display ?? t('text.fara_inel'), p.name ? `„${p.name}”` : ''].filter(Boolean).join(' ');
     const ok = await this.confirm.ask({
-      title: `Ștergi porumbelul ${who}?`,
-      lines: [
-        'Se șterg fișa lui, notele și jurnalul. Dacă are link public, codul QR nu mai merge; o vânzare în așteptare se anulează.',
-        'Ceilalți porumbei rămân neatinși.',
-        'Nu se poate da înapoi.',
-      ],
-      confirmLabel: 'Da, șterge-l definitiv',
+      title: t('porumbel.sterge_titlu', { cine: who }),
+      lines: [t('porumbel.sterge_rand1'), t('porumbel.sterge_rand2'), t('text.nu_se_poate_da_inapoi')],
+      confirmLabel: t('porumbel.sterge_da'),
       danger: true,
     });
     if (!ok) return;
@@ -280,9 +278,9 @@ export default class Porumbel {
 
   async removeEntry(e: JournalEntry) {
     const ok = await this.confirm.ask({
-      title: 'Ștergi această notă din jurnal?',
-      lines: [`${e.date} · ${this.catalog.label('journalTypes', e.type)}: ${e.text.slice(0, 80)}`, 'Nu se poate da înapoi.'],
-      confirmLabel: 'Da, șterge',
+      title: t('porumbel.sterge_nota_titlu'),
+      lines: [`${e.date} · ${this.catalog.label('journalTypes', e.type)}: ${e.text.slice(0, 80)}`, t('text.nu_se_poate_da_inapoi')],
+      confirmLabel: t('actiune.da_sterge'),
       danger: true,
     });
     if (!ok) return;

@@ -1,6 +1,7 @@
 import { Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import jsQR from 'jsqr';
+import { t, TPipe } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 
 /** Tokenul din linkul public al unui pedigree Porumbar („…/p/<token>”), sau null dacă codul e altceva. */
@@ -28,23 +29,23 @@ declare const BarcodeDetector: { new (o: { formats: string[] }): Detector } | un
  */
 @Component({
   selector: 'app-scaneaza',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TPipe],
   template: `
-    <h1>Scanează codul QR</h1>
-    <p class="lead">Ține telefonul deasupra codului QR de pe pedigree-ul altui crescător care folosește Porumbar. Se deschide pedigree-ul, iar de acolo îl poți prelua.</p>
+    <h1>{{ 'scan.titlu' | t }}</h1>
+    <p class="lead">{{ 'scan.intro' | t }}</p>
 
     @if (live()) {
       <div class="cam">
         <video #video playsinline muted></video>
         <div class="frame" aria-hidden="true"></div>
       </div>
-      <p class="muted center">Caut codul… Ține telefonul nemișcat, cu codul în pătrat.</p>
-      <button type="button" class="wide" (click)="stop()"><app-icon name="inchide" />Oprește camera</button>
+      <p class="muted center">{{ 'scan.caut' | t }}</p>
+      <button type="button" class="wide" (click)="stop()"><app-icon name="inchide" />{{ 'scan.opreste' | t }}</button>
     } @else {
       <div class="stack">
-        <button type="button" class="primary big" (click)="start()" [disabled]="busy()"><app-icon name="qr" [size]="30" />Pornește camera</button>
+        <button type="button" class="primary big" (click)="start()" [disabled]="busy()"><app-icon name="qr" [size]="30" />{{ 'scan.porneste' | t }}</button>
         <label class="btn big file">
-          <app-icon name="poze" [size]="30" />Fă o poză codului (sau alege una)
+          <app-icon name="poze" [size]="30" />{{ 'scan.poza' | t }}
           <input type="file" accept="image/*" capture="environment" (change)="fromPhoto($event)" />
         </label>
       </div>
@@ -53,10 +54,10 @@ declare const BarcodeDetector: { new (o: { formats: string[] }): Detector } | un
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (other(); as text) {
       <div class="notice stack" role="status">
-        <strong>Acest cod nu e al unui pedigree din Porumbar.</strong>
-        <span>În cod scrie: <span class="mono code">{{ text }}</span></span>
-        <span>Pedigree-urile din alte programe (sau de pe hârtie) le treci cu „Importă pedigree”: dintr-o poză le citește programul.</span>
-        <a class="btn" routerLink="/porumbei/pedigree"><app-icon name="fisa" />Importă pedigree</a>
+        <strong>{{ 'scan.alt_cod' | t }}</strong>
+        <span>{{ 'scan.in_cod_scrie' | t }} <span class="mono code">{{ text }}</span></span>
+        <span>{{ 'scan.alte_programe' | t }}</span>
+        <a class="btn" routerLink="/porumbei/pedigree"><app-icon name="fisa" />{{ 'hartie.titlu' | t }}</a>
       </div>
     }
     <canvas #canvas hidden></canvas>
@@ -95,7 +96,7 @@ export default class Scaneaza {
     this.error.set('');
     this.other.set(null);
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.error.set('Browserul acesta nu poate folosi camera aici. Folosește „Fă o poză codului”.');
+      this.error.set(t('scan.fara_camera_browser'));
       return;
     }
     this.busy.set(true);
@@ -113,10 +114,10 @@ export default class Scaneaza {
       const name = (e as DOMException)?.name;
       this.error.set(
         name === 'NotAllowedError'
-          ? 'Nu ai dat voie programului să folosească camera. Poți da voie din setările browserului, sau folosește „Fă o poză codului”.'
+          ? t('scan.fara_voie')
           : name === 'NotFoundError'
-            ? 'Nu am găsit nicio cameră. Folosește „Fă o poză codului”.'
-            : 'Camera nu a pornit. Încearcă din nou, sau folosește „Fă o poză codului”.',
+            ? t('scan.fara_camera')
+            : t('scan.camera_nu_a_pornit'),
       );
     } finally {
       this.busy.set(false);
@@ -126,7 +127,7 @@ export default class Scaneaza {
   stop() {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
-    this.stream?.getTracks().forEach((t) => t.stop());
+    this.stream?.getTracks().forEach((track) => track.stop());
     this.stream = null;
     this.live.set(false);
   }
@@ -157,9 +158,9 @@ export default class Scaneaza {
       const text = await this.read(img, img.width, img.height);
       img.close();
       if (text) this.found(text);
-      else this.error.set('Nu am găsit niciun cod QR în poză. Fă poza mai de aproape, cu codul întreg și clar.');
+      else this.error.set(t('scan.fara_cod_in_poza'));
     } catch {
-      this.error.set('Nu am putut deschide poza. Încearcă altă poză.');
+      this.error.set(t('scan.poza_nedeschisa'));
     }
   }
 

@@ -1,18 +1,19 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icon } from './icon';
+import { TPipe } from '../core/i18n';
 
 /** Comutatorul Grilă / Listă al porumbarului: aceeași pereche de butoane pe ambele pagini. */
 @Component({
   selector: 'app-view-toggle',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TPipe],
   template: `
-    <div class="toggle" role="group" aria-label="Cum arăți porumbeii">
+    <div class="toggle" role="group" [attr.aria-label]="'vedere.cum_arati' | t">
       <a routerLink="/panou" [class.on]="current() === 'grila'" [attr.aria-current]="current() === 'grila' ? 'page' : null">
-        <app-icon name="panou" [size]="22" />Grilă
+        <app-icon name="panou" [size]="22" />{{ 'vedere.grila' | t }}
       </a>
       <a routerLink="/porumbar" [class.on]="current() === 'lista'" [attr.aria-current]="current() === 'lista' ? 'page' : null">
-        <app-icon name="lista" [size]="22" />Listă
+        <app-icon name="lista" [size]="22" />{{ 'vedere.lista' | t }}
       </a>
     </div>
   `,

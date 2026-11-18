@@ -1,8 +1,16 @@
 import { Component, computed, input } from '@angular/core';
 import { PedigreeV1Node } from '../core/models';
+import { currentLang, tIn } from '../core/i18n';
 
 const REPEAT = ['#c2410c', '#0f766e', '#7c3aed', '#b45309', '#be185d', '#1d4ed8'];
-const HEADS = ['Porumbelul', 'Părinți', 'Bunici', 'Străbunici', 'Răstrăbunici'];
+const HEADS = ['fisa.cap_porumbel', 'fisa.cap_parinti', 'fisa.cap_bunici', 'fisa.cap_strabunici', 'fisa.cap_rastrabunici'];
+
+/** Culoarea de pe fișă: textul scris de om, altfel culoarea din listă în limba fișei (cu „p.a.” = pene albe). */
+export function colorOf(n: Pick<PedigreeV1Node, 'color' | 'colorLabel' | 'colorPa' | 'colorText'>, lang: string): string {
+  if (n.colorText) return n.colorText;
+  const label = n.color ? tIn(lang, `catalog.culoare.${n.color}`) : n.colorLabel;
+  return label ? `${label}${n.colorPa ? ` ${tIn(lang, 'fisa.pene_albe')}` : ''}` : '';
+}
 
 interface Box {
   i: number;
@@ -20,15 +28,15 @@ interface Box {
   selector: 'app-pedigree-sheet',
   host: { '[class.compact]': 'compact()', '[class.paper]': 'paper()' },
   template: `
-    <div class="heads" aria-hidden="true">@for (h of heads.slice(0, generations()); track h) { <div>{{ h }}</div> }</div>
+    <div class="heads" aria-hidden="true">@for (h of heads.slice(0, generations()); track h) { <div>{{ tx(h) }}</div> }</div>
     <div class="sheet" [style.grid-template-columns]="'repeat(' + generations() + ', minmax(0, 1fr))'" [style.grid-template-rows]="'repeat(' + rows() + ', auto)'">
       @for (b of boxes(); track b.i) {
         <div class="box" [class]="'box g' + b.gen" [style.grid-column]="b.gen + 1" [style.grid-row]="b.row"
              [style.border-color]="b.repeat" [style.box-shadow]="b.repeat ? 'inset 4px 0 0 ' + b.repeat : null">
           @if (b.node; as n) {
             <div class="line1">
-              @if (n.sex) { <span class="sx" [class]="'sx s' + n.sex">{{ n.sex }}</span> }
-              <strong class="mono">{{ n.ring ?? 'fără inel' }}</strong>
+              @if (n.sex) { <span class="sx" [class]="'sx s' + n.sex">{{ tx(n.sex === 'M' ? 'sex.m' : 'sex.f') }}</span> }
+              <strong class="mono">{{ n.ring ?? tx('text.fara_inel') }}</strong>
             </div>
             @if (n.name) { <div class="nm">„{{ n.name }}”</div> }
             @if (color(n); as c) { <div class="meta">{{ c }}</div> }
@@ -107,6 +115,11 @@ export class PedigreeSheet {
     return [(n.results ?? []).join('; '), n.pedigreeText].filter(Boolean).join('; ');
   }
   readonly generations = input(5);
+  /** Limba fișei (implicit limba ecranului); dicționarul ei trebuie să fie adus înainte (ensureLang). */
+  readonly lang = input<string | null>(null);
+  protected tx(key: string) {
+    return tIn(this.lang() ?? currentLang(), key);
+  }
   /** Foaia tipărită: totul pe o pagină A4. */
   readonly compact = input(false);
   /** Foaia A4 vertical (pagina de tipar): înălțime fixă, căsuțe pe 16 rânduri egale. */
@@ -115,7 +128,7 @@ export class PedigreeSheet {
   protected readonly rows = computed(() => 2 ** (this.generations() - 1));
 
   protected color(n: PedigreeV1Node) {
-    return n.colorText || (n.colorLabel ? `${n.colorLabel}${n.colorPa ? ' p.a.' : ''}` : '') || null;
+    return colorOf(n, this.lang() ?? currentLang()) || null;
   }
 
   protected readonly boxes = computed<Box[]>(() => {

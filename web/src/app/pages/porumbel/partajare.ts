@@ -7,6 +7,7 @@ import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { QrCode } from '../../shared/qr-code';
 import { Vanzare } from './vanzare';
+import { TPipe, t } from '../../core/i18n';
 
 /*
  * Fila „QR” a porumbelului: linkul public (pornit doar de proprietar), codul QR, trimiterea, tiparul și vânzarea.
@@ -14,37 +15,37 @@ import { Vanzare } from './vanzare';
  */
 @Component({
   selector: 'app-partajare',
-  imports: [RouterLink, Icon, QrCode, Vanzare],
+  imports: [RouterLink, Icon, QrCode, Vanzare, TPipe],
   template: `
     @if (pigeon().kind !== 'own') {
-      <section class="card"><p class="muted">Doar porumbeii din porumbarul tău au link public. Dacă acesta e al tău, schimbă-l din Editează → „Din porumbarul meu”.</p></section>
+      <section class="card"><p class="muted">{{ 'partajare.doar_proprii' | t }}</p></section>
     } @else {
       <section class="card share">
         @if (url(); as u) {
           <div class="qr"><app-qr-code [url]="u" [size]="360" /></div>
           <div class="side stack">
-            <h2>Pedigree-ul lui {{ title() }}</h2>
-            <p class="muted">Cine scanează codul sau deschide linkul vede pedigree-ul pe 5 generații, fără cont. Cu cont, îl poate prelua în porumbarul lui.</p>
+            <h2>{{ 'partajare.titlu' | t: { cine: title() } }}</h2>
+            <p class="muted">{{ 'partajare.cine_scaneaza' | t }}</p>
             <p class="link mono">{{ u }}</p>
             <div class="row">
-              <button type="button" class="primary" (click)="copy(u)"><app-icon name="copie" />{{ copied() ? 'Copiat' : 'Copiază linkul' }}</button>
-              @if (canShare) { <button type="button" (click)="share(u)"><app-icon name="trimite" />Trimite</button> }
-              <a class="btn" [routerLink]="['/porumbei', pigeon().id, 'tiparire']"><app-icon name="tipar" />Tipărește pedigree-ul</a>
+              <button type="button" class="primary" (click)="copy(u)"><app-icon name="copie" />{{ (copied() ? 'partajare.copiat' : 'partajare.copiaza') | t }}</button>
+              @if (canShare) { <button type="button" (click)="share(u)"><app-icon name="trimite" />{{ 'actiune.trimite' | t }}</button> }
+              <a class="btn" [routerLink]="['/porumbei', pigeon().id, 'tiparire']"><app-icon name="tipar" />{{ 'porumbel.tipareste_pedigree' | t }}</a>
             </div>
-            <p class="muted small">Pe pedigree apare: numele tău{{ extras() }}. <a routerLink="/cont">Schimbă în Contul meu</a></p>
+            <p class="muted small">{{ 'partajare.pe_pedigree_apare' | t: { extra: extras() } }} <a routerLink="/cont">{{ 'partajare.schimba_in_cont' | t }}</a></p>
             <div class="row">
-              <button type="button" (click)="renew()">Fă alt link (vechiul nu mai merge)</button>
-              <button type="button" class="danger" (click)="stop()">Oprește linkul</button>
+              <button type="button" (click)="renew()">{{ 'partajare.alt_link' | t }}</button>
+              <button type="button" class="danger" (click)="stop()">{{ 'partajare.opreste' | t }}</button>
             </div>
           </div>
         } @else if (loaded()) {
           <div class="side stack">
-            <h2><app-icon name="qr" />Link și cod QR pentru pedigree</h2>
-            <p>Pornește linkul ca să dai pedigree-ul altui crescător: îl scanează cu telefonul sau îl deschide din mesaj. Doar cine are linkul îl vede; îl poți opri oricând.</p>
-            <p class="muted">Se văd: inelul, sexul, numele, culoarea, crescătorul și textul pentru pedigree, pe 5 generații. Nu se văd: notele, jurnalul, starea.</p>
+            <h2><app-icon name="qr" />{{ 'partajare.link_si_qr' | t }}</h2>
+            <p>{{ 'partajare.porneste_explicatie' | t }}</p>
+            <p class="muted">{{ 'partajare.ce_se_vede' | t }}</p>
             <div class="row">
-              <button type="button" class="primary" (click)="start()"><app-icon name="qr" />Pornește linkul</button>
-              <a class="btn" [routerLink]="['/porumbei', pigeon().id, 'tiparire']"><app-icon name="tipar" />Tipărește pedigree-ul</a>
+              <button type="button" class="primary" (click)="start()"><app-icon name="qr" />{{ 'partajare.porneste' | t }}</button>
+              <a class="btn" [routerLink]="['/porumbei', pigeon().id, 'tiparire']"><app-icon name="tipar" />{{ 'porumbel.tipareste_pedigree' | t }}</a>
             </div>
           </div>
         }
@@ -90,8 +91,8 @@ export class Partajare {
 
   protected extras() {
     const a = this.auth.account();
-    const parts = [a?.showPhone && 'telefonul', a?.showAddress && 'adresa', a?.showEmail && 'emailul'].filter(Boolean);
-    return parts.length ? `, ${parts.join(', ')}` : ' (fără telefon, adresă sau email)';
+    const parts = [a?.showPhone && t('partajare.telefonul'), a?.showAddress && t('partajare.adresa'), a?.showEmail && t('partajare.emailul')].filter(Boolean);
+    return parts.length ? `, ${parts.join(', ')}` : t('partajare.fara_contact');
   }
 
   private async load(id: number) {
@@ -106,9 +107,9 @@ export class Partajare {
 
   async start() {
     const ok = await this.confirm.ask({
-      title: 'Pornești linkul public?',
-      lines: ['Oricine are linkul sau scanează codul vede pedigree-ul acestui porumbel (fără note și jurnal).', 'Îl poți opri oricând.'],
-      confirmLabel: 'Da, pornește',
+      title: t('partajare.porniti_titlu'),
+      lines: [t('partajare.porniti_rand1'), t('partajare.porniti_rand2')],
+      confirmLabel: t('partajare.porniti_da'),
     });
     if (!ok) return;
     await this.act(() => this.api.post<{ url: string }>(`/pigeons/${this.pigeon().id}/public`));
@@ -116,9 +117,9 @@ export class Partajare {
 
   async renew() {
     const ok = await this.confirm.ask({
-      title: 'Faci alt link?',
-      lines: ['Linkul și codul QR de acum nu vor mai merge (și cele tipărite deja).'],
-      confirmLabel: 'Da, fă altul',
+      title: t('partajare.alt_link_titlu'),
+      lines: [t('partajare.alt_link_rand')],
+      confirmLabel: t('partajare.alt_link_da'),
     });
     if (!ok) return;
     await this.act(() => this.api.post<{ url: string }>(`/pigeons/${this.pigeon().id}/public/new`));
@@ -126,9 +127,9 @@ export class Partajare {
 
   async stop() {
     const ok = await this.confirm.ask({
-      title: 'Oprești linkul?',
-      lines: ['Nimeni nu va mai putea deschide pedigree-ul cu linkul sau codul QR de acum.'],
-      confirmLabel: 'Da, oprește',
+      title: t('partajare.opreste_titlu'),
+      lines: [t('partajare.opreste_rand')],
+      confirmLabel: t('partajare.opreste_da'),
       danger: true,
     });
     if (!ok) return;
@@ -156,13 +157,13 @@ export class Partajare {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     } catch {
-      this.error.set('Nu am putut copia. Selectează linkul și copiază-l de mână.');
+      this.error.set(t('partajare.copiere_esuata'));
     }
   }
 
   async share(u: string) {
     try {
-      await navigator.share({ title: `Pedigree ${this.pigeon().ring?.display ?? ''}`, url: u });
+      await navigator.share({ title: t('partajare.titlu_trimitere', { inel: this.pigeon().ring?.display ?? '' }), url: u });
     } catch {
       /* omul a renunțat */
     }

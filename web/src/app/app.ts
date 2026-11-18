@@ -1,48 +1,49 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, untracked } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IncomingService } from './core/incoming';
 import { AuthService } from './core/auth';
 import { Icon, IconName } from './shared/icon';
 import { ConfirmDialog } from './core/confirm';
-
-const fmt = (d: string | null) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('ro-RO') : '');
+import { TPipe, currentLang, formatDay, t } from './core/i18n';
 
 interface NavItem {
   path: string;
+  /** Cheia din dicționar. */
   label: string;
   icon: IconName;
   exact?: boolean;
 }
 
 const NAV: NavItem[] = [
-  { path: '/panou', label: 'Panou', icon: 'panou' },
-  { path: '/arbore', label: 'Arbore', icon: 'copac' },
-  { path: '/perechi', label: 'Perechi', icon: 'ou' },
-  { path: '/porumbei/nou', label: 'Adaugă', icon: 'plus', exact: true },
+  { path: '/panou', label: 'meniu.panou', icon: 'panou' },
+  { path: '/arbore', label: 'meniu.arbore', icon: 'copac' },
+  { path: '/perechi', label: 'meniu.perechi', icon: 'ou' },
+  { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true },
   // Vânzări: porumbeii trimiși de alți crescători (cu numărul lor deasupra) și cei vânduți de om.
-  { path: '/vanzari', label: 'Vânzări', icon: 'vinde' },
-  { path: '/cont', label: 'Cont', icon: 'cont' },
+  { path: '/vanzari', label: 'meniu.vanzari', icon: 'vinde' },
+  { path: '/cont', label: 'meniu.cont', icon: 'cont' },
 ];
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, ConfirmDialog],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, ConfirmDialog, TPipe],
   template: `
     @if (auth.account()) {
       <header class="top">
         <!-- Conținutul antetului are aceeași lățime ca pagina: meniul se aliniază cu marginea din dreapta a conținutului. -->
         <div class="top-inner">
-        <a routerLink="/panou" class="brand" aria-label="Porumbar, panoul">
+        <a routerLink="/panou" class="brand" [attr.aria-label]="'meniu.brand' | t">
           <img class="brand-mark" src="/icon.svg" alt="" width="40" height="40" />
           Porumbar
         </a>
-        <nav class="top-nav" aria-label="Meniu">
+        <nav class="top-nav" [attr.aria-label]="'meniu.meniu' | t">
           @for (n of nav(); track n.path) {
             <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [attr.aria-label]="ariaOf(n)">
-              <span class="ico"><app-icon [name]="n.icon" [size]="22" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>{{ n.label }}
+              <span class="ico"><app-icon [name]="n.icon" [size]="22" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>{{ n.label | t }}
             </a>
           }
-          <button type="button" class="ghost" (click)="logout()"><app-icon name="iesire" [size]="22" />Ieși</button>
+          <button type="button" class="ghost" (click)="logout()"><app-icon name="iesire" [size]="22" />{{ 'meniu.iesi' | t }}</button>
         </nav>
         </div>
       </header>
@@ -56,11 +57,11 @@ const NAV: NavItem[] = [
     </main>
     @if (auth.account()) {
       <!-- Pe telefon, meniul stă jos, la îndemâna degetului mare. -->
-      <nav class="bottom-nav" aria-label="Meniu">
+      <nav class="bottom-nav" [attr.aria-label]="'meniu.meniu' | t">
         @for (n of nav(); track n.path) {
           <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [class.add]="n.icon === 'plus'" [attr.aria-label]="ariaOf(n)">
             <span class="ico"><app-icon [name]="n.icon" [size]="n.icon === 'plus' ? 30 : 28" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>
-            <span class="lbl">{{ n.label }}</span>
+            <span class="lbl">{{ n.label | t }}</span>
           </a>
         }
       </nav>
@@ -138,6 +139,7 @@ const NAV: NavItem[] = [
 export class App {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly title = inject(Title);
   protected readonly incoming = inject(IncomingService);
   /** Numărul de deasupra iconiței Vânzări: porumbeii trimiși de alți crescători, care așteaptă să fie primiți. */
   protected badgeOf(n: NavItem): string | null {
@@ -147,7 +149,7 @@ export class App {
   }
   protected ariaOf(n: NavItem): string | null {
     const c = n.path === '/vanzari' ? this.incoming.count() : 0;
-    return c > 0 ? `${n.label}: ${c === 1 ? 'un porumbel trimis' : c + ' porumbei trimiși'} de primit` : null;
+    return c > 0 ? t('meniu.de_primit', { eticheta: t(n.label), count: c }) : null;
   }
 
   constructor() {
@@ -162,23 +164,34 @@ export class App {
       if (a && !a.isAdmin) this.incoming.refresh(true);
       else this.incoming.reset();
     });
+    // Titlul paginii (din app.routes) se reface când se schimbă limba, fără să mai navigheze omul.
+    effect(() => {
+      currentLang();
+      untracked(() => {
+        let r = this.router.routerState.snapshot.root;
+        while (r.firstChild) r = r.firstChild;
+        const title = r.routeConfig?.title;
+        if (typeof title === 'function') this.title.setTitle((title as () => string)());
+      });
+    });
   }
   /** Adminul (vânzătorul) are în plus consola. */
   /** Vânzătorul (adminul) vede doar consola și contul lui; porumbarul nu-l interesează. */
   protected readonly nav = computed<NavItem[]>(() =>
-    this.auth.account()?.isAdmin ? [{ path: '/vanzator', label: 'Vânzător', icon: 'vinde' }, NAV[NAV.length - 1]] : NAV,
+    this.auth.account()?.isAdmin ? [{ path: '/vanzator', label: 'meniu.vanzator', icon: 'vinde' }, NAV[NAV.length - 1]] : NAV,
   );
   /** Banda de sus pentru crescători: „doar citire” sau abonamentul care expiră curând. */
   protected readonly banner = computed(() => {
     const a = this.auth.account();
     const s = a?.subscription;
     if (!a || a.isAdmin || !s) return null;
-    const how = a.sellerContact ? `Pentru activare: ${a.sellerContact}.` : 'Pentru activare, ia legătura cu cel de la care ai primit programul.';
+    // Fraza de activare începe cu un spațiu (aceleași chei ca la erorile „doar citire” de pe server).
+    const activare = a.sellerContact ? t('eroare.activare_contact', { contact: a.sellerContact }) : t('eroare.activare_vanzator');
     if (!s.active) {
-      const why = s.status === 'expired' ? `Abonamentul a expirat pe ${fmt(s.end)}` : 'Contul nu este activ încă';
-      return { kind: 'warning', text: `${why}: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic. ${how}` };
+      const text = s.status === 'expired' ? t('banda.expirat', { data: formatDay(s.end), activare }) : t('banda.neactivat', { activare });
+      return { kind: 'warning', text };
     }
-    if (s.status === 'expiring') return { kind: 'notice', text: `Abonamentul expiră pe ${fmt(s.end)} (peste ${s.daysLeft} ${s.daysLeft === 1 ? 'zi' : 'zile'}). ${how}` };
+    if (s.status === 'expiring') return { kind: 'notice', text: t('banda.expira', { data: formatDay(s.end), count: s.daysLeft, activare }) };
     return null;
   });
 

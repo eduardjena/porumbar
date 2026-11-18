@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
+import { formatDate, t, TPipe } from '../../core/i18n';
 import { IncomingService } from '../../core/incoming';
 import { Icon } from '../../shared/icon';
 
@@ -25,44 +26,44 @@ interface Outgoing {
 /** Porumbeii primiți (de acceptat) și cei vânduți de tine. */
 @Component({
   selector: 'app-vanzari',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TPipe],
   template: `
-    <h1>Vânzări</h1>
+    <h1>{{ 'vanzari.titlu' | t }}</h1>
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (received(); as r) {
       <section class="card stack in" role="status">
-        <strong><app-icon name="bifa" />Porumbelul e în porumbarul tău.</strong>
+        <strong><app-icon name="bifa" />{{ 'vanzari.e_in_porumbar' | t }}</strong>
         <div class="warning stack">
-          <strong>De verificat ({{ r.conflicts.length }}):</strong>
+          <strong>{{ 'text.de_verificat' | t: { n: r.conflicts.length } }}</strong>
           @for (c of r.conflicts; track $index) { <span>{{ c.message }}</span> }
         </div>
-        <div class="row"><a class="btn primary" [routerLink]="['/porumbei', r.pigeonId]"><app-icon name="fisa" />Deschide fișa</a></div>
+        <div class="row"><a class="btn primary" [routerLink]="['/porumbei', r.pigeonId]"><app-icon name="fisa" />{{ 'actiune.deschide_fisa' | t }}</a></div>
       </section>
     }
 
-    <h2>Porumbei care vin la tine</h2>
-    @for (t of incoming(); track t.id) {
+    <h2>{{ 'vanzari.vin_la_tine' | t }}</h2>
+    @for (tr of incoming(); track tr.id) {
       <section class="card stack in">
-        <div><strong class="mono">{{ t.ring ?? 'fără inel' }}</strong>@if (t.name) { „{{ t.name }}” } · de la <strong>{{ t.sellerName }}</strong></div>
-        <p class="muted">Îl primești în porumbarul tău cu tot pedigree-ul{{ t.includePrivate ? ', notele și jurnalul' : '' }}. Strămoșii pe care îi ai deja nu se dublează.</p>
+        <div><strong class="mono">{{ tr.ring ?? ('text.fara_inel' | t) }}</strong>@if (tr.name) { „{{ tr.name }}” } · {{ 'vanzari.de_la' | t }} <strong>{{ tr.sellerName }}</strong></div>
+        <p class="muted">{{ (tr.includePrivate ? 'vanzari.primesti_tot' : 'vanzari.primesti_pedigree') | t }}</p>
         <div class="row">
-          <button type="button" class="primary" (click)="accept(t)"><app-icon name="bifa" />Primesc porumbelul</button>
-          <button type="button" (click)="refuse(t)">Nu îl primesc</button>
+          <button type="button" class="primary" (click)="accept(tr)"><app-icon name="bifa" />{{ 'vanzari.primesc' | t }}</button>
+          <button type="button" (click)="refuse(tr)">{{ 'vanzari.nu_primesc' | t }}</button>
         </div>
       </section>
     } @empty {
-      <p class="muted">Niciun porumbel în așteptare. Când cineva îți vinde un porumbel pe emailul contului tău, apare aici.</p>
+      <p class="muted">{{ 'vanzari.niciunul' | t }}</p>
     }
 
-    <h2>Vândute de tine</h2>
-    @for (t of outgoing(); track t.id) {
-      <a class="card out" [routerLink]="['/porumbei', t.pigeonId]" [queryParams]="{ fila: 'qr' }">
-        <span>{{ t.buyerEmail }}</span>
-        <span class="st" [class]="'st ' + t.status">{{ label(t.status) }}</span>
-        <span class="muted">{{ date(t.decidedAt ?? t.createdAt) }}</span>
+    <h2>{{ 'vanzari.vandute' | t }}</h2>
+    @for (o of outgoing(); track o.id) {
+      <a class="card out" [routerLink]="['/porumbei', o.pigeonId]" [queryParams]="{ fila: 'qr' }">
+        <span>{{ o.buyerEmail }}</span>
+        <span class="st" [class]="'st ' + o.status">{{ label(o.status) }}</span>
+        <span class="muted">{{ date(o.decidedAt ?? o.createdAt) }}</span>
       </a>
     } @empty {
-      <p class="muted">Nimic încă. Vinzi un porumbel din fișa lui, fila „QR”.</p>
+      <p class="muted">{{ 'vanzari.nimic' | t }}</p>
     }
   `,
   styles: `
@@ -86,8 +87,8 @@ export default class Vanzari implements OnInit {
   readonly error = signal('');
   /** Primit, dar cu diferențe față de ce aveai deja (le arătăm înainte de a deschide fișa). */
   readonly received = signal<{ pigeonId: number; conflicts: { message: string }[] } | null>(null);
-  protected readonly date = (iso: string) => new Date(iso).toLocaleDateString('ro-RO');
-  protected readonly label = (s: Outgoing['status']) => ({ pending: 'În așteptare', accepted: 'Primit', cancelled: 'Anulat' })[s];
+  protected readonly date = (iso: string) => formatDate(iso);
+  protected readonly label = (s: Outgoing['status']) => t(`vanzari.st_${s}`);
 
   ngOnInit() {
     this.load();
@@ -104,15 +105,15 @@ export default class Vanzari implements OnInit {
     }
   }
 
-  async accept(t: Incoming) {
+  async accept(tr: Incoming) {
     const ok = await this.confirm.ask({
-      title: `Primești porumbelul ${t.ring ?? ''}?`,
-      lines: [`De la ${t.sellerName}. Intră în porumbarul tău, ca porumbel al tău, cu tot pedigree-ul.`],
-      confirmLabel: 'Da, îl primesc',
+      title: t('vanzari.primesti_titlu', { inel: tr.ring ?? '' }),
+      lines: [t('vanzari.primesti_text', { vanzator: tr.sellerName })],
+      confirmLabel: t('vanzari.da_primesc'),
     });
     if (!ok) return;
     try {
-      const r = await this.api.post<{ pigeonId: number; conflicts: { message: string }[] }>(`/transfers/${t.id}/accept`);
+      const r = await this.api.post<{ pigeonId: number; conflicts: { message: string }[] }>(`/transfers/${tr.id}/accept`);
       await this.waiting.refresh(true);
       if (r.conflicts?.length) {
         this.received.set(r);
@@ -125,11 +126,11 @@ export default class Vanzari implements OnInit {
     }
   }
 
-  async refuse(t: Incoming) {
-    const ok = await this.confirm.ask({ title: 'Nu primești porumbelul?', lines: [`${t.sellerName} va vedea vânzarea anulată.`], confirmLabel: 'Da, refuz', danger: true });
+  async refuse(tr: Incoming) {
+    const ok = await this.confirm.ask({ title: t('vanzari.refuzi_titlu'), lines: [t('vanzari.refuzi_text', { vanzator: tr.sellerName })], confirmLabel: t('vanzari.da_refuz'), danger: true });
     if (!ok) return;
     try {
-      await this.api.post(`/transfers/${t.id}/cancel`);
+      await this.api.post(`/transfers/${tr.id}/cancel`);
       await this.load();
     } catch (e) {
       this.error.set(errorMessage(e));

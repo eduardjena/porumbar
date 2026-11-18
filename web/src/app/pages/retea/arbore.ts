@@ -6,6 +6,7 @@ import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
 import { BoardPigeon, CoiResult, Family, PigeonSummary, TreeNode } from '../../core/models';
+import { t, TPipe } from '../../core/i18n';
 import { Icon, IconName } from '../../shared/icon';
 import { ArboreData, Blood, lastRoot, rememberRoot, TreePigeon } from './arbore-data';
 import { ArborePanou } from './arbore-panou';
@@ -15,11 +16,11 @@ import { VedereSange } from './vedere-sange';
 import Retea from './retea';
 
 type View = 'carduri' | 'evantai' | 'sange' | 'retea';
-const VIEWS: { id: View; label: string; icon: IconName }[] = [
-  { id: 'carduri', label: 'Carduri', icon: 'panou' },
-  { id: 'evantai', label: 'Evantai', icon: 'rotire' },
-  { id: 'sange', label: 'Linii de sânge', icon: 'ramificare' },
-  { id: 'retea', label: 'Rețea', icon: 'retea' },
+const VIEWS: { id: View; /** cheia din dicționar */ label: string; icon: IconName }[] = [
+  { id: 'carduri', label: 'arbore.vedere_carduri', icon: 'panou' },
+  { id: 'evantai', label: 'arbore.vedere_evantai', icon: 'rotire' },
+  { id: 'sange', label: 'arbore.vedere_sange', icon: 'ramificare' },
+  { id: 'retea', label: 'arbore.vedere_retea', icon: 'retea' },
 ];
 const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
 
@@ -30,43 +31,43 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
  */
 @Component({
   selector: 'app-arbore',
-  imports: [FormsModule, NgTemplateOutlet, Icon, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea],
+  imports: [FormsModule, NgTemplateOutlet, Icon, TPipe, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea],
   template: `
     <div class="wide">
       <!-- Stânga barei: titlul. -->
       <ng-template #titleTpl>
         <div class="bar-title">
           <h1>{{ title() }}</h1>
-          @if (rootRing() && data()?.rootId === rootId()) { <span class="muted"><span class="mono">{{ rootRing() }}</span>@if (data(); as d) { · {{ d.offspring.length }} pui }</span> }
+          @if (rootRing() && data()?.rootId === rootId()) { <span class="muted"><span class="mono">{{ rootRing() }}</span>@if (data(); as d) { · {{ 'arbore.n_pui' | t: { n: d.offspring.length } }} }</span> }
         </div>
       </ng-template>
 
       <!-- Capătul din dreapta al barei: „Alege alt porumbel”, cu lista care se deschide sub bară. -->
       <ng-template #pickTpl>
         <button type="button" class="primary" [attr.aria-expanded]="picking()" (click)="togglePicker($event)">
-          <app-icon name="lista" />Alege alt porumbel
+          <app-icon name="lista" />{{ 'arbore.alege_alt' | t }}
         </button>
         @if (picking()) {
-          <section class="picker card" [style.top.px]="pickerTop()" [style.--picker-top.px]="pickerTop()" aria-label="Alege porumbelul" (keydown.escape)="picking.set(false)">
+          <section class="picker card" [style.top.px]="pickerTop()" [style.--picker-top.px]="pickerTop()" [attr.aria-label]="'arbore.aria_alege' | t" (keydown.escape)="picking.set(false)">
             <div class="picker-head">
               <label class="search">
                 <app-icon name="cautare" />
-                <input type="search" placeholder="Caută după inel sau nume" aria-label="Caută după inel sau nume" [(ngModel)]="q" (ngModelChange)="suggest()" />
+                <input type="search" [placeholder]="'arbore.cauta' | t" [attr.aria-label]="'arbore.cauta' | t" [(ngModel)]="q" (ngModelChange)="suggest()" />
               </label>
-              <button type="button" class="close" (click)="picking.set(false)" aria-label="Închide lista" title="Închide"><app-icon name="inchide" /></button>
+              <button type="button" class="close" (click)="picking.set(false)" [attr.aria-label]="'arbore.inchide_lista' | t" [title]="'actiune.inchide' | t"><app-icon name="inchide" /></button>
             </div>
-            <p class="muted small">{{ q.trim() ? 'Rezultate' : 'Porumbeii tăi, cei mai valoroși primii' }} · atinge unul ca să-i vezi arborele</p>
+            <p class="muted small">{{ (q.trim() ? 'arbore.rezultate' : 'arbore.cei_mai_valorosi') | t }} · {{ 'arbore.atinge_unul' | t }}</p>
             <div class="pick-grid">
               @for (s of pickList(); track s.id) {
                 <button type="button" class="pick" [class.on]="s.id === rootId()" (click)="pick(s)">
                   @if (s.value; as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                   <span class="stack">
-                    <span class="mono rg">{{ s.ring?.display ?? 'Fără inel' }}</span>
+                    <span class="mono rg">{{ s.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
                     @if (s.name) { <span class="nm">„{{ s.name }}”</span> }
                   </span>
                 </button>
               } @empty {
-                <p class="muted">Niciun porumbel găsit.</p>
+                <p class="muted">{{ 'arbore.niciun_gasit' | t }}</p>
               }
             </div>
           </section>
@@ -75,18 +76,18 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
 
       @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
-      <div class="tree-bar" role="toolbar" aria-label="Comenzi pentru arbore">
+      <div class="tree-bar" role="toolbar" [attr.aria-label]="'arbore.aria_comenzi' | t">
           <div class="bar-left"><ng-container [ngTemplateOutlet]="titleTpl" /></div>
           <div class="tree-bar-right">
-            <div class="seg" role="tablist" aria-label="Cum vezi arborele">
+            <div class="seg" role="tablist" [attr.aria-label]="'arbore.aria_vederi' | t">
               @for (v of views; track v.id) {
                 <button type="button" role="tab" [attr.aria-selected]="view() === v.id" [class.on]="view() === v.id" (click)="go(v.id)">
-                  <app-icon [name]="v.icon" [size]="20" />{{ v.label }}
+                  <app-icon [name]="v.icon" [size]="20" />{{ v.label | t }}
                 </button>
               }
             </div>
             @if (view() !== defaultView()) {
-              <button type="button" class="link" (click)="makeDefault()">Fă-o vederea de pornire</button>
+              <button type="button" class="link" (click)="makeDefault()">{{ 'arbore.fa_pornire' | t }}</button>
             }
             <div class="pick-wrap"><ng-container [ngTemplateOutlet]="pickTpl" /></div>
           </div>
@@ -109,7 +110,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
                 <app-arbore-panou [data]="d" [selectedId]="selected()" [from]="from()" (select)="selected.set($event)" (startHere)="startHere($event)" />
               </div>
             } @else if (!error()) {
-              <p class="muted">Se încarcă arborele…</p>
+              <p class="muted">{{ 'arbore.se_incarca' | t }}</p>
             }
           }
         }
@@ -196,7 +197,7 @@ export default class Arbore {
   protected readonly title = computed(() => {
     const d = this.data();
     const r = d?.pigeons[d.rootId];
-    return r && this.view() !== 'retea' ? `Arborele lui ${r.name || r.ring?.display || ''}` : 'Arborele porumbarului';
+    return r && this.view() !== 'retea' ? t('arbore.titlu_lui', { nume: r.name || r.ring?.display || '' }) : t('arbore.titlu_porumbar');
   });
   protected readonly from = computed(() => ({ din: 'arbore', radacina: this.rootId() ?? undefined, vedere: this.view() }));
 
@@ -219,11 +220,11 @@ export default class Arbore {
         const start = pigeons.find((p) => p.id === last) ?? pigeons[0];
         if (req !== this.request) return;
         if (start) this.router.navigate(['/arbore'], { queryParams: { porumbel: start.id, vedere: this.vedere() || undefined }, replaceUrl: true });
-        else this.error.set('Adaugă primul porumbel, apoi îi vezi aici arborele.');
+        else this.error.set(t('arbore.adauga_primul'));
         return;
       }
       if (this.data()?.rootId === id) return;
-      const [t, board, coi, fam, blood] = await Promise.all([
+      const [treeRes, board, coi, fam, blood] = await Promise.all([
         this.api.get<{ tree: TreeNode; pigeons: Record<number, TreePigeon> }>(`/pigeons/${id}/tree?generations=4`),
         this.api.get<{ pigeons: BoardPigeon[] }>('/board'),
         this.api.get<CoiResult>(`/pigeons/${id}/coi`),
@@ -235,7 +236,7 @@ export default class Arbore {
       rememberRoot(id);
       const values = Object.fromEntries(board.pigeons.map((p) => [p.id, p.value]));
       const offspring = [...fam.offspring].sort((a, b) => (values[b.id]?.score ?? -1) - (values[a.id]?.score ?? -1));
-      this.data.set({ rootId: id, tree: t.tree, pigeons: t.pigeons, values, coi, offspring, blood });
+      this.data.set({ rootId: id, tree: treeRes.tree, pigeons: treeRes.pigeons, values, coi, offspring, blood });
       this.selected.set(id);
       this.error.set('');
     } catch (e) {
@@ -257,11 +258,12 @@ export default class Arbore {
   }
 
   async makeDefault() {
-    const label = VIEWS.find((v) => v.id === this.view())?.label ?? '';
+    const key = VIEWS.find((v) => v.id === this.view())?.label;
+    const label = key ? t(key) : '';
     const ok = await this.confirm.ask({
-      title: `Arborele se deschide de acum cu „${label}”?`,
-      lines: ['Poți schimba oricând din comutatorul de vederi.'],
-      confirmLabel: 'Da, așa',
+      title: t('arbore.confirma_pornire_titlu', { vedere: label }),
+      lines: [t('arbore.confirma_pornire_text')],
+      confirmLabel: t('actiune.da_asa'),
     });
     if (!ok) return;
     try {

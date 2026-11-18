@@ -5,6 +5,7 @@ import { CatalogService } from '../../core/catalog';
 import { ConfirmService } from '../../core/confirm';
 import { Race, RaceResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { TPipe, formatDay, formatNumber, t } from '../../core/i18n';
 
 /** Formularul, cu aceleași câmpuri ca clasamentul columba.ro (texte, ca să primească și „196,608”). */
 interface Form {
@@ -31,10 +32,9 @@ const empty = (): Form => ({
   place: '', distanceKm: '', arrivalDay: '1', arrivalTime: '', speed: '', fci: '', onPedigree: true,
 });
 const str = (v: number | string | null | undefined) => (v == null ? '' : String(v));
-const ro = (n: number, digits = 2) => n.toLocaleString('ro-RO', { maximumFractionDigits: digits });
+const num = (n: number, digits = 2) => formatNumber(n, { maximumFractionDigits: digits });
 /** Un număr de pus înapoi în câmp: fără puncte de mii, cu virgulă („196,608”). */
 const plain = (n: number) => String(n).replace('.', ',');
-const roDate = (d: string) => d.split('-').reverse().join('.');
 
 /*
  * Rezultatele la concursuri ale porumbelului, introduse de mână (design: docs/superpowers/specs/2026-11-16-rezultate-manual-design.md).
@@ -42,74 +42,74 @@ const roDate = (d: string) => d.split('-').reverse().join('.');
  */
 @Component({
   selector: 'app-rezultate',
-  imports: [FormsModule, Icon],
+  imports: [FormsModule, Icon, TPipe],
   template: `
     <form class="card stack" (ngSubmit)="save()">
-      <h3>{{ editing() ? 'Schimbă rezultatul' : 'Adaugă un rezultat' }}</h3>
+      <h3>{{ (editing() ? 'rezultate.schimba_titlu' : 'rezultate.adauga_titlu') | t }}</h3>
       @if (races().length) {
-        <label class="field">Concursul
+        <label class="field">{{ 'rezultate.concursul' | t }}
           <select name="raceId" [ngModel]="f.raceId" (ngModelChange)="pickRace($event)">
-            <option value="">Concurs nou (îl scriu mai jos)</option>
+            <option value="">{{ 'rezultate.concurs_nou' | t }}</option>
             @for (r of races(); track r.id) { <option [value]="r.id">{{ raceLabel(r) }}</option> }
           </select>
-          <span class="hint">Dacă ai trecut deja concursul la alt porumbel, alege-l de aici și nu-l mai scrii o dată.</span>
+          <span class="hint">{{ 'rezultate.concurs_ales_ajutor' | t }}</span>
         </label>
       }
       <fieldset class="stack">
-        <legend>Concursul</legend>
+        <legend>{{ 'rezultate.concursul' | t }}</legend>
         <div class="row">
-          <label class="field grow">Data <input type="date" name="date" [(ngModel)]="f.date" required /></label>
-          <label class="field grow">Categoria
+          <label class="field grow">{{ 'camp.data' | t }} <input type="date" name="date" [(ngModel)]="f.date" required /></label>
+          <label class="field grow">{{ 'camp.categoria' | t }}
             <select name="category" [(ngModel)]="f.category">
               @for (c of catalog.catalog()?.raceCategories ?? []; track c.code) { <option [value]="c.code">{{ c.label }}</option> }
             </select>
           </label>
         </div>
         <div class="row">
-          <label class="field grow">Locul lansării <input name="releasePlace" [(ngModel)]="f.releasePlace" placeholder="de ex. Yablanița" required /></label>
-          <label class="field grow">Organizator (club sau județ) <input name="organizer" [(ngModel)]="f.organizer" placeholder="de ex. Vâlcea" required /></label>
+          <label class="field grow">{{ 'camp.locul_lansarii' | t }} <input name="releasePlace" [(ngModel)]="f.releasePlace" [placeholder]="'rezultate.ex_lansare' | t" required /></label>
+          <label class="field grow">{{ 'rezultate.organizator' | t }} <input name="organizer" [(ngModel)]="f.organizer" [placeholder]="'rezultate.ex_organizator' | t" required /></label>
         </div>
-        <label class="field">Porumbei angajați (în tot concursul)
-          <input name="entered" [(ngModel)]="f.entered" inputmode="numeric" placeholder="de ex. 10023" />
-          <span class="hint">Fără el nu se poate calcula coeficientul.</span>
+        <label class="field">{{ 'rezultate.angajati' | t }}
+          <input name="entered" [(ngModel)]="f.entered" inputmode="numeric" [placeholder]="'text.de_exemplu' | t: { exemplu: '10023' }" />
+          <span class="hint">{{ 'rezultate.angajati_ajutor' | t }}</span>
         </label>
       </fieldset>
       <fieldset class="stack">
-        <legend>Rezultatul porumbelului</legend>
+        <legend>{{ 'rezultate.rezultatul_porumbelului' | t }}</legend>
         <div class="row">
-          <label class="field grow">Locul obținut <input name="place" [(ngModel)]="f.place" inputmode="numeric" placeholder="de ex. 1" required /></label>
-          <label class="field grow">Distanța (km) <input name="distanceKm" [(ngModel)]="f.distanceKm" inputmode="decimal" placeholder="de ex. 196,608" required /></label>
+          <label class="field grow">{{ 'rezultate.locul_obtinut' | t }} <input name="place" [(ngModel)]="f.place" inputmode="numeric" [placeholder]="'text.de_exemplu' | t: { exemplu: '1' }" required /></label>
+          <label class="field grow">{{ 'camp.distanta_km' | t }} <input name="distanceKm" [(ngModel)]="f.distanceKm" inputmode="decimal" [placeholder]="'text.de_exemplu' | t: { exemplu: '196,608' }" required /></label>
         </div>
-        <label class="check"><input type="checkbox" name="onPedigree" [(ngModel)]="f.onPedigree" /> Apare pe pedigree (fișa tipărită, linkul public, vânzarea)</label>
+        <label class="check"><input type="checkbox" name="onPedigree" [(ngModel)]="f.onPedigree" /> {{ 'rezultate.apare_pe_pedigree' | t }}</label>
       </fieldset>
       <details [open]="moreOpen()">
-        <summary>Mai multe date din clasament (nu sunt obligatorii)</summary>
+        <summary>{{ 'rezultate.mai_multe_date' | t }}</summary>
         <div class="stack more">
           <div class="row">
-            <label class="field grow">Nr. concursului <input name="number" [(ngModel)]="f.number" inputmode="numeric" /></label>
-            <label class="field grow">Ora lansării <input type="time" step="1" name="releaseTime" [(ngModel)]="f.releaseTime" /></label>
+            <label class="field grow">{{ 'camp.nr_concurs' | t }} <input name="number" [(ngModel)]="f.number" inputmode="numeric" /></label>
+            <label class="field grow">{{ 'camp.ora_lansarii' | t }} <input type="time" step="1" name="releaseTime" [(ngModel)]="f.releaseTime" /></label>
           </div>
           <div class="row">
-            <label class="field grow">Ora sosirii <input type="time" step="1" name="arrivalTime" [(ngModel)]="f.arrivalTime" /></label>
-            <label class="field grow">Ziua sosirii
+            <label class="field grow">{{ 'camp.ora_sosirii' | t }} <input type="time" step="1" name="arrivalTime" [(ngModel)]="f.arrivalTime" /></label>
+            <label class="field grow">{{ 'camp.ziua_sosirii' | t }}
               <select name="arrivalDay" [(ngModel)]="f.arrivalDay">
-                <option value="1">Ziua 1 (în ziua lansării)</option><option value="2">Ziua 2</option><option value="3">Ziua 3</option>
+                <option value="1">{{ 'rezultate.ziua_1' | t }}</option><option value="2">{{ 'rezultate.ziua' | t: { zi: 2 } }}</option><option value="3">{{ 'rezultate.ziua' | t: { zi: 3 } }}</option>
               </select>
             </label>
           </div>
           <div class="row">
-            <label class="field grow">Viteza (m/min)
+            <label class="field grow">{{ 'camp.viteza' | t }}
               <input name="speed" [(ngModel)]="f.speed" inputmode="decimal" />
-              <span class="hint">Se calculează singură din ora lansării, ora sosirii (ziua 1) și distanță.</span>
+              <span class="hint">{{ 'rezultate.viteza_ajutor' | t }}</span>
             </label>
-            <label class="field grow">Coeficient FCI <input name="fci" [(ngModel)]="f.fci" inputmode="decimal" /></label>
+            <label class="field grow">{{ 'camp.coeficient' | t }} <input name="fci" [(ngModel)]="f.fci" inputmode="decimal" /></label>
           </div>
         </div>
       </details>
       @if (formError()) { <div class="error" role="alert"><app-icon name="alerta" />{{ formError() }}</div> }
       <div class="row">
-        <button class="primary" type="submit" [disabled]="busy()"><app-icon name="bifa" />{{ editing() ? 'Salvează schimbarea' : 'Adaugă rezultatul' }}</button>
-        @if (editing()) { <button type="button" (click)="cancel()">Renunță</button> }
+        <button class="primary" type="submit" [disabled]="busy()"><app-icon name="bifa" />{{ (editing() ? 'rezultate.salveaza_schimbarea' : 'rezultate.adauga_rezultatul') | t }}</button>
+        @if (editing()) { <button type="button" (click)="cancel()">{{ 'actiune.renunta' | t }}</button> }
       </div>
     </form>
 
@@ -117,21 +117,21 @@ const roDate = (d: string) => d.split('-').reverse().join('.');
     <ul class="results">
       @for (r of results(); track r.id) {
         <li class="card">
-          <p class="big"><strong>Locul {{ r.place }}</strong>@if (r.race.entered) { din {{ ro(r.race.entered, 0) }} } · {{ r.race.releasePlace }} · {{ ro(r.distanceM / 1000, 1) }} km</p>
+          <p class="big"><strong>{{ 'rezultate.locul' | t: { loc: r.place } }}</strong>@if (r.race.entered) { {{ 'rezultate.din' | t: { numar: num(r.race.entered, 0) } }} } · {{ r.race.releasePlace }} · {{ num(r.distanceM / 1000, 1) }} km</p>
           <p class="muted">
-            {{ roDate(r.race.date) }} · {{ catalog.label('raceCategories', r.race.category) }} · {{ r.race.organizer }}@if (r.race.number) { · concursul {{ r.race.number }}}
+            {{ day(r.race.date) }} · {{ catalog.label('raceCategories', r.race.category) }} · {{ r.race.organizer }}@if (r.race.number) { · {{ 'rezultate.concursul_nr' | t: { nr: r.race.number } }}}
           </p>
           <p class="muted">
-            @if (r.speed) { Viteza {{ ro(r.speed) }} m/min · }@if (r.penalty != null) { Coeficient {{ ro(r.penalty) }} · }@if (r.fci != null) { FCI {{ ro(r.fci) }} · }
-            @if (r.onPedigree) { pe pedigree: <span class="mono">{{ r.short }}</span> } @else { nu apare pe pedigree }
+            @if (r.speed) { {{ 'rezultate.viteza' | t: { viteza: num(r.speed) } }} · }@if (r.penalty != null) { {{ 'rezultate.coeficient' | t: { coef: num(r.penalty) } }} · }@if (r.fci != null) { FCI {{ num(r.fci) }} · }
+            @if (r.onPedigree) { {{ 'rezultate.pe_pedigree' | t }} <span class="mono">{{ r.short }}</span> } @else { {{ 'rezultate.nu_pe_pedigree' | t }} }
           </p>
           <div class="row">
-            <button type="button" (click)="edit(r)"><app-icon name="editeaza" />Schimbă</button>
-            <button type="button" class="link" (click)="remove(r)">Șterge</button>
+            <button type="button" (click)="edit(r)"><app-icon name="editeaza" />{{ 'actiune.schimba' | t }}</button>
+            <button type="button" class="link" (click)="remove(r)">{{ 'actiune.sterge' | t }}</button>
           </div>
         </li>
       } @empty {
-        @if (loaded()) { <p class="muted">Niciun rezultat încă. Scrie-l mai sus, așa cum apare în clasament.</p> }
+        @if (loaded()) { <p class="muted">{{ 'rezultate.niciunul' | t }}</p> }
       }
     </ul>
   `,
@@ -163,8 +163,8 @@ export class Rezultate {
   readonly editing = signal<RaceResult | null>(null);
   readonly moreOpen = computed(() => !!this.editing() && !!(this.editing()!.arrival || this.editing()!.race.releaseTime || this.editing()!.fci != null));
   f: Form = empty();
-  protected readonly ro = ro;
-  protected readonly roDate = roDate;
+  protected readonly num = num;
+  protected readonly day = formatDay;
 
   constructor() {
     this.catalog.load();
@@ -191,7 +191,7 @@ export class Rezultate {
   }
 
   protected raceLabel(r: Race) {
-    return [roDate(r.date), r.releasePlace, this.catalog.label('raceCategories', r.category), r.organizer].join(' · ');
+    return [formatDay(r.date), r.releasePlace, this.catalog.label('raceCategories', r.category), r.organizer].join(' · ');
   }
 
   /** Concursul ales din listă completează câmpurile concursului (rămân de scris doar locul și distanța). */
@@ -256,9 +256,9 @@ export class Rezultate {
 
   async remove(r: RaceResult) {
     const ok = await this.confirm.ask({
-      title: 'Ștergi acest rezultat?',
-      lines: [`Locul ${r.place} · ${r.race.releasePlace} · ${roDate(r.race.date)}`, 'Nu se poate da înapoi.'],
-      confirmLabel: 'Da, șterge',
+      title: t('rezultate.sterge_titlu'),
+      lines: [`${t('rezultate.locul', { loc: r.place })} · ${r.race.releasePlace} · ${formatDay(r.race.date)}`, t('text.nu_se_poate_da_inapoi')],
+      confirmLabel: t('actiune.da_sterge'),
       danger: true,
     });
     if (!ok) return;

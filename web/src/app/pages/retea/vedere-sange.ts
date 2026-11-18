@@ -1,4 +1,5 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { formatNumber, t, TPipe } from '../../core/i18n';
 import { ArboreData, lineColor } from './arbore-data';
 
 /*
@@ -23,8 +24,9 @@ interface Node2 {
 
 @Component({
   selector: 'app-vedere-sange',
+  imports: [TPipe],
   template: `
-    <div class="bar" role="img" [attr.aria-label]="'Liniile de sânge: ' + summary()">
+    <div class="bar" role="img" [attr.aria-label]="'arbore.aria_linii' | t: { linii: summary() }">
       @for (l of lines(); track l.name; let i = $index) {
         <button type="button" [style.width.%]="l.percent" [style.background]="color(l.name, i)" [class.dim]="line() && line() !== l.name"
                 (click)="toggle(l.name)" [title]="l.name + ' ' + l.percent + '%'">
@@ -42,7 +44,7 @@ interface Node2 {
     @if (explain(); as e) { <p class="explain">{{ e }}</p> }
 
     <div class="scroll">
-      <svg [attr.viewBox]="'0 0 ' + width() + ' ' + height()" [style.min-width.px]="width() * 0.75" role="img" aria-label="Panglicile liniilor de sânge">
+      <svg [attr.viewBox]="'0 0 ' + width() + ' ' + height()" [style.min-width.px]="width() * 0.75" role="img" [attr.aria-label]="'arbore.aria_panglici' | t">
         @for (r of ribbons(); track r.key) {
           <path [attr.d]="r.d" fill="none" [attr.stroke]="r.color" [attr.stroke-width]="r.w" stroke-linecap="round"
                 [attr.opacity]="line() && line() !== r.line ? 0.07 : 0.6" />
@@ -58,7 +60,7 @@ interface Node2 {
         }
       </svg>
     </div>
-    <p class="muted how">Grosimea = cât sânge aduce · culoarea = linia (fondatorul). Atinge o linie, în bară sau în listă, ca să rămână doar ea. Linia fondatorului vine din câmpul „Linii” din fișă (sau din crescătorul de origine).</p>
+    <p class="muted how">{{ 'arbore.sange_cum' | t }}</p>
   `,
   styles: `
     :host { display: block; }
@@ -86,7 +88,7 @@ export class VedereSange {
   protected readonly color = lineColor;
   protected readonly nodeW = NODE_W;
   protected readonly nodeH = NODE_H;
-  protected readonly fmt = (n: number) => n.toLocaleString('ro-RO');
+  protected readonly fmt = (n: number) => formatNumber(n);
   protected readonly lines = computed(() => this.data().blood.lines);
   protected readonly summary = computed(() => this.lines().map((l) => `${l.name} ${l.percent}%`).join(', '));
   private readonly colorOf = computed(() => new Map(this.lines().map((l, i) => [l.name, lineColor(l.name, i)])));
@@ -96,7 +98,7 @@ export class VedereSange {
   }
 
   private pigeon = (id: number) => this.data().pigeons[id] ?? this.data().blood.pigeons[id];
-  protected ring = (id: number) => this.pigeon(id)?.ring?.display ?? 'fără inel';
+  protected ring = (id: number) => this.pigeon(id)?.ring?.display ?? t('text.fara_inel');
   protected sub = (id: number) => {
     const p = this.pigeon(id);
     return [p?.name ? `„${p.name}”` : '', p?.year ?? ''].filter(Boolean).join(' · ');
@@ -167,9 +169,10 @@ export class VedereSange {
     const l = this.lines().find((x) => x.name === name);
     if (!l) return '';
     const paths = this.data().blood.paths.filter((p) => p.line === name);
-    if (name === 'Necunoscut') return `Necunoscut, ${this.fmt(l.percent)} %: părinți care nu sunt trecuți în program.`;
+    if (name === t('text.necunoscut')) return t('arbore.sange_necunoscut', { procent: this.fmt(l.percent) });
     const founders = l.founders.map((id) => this.ring(id)).join(', ');
     const parts = paths.map((p) => `${this.fmt(Math.round(p.share * 1e4) / 1e2)} %`).join(' + ');
-    return `${name}, ${this.fmt(l.percent)} %: vine prin ${founders}, pe ${paths.length} ${paths.length === 1 ? 'drum' : 'drumuri'} (${parts}).${paths.length > 1 ? ' Aici se întâlnesc liniile.' : ''}`;
+    const text = t('arbore.sange_vine_prin', { nume: name, procent: this.fmt(l.percent), fondatori: founders, count: paths.length, parti: parts });
+    return paths.length > 1 ? `${text} ${t('arbore.sange_se_intalnesc')}` : text;
   });
 }

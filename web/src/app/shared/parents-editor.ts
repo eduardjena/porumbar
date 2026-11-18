@@ -4,28 +4,29 @@ import { CoiResult, Pigeon, PigeonSummary } from '../core/models';
 import { percent, ringText } from '../core/catalog';
 import { PigeonPicker } from './pigeon-picker';
 import { ConfirmService, changes } from '../core/confirm';
+import { TPipe, t } from '../core/i18n';
 
 /** Tatăl și mama: alegi pe fiecare după inel, vezi cât de înrudiți ar fi puii lor, apoi confirmi. */
 @Component({
   selector: 'app-parents-editor',
-  imports: [PigeonPicker],
+  imports: [PigeonPicker, TPipe],
   template: `
     <div class="stack">
-      <app-pigeon-picker label="Tatăl" sex="M" [selected]="father()" (picked)="father.set($event); changed()" />
-      <app-pigeon-picker label="Mama" sex="F" [selected]="mother()" (picked)="mother.set($event); changed()" />
+      <app-pigeon-picker [label]="'parinti.tatal' | t" sex="M" [selected]="father()" (picked)="father.set($event); changed()" />
+      <app-pigeon-picker [label]="'parinti.mama' | t" sex="F" [selected]="mother()" (picked)="mother.set($event); changed()" />
       @if (coi(); as c) {
         <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
           @if (c.coi > 0) {
-            Puii acestei perechi ar avea consangvinizare <strong>{{ pct(c.coi) }}</strong>.
-            Strămoși comuni: @for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : ', ' }}}.
+            {{ 'parinti.coi' | t }} <strong>{{ pct(c.coi) }}</strong>.
+            {{ 'parinti.stramosi_comuni' | t }} @for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : ', ' }}}.
           } @else {
-            Tatăl și mama nu au strămoși comuni cunoscuți (consangvinizare 0%).
+            {{ 'parinti.fara_stramosi_comuni' | t }}
           }
         </div>
       }
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
       @if (dirty()) {
-        <button type="button" class="primary" (click)="save()" [disabled]="busy()">Confirmă părinții</button>
+        <button type="button" class="primary" (click)="save()" [disabled]="busy()">{{ 'parinti.confirma' | t }}</button>
       }
     </div>
   `,
@@ -80,10 +81,10 @@ export class ParentsEditor {
 
   async save() {
     const diff = changes([
-      { label: 'Tatăl', before: this.initialFather() ? ringText(this.initialFather()) : '', after: this.father() ? ringText(this.father()) : '' },
-      { label: 'Mama', before: this.initialMother() ? ringText(this.initialMother()) : '', after: this.mother() ? ringText(this.mother()) : '' },
+      { label: t('parinti.tatal'), before: this.initialFather() ? ringText(this.initialFather()) : '', after: this.father() ? ringText(this.father()) : '' },
+      { label: t('parinti.mama'), before: this.initialMother() ? ringText(this.initialMother()) : '', after: this.mother() ? ringText(this.mother()) : '' },
     ]);
-    if (diff.length && !(await this.confirm.ask({ title: 'Schimbi părinții?', lines: diff, confirmLabel: 'Da, schimbă' }))) return;
+    if (diff.length && !(await this.confirm.ask({ title: t('parinti.schimbi'), lines: diff, confirmLabel: t('parinti.da_schimba') }))) return;
     this.busy.set(true);
     this.error.set('');
     try {

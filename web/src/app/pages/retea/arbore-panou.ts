@@ -1,64 +1,65 @@
 import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { percent, sexLabel } from '../../core/catalog';
+import { formatNumber, t, TPipe } from '../../core/i18n';
 import { ArboreData, lineColor } from './arbore-data';
 import { Icon } from '../../shared/icon';
 
 /** Panoul din dreapta al vederilor Arborelui: porumbelul ales, strămoșii comuni, consangvinizarea, sângele, puii. */
 @Component({
   selector: 'app-arbore-panou',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink, Icon, TPipe],
   template: `
     @if (pigeon(); as p) {
       <section class="card stack">
         <div class="who">
           <span class="score" [class]="'score band-' + (value()?.band ?? 0)">{{ value()?.score ?? '–' }}</span>
           <div>
-            <div><strong class="mono">{{ p.ring?.display ?? 'Fără inel' }}</strong></div>
+            <div><strong class="mono">{{ p.ring?.display ?? ('text.fara_inel_mare' | t) }}</strong></div>
             @if (p.name) { <div class="name">{{ p.name }}</div> }
-            <div class="muted">{{ sex(p.sex) }}@if (p.year) { · {{ p.year }} }@if (p.kind === 'external') { · nu e al tău }</div>
+            <div class="muted">{{ sex(p.sex) }}@if (p.year) { · {{ p.year }} }@if (p.kind === 'external') { · {{ 'text.nu_e_al_tau' | t }} }</div>
           </div>
         </div>
         <div class="row">
-          <a class="btn primary" [routerLink]="['/porumbei', p.id]" [queryParams]="from()"><app-icon name="fisa" />Deschide fișa</a>
+          <a class="btn primary" [routerLink]="['/porumbei', p.id]" [queryParams]="from()"><app-icon name="fisa" />{{ 'actiune.deschide_fisa' | t }}</a>
           @if (p.id !== data().rootId) {
-            <button type="button" (click)="startHere.emit(p.id)"><app-icon name="copac" />Pornește de aici</button>
+            <button type="button" (click)="startHere.emit(p.id)"><app-icon name="copac" />{{ 'actiune.porneste_de_aici' | t }}</button>
           }
         </div>
       </section>
     }
 
     <section class="card stack">
-      <h3>Strămoși comuni</h3>
+      <h3>{{ 'arbore.stramosi_comuni_titlu' | t }}</h3>
       @for (c of data().coi.common; track c.pigeon.id) {
         <button type="button" class="common" (click)="select.emit(c.pigeon.id)">
-          <span class="mono">{{ c.pigeon.ring?.display ?? 'Fără inel' }}</span>
+          <span class="mono">{{ c.pigeon.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
           @if (c.pigeon.name) { <span class="muted">„{{ c.pigeon.name }}”</span> }
           <span class="badge">{{ pct(c.contribution) }}</span>
         </button>
       } @empty {
-        <p class="muted">Niciunul în pedigree-ul cunoscut.</p>
+        <p class="muted">{{ 'arbore.niciunul_comun' | t }}</p>
       }
-      <p>Consangvinizare: <strong>{{ pct(data().coi.coi) }}</strong></p>
+      <p>{{ 'arbore.consangvinizare' | t }} <strong>{{ pct(data().coi.coi) }}</strong></p>
     </section>
 
     <section class="card stack">
-      <h3>Sângele lui {{ rootName() }}</h3>
-      <div class="bar" role="img" [attr.aria-label]="'Liniile de sânge: ' + bloodText()">
+      <h3>{{ 'arbore.sangele_lui' | t: { nume: rootName() } }}</h3>
+      <div class="bar" role="img" [attr.aria-label]="'arbore.aria_linii' | t: { linii: bloodText() }">
         @for (l of data().blood.lines; track l.name; let i = $index) {
           <span [style.width.%]="l.percent" [style.background]="color(l.name, i)" [title]="l.name + ' ' + l.percent + '%'"></span>
         }
       </div>
       <ul class="lines">
         @for (l of data().blood.lines.slice(0, 6); track l.name; let i = $index) {
-          <li><i [style.background]="color(l.name, i)"></i>{{ l.name }} <strong>{{ l.percent.toLocaleString('ro-RO') }}%</strong></li>
+          <li><i [style.background]="color(l.name, i)"></i>{{ l.name }} <strong>{{ fmt(l.percent) }}%</strong></li>
         }
       </ul>
     </section>
 
     @if (data().offspring.length) {
       <section class="card stack">
-        <h3>Puii lui {{ rootName() }} ({{ data().offspring.length }})</h3>
+        <h3>{{ 'arbore.puii_lui' | t: { nume: rootName(), n: data().offspring.length } }}</h3>
         <div class="kids">
           @for (k of data().offspring; track k.id) {
             <a [routerLink]="['/porumbei', k.id]" [queryParams]="from()" class="kid">
@@ -97,11 +98,12 @@ export class ArborePanou {
   protected readonly pct = percent;
   protected readonly sex = sexLabel;
   protected readonly color = lineColor;
+  protected readonly fmt = (n: number) => formatNumber(n);
   protected readonly pigeon = computed(() => this.data().pigeons[this.selectedId()] ?? this.data().blood.pigeons[this.selectedId()] ?? null);
   protected readonly value = computed(() => this.data().values[this.selectedId()] ?? null);
   protected readonly rootName = computed(() => {
     const r = this.data().pigeons[this.data().rootId];
-    return r?.name || r?.ring?.display || 'porumbelului';
+    return r?.name || r?.ring?.display || t('arbore.porumbelului');
   });
   protected readonly bloodText = computed(() => this.data().blood.lines.map((l) => `${l.name} ${l.percent}%`).join(', '));
 }

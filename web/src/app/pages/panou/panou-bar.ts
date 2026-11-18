@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CodeLabel } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { TPipe, t } from '../../core/i18n';
 import { GROUPS, GroupKey, SORTS, SortKey, ViewState, currentYear, filterCount } from './panou-view';
 
 type Panel = 'sort' | 'group' | 'filter' | null;
@@ -13,36 +14,36 @@ type Panel = 'sort' | 'group' | 'filter' | null;
  */
 @Component({
   selector: 'app-panou-bar',
-  imports: [FormsModule, NgTemplateOutlet, Icon],
+  imports: [FormsModule, NgTemplateOutlet, Icon, TPipe],
   template: `
     <div class="bar">
       <label class="search">
         <app-icon name="cautare" />
-        <input type="search" placeholder="Caută…" title="Caută după inel, nume, culoare, crescător, linie sau an" aria-label="Caută după inel, nume, culoare, crescător, linie sau an"
+        <input type="search" [placeholder]="'panou.cauta' | t" [title]="'panou.cauta_ajutor' | t" [attr.aria-label]="'panou.cauta_ajutor' | t"
                [ngModel]="state().q" (ngModelChange)="patch({ q: $event })" />
       </label>
 
       <!-- Pastile scurte (iconiță + un cuvânt), cu lățime mărginită: bara rămâne pe un rând orice s-ar alege. -->
       <div class="tools">
         <button type="button" class="tool" [class.on]="open() === 'sort'" [attr.aria-expanded]="open() === 'sort'" (click)="toggle('sort')"
-                [title]="'Ordonează: ' + sortLabel()" [attr.aria-label]="'Ordonează: ' + sortLabel()">
+                [title]="'panou.ordoneaza_val' | t: { ordonare: sortLabel() }" [attr.aria-label]="'panou.ordoneaza_val' | t: { ordonare: sortLabel() }">
           <app-icon name="ordonare" [size]="18" /><span class="lbl">{{ sortShort() }}</span>
         </button>
         <button type="button" class="tool" [class.on]="open() === 'group' || state().group !== 'none'" [attr.aria-expanded]="open() === 'group'" (click)="toggle('group')"
-                [title]="'Grupează: ' + groupLabel()" [attr.aria-label]="'Grupează: ' + groupLabel()">
+                [title]="'panou.grupeaza_val' | t: { grupare: groupLabel() }" [attr.aria-label]="'panou.grupeaza_val' | t: { grupare: groupLabel() }">
           <app-icon name="grupare" [size]="18" /><span class="lbl">{{ groupShort() }}</span>
         </button>
         <button type="button" class="tool" [class.on]="open() === 'filter' || count() > 0" [attr.aria-expanded]="open() === 'filter'" (click)="toggle('filter')"
-                [title]="'Filtre: ' + (count() || 'niciunul')" [attr.aria-label]="'Filtre: ' + (count() || 'niciunul')">
-          <app-icon name="filtru" [size]="18" /><span class="lbl">Filtre</span>@if (count()) { <span class="count">{{ count() }}</span> }
+                [title]="'panou.filtre_val' | t: { numar: count() || ('panou.niciunul' | t) }" [attr.aria-label]="'panou.filtre_val' | t: { numar: count() || ('panou.niciunul' | t) }">
+          <app-icon name="filtru" [size]="18" /><span class="lbl">{{ 'panou.filtre' | t }}</span>@if (count()) { <span class="count">{{ count() }}</span> }
         </button>
 
         @if (open(); as o) {
           <div class="backdrop" (click)="open.set(null)"></div>
-          <div class="panel" role="dialog" [attr.aria-label]="o === 'sort' ? 'Ordonează' : o === 'group' ? 'Grupează' : 'Filtre'">
+          <div class="panel" role="dialog" [attr.aria-label]="(o === 'sort' ? 'panou.ordoneaza' : o === 'group' ? 'panou.grupeaza' : 'panou.filtre') | t">
             <div class="panel-head">
-              <strong>{{ o === 'sort' ? 'Ordonează după' : o === 'group' ? 'Grupează după' : 'Filtre' }}</strong>
-              <button type="button" class="close" (click)="open.set(null)" aria-label="Închide"><app-icon name="inchide" /></button>
+              <strong>{{ (o === 'sort' ? 'panou.ordoneaza_dupa' : o === 'group' ? 'panou.grupeaza_dupa' : 'panou.filtre') | t }}</strong>
+              <button type="button" class="close" (click)="open.set(null)" [attr.aria-label]="'actiune.inchide' | t"><app-icon name="inchide" /></button>
             </div>
             @switch (o) {
               @case ('sort') {
@@ -60,16 +61,16 @@ type Panel = 'sort' | 'group' | 'filter' | null;
                 }
               }
               @case ('filter') {
-                <p class="sub">Rapide</p>
+                <p class="sub">{{ 'panou.rapide' | t }}</p>
                 <div class="chips"><ng-container *ngTemplateOutlet="quick" /></div>
-                <p class="sub">Starea</p>
+                <p class="sub">{{ 'porumbel.starea' | t }}</p>
                 <div class="chips">
                   @for (s of statuses(); track s.code) {
                     <button type="button" class="qchip" [class.on]="state().statuses.includes(s.code)" [attr.aria-pressed]="state().statuses.includes(s.code)" (click)="toggleIn('statuses', s.code)">{{ s.label }}</button>
                   }
                 </div>
                 @if (years().length) {
-                  <p class="sub">Anul</p>
+                  <p class="sub">{{ 'camp.anul' | t }}</p>
                   <div class="chips">
                     @for (y of years(); track y) {
                       <button type="button" class="qchip" [class.on]="state().years.includes(y)" [attr.aria-pressed]="state().years.includes(y)" (click)="toggleIn('years', y)">{{ y }}</button>
@@ -77,8 +78,8 @@ type Panel = 'sort' | 'group' | 'filter' | null;
                   </div>
                 }
                 <div class="panel-foot">
-                  <button type="button" (click)="clear()" [disabled]="!count()">Șterge filtrele</button>
-                  <button type="button" class="primary" (click)="open.set(null)">Gata</button>
+                  <button type="button" (click)="clear()" [disabled]="!count()">{{ 'panou.sterge_filtrele' | t }}</button>
+                  <button type="button" class="primary" (click)="open.set(null)">{{ 'actiune.gata' | t }}</button>
                 </div>
               }
             }
@@ -86,18 +87,18 @@ type Panel = 'sort' | 'group' | 'filter' | null;
         }
       </div>
 
-      <div class="chips quick" role="group" aria-label="Filtre rapide">
+      <div class="chips quick" role="group" [attr.aria-label]="'panou.filtre_rapide' | t">
         <ng-container *ngTemplateOutlet="quick" />
       </div>
     </div>
 
     <ng-template #quick>
-      <button type="button" class="qchip" [class.on]="state().sex === 'M'" [attr.aria-pressed]="state().sex === 'M'" (click)="patch({ sex: state().sex === 'M' ? '' : 'M' })">Masculi</button>
-      <button type="button" class="qchip" [class.on]="state().sex === 'F'" [attr.aria-pressed]="state().sex === 'F'" (click)="patch({ sex: state().sex === 'F' ? '' : 'F' })">Femele</button>
-      <button type="button" class="qchip" [class.on]="state().young" [attr.aria-pressed]="state().young" (click)="patch({ young: !state().young })" [title]="'Puii anului ' + year">Pui {{ year }}</button>
-      <button type="button" class="qchip" [class.on]="state().prizes" [attr.aria-pressed]="state().prizes" (click)="patch({ prizes: !state().prizes })" title="Cu premii (în primii 20% din înscriși)">Premiați</button>
-      <button type="button" class="qchip more" [class.on]="state().breeding" [attr.aria-pressed]="state().breeding" (click)="patch({ breeding: !state().breeding })">Reproducători</button>
-      <button type="button" class="qchip more" [class.on]="state().todo" [attr.aria-pressed]="state().todo" (click)="patch({ todo: !state().todo })" title="Fără sex, culoare sau părinți">De completat</button>
+      <button type="button" class="qchip" [class.on]="state().sex === 'M'" [attr.aria-pressed]="state().sex === 'M'" (click)="patch({ sex: state().sex === 'M' ? '' : 'M' })">{{ 'porumbel.masculi' | t }}</button>
+      <button type="button" class="qchip" [class.on]="state().sex === 'F'" [attr.aria-pressed]="state().sex === 'F'" (click)="patch({ sex: state().sex === 'F' ? '' : 'F' })">{{ 'porumbel.femele' | t }}</button>
+      <button type="button" class="qchip" [class.on]="state().young" [attr.aria-pressed]="state().young" (click)="patch({ young: !state().young })" [title]="'panou.grupa.puii_anului' | t: { an: year }">{{ 'panou.pui_an' | t: { an: year } }}</button>
+      <button type="button" class="qchip" [class.on]="state().prizes" [attr.aria-pressed]="state().prizes" (click)="patch({ prizes: !state().prizes })" [title]="'panou.premiati_ajutor' | t">{{ 'panou.grupa.premiati' | t }}</button>
+      <button type="button" class="qchip more" [class.on]="state().breeding" [attr.aria-pressed]="state().breeding" (click)="patch({ breeding: !state().breeding })">{{ 'panou.reproducatori' | t }}</button>
+      <button type="button" class="qchip more" [class.on]="state().todo" [attr.aria-pressed]="state().todo" (click)="patch({ todo: !state().todo })" [title]="'panou.de_completat_ajutor' | t">{{ 'panou.de_completat' | t }}</button>
     </ng-template>
   `,
   styles: `
@@ -173,9 +174,9 @@ export class PanouBar {
   protected readonly year = currentYear();
   protected readonly count = computed(() => filterCount(this.state()));
   protected readonly sortLabel = computed(() => SORTS.find((s) => s.key === this.state().sort)?.label ?? '');
-  protected readonly groupLabel = computed(() => (this.state().group === 'none' ? 'fără' : GROUPS.find((g) => g.key === this.state().group)?.label ?? ''));
+  protected readonly groupLabel = computed(() => (this.state().group === 'none' ? t('panou.grupare_fara') : GROUPS.find((g) => g.key === this.state().group)?.label ?? ''));
   protected readonly sortShort = computed(() => SORTS.find((s) => s.key === this.state().sort)?.short ?? '');
-  protected readonly groupShort = computed(() => GROUPS.find((g) => g.key === this.state().group)?.short ?? 'Grupează');
+  protected readonly groupShort = computed(() => GROUPS.find((g) => g.key === this.state().group)?.short ?? t('panou.grupare.none_scurt'));
 
   toggle(p: Exclude<Panel, null>) {
     this.open.set(this.open() === p ? null : p);

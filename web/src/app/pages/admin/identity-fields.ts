@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LANGS } from '../../core/i18n';
 
 /** „Date pe fișă” ale unui crescător, cum le scrie vânzătorul (consola). */
 export interface IdentityForm {
@@ -12,9 +13,11 @@ export interface IdentityForm {
   sheetName: string;
   phone: string;
   address: string;
+  /** Limba în care vede aplicația (consola rămâne în română). */
+  lang: string;
 }
 
-export const emptyIdentity = (): IdentityForm => ({ kind: 'pf', name: '', cnp: '', companyName: '', cui: '', regCom: '', sheetName: '', phone: '', address: '' });
+export const emptyIdentity = (): IdentityForm => ({ kind: 'pf', name: '', cnp: '', companyName: '', cui: '', regCom: '', sheetName: '', phone: '', address: '', lang: 'ro' });
 
 /** Ce pleacă la server: câmpurile goale devin null; la persoană fizică nu pleacă datele firmei și invers. */
 export function identityBody(f: IdentityForm) {
@@ -25,6 +28,7 @@ export function identityBody(f: IdentityForm) {
     sheetName: v(f.sheetName),
     phone: v(f.phone),
     address: v(f.address),
+    lang: f.lang,
     ...(f.kind === 'pf' ? { cnp: v(f.cnp) } : { companyName: v(f.companyName), cui: v(f.cui), regCom: v(f.regCom) }),
   };
 }
@@ -65,6 +69,11 @@ export function identityBody(f: IdentityForm) {
         <textarea [(ngModel)]="f.address" [attr.name]="id() + 'addr'" rows="2" placeholder="Strada, numărul&#10;Localitatea, județul"></textarea>
       </label>
     </div>
+    <label class="field">Limba aplicației <span class="hint">(în ce limbă vede crescătorul programul și fișa)</span>
+      <select [(ngModel)]="f.lang" [attr.name]="id() + 'lang'">
+        @for (l of langs; track l.code) { <option [value]="l.code">{{ l.name }}@if (!l.public) { (în probă) }</option> }
+      </select>
+    </label>
   `,
   styles: `
     :host { display: flex; flex-direction: column; gap: 10px; }
@@ -77,4 +86,5 @@ export class IdentityFields {
   readonly form = input.required<IdentityForm>();
   /** Prefix pentru numele câmpurilor (două formulare pe aceeași pagină). */
   readonly id = input('id');
+  protected readonly langs = LANGS;
 }

@@ -2,11 +2,12 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PigeonSummary } from '../core/models';
 import { CatalogService, ringText, sexShort } from '../core/catalog';
+import { TPipe } from '../core/i18n';
 
 /** Un porumbel pe scurt: inel, sex, nume, culoare. Cu `link`, duce la fișa lui. */
 @Component({
   selector: 'app-pigeon-chip',
-  imports: [RouterLink],
+  imports: [RouterLink, TPipe],
   template: `
     @if (pigeon(); as p) {
       @if (link()) {
@@ -16,7 +17,7 @@ import { CatalogService, ringText, sexShort } from '../core/catalog';
           @if (p.year) { <span class="muted">{{ p.year }}</span> }
           @if (p.name) { <span class="name">„{{ p.name }}”</span> }
           @if (color()) { <span class="muted">{{ color() }}</span> }
-          @if (p.kind === 'external') { <span class="badge">nu e în porumbarul meu</span> }
+          @if (p.kind === 'external') { <span class="badge">{{ 'cip.extern' | t }}</span> }
         </a>
       } @else {
         <span class="chip plain">
@@ -27,7 +28,7 @@ import { CatalogService, ringText, sexShort } from '../core/catalog';
         </span>
       }
     } @else {
-      <span class="muted">necunoscut</span>
+      <span class="muted">{{ 'cip.necunoscut' | t }}</span>
     }
   `,
   styles: `

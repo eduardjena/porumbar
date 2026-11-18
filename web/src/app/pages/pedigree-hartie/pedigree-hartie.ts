@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
+import { t, TPipe } from '../../core/i18n';
 import { Kind, LookupResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
 import { previewRing } from '../../shared/ring-input';
-import { GENERATION_NAMES, roleName } from '../retea/arbore-data';
+import { generationName, roleName } from '../retea/arbore-data';
 import { CititorPoza, PedigreeNode } from './cititor-poza';
 
 /*
@@ -70,38 +71,38 @@ function writeDraft(d: Draft | null) {
 
 @Component({
   selector: 'app-pedigree-hartie',
-  imports: [FormsModule, RouterLink, Icon, Breadcrumbs, CititorPoza],
+  imports: [FormsModule, RouterLink, Icon, TPipe, Breadcrumbs, CititorPoza],
   template: `
     <div class="wide">
-      <app-breadcrumbs [items]="[{ label: 'Porumbel nou', link: ['/porumbei/nou'] }, { label: 'Importă pedigree' }]" />
+      <app-breadcrumbs [items]="crumbs()" />
       <div class="head">
         <div>
-          <h1>Importă pedigree</h1>
-          <p class="muted intro">Ai primit un pedigree pe hârtie, în PDF sau în poză? Trece-l aici tot dintr-o dată. Inelele pe care le ai deja în program sunt recunoscute și nu se dublează.</p>
+          <h1>{{ 'hartie.titlu' | t }}</h1>
+          <p class="muted intro">{{ 'hartie.intro' | t }}</p>
         </div>
       </div>
 
       @if (result(); as r) {
         <section class="card done" role="status">
-          <h2><app-icon name="bifa" />Pedigree-ul e în program</h2>
-          <p>{{ r.created }} {{ r.created === 1 ? 'porumbel nou' : 'porumbei noi' }}, {{ r.reused }} {{ r.reused === 1 ? 'era deja' : 'erau deja' }} în program.</p>
+          <h2><app-icon name="bifa" />{{ 'hartie.e_in_program' | t }}</h2>
+          <p>{{ 'hartie.rezultat_noi' | t: { count: r.created } }}, {{ 'hartie.rezultat_existau' | t: { count: r.reused } }}</p>
           @if (r.conflicts.length) {
             <div class="warning stack">
-              <strong>De verificat ({{ r.conflicts.length }}):</strong>
+              <strong>{{ 'text.de_verificat' | t: { n: r.conflicts.length } }}</strong>
               @for (c of r.conflicts; track $index) { <span>{{ c.message }}</span> }
             </div>
           }
           <div class="row">
-            <a class="btn primary" [routerLink]="['/porumbei', r.pigeonId]"><app-icon name="fisa" />Deschide fișa</a>
-            <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: r.pigeonId }"><app-icon name="copac" />Vezi arborele</a>
-            <button type="button" (click)="startOver()"><app-icon name="plus" />Încă un pedigree</button>
+            <a class="btn primary" [routerLink]="['/porumbei', r.pigeonId]"><app-icon name="fisa" />{{ 'actiune.deschide_fisa' | t }}</a>
+            <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: r.pigeonId }"><app-icon name="copac" />{{ 'hartie.vezi_arborele' | t }}</a>
+            <button type="button" (click)="startOver()"><app-icon name="plus" />{{ 'hartie.inca_unul' | t }}</button>
           </div>
         </section>
       } @else {
         @if (restored()) {
           <div class="notice row" role="status">
-            Am păstrat ce scriseseși data trecută.
-            <button type="button" class="link" (click)="clearAll()">Începe de la zero</button>
+            {{ 'hartie.am_pastrat' | t }}
+            <button type="button" class="link" (click)="clearAll()">{{ 'hartie.de_la_zero' | t }}</button>
           </div>
         }
 
@@ -109,15 +110,15 @@ function writeDraft(d: Draft | null) {
 
         <section class="card top-fields">
           <fieldset class="kind">
-            <legend>Porumbelul de pe pedigree este</legend>
-            <label><input type="radio" name="kind" value="own" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> Din porumbarul meu</label>
-            <label><input type="radio" name="kind" value="external" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> Nu e în porumbarul meu <span class="muted">(de ex. împrumutat pentru pui)</span></label>
+            <legend>{{ 'hartie.porumbelul_este' | t }}</legend>
+            <label><input type="radio" name="kind" value="own" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> {{ 'hartie.al_meu' | t }}</label>
+            <label><input type="radio" name="kind" value="external" [ngModel]="d().kind" (ngModelChange)="setKind($event)" /> {{ 'hartie.nu_al_meu' | t }} <span class="muted">{{ 'hartie.imprumutat' | t }}</span></label>
           </fieldset>
-          <label class="sex">Sexul porumbelului
+          <label class="sex">{{ 'hartie.sexul' | t }}
             <select [ngModel]="d().sex" (ngModelChange)="setSex($event)">
-              <option value="">nu știu</option>
-              <option value="M">Mascul</option>
-              <option value="F">Femelă</option>
+              <option value="">{{ 'hartie.nu_stiu' | t }}</option>
+              <option value="M">{{ 'sex.mascul' | t }}</option>
+              <option value="F">{{ 'sex.femela' | t }}</option>
             </select>
           </label>
         </section>
@@ -137,18 +138,18 @@ function writeDraft(d: Draft | null) {
                 </button>
               }
               <div class="role">
-                @if (i > 1) { <span class="av" [class]="'av sex-' + (i % 2 ? 'F' : 'M')">{{ i % 2 ? 'F' : 'M' }}</span> }
+                @if (i > 1) { <span class="av" [class]="'av sex-' + (i % 2 ? 'F' : 'M')">{{ (i % 2 ? 'sex.f' : 'sex.m') | t }}</span> }
                 {{ role(i) }}
               </div>
               <input class="mono ring" [ngModel]="s.ring" (ngModelChange)="set(i, 'ring', $event)" (blur)="check(i)"
-                     [attr.aria-label]="role(i) + ': inel'" placeholder="Inel, ex. RO-15-412084" autocomplete="off" />
+                     [attr.aria-label]="'hartie.aria_inel' | t: { rol: role(i) }" [placeholder]="'hartie.ph_inel' | t" autocomplete="off" />
               @if (hints()[i]; as h) { <span class="hint" [class]="'hint ' + h.kind">{{ h.text }}</span> }
               @if (g <= 2) {
-                <input [ngModel]="s.name" (ngModelChange)="set(i, 'name', $event)" [attr.aria-label]="role(i) + ': nume'" placeholder="Nume" />
-                <input [ngModel]="s.color" (ngModelChange)="set(i, 'color', $event)" [attr.aria-label]="role(i) + ': culoare'" placeholder="Culoare, ex. Solzat p.a." />
+                <input [ngModel]="s.name" (ngModelChange)="set(i, 'name', $event)" [attr.aria-label]="'hartie.aria_nume' | t: { rol: role(i) }" [placeholder]="'text.nume' | t" />
+                <input [ngModel]="s.color" (ngModelChange)="set(i, 'color', $event)" [attr.aria-label]="'hartie.aria_culoare' | t: { rol: role(i) }" [placeholder]="'hartie.ph_culoare' | t" />
               }
               <textarea [rows]="g <= 1 ? 3 : g === 2 ? 2 : 1" [ngModel]="s.text" (ngModelChange)="set(i, 'text', $event)"
-                        [attr.aria-label]="role(i) + ': ce scrie pe pedigree'" placeholder="Ce scrie pe pedigree (crescător, rezultate)"></textarea>
+                        [attr.aria-label]="'hartie.aria_text' | t: { rol: role(i) }" [placeholder]="'hartie.ph_text' | t"></textarea>
             </div>
           }
         </div>
@@ -156,9 +157,9 @@ function writeDraft(d: Draft | null) {
         @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
         <div class="actions">
           <button type="button" class="primary big" [disabled]="saving()" (click)="save()">
-            <app-icon name="bifa" />{{ saving() ? 'Se salvează…' : 'Adaugă pedigree-ul (' + count() + ' căsuțe)' }}
+            <app-icon name="bifa" />{{ saving() ? ('text.se_salveaza' | t) : ('hartie.adauga_n' | t: { n: count() }) }}
           </button>
-          <button type="button" class="link" (click)="clearAll()">Golește tot</button>
+          <button type="button" class="link" (click)="clearAll()">{{ 'hartie.goleste_tot' | t }}</button>
         </div>
       }
     </div>
@@ -215,7 +216,7 @@ export default class PedigreeHartie {
   protected readonly indexes = Array.from({ length: SLOTS }, (_, k) => k + 1);
   protected readonly gen = genOf;
   protected readonly filled = filled;
-  protected readonly genName = (g: number) => GENERATION_NAMES[g];
+  protected readonly genName = generationName;
   protected readonly role = (i: number) => roleName(pathOf(i));
 
   readonly d = signal<Draft>(readDraft() ?? emptyDraft());
@@ -226,6 +227,7 @@ export default class PedigreeHartie {
   readonly saving = signal(false);
   readonly result = signal<ImportResult | null>(null);
   protected readonly count = computed(() => this.d().slots.filter(filled).length);
+  protected readonly crumbs = computed(() => [{ label: t('hartie.porumbel_nou'), link: ['/porumbei/nou'] }, { label: t('hartie.titlu') }]);
 
   constructor() {
     effect(() => {
@@ -277,15 +279,15 @@ export default class PedigreeHartie {
     const ring = this.d().slots[i].ring.trim();
     if (!ring) return;
     const p = previewRing(ring);
-    if (!p.ok) return this.hint(i, { kind: i === 1 && this.d().kind === 'own' ? 'bad' : 'new', text: i === 1 && this.d().kind === 'own' ? 'Inelul nu poate fi citit. Ex.: RO-15-412084' : 'Inel necitit: se trece așa cum e scris.' });
-    if (p.unringed) return this.hint(i, { kind: 'unringed', text: 'Fără inel' });
+    if (!p.ok) return this.hint(i, { kind: i === 1 && this.d().kind === 'own' ? 'bad' : 'new', text: i === 1 && this.d().kind === 'own' ? t('hartie.hint_necitit_al_meu') : t('hartie.hint_necitit') });
+    if (p.unringed) return this.hint(i, { kind: 'unringed', text: t('text.fara_inel_mare') });
     try {
       const r = await this.api.get<LookupResult>(`/pigeons/lookup?ring=${encodeURIComponent(ring)}`);
       if (this.d().slots[i].ring.trim() !== ring) return; // s-a schimbat între timp
       const m = r.matches[0];
-      if (!m) return this.hint(i, { kind: 'new', text: `${p.display} · nou în program` });
+      if (!m) return this.hint(i, { kind: 'new', text: t('hartie.hint_nou', { inel: p.display }) });
       const who = m.pigeon.name ? ` „${m.pigeon.name}”` : '';
-      this.hint(i, { kind: 'existing', text: `${r.ring.display}${who} · îl ai deja, se folosește acela` });
+      this.hint(i, { kind: 'existing', text: t('hartie.hint_exista', { inel: `${r.ring.display}${who}` }) });
       // Părinții pe care programul îi știe deja se completează în căsuțele goale.
       const add: [number, string | undefined][] = [
         [2 * i, m.father?.ring?.display],
@@ -294,7 +296,7 @@ export default class PedigreeHartie {
       for (const [k, parentRing] of add) {
         if (k > SLOTS || !parentRing || filled(this.d().slots[k])) continue;
         this.set(k, 'ring', parentRing);
-        this.hint(k, { kind: 'filled', text: 'Completat din program' });
+        this.hint(k, { kind: 'filled', text: t('hartie.hint_completat') });
         await this.check(k);
       }
     } catch {
@@ -311,9 +313,9 @@ export default class PedigreeHartie {
     // Ciorna veche (alt pedigree început altă dată) nu se amestecă pe tăcute cu pedigree-ul citit acum.
     if (this.count() > 0) {
       const fresh = await this.confirm.ask({
-        title: 'Începi pedigree-ul de la zero cu ce s-a citit?',
-        lines: [`Ai deja ${this.count()} căsuțe completate. „Da” le golește și pune doar ce s-a citit din poză.`, '„Renunță” păstrează ce ai scris și completează doar căsuțele goale.'],
-        confirmLabel: 'Da, de la zero',
+        title: t('hartie.citit_titlu'),
+        lines: [t('hartie.citit_text', { n: this.count() }), t('hartie.citit_renunta')],
+        confirmLabel: t('hartie.citit_da'),
       });
       if (fresh) this.d.set({ ...emptyDraft(), kind: this.d().kind });
     }
@@ -358,16 +360,16 @@ export default class PedigreeHartie {
     this.error.set('');
     const root = this.d().slots[1];
     if (!root.ring.trim()) {
-      this.error.set('Scrie întâi inelul porumbelului (prima căsuță).');
+      this.error.set(t('hartie.fara_inel_radacina'));
       return;
     }
     const ok = await this.confirm.ask({
-      title: 'Adaug pedigree-ul în program?',
+      title: t('hartie.adaug_titlu'),
       lines: [
-        `${this.count()} căsuțe completate; porumbelul ${root.ring.trim()} ${this.d().kind === 'own' ? 'din porumbarul meu' : 'care nu e în porumbarul meu'}.`,
-        'Porumbeii pe care îi ai deja se folosesc așa cum sunt; doar ce lipsea se completează.',
+        t(this.d().kind === 'own' ? 'hartie.adaug_al_meu' : 'hartie.adaug_extern', { n: this.count(), inel: root.ring.trim() }),
+        t('hartie.adaug_text'),
       ],
-      confirmLabel: 'Da, adaugă',
+      confirmLabel: t('hartie.adaug_da'),
     });
     if (!ok) return;
     this.saving.set(true);
@@ -384,7 +386,7 @@ export default class PedigreeHartie {
   }
 
   async clearAll() {
-    if (this.count() && !(await this.confirm.ask({ title: 'Golești toate căsuțele?', lines: ['Ce ai scris aici se pierde.'], confirmLabel: 'Da, golește', danger: true }))) return;
+    if (this.count() && !(await this.confirm.ask({ title: t('hartie.golesti_titlu'), lines: [t('hartie.golesti_text')], confirmLabel: t('hartie.golesti_da'), danger: true }))) return;
     this.startOver();
   }
 

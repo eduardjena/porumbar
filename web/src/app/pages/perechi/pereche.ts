@@ -1,16 +1,28 @@
-import { Component, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { percent, ringText, sexShort } from '../../core/catalog';
+import { formatDay, t, TPipe } from '../../core/i18n';
 import { Clutch, Pair, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
-import { STATUS_LABEL, roDate } from './perechi';
+import { statusLabel } from './perechi';
 import { CuloriPui } from './culori-pui';
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+/** Textul cheii în bucăți: valorile din `bold` se scriu îngroșat (de ex. datele din „între {de} și {pana}”). */
+function boldParts(key: string, bold: Record<string, unknown>, plain: Record<string, unknown> = {}) {
+  return t(key, plain)
+    .split(/(\{\w+\})/)
+    .filter(Boolean)
+    .map((part) => {
+      const name = /^\{(\w+)\}$/.exec(part)?.[1];
+      return name && name in bold ? { text: String(bold[name]), bold: true } : { text: part, bold: false };
+    });
+}
 
 /** Ce se completează pe o pontă (ouăle, apoi eclozarea), ca texte de formular. */
 interface ClutchForm {
@@ -31,42 +43,42 @@ interface ClutchForm {
  */
 @Component({
   selector: 'app-pereche',
-  imports: [FormsModule, RouterLink, Icon, Breadcrumbs, CuloriPui],
+  imports: [FormsModule, RouterLink, Icon, TPipe, Breadcrumbs, CuloriPui],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (pair(); as p) {
-      <app-breadcrumbs [items]="[{ label: 'Perechi ' + p.season, link: ['/perechi'], query: { sezon: p.season } }, { label: ring(p.cock) + ' × ' + ring(p.hen) }]" />
+      <app-breadcrumbs [items]="crumbs()" />
       <h1 class="birds">
-        <a [routerLink]="['/porumbei', p.cock?.id]"><span class="sx sM">M</span><span class="mono">{{ ring(p.cock) }}</span></a>
+        <a [routerLink]="['/porumbei', p.cock?.id]"><span class="sx sM">{{ 'sex.m' | t }}</span><span class="mono">{{ ring(p.cock) }}</span></a>
         <span class="x">×</span>
-        <a [routerLink]="['/porumbei', p.hen?.id]"><span class="sx sF">F</span><span class="mono">{{ ring(p.hen) }}</span></a>
+        <a [routerLink]="['/porumbei', p.hen?.id]"><span class="sx sF">{{ 'sex.f' | t }}</span><span class="mono">{{ ring(p.hen) }}</span></a>
       </h1>
       <p class="meta">
-        <span class="badge">{{ status[p.status] }}</span>
-        @if (p.pairedOn) { <span>din {{ date(p.pairedOn) }}</span> }
-        @if (p.separatedOn) { <span>despărțiți pe {{ date(p.separatedOn) }}</span> }
-        @if (p.nest) { <span>cuibul {{ p.nest }}</span> }
+        <span class="badge">{{ status(p.status) }}</span>
+        @if (p.pairedOn) { <span>{{ 'perechi.din_data' | t: { data: date(p.pairedOn) } }}</span> }
+        @if (p.separatedOn) { <span>{{ 'perechi.despartiti_pe' | t: { data: date(p.separatedOn) } }}</span> }
+        @if (p.nest) { <span>{{ 'perechi.cuibul' | t: { n: p.nest } }}</span> }
       </p>
       <div [class]="p.coi >= 0.125 ? 'warning' : 'notice'" role="status">
-        @if (p.coi > 0) { Puii acestei perechi au consangvinizare <strong>{{ pct(p.coi) }}</strong>. }
-        @else { Masculul și femela nu au strămoși comuni cunoscuți: puii nu sunt consangvini. }
+        @if (p.coi > 0) { {{ 'perechi.coi_au' | t }} <strong>{{ pct(p.coi) }}</strong>. }
+        @else { {{ 'perechi.fara_stramosi_comuni' | t }} }
       </div>
 
       @if (!editing()) {
         <div class="row actions">
-          @if (p.status === 'planificata') { <button type="button" class="primary" (click)="startPair(p)"><app-icon name="bifa" />I-am pus împreună azi</button> }
-          <button type="button" (click)="openEdit(p)"><app-icon name="editeaza" />Schimbă perechea</button>
+          @if (p.status === 'planificata') { <button type="button" class="primary" (click)="startPair(p)"><app-icon name="bifa" />{{ 'perechi.i_am_pus_azi' | t }}</button> }
+          <button type="button" (click)="openEdit(p)"><app-icon name="editeaza" />{{ 'perechi.schimba_perechea' | t }}</button>
         </div>
       } @else {
         <form class="card stack" (ngSubmit)="saveEdit()">
-          <label class="field">Data împerecherii <span class="hint">(goală = doar plănuită)</span><input type="date" name="pairedOn" [(ngModel)]="e.pairedOn" /></label>
-          <label class="field">Data despărțirii <span class="hint">(goală = sunt încă împreună)</span><input type="date" name="separatedOn" [(ngModel)]="e.separatedOn" /></label>
-          <label class="field">Cuibul / boxa <input name="nest" [(ngModel)]="e.nest" /></label>
-          <label class="field">Notă <textarea name="note" [(ngModel)]="e.note"></textarea></label>
+          <label class="field">{{ 'camp.data_imperecherii' | t }} <span class="hint">{{ 'perechi.hint_goala_planuita' | t }}</span><input type="date" name="pairedOn" [(ngModel)]="e.pairedOn" /></label>
+          <label class="field">{{ 'camp.data_despartirii' | t }} <span class="hint">{{ 'perechi.hint_goala_impreuna' | t }}</span><input type="date" name="separatedOn" [(ngModel)]="e.separatedOn" /></label>
+          <label class="field">{{ 'perechi.cuibul_boxa' | t }} <input name="nest" [(ngModel)]="e.nest" /></label>
+          <label class="field">{{ 'camp.nota' | t }} <textarea name="note" [(ngModel)]="e.note"></textarea></label>
           @if (editError()) { <div class="error" role="alert">{{ editError() }}</div> }
           <div class="row">
-            <button class="primary" type="submit"><app-icon name="bifa" />Salvează</button>
-            <button type="button" (click)="editing.set(false)">Renunță</button>
+            <button class="primary" type="submit"><app-icon name="bifa" />{{ 'actiune.salveaza' | t }}</button>
+            <button type="button" (click)="editing.set(false)">{{ 'actiune.renunta' | t }}</button>
           </div>
         </form>
       }
@@ -74,83 +86,83 @@ interface ClutchForm {
 
       <app-culori-pui [pairId]="p.id" />
 
-      <h2>Ponte</h2>
+      <h2>{{ 'perechi.ponte_titlu' | t }}</h2>
       @if (p.status !== 'planificata') {
         <form class="card stack" (ngSubmit)="addClutch()">
-          <h3>Pontă nouă</h3>
+          <h3>{{ 'perechi.ponta_noua' | t }}</h3>
           <div class="row">
-            <label class="field grow">Primul ou <input type="date" name="egg1" [(ngModel)]="egg1On" required /></label>
-            <label class="field grow">Al doilea ou <span class="hint">(dacă e)</span><input type="date" name="egg2" [(ngModel)]="egg2On" /></label>
+            <label class="field grow">{{ 'perechi.primul_ou' | t }} <input type="date" name="egg1" [(ngModel)]="egg1On" required /></label>
+            <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <span class="hint">{{ 'perechi.daca_e' | t }}</span><input type="date" name="egg2" [(ngModel)]="egg2On" /></label>
           </div>
           @if (clutchError()) { <div class="error" role="alert">{{ clutchError() }}</div> }
-          <button class="primary" type="submit" [disabled]="!egg1On"><app-icon name="ou" />Adaugă ponta</button>
+          <button class="primary" type="submit" [disabled]="!egg1On"><app-icon name="ou" />{{ 'perechi.adauga_ponta' | t }}</button>
         </form>
       } @else {
-        <p class="muted">Ponte se adaugă după ce pui perechea împreună.</p>
+        <p class="muted">{{ 'perechi.ponte_dupa' | t }}</p>
       }
 
       <ul class="clutches">
         @for (c of p.clutches ?? []; track c.id) {
           <li class="card stack">
             <div class="row between">
-              <strong>Ouă: {{ date(c.egg1On) }}@if (c.egg2On) { și {{ date(c.egg2On) }}}<span class="muted"> ({{ c.eggs }} {{ c.eggs === 1 ? 'ou' : 'ouă' }})</span></strong>
-              <button type="button" class="link" (click)="removeClutch(c)">Șterge</button>
+              <strong>{{ c.egg2On ? ('perechi.oua_doua' | t: { data1: date(c.egg1On), data2: date(c.egg2On) }) : ('perechi.oua_una' | t: { data: date(c.egg1On) }) }}<span class="muted"> {{ 'perechi.n_oua' | t: { count: c.eggs } }}</span></strong>
+              <button type="button" class="link" (click)="removeClutch(c)">{{ 'actiune.sterge' | t }}</button>
             </div>
-            @if (c.foster) { <p class="muted">Clocite de doica {{ ring(c.foster.cock) }} × {{ ring(c.foster.hen) }}</p> }
+            @if (c.foster) { <p class="muted">{{ 'perechi.clocite_de_doica' | t: { pereche: ring(c.foster.cock) + ' × ' + ring(c.foster.hen) } }}</p> }
             @if (c.expectedHatch; as h) {
-              <p class="step">Puii ar trebui să iasă între <strong>{{ date(h.from) }}</strong> și <strong>{{ date(h.to) }}</strong>.</p>
+              <p class="step">@for (x of parts('perechi.ies_intre', { de: date(h.from), pana: date(h.to) }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}</p>
             }
             @if (c.hatchedOn) {
-              <p class="step">Au ieșit pe <strong>{{ date(c.hatchedOn) }}</strong>: {{ c.hatched ?? '?' }} {{ c.hatched === 1 ? 'pui' : 'pui' }}@if (c.infertile) { · {{ c.infertile }} limpezi}@if (c.broken) { · {{ c.broken }} sparte}.</p>
-              <p class="step">Se inelează între <strong>{{ date(c.ringFrom) }}</strong> și <strong>{{ date(c.ringTo) }}</strong>.</p>
+              <p class="step">@for (x of parts('perechi.au_iesit', { data: date(c.hatchedOn) }, { n: c.hatched ?? '?' }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}@if (c.infertile) { · {{ 'perechi.n_limpezi' | t: { n: c.infertile } }}}@if (c.broken) { · {{ 'perechi.n_sparte' | t: { n: c.broken } }}}.</p>
+              <p class="step">@for (x of parts('perechi.se_ineleaza', { de: date(c.ringFrom), pana: date(c.ringTo) }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}</p>
             }
 
             @if (clutchEdit() === c.id) {
               <form class="stack sub" (ngSubmit)="saveClutch(c)">
                 <div class="row">
-                  <label class="field grow">Data eclozării <input type="date" name="hatchedOn" [(ngModel)]="cf.hatchedOn" /></label>
-                  <label class="field grow">Câți pui au ieșit
+                  <label class="field grow">{{ 'camp.data_eclozarii' | t }} <input type="date" name="hatchedOn" [(ngModel)]="cf.hatchedOn" /></label>
+                  <label class="field grow">{{ 'camp.cati_pui' | t }}
                     <select name="hatched" [(ngModel)]="cf.hatched">@for (n of nums(cf.eggs); track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
                 </div>
                 <div class="row">
-                  <label class="field grow">Ouă limpezi (nefecundate)
+                  <label class="field grow">{{ 'perechi.oua_limpezi_nefecundate' | t }}
                     <select name="infertile" [(ngModel)]="cf.infertile">@for (n of nums(cf.eggs); track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
-                  <label class="field grow">Ouă sparte
+                  <label class="field grow">{{ 'camp.oua_sparte' | t }}
                     <select name="broken" [(ngModel)]="cf.broken">@for (n of nums(cf.eggs); track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
                 </div>
                 <div class="row">
-                  <label class="field grow">Primul ou <input type="date" name="cegg1" [(ngModel)]="cf.egg1On" /></label>
-                  <label class="field grow">Al doilea ou <input type="date" name="cegg2" [(ngModel)]="cf.egg2On" /></label>
-                  <label class="field grow">Câte ouă
+                  <label class="field grow">{{ 'perechi.primul_ou' | t }} <input type="date" name="cegg1" [(ngModel)]="cf.egg1On" /></label>
+                  <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <input type="date" name="cegg2" [(ngModel)]="cf.egg2On" /></label>
+                  <label class="field grow">{{ 'camp.cate_oua' | t }}
                     <select name="eggs" [(ngModel)]="cf.eggs">@for (n of [1, 2, 3]; track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
                 </div>
                 @if (fosters().length) {
-                  <label class="field">Doica <span class="hint">(altă pereche care clocește ouăle)</span>
+                  <label class="field">{{ 'perechi.doica' | t }} <span class="hint">{{ 'perechi.doica_hint' | t }}</span>
                     <select name="foster" [(ngModel)]="cf.fosterPairId">
-                      <option [ngValue]="null">— fără doică —</option>
-                      @for (f of fosters(); track f.id) { <option [ngValue]="f.id">{{ ring(f.cock) }} × {{ ring(f.hen) }}@if (f.nest) { (cuibul {{ f.nest }})}</option> }
+                      <option [ngValue]="null">{{ 'perechi.fara_doica' | t }}</option>
+                      @for (f of fosters(); track f.id) { <option [ngValue]="f.id">{{ ring(f.cock) }} × {{ ring(f.hen) }}@if (f.nest) { ({{ 'perechi.cuibul' | t: { n: f.nest } }})}</option> }
                     </select>
                   </label>
                 }
-                <label class="field">Notă <textarea name="cnote" [(ngModel)]="cf.note"></textarea></label>
+                <label class="field">{{ 'camp.nota' | t }} <textarea name="cnote" [(ngModel)]="cf.note"></textarea></label>
                 @if (clutchError()) { <div class="error" role="alert">{{ clutchError() }}</div> }
                 <div class="row">
-                  <button class="primary" type="submit"><app-icon name="bifa" />Salvează</button>
-                  <button type="button" (click)="clutchEdit.set(null)">Renunță</button>
+                  <button class="primary" type="submit"><app-icon name="bifa" />{{ 'actiune.salveaza' | t }}</button>
+                  <button type="button" (click)="clutchEdit.set(null)">{{ 'actiune.renunta' | t }}</button>
                 </div>
               </form>
             } @else {
               <div class="row">
-                <button type="button" [class.primary]="!c.hatchedOn" (click)="openClutch(c)"><app-icon name="editeaza" />{{ c.hatchedOn ? 'Schimbă ponta' : 'Au ieșit puii' }}</button>
+                <button type="button" [class.primary]="!c.hatchedOn" (click)="openClutch(c)"><app-icon name="editeaza" />{{ (c.hatchedOn ? 'perechi.schimba_ponta' : 'perechi.au_iesit_puii') | t }}</button>
               </div>
             }
 
             @if (c.young.length) {
-              <h4>Puii inelați</h4>
+              <h4>{{ 'perechi.puii_inelati' | t }}</h4>
               <ul class="young">
                 @for (y of c.young; track y.id) {
                   <li><a [routerLink]="['/porumbei', y.id]" class="mono">{{ ring(y) }}</a><span class="muted"> · {{ sex(y.sex) }}@if (y.name) { · „{{ y.name }}”}</span></li>
@@ -160,34 +172,34 @@ interface ClutchForm {
             @if (c.hatchedOn && c.young.length < (c.hatched ?? c.eggs)) {
               @if (ringFor() === c.id) {
                 <form class="stack sub" (ngSubmit)="ringYoung(c)">
-                  <label class="field">Inelul puiului <input name="ring" class="mono" [(ngModel)]="yRing" required placeholder="RO-26-800540" /></label>
-                  @if (suggested()) { <span class="hint">Propus din seria ta de inele. Îl poți schimba.</span> }
+                  <label class="field">{{ 'perechi.inelul_puiului' | t }} <input name="ring" class="mono" [(ngModel)]="yRing" required placeholder="RO-26-800540" /></label>
+                  @if (suggested()) { <span class="hint">{{ 'perechi.propus' | t }}</span> }
                   <div class="row">
-                    <label class="field grow">Sexul
-                      <select name="ysex" [(ngModel)]="ySex"><option value="">Nu se știe încă</option><option value="M">Mascul</option><option value="F">Femelă</option></select>
+                    <label class="field grow">{{ 'perechi.sexul' | t }}
+                      <select name="ysex" [(ngModel)]="ySex"><option value="">{{ 'perechi.nu_se_stie' | t }}</option><option value="M">{{ 'sex.mascul' | t }}</option><option value="F">{{ 'sex.femela' | t }}</option></select>
                     </label>
-                    <label class="field grow">Nume <span class="hint">(nu e obligatoriu)</span><input name="yname" [(ngModel)]="yName" /></label>
+                    <label class="field grow">{{ 'text.nume' | t }} <span class="hint">{{ 'perechi.nu_e_obligatoriu' | t }}</span><input name="yname" [(ngModel)]="yName" /></label>
                   </div>
                   @if (youngError()) { <div class="error" role="alert">{{ youngError() }}</div> }
                   <div class="row">
-                    <button class="primary" type="submit" [disabled]="!yRing.trim() || busy()"><app-icon name="bifa" />Inelează puiul</button>
-                    <button type="button" (click)="ringFor.set(null)">Renunță</button>
+                    <button class="primary" type="submit" [disabled]="!yRing.trim() || busy()"><app-icon name="bifa" />{{ 'perechi.ineleaza_puiul' | t }}</button>
+                    <button type="button" (click)="ringFor.set(null)">{{ 'actiune.renunta' | t }}</button>
                   </div>
                 </form>
               } @else {
-                <button type="button" class="primary" (click)="openRing(c)"><app-icon name="plus" />Inelează un pui</button>
+                <button type="button" class="primary" (click)="openRing(c)"><app-icon name="plus" />{{ 'perechi.ineleaza_un_pui' | t }}</button>
               }
             }
           </li>
         } @empty {
-          @if (p.status !== 'planificata') { <p class="muted">Nicio pontă încă.</p> }
+          @if (p.status !== 'planificata') { <p class="muted">{{ 'perechi.nicio_ponta' | t }}</p> }
         }
       </ul>
 
       <section class="card stack delete-zone">
-        <h3>Ștergerea perechii</h3>
-        <p class="muted">Se șterg perechea și pontele ei. Puii inelați rămân în porumbar, cu tatăl și mama lor.</p>
-        <div><button type="button" class="danger" (click)="removePair(p)">Șterge perechea</button></div>
+        <h3>{{ 'perechi.stergerea' | t }}</h3>
+        <p class="muted">{{ 'perechi.stergerea_text' | t }}</p>
+        <div><button type="button" class="danger" (click)="removePair(p)">{{ 'perechi.sterge_perechea' | t }}</button></div>
       </section>
     }
   `,
@@ -236,10 +248,16 @@ export default class Pereche {
   yRing = '';
   ySex = '';
   yName = '';
-  protected readonly status = STATUS_LABEL;
-  protected readonly date = roDate;
+  protected readonly status = statusLabel;
+  protected readonly date = formatDay;
   protected readonly pct = percent;
-  protected readonly sex = (s: string | null) => (s === 'M' ? 'mascul' : s === 'F' ? 'femelă' : 'sex necunoscut');
+  protected readonly parts = boldParts;
+  protected readonly sex = (s: string | null) => t(s === 'M' ? 'perechi.sex_mascul' : s === 'F' ? 'perechi.sex_femela' : 'perechi.sex_necunoscut');
+  protected readonly crumbs = computed(() => {
+    const p = this.pair();
+    if (!p) return [];
+    return [{ label: t('perechi.sezon', { sezon: p.season }), link: ['/perechi'], query: { sezon: p.season } }, { label: `${this.ring(p.cock)} × ${this.ring(p.hen)}` }];
+  });
   protected readonly ring = (p: PigeonSummary | null | undefined) => (p ? ringText(p) : '—');
   protected readonly nums = (max: number) => Array.from({ length: max + 1 }, (_, i) => i);
   protected readonly sexShort = sexShort;
@@ -334,9 +352,9 @@ export default class Pereche {
 
   async removeClutch(c: Clutch) {
     const ok = await this.confirm.ask({
-      title: 'Ștergi ponta?',
-      lines: [`Ouă din ${roDate(c.egg1On)}.`, c.young.length ? 'Puii inelați din ea rămân în porumbar.' : 'Nu se poate da înapoi.'],
-      confirmLabel: 'Da, șterge ponta',
+      title: t('perechi.sterge_ponta_titlu'),
+      lines: [t('perechi.oua_din', { data: formatDay(c.egg1On) }), c.young.length ? t('perechi.puii_raman') : t('text.nu_se_poate_da_inapoi')],
+      confirmLabel: t('perechi.sterge_ponta_da'),
       danger: true,
     });
     if (!ok) return;
@@ -379,9 +397,9 @@ export default class Pereche {
 
   async removePair(p: Pair) {
     const ok = await this.confirm.ask({
-      title: 'Ștergi perechea?',
-      lines: [`${this.ring(p.cock)} × ${this.ring(p.hen)}, sezonul ${p.season}.`, 'Se șterg și pontele ei. Puii inelați rămân în porumbar.', 'Nu se poate da înapoi.'],
-      confirmLabel: 'Da, șterge perechea',
+      title: t('perechi.sterge_perechea_titlu'),
+      lines: [t('perechi.sterge_perechea_cine', { mascul: this.ring(p.cock), femela: this.ring(p.hen), sezon: p.season }), t('perechi.sterge_perechea_text'), t('text.nu_se_poate_da_inapoi')],
+      confirmLabel: t('perechi.sterge_perechea_da'),
       danger: true,
     });
     if (!ok) return;

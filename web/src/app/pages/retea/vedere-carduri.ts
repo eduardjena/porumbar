@@ -1,7 +1,8 @@
 import { Component, computed, input, output } from '@angular/core';
 import { sexShort } from '../../core/catalog';
 import { TreeNode } from '../../core/models';
-import { ArboreData, GENERATION_NAMES, REPEAT_COLORS, roleName, repeatCounts, TreePigeon } from './arbore-data';
+import { TPipe } from '../../core/i18n';
+import { ArboreData, generationName, REPEAT_COLORS, roleName, repeatCounts, TreePigeon } from './arbore-data';
 
 /*
  * Vederea „Carduri moderne” (macheta 1): pedigree-ul ca pe hârtie, dar modern. Coloane pe generații (strămoșii în
@@ -34,6 +35,7 @@ interface Card {
 
 @Component({
   selector: 'app-vedere-carduri',
+  imports: [TPipe],
   template: `
     <div class="heads" [style.width.px]="width">
       @for (c of cols; track $index; let g = $index) {
@@ -52,43 +54,43 @@ interface Card {
         @if (c.id != null && pigeons()[c.id]; as p) {
           <button type="button" class="card-p" [class]="'card-p g' + c.gen" [class.sel]="c.id === selectedId()"
                   [style.left.px]="c.x" [style.top.px]="c.y" [style.width.px]="c.w"
-                  (click)="select.emit(c.id!)" (dblclick)="open.emit(c.id!)" [title]="'Dublu clic: deschide fișa'">
+                  (click)="select.emit(c.id!)" (dblclick)="open.emit(c.id!)" [title]="'arbore.dublu_clic' | t">
             @if (c.gen >= 1 && c.gen <= 2) { <span class="role">{{ role(c.path) }}</span> }
             <span class="line1">
               <span class="av" [class]="'av sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
-              <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+              <span class="mono ring">{{ p.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
               @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
               @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
             </span>
             @if (c.gen <= 3 && (p.name || p.text)) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
-            <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">nu e al tău</span> } @else { <span class="mine">al tău</span> }</span>
+            <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
           </button>
         } @else if (c.gen <= 2) {
-          <div class="card-p empty" [style.left.px]="c.x" [style.top.px]="c.y" [style.width.px]="c.w">{{ role(c.path) }}: necunoscut</div>
+          <div class="card-p empty" [style.left.px]="c.x" [style.top.px]="c.y" [style.width.px]="c.w">{{ 'arbore.rol_necunoscut' | t: { rol: role(c.path) } }}</div>
         }
       }
     </div>
 
     <!-- Pe telefon: câte o generație pe ecran, glisezi între ele; fiecare card spune ce rudă e. -->
-    <div class="gens" aria-label="Generațiile (glisează)">
+    <div class="gens" [attr.aria-label]="'arbore.aria_generatii' | t">
       @for (g of genList; track g) {
         <section class="gen">
-          <h3>{{ genName(g) }} <span class="muted">{{ g < 4 ? 'glisează →' : '' }}</span></h3>
+          <h3>{{ genName(g) }} <span class="muted">{{ g < 4 ? ('arbore.gliseaza' | t) : '' }}</span></h3>
           @for (c of cardsOf(g); track c.key) {
             @if (c.id != null && pigeons()[c.id]; as p) {
               <button type="button" class="m-card" [class.sel]="c.id === selectedId()" (click)="select.emit(c.id!)" (dblclick)="open.emit(c.id!)">
                 <span class="role">{{ role(c.path) }}</span>
                 <span class="line1">
                   <span class="av" [class]="'av sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
-                  <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+                  <span class="mono ring">{{ p.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
                   @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
                   @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                 </span>
                 @if (p.name || p.text) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
-                <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">nu e al tău</span> } @else { <span class="mine">al tău</span> }</span>
+                <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
               </button>
             } @else if (g <= 2) {
-              <div class="m-card empty">{{ role(c.path) }}: necunoscut</div>
+              <div class="m-card empty">{{ 'arbore.rol_necunoscut' | t: { rol: role(c.path) } }}</div>
             }
           }
         </section>
@@ -150,7 +152,7 @@ export class VedereCarduri {
   protected readonly height = HEIGHT;
   protected readonly sex = sexShort;
   protected readonly role = roleName;
-  protected readonly genName = (g: number) => GENERATION_NAMES[g];
+  protected readonly genName = generationName;
   protected readonly repeatColor = (g: number) => REPEAT_COLORS[(g - 1) % REPEAT_COLORS.length];
   protected readonly pigeons = computed<Record<number, TreePigeon>>(() => this.data().pigeons);
   protected readonly counts = computed(() => repeatCounts(this.data().tree));

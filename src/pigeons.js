@@ -66,7 +66,7 @@ export const toSummary = (row) => ({
 /** Rândul unui porumbel al contului, sau 404 (și pentru porumbeii altor conturi). */
 export async function getPigeonRow(accountId, id) {
   const row = Number.isSafeInteger(Number(id)) ? await one('SELECT * FROM pigeons WHERE id = ? AND account_id = ?', Number(id), accountId) : null;
-  if (!row) throw notFound('Porumbelul nu a fost găsit.');
+  if (!row) throw notFound('eroare.porumbel_negasit');
   return row;
 }
 
@@ -82,39 +82,39 @@ const optCode = (value, list, field) => (value == null || value === '' ? null : 
 
 function validDate(value) {
   if (value == null || value === '') return null;
-  return realDate(value, 'Data eclozării');
+  return realDate(value, 'camp.data_eclozarii');
 }
 
 function validLines(value) {
   if (value == null) return [];
-  if (!Array.isArray(value)) throw badRequest('Liniile trebuie să fie o listă.');
+  if (!Array.isArray(value)) throw badRequest('eroare.linii_lista');
   // O listă uriașă e refuzată înainte de orice lucru (altfel o singură cerere ar ține serverul ocupat pentru toți).
-  if (value.length > MAX_LINES * 3) throw badRequest(`Cel mult ${MAX_LINES} linii.`);
+  if (value.length > MAX_LINES * 3) throw badRequest('eroare.prea_multe_linii', { max: MAX_LINES });
   const out = [];
   const seen = new Set();
   for (const v of value) {
-    const s = text(v, 'linie', { max: 40, optional: true });
+    const s = text(v, 'camp.linie', { max: 40, optional: true });
     if (s && !seen.has(fold(s))) seen.add(fold(s)), out.push(s);
   }
-  if (out.length > MAX_LINES) throw badRequest(`Cel mult ${MAX_LINES} linii.`);
+  if (out.length > MAX_LINES) throw badRequest('eroare.prea_multe_linii', { max: MAX_LINES });
   return out;
 }
 
 function validEvaluation(value) {
   if (value == null) return {};
-  if (typeof value !== 'object' || Array.isArray(value)) throw badRequest('Evaluarea este invalidă.');
+  if (typeof value !== 'object' || Array.isArray(value)) throw badRequest('eroare.evaluare_invalida');
   const scores = {};
   for (const [k, v] of Object.entries(value.scores ?? {})) {
-    oneOf(k, codes(EVAL_CRITERIA), 'criteriu');
+    oneOf(k, codes(EVAL_CRITERIA), 'camp.criteriu');
     if (v == null) continue;
-    if (!Number.isInteger(v) || v < 1 || v > 5) throw badRequest('Notele evaluării sunt de la 1 la 5.');
+    if (!Number.isInteger(v) || v < 1 || v > 5) throw badRequest('eroare.note_1_5');
     scores[k] = v;
   }
   return {
     scores,
-    calitati: text(value.calitati, 'calități', { max: 2000, optional: true }),
-    deDorit: text(value.deDorit, 'de dorit', { max: 2000, optional: true }),
-    defecte: text(value.defecte, 'defecte', { max: 2000, optional: true }),
+    calitati: text(value.calitati, 'camp.calitati', { max: 2000, optional: true }),
+    deDorit: text(value.deDorit, 'camp.de_dorit', { max: 2000, optional: true }),
+    defecte: text(value.defecte, 'camp.defecte', { max: 2000, optional: true }),
   };
 }
 
@@ -124,30 +124,30 @@ function validate(input, existing = null) {
   const kind = oneOf(pick('kind', existing?.kind ?? 'own'), KINDS, 'tip');
 
   const ringText = pick('ring', existing?.ring?.raw ?? null);
-  const raw = ringText == null || String(ringText).trim() === '' ? null : text(ringText, 'inel', { max: 80 });
+  const raw = ringText == null || String(ringText).trim() === '' ? null : text(ringText, 'camp.inel', { max: 80 });
   const ring = raw ? parseRing(raw) : null;
-  if (kind === 'own' && (!ring?.ok || ring.unringed)) throw badRequest('Inelul nu poate fi citit. Scrie-l ca în exemplu: RO-25-123456.');
+  if (kind === 'own' && (!ring?.ok || ring.unringed)) throw badRequest('eroare.inel_necitit');
 
   let sex = pick('sex', existing?.sex ?? null);
   if (sex === '') sex = null;
-  if (sex != null) oneOf(sex, ['M', 'F'], 'sex');
+  if (sex != null) oneOf(sex, ['M', 'F'], 'camp.sex');
   if (sex == null && ring?.sex) sex = ring.sex;
 
   return {
     kind,
     ring,
     sex,
-    name: text(pick('name', existing?.name), 'nume', { max: 80, optional: true }),
-    breed: optCode(pick('breed', existing?.breed ?? 'voiajor'), BREEDS, 'rasă') ?? 'voiajor',
+    name: text(pick('name', existing?.name), 'camp.nume', { max: 80, optional: true }),
+    breed: optCode(pick('breed', existing?.breed ?? 'voiajor'), BREEDS, 'camp.rasa') ?? 'voiajor',
     lines: validLines(pick('lines', existing?.lines)),
-    color: optCode(pick('color', existing?.color), COLORS, 'culoare'),
+    color: optCode(pick('color', existing?.color), COLORS, 'camp.culoare'),
     colorPa: Boolean(pick('colorPa', existing?.colorPa ?? false)),
-    colorText: text(pick('colorText', existing?.colorText), 'culoare (text)', { max: 120, optional: true }),
-    eyeColor: optCode(pick('eyeColor', existing?.eyeColor), EYE_COLORS, 'culoarea ochilor'),
-    status: optCode(pick('status', existing?.status), STATUSES, 'stare'),
+    colorText: text(pick('colorText', existing?.colorText), 'camp.culoare_text', { max: 120, optional: true }),
+    eyeColor: optCode(pick('eyeColor', existing?.eyeColor), EYE_COLORS, 'camp.culoarea_ochilor'),
+    status: optCode(pick('status', existing?.status), STATUSES, 'camp.stare'),
     hatchedOn: validDate(pick('hatchedOn', existing?.hatchedOn)),
-    breederText: text(pick('breederText', existing?.breederText), 'crescător', { max: 200, optional: true }),
-    pedigreeText: text(pick('pedigreeText', existing?.pedigreeText), 'text pentru pedigree', { max: 2000, optional: true }),
+    breederText: text(pick('breederText', existing?.breederText), 'camp.crescator', { max: 200, optional: true }),
+    pedigreeText: text(pick('pedigreeText', existing?.pedigreeText), 'camp.text_pedigree', { max: 2000, optional: true }),
     evaluation: input.evaluation === undefined ? (existing?.evaluation ?? {}) : validEvaluation(input.evaluation),
   };
 }
@@ -162,10 +162,10 @@ async function checkDuplicate(accountId, p, selfId = null) {
   const display = formatRing(p.ring);
   if (p.kind === 'own') {
     if (await one(`SELECT 1 FROM pigeons WHERE kind = 'own' AND account_id = ? AND ring_key = ? AND id IS DISTINCT FROM ?`, accountId, key, selfId)) {
-      throw new HttpError(409, `Inelul ${display} este deja în porumbarul tău.`);
+      throw new HttpError(409, 'eroare.inel_deja_la_tine', { inel: display });
     }
   } else if (await one(`SELECT 1 FROM pigeons WHERE kind = 'external' AND account_id = ? AND ring_key = ? AND id IS DISTINCT FROM ?`, accountId, key, selfId)) {
-    throw new HttpError(409, `Inelul ${display} este deja în porumbarul tău.`);
+    throw new HttpError(409, 'eroare.inel_deja_la_tine', { inel: display });
   }
 }
 
@@ -213,7 +213,7 @@ export async function updatePigeon(accountId, id, input) {
     if (p.sex !== existing.sex) {
       const column = existing.sex === 'M' ? 'father_id' : existing.sex === 'F' ? 'mother_id' : null;
       if (column && (await one(`SELECT 1 FROM pigeons WHERE ${column} = ? LIMIT 1`, existing.id))) {
-        throw badRequest(`Porumbelul e deja ${existing.sex === 'M' ? 'tatăl' : 'mama'} unor pui din program, așa că nu i se poate schimba sexul. Schimbă întâi părinții acelor pui.`);
+        throw badRequest(existing.sex === 'M' ? 'eroare.sex_e_tata' : 'eroare.sex_e_mama');
       }
     }
     const sets = COLS.split(',').map((c) => `${c.trim()} = ?`).join(', ');
@@ -231,7 +231,7 @@ export async function deletePigeon(accountId, id) {
     await lockAccount(accountId);
     const row = await getPigeonRow(accountId, id);
     if (await one('SELECT 1 FROM pigeons WHERE father_id = ? OR mother_id = ? LIMIT 1', row.id, row.id)) {
-      throw new HttpError(409, 'Porumbelul are pui în program. Schimbă-i starea în loc să-l ștergi.');
+      throw new HttpError(409, 'eroare.are_pui');
     }
     for (const fn of pigeonDeleted) await fn(row.id);
     await run('DELETE FROM pigeons WHERE id = ?', row.id);
@@ -250,12 +250,12 @@ export async function listPigeons(accountId, { q, status, sex, year, kind } = {}
     where.push(`(search_text LIKE ? OR ring_key = ? OR ring_number = ?)`);
     params.push(`%${fold(query).replace(/[%_\\]/g, (c) => `\\${c}`)}%`, key, digits);
   }
-  if (status) where.push('status = ?') && params.push(oneOf(status, codes(STATUSES), 'stare'));
-  if (sex) where.push('sex = ?') && params.push(oneOf(sex, ['M', 'F'], 'sex'));
-  if (kind) where.push('kind = ?') && params.push(oneOf(kind, KINDS, 'tip'));
+  if (status) where.push('status = ?') && params.push(oneOf(status, codes(STATUSES), 'camp.stare'));
+  if (sex) where.push('sex = ?') && params.push(oneOf(sex, ['M', 'F'], 'camp.sex'));
+  if (kind) where.push('kind = ?') && params.push(oneOf(kind, KINDS, 'camp.tip'));
   if (year) {
     const y = Number(year);
-    if (!Number.isInteger(y)) throw badRequest('Anul este invalid.');
+    if (!Number.isInteger(y)) throw badRequest('eroare.an_invalid');
     where.push('ring_year = ?');
     params.push(y);
   }

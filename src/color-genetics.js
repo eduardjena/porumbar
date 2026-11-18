@@ -1,4 +1,5 @@
 import { badRequest } from './http.js';
+import { t, ref } from './i18n.js';
 
 /*
  * Culorile probabile ale puilor unei perechi, după genetica clasică a porumbeilor (moștenire mendeliană):
@@ -16,11 +17,9 @@ const PATTERN = ['CT', 'C', '+', 'c'];
 const rank = (order, a) => order.indexOf(a);
 const top = (order, a, b) => (rank(order, a) <= rank(order, b) ? a : b);
 
-const BASE_NAME = { BA: ['Roșu', 'Gălbui'], '+': ['Albastru', 'Argintiu'], b: ['Maro', 'Kaki'] };
-const SPREAD_NAME = { BA: ['Roșu uniform', 'Gălbui uniform'], '+': ['Negru', 'Dun (maro-cenușiu)'], b: ['Maro uniform', 'Kaki uniform'] };
-const PATTERN_NAME = { CT: 'solzat închis', C: 'solzat', '+': 'cu dungi', c: 'fără dungi' };
-const CARRY_BASE = { '+': 'albastru', b: 'maro' };
-const CARRY_PATTERN = { C: 'solzat', '+': 'dungi', c: 'fără dungi' };
+// Numele culorilor (în i18n/): genetica.baza.<cod>.<0|1 diluat>, genetica.uniform.<cod>.<0|1>, genetica.desen.<cod>,
+// genetica.poarta.<desen>. Codurile „+” devin „plus” în chei.
+const k = (code) => (code === '+' ? 'plus' : code);
 
 /** Factorii siguri dintr-o culoare din listă (ce nu e sigur rămâne null = nu se știe). */
 const FROM_COLOR = {
@@ -69,29 +68,29 @@ export function inferHidden(child, father, mother) {
 
 /** Factorii trimiși de om (de pe ecran), verificați. */
 export function cleanFactors(f, sex) {
-  if (!f || typeof f !== 'object') throw badRequest('Lipsesc datele culorii.');
+  if (!f || typeof f !== 'object') throw badRequest('eroare.lipsa_culoare');
   const one = (v, allowed, label) => {
     if (v === undefined || v === null || v === '') return null;
-    if (!allowed.includes(v)) throw badRequest(`Valoare invalidă pentru „${label}”.`);
+    if (!allowed.includes(v)) throw badRequest('eroare.valoare_invalida_camp', { camp: ref(label) });
     return v;
   };
   const bool = (v, label) => {
     if (v === undefined || v === null || v === '') return null;
-    if (typeof v !== 'boolean') throw badRequest(`„${label}” trebuie să fie da sau nu.`);
+    if (typeof v !== 'boolean') throw badRequest('eroare.da_sau_nu', { camp: ref(label) });
     return v;
   };
   const out = {
     sex,
-    base: one(f.base, BASE, 'culoarea de bază'),
-    pattern: one(f.pattern, PATTERN, 'desenul'),
-    spread: bool(f.spread, 'negru uniform'),
-    dilute: bool(f.dilute, 'diluat'),
-    patternHidden: one(f.patternHidden, PATTERN, 'desenul ascuns'),
-    spreadHidden: bool(f.spreadHidden, 'spread ascuns'),
+    base: one(f.base, BASE, 'camp.culoarea_de_baza'),
+    pattern: one(f.pattern, PATTERN, 'camp.desenul'),
+    spread: bool(f.spread, 'camp.uniform'),
+    dilute: bool(f.dilute, 'camp.dilutia'),
+    patternHidden: one(f.patternHidden, PATTERN, 'camp.desenul_ascuns'),
+    spreadHidden: bool(f.spreadHidden, 'camp.uniform_ascuns'),
   };
   if (sex === 'M') {
-    out.baseHidden = one(f.baseHidden, BASE, 'culoarea ascunsă');
-    out.diluteHidden = bool(f.diluteHidden, 'diluția ascunsă');
+    out.baseHidden = one(f.baseHidden, BASE, 'camp.culoarea_ascunsa');
+    out.diluteHidden = bool(f.diluteHidden, 'camp.dilutia_ascunsa');
   }
   // Ce e ascuns e mereu mai „slab” decât ce se vede; altfel s-ar vedea el.
   if (out.base && out.baseHidden && rank(BASE, out.baseHidden) < rank(BASE, out.base)) out.baseHidden = null;
@@ -108,17 +107,17 @@ const pairGametes = (a, b) => (a === b ? [[a, 1]] : [[a, 0.5], [b, 0.5]]);
  * Puii perechii: pentru masculi și pentru femele, culorile cu procentul lor (și ce poartă ascuns masculii).
  * `unknown`: ce nu se știe la unul din părinți și deci nu intră în calcul.
  */
-export function predictColors(sire, dam) {
+export function predictColors(sire, dam, lang = 'ro') {
   const unknown = [];
   const known = (k, label) => {
     const ok = sire[k] != null && dam[k] != null;
-    if (!ok) unknown.push(label);
+    if (!ok) unknown.push(t(lang, label));
     return ok;
   };
-  const useBase = known('base', 'culoarea de bază');
-  const usePattern = known('pattern', 'desenul');
-  const useSpread = known('spread', 'negrul uniform (spread)');
-  const useDilute = known('dilute', 'diluția');
+  const useBase = known('base', 'camp.culoarea_de_baza');
+  const usePattern = known('pattern', 'camp.desenul');
+  const useSpread = known('spread', 'camp.uniform');
+  const useDilute = known('dilute', 'camp.dilutia');
 
   // Z (legați de sex): masculul dă una din cele două copii; femela dă Z doar fiilor.
   const sireBase = useBase ? pairGametes(sire.base, sire.baseHidden ?? sire.base) : [[null, 1]];
@@ -153,19 +152,19 @@ export function predictColors(sire, dam) {
         const patternVis = a.pattern ? top(PATTERN, a.pattern[0], a.pattern[1]) : null;
         const patternLow = a.pattern ? (a.pattern[0] === patternVis ? a.pattern[1] : a.pattern[0]) : null;
         const spreadVis = a.spread ? a.spread[0] || a.spread[1] : false;
-        const autoCarries = patternLow && patternLow !== patternVis && !spreadVis ? [CARRY_PATTERN[patternLow]] : [];
+        const autoCarries = patternLow && patternLow !== patternVis && !spreadVis ? [t(lang, `genetica.poarta.${k(patternLow)}`)] : [];
         // Fiul: Z de la tată + Z-ul mamei.
         const sonBase = useBase ? top(BASE, zb, dam.base) : null;
         const sonBaseLow = useBase ? (zb === sonBase ? dam.base : zb) : null;
         const sonDil = useDilute ? zd && dam.dilute : false;
         const sonCarries = [
-          ...(useBase && sonBaseLow !== sonBase ? [CARRY_BASE[sonBaseLow]] : []),
-          ...(useDilute && !sonDil && (zd || dam.dilute) ? ['diluție'] : []),
+          ...(useBase && sonBaseLow !== sonBase ? [t(lang, `genetica.poarta_baza.${k(sonBaseLow)}`)] : []),
+          ...(useDilute && !sonDil && (zd || dam.dilute) ? [t(lang, 'genetica.poarta.dilutie')] : []),
           ...autoCarries,
         ];
-        add(cocks, nameOf(sonBase, patternVis, spreadVis, sonDil), sonCarries, p);
+        add(cocks, nameOf(lang, sonBase, patternVis, spreadVis, sonDil), sonCarries, p);
         // Fiica: doar Z-ul tatălui.
-        add(hens, nameOf(useBase ? zb : null, patternVis, spreadVis, useDilute ? zd : false), autoCarries, p);
+        add(hens, nameOf(lang, useBase ? zb : null, patternVis, spreadVis, useDilute ? zd : false), autoCarries, p);
       }
     }
   }
@@ -173,14 +172,14 @@ export function predictColors(sire, dam) {
   return { cocks: list(cocks), hens: list(hens), unknown };
 }
 
-function nameOf(base, pattern, spread, dilute) {
+function nameOf(lang, base, pattern, spread, dilute) {
   const d = dilute ? 1 : 0;
-  if (spread && base) return SPREAD_NAME[base][d];
-  if (spread) return dilute ? 'Uniform diluat' : 'Uniform (spread)';
-  const b = base ? BASE_NAME[base][d] : null;
-  const pt = pattern ? PATTERN_NAME[pattern] : null;
-  if (b && pt) return `${b} ${pt}`;
+  if (spread && base) return t(lang, `genetica.uniform.${k(base)}.${d}`);
+  if (spread) return t(lang, dilute ? 'genetica.uniform_diluat' : 'genetica.uniform_fara_baza');
+  const b = base ? t(lang, `genetica.baza.${k(base)}.${d}`) : null;
+  const pt = pattern ? t(lang, `genetica.desen.${k(pattern)}`) : null;
+  if (b && pt) return t(lang, 'genetica.baza_si_desen', { baza: b, desen: pt });
   if (b) return b;
-  if (pt) return pt[0].toUpperCase() + pt.slice(1) + (dilute ? ' (diluat)' : '');
-  return dilute ? 'Diluat' : 'Nu se poate spune';
+  if (pt) return t(lang, dilute ? 'genetica.doar_desen_diluat' : 'genetica.doar_desen', { desen: pt[0].toUpperCase() + pt.slice(1) });
+  return t(lang, dilute ? 'genetica.diluat' : 'genetica.necunoscut');
 }

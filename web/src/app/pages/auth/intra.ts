@@ -4,24 +4,27 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService, afterLoginUrl } from '../../core/auth';
 import { errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
+import { LangSwitch } from '../../shared/lang-switch';
+import { TPipe } from '../../core/i18n';
 
 @Component({
   selector: 'app-intra',
-  imports: [FormsModule, RouterLink, PasswordField],
+  imports: [FormsModule, RouterLink, PasswordField, LangSwitch, TPipe],
   template: `
     <div class="auth-page stack">
+      <app-lang-switch />
       <div class="logo"><img src="/icon.svg" alt="Porumbar" width="88" height="88" /></div>
-      <h1>Intră în porumbarul tău</h1>
+      <h1>{{ 'intra.titlu' | t }}</h1>
       <form class="card stack" (ngSubmit)="submit()">
-        <label class="field">Email
+        <label class="field">{{ 'auth.email' | t }}
           <input type="email" name="email" autocomplete="email" inputmode="email" required [(ngModel)]="email" />
         </label>
         <app-password-field [(value)]="password" />
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
-        <button class="primary wide" type="submit" [disabled]="busy()">{{ busy() ? 'Se intră…' : 'Intră' }}</button>
-        <a routerLink="/parola-uitata">Am uitat parola</a>
+        <button class="primary wide" type="submit" [disabled]="busy()">{{ (busy() ? 'intra.se_intra' : 'intra.intra') | t }}</button>
+        <a routerLink="/parola-uitata">{{ 'intra.am_uitat' | t }}</a>
       </form>
-      <p class="muted">Nu ai cont? <a routerLink="/cont-nou">Fă-ți un cont nou</a></p>
+      <p class="muted">{{ 'intra.nu_ai_cont' | t }} <a routerLink="/cont-nou">{{ 'intra.fa_cont' | t }}</a></p>
     </div>
   `,
 })

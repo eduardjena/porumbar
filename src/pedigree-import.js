@@ -1,7 +1,8 @@
 import { lockAccount, one, run, tx } from './db.js';
+import { tr } from './i18n.js';
 import { ancestorIds } from './genealogy.js';
 import { badRequest } from './http.js';
-import { matchColor } from './catalog.js';
+import { COLORS, matchColor } from './catalog.js';
 import { createPigeon, getPigeonRow, loadNodes, updatePigeon } from './pigeons.js';
 import { formatRing, parseRing, ringKey } from './rings.js';
 
@@ -28,8 +29,8 @@ const str = (v, max) => {
 /** Nodul curățat; aruncă 400 pentru forme greșite sau prea multe generații. */
 function readNode(raw, depth) {
   if (raw == null) return null;
-  if (typeof raw !== 'object' || Array.isArray(raw)) throw badRequest('Pedigree-ul nu are forma așteptată.');
-  if (depth >= MAX_GENERATIONS) throw badRequest(`Pedigree-ul poate avea cel mult ${MAX_GENERATIONS} generații.`);
+  if (typeof raw !== 'object' || Array.isArray(raw)) throw badRequest('eroare.pedigree_forma');
+  if (depth >= MAX_GENERATIONS) throw badRequest('eroare.pedigree_generatii', { numar: MAX_GENERATIONS });
   const ring = str(raw.ring, 80);
   const node = {
     ring,
@@ -37,6 +38,8 @@ function readNode(raw, depth) {
     sex: raw.sex === 'M' || raw.sex === 'F' ? raw.sex : null,
     name: str(raw.name, 80),
     color: str(raw.color, 120),
+    colorCode: typeof raw.colorCode === 'string' && COLORS.some((c) => c.code === raw.colorCode) ? raw.colorCode : null,
+    colorPa: raw.colorPa === true,
     text: str(raw.text, MAX_TEXT),
     breeder: str(raw.breeder, 200),
     father: readNode(raw.father, depth + 1),
@@ -48,11 +51,12 @@ function readNode(raw, depth) {
 }
 
 const keyOf = (node) => (node.parsed?.ok && !node.parsed.unringed ? ringKey(node.parsed) : null);
-const label = (node) => (node.parsed?.ok && !node.parsed.unringed ? formatRing(node.parsed) : node.ring || 'fără inel');
+const label = (node) => (node.parsed?.ok && !node.parsed.unringed ? formatRing(node.parsed) : node.ring || tr('text.fara_inel'));
 
 /** Câmpurile fișei din căsuță (pentru un porumbel nou). */
 function fields(node, kind, sex) {
-  const color = node.color ? matchColor(node.color) : null;
+  // Culoarea din listă venită ca cod (preluare / vânzare): se păstrează codul, fără textul în română.
+  const color = node.colorCode ? { code: node.colorCode, pa: node.colorPa } : node.color ? matchColor(node.color) : null;
   return {
     kind,
     ring: node.ring,
@@ -60,7 +64,7 @@ function fields(node, kind, sex) {
     name: node.name,
     color: color?.code ?? null,
     colorPa: color?.pa ?? false,
-    colorText: node.color,
+    colorText: node.colorCode ? null : node.color,
     breederText: node.breeder,
     pedigreeText: node.text,
   };
@@ -84,9 +88,9 @@ function missing(row, node, sex) {
  * rootKind: 'own' (porumbelul meu) sau 'external' (de ex. un porumbel împrumutat pentru pui).
  */
 export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
-  if (rootKind !== 'own' && rootKind !== 'external') throw badRequest('Tipul porumbelului nu e valid.');
+  if (rootKind !== 'own' && rootKind !== 'external') throw badRequest('eroare.tip_porumbel');
   const root = readNode(rawRoot, 0);
-  if (!root) throw badRequest('Scrie cel puțin inelul porumbelului.');
+  if (!root) throw badRequest('eroare.scrie_inelul');
   const stats = { created: 0, reused: 0, conflicts: [] };
 
   return tx(async () => {
@@ -117,7 +121,7 @@ export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
       } else {
         if (isRoot) rootWas = 'existing';
         if (isRoot && node.sex && row.sex && node.sex !== row.sex) {
-          stats.conflicts.push({ ring: label(node), message: `${label(node)} e în program ${row.sex === 'M' ? 'mascul' : 'femelă'}, iar pe hârtie scrie altfel. Am păstrat ce era.` });
+          stats.conflicts.push({ ring: label(node), message: tr(row.sex === 'M' ? 'import.conflict_sex_mascul' : 'import.conflict_sex_femela', { inel: label(node) }) });
         }
         stats.reused++;
         const patch = missing(row, node, sex);
@@ -128,7 +132,7 @@ export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
       }
 
       for (const [side, parentSex, column, word] of [
-        ['father', 'M', 'father_id', 'tatăl'],
+        ['father', 'M', 'father_id', 'tata'],
         ['mother', 'F', 'mother_id', 'mama'],
       ]) {
         const paper = node[side];
@@ -143,18 +147,18 @@ export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
         if (current) {
           stats.conflicts.push({
             ring: label(node),
-            message: `La ${label(node)} programul are deja ${word === 'tatăl' ? 'tată' : 'mamă'} ${current.ring_raw ?? 'fără inel'}, iar pe hârtie scrie ${label(paper)}. Am păstrat ce era.`,
+            message: tr(word === 'tata' ? 'import.conflict_alt_tata' : 'import.conflict_alta_mama', { inel: label(node), are: current.ring_raw ?? tr('text.fara_inel'), hartie: label(paper) }),
           });
           continue;
         }
         const parent = await getPigeonRow(accountId, parentId);
         if (parent.id === row.id || ancestorIds(parent.id, await loadNodes(accountId)).has(row.id)) {
-          throw badRequest(`Inelul ${label(paper)} apare și ca strămoș al lui însuși. Verifică inelele.`);
+          throw badRequest('eroare.inel_propriu_stramos', { inel: label(paper) });
         }
         if (parent.sex && parent.sex !== parentSex) {
           stats.conflicts.push({
             ring: label(paper),
-            message: `${label(paper)} e trecut ca ${word} lui ${label(node)}, dar în program e ${parent.sex === 'M' ? 'mascul' : 'femelă'}. Nu l-am legat.`,
+            message: tr(`import.conflict_${word}_${parent.sex === 'M' ? 'mascul' : 'femela'}`, { parinte: label(paper), copil: label(node) }),
           });
           continue;
         }

@@ -1,0 +1,1731 @@
+{
+  "test.salut": {
+    "text": "Bună, {nume}!",
+    "sens": "Doar pentru teste: salut cu numele omului."
+  },
+  "test.porumbei": {
+    "one": "{count} porumbel",
+    "few": "{count} porumbei",
+    "other": "{count} de porumbei",
+    "sens": "Doar pentru teste: pluralul."
+  },
+  "eroare.negasit": "Nu a fost găsit.",
+  "eroare.camp_obligatoriu": {
+    "text": "Câmpul „{camp}” este obligatoriu.",
+    "sens": "{camp} = numele câmpului (de ex. „nume”)."
+  },
+  "eroare.camp_invalid": "Câmpul „{camp}” este invalid.",
+  "eroare.camp_prea_lung": "Câmpul „{camp}” depășește {max} caractere.",
+  "eroare.data_forma": {
+    "text": "{camp} trebuie să fie de forma AAAA-LL-ZZ.",
+    "sens": "{camp} = numele datei (de ex. „Data eclozării”), la începutul frazei."
+  },
+  "eroare.data_nereala": "{camp} nu este o dată reală.",
+  "eroare.valoare_invalida_camp": "Valoare invalidă pentru „{camp}”.",
+  "eroare.prea_multe_incercari": "Prea multe încercări. Reîncearcă puțin mai târziu.",
+  "eroare.json_invalid": "JSON invalid.",
+  "eroare.prea_mare": "Conținut prea mare.",
+  "eroare.valoare_invalida": "Valoare invalidă.",
+  "eroare.baza_ocupata": "Baza de date este ocupată sau indisponibilă. Reîncearcă în câteva momente.",
+  "eroare.operatie_in_curs": "Altă operație pe aceleași date era în curs. Încearcă din nou.",
+  "eroare.sters_intre_timp": "Porumbelul a fost șters sau schimbat între timp. Reîncarcă pagina.",
+  "eroare.exista_deja": "Există deja o înregistrare cu aceste date.",
+  "eroare.interna": "Eroare internă.",
+  "camp.data": "Data",
+  "eroare.doar_citire_expirat": {
+    "text": "Abonamentul tău a expirat, așa că acum e doar citire: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.{activare}",
+    "sens": "{activare} = fraza despre cum se activează (începe cu spațiu)."
+  },
+  "eroare.doar_citire_neactivat": "Contul tău nu este activ încă, așa că acum e doar citire: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.{activare}",
+  "eroare.activare_contact": {
+    "text": " Pentru activare: {contact}.",
+    "sens": "Începe cu un spațiu. {contact} = telefonul sau emailul vânzătorului."
+  },
+  "eroare.activare_vanzator": " Pentru activare, ia legătura cu cel de la care ai primit programul.",
+  "mail.memento.subiect": "Abonamentul Porumbar expiră în curând",
+  "mail.memento.text": {
+    "text": "Bună, {nume}!\n\nAbonamentul tău Porumbar expiră pe {data}.\nCa să poți adăuga și schimba porumbei și după această dată, achită abonamentul pentru încă un an. {plata}\n\nDatele tale nu se pierd: și fără abonament îți poți vedea și tipări porumbeii.\n",
+    "sens": "Mailul de aducere aminte cu o lună înainte de sfârșitul abonamentului."
+  },
+  "mail.memento.plata_contact": "Pentru plată și activare: {contact}.",
+  "mail.memento.plata_vanzator": "Pentru plată și activare, ia legătura cu cel de la care ai primit programul.",
+  "eroare.parola_scurta": "Parola trebuie să aibă cel puțin 10 caractere.",
+  "eroare.parola_lunga": "Parola este prea lungă.",
+  "eroare.trebuie_cont": "Trebuie să intri în cont.",
+  "eroare.doar_json": "Cererea trebuie trimisă ca JSON.",
+  "eroare.cerere_refuzata": "Cerere refuzată.",
+  "eroare.email_gresit": "Adresa de email nu pare corectă.",
+  "eroare.email_exista": "Există deja un cont cu acest email.",
+  "eroare.limba_indisponibila": "Limba aleasă nu este disponibilă.",
+  "eroare.login_gresit": "Email sau parolă greșită. Dacă ți-a făcut contul vânzătorul, deschide întâi linkul primit de la el.",
+  "eroare.date_doar_vanzator": "Numele, numele de pe fișă, telefonul și adresa le schimbă doar cel de la care ai primit programul (vânzătorul).",
+  "eroare.limba_doar_vanzator": "Această limbă ți-o poate pune doar cel de la care ai primit programul (vânzătorul).",
+  "eroare.bife": "Bifele trebuie să fie da sau nu.",
+  "eroare.parola_gresita": "Parola nu este corectă.",
+  "eroare.link_expirat": "Linkul a expirat sau a fost folosit.",
+  "camp.nume": "nume",
+  "camp.nume_fisa": "numele de pe pedigree",
+  "camp.telefon": "telefon",
+  "camp.adresa": "adresă",
+  "camp.email": "email",
+  "camp.vedere_arbore": "vederea Arborelui",
+  "mail.parola.subiect": "Parolă nouă pentru Porumbar",
+  "mail.parola_uitata.text": {
+    "text": "Bună, {nume}!\n\nCineva (sperăm că tu) a cerut o parolă nouă pentru contul tău Porumbar.\nDeschide linkul de mai jos în cel mult o oră și alege parola nouă:\n\n{link}\n\nDacă nu ai cerut tu, nu face nimic: parola ta rămâne aceeași.\n",
+    "sens": "Mailul de la „Am uitat parola”."
+  },
+  "mail.cont_nou.subiect": "Contul tău Porumbar",
+  "mail.cont_nou.text": {
+    "text": "Bună, {nume}!\n\nȚi-am făcut un cont în Porumbar, programul pentru evidența porumbeilor și a pedigree-urilor.\nDeschide linkul de mai jos în cel mult 7 zile și alege-ți parola; apoi intri direct în porumbarul tău:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
+    "sens": "Mailul pentru contul făcut de vânzător din consolă."
+  },
+  "mail.parola_link.text_7zile": "Bună, {nume}!\n\nCa să intri în contul tău Porumbar, deschide linkul de mai jos în cel mult 7 zile și alege-ți o parolă nouă:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
+  "mail.parola_link.text_24ore": "Bună, {nume}!\n\nCa să intri în contul tău Porumbar, deschide linkul de mai jos în cel mult 24 de ore și alege-ți o parolă nouă:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
+  "eroare.numar_intre": "„{camp}” trebuie să fie un număr între {min} și {max}.",
+  "eroare.pereche_doi_diferiti": "Alege doi porumbei diferiți.",
+  "eroare.pereche_mascul": "Primul porumbel al perechii trebuie să fie mascul (sexul M pe fișa lui).",
+  "eroare.pereche_femela": "Al doilea porumbel al perechii trebuie să fie femelă (sexul F pe fișa lui).",
+  "eroare.despartire_inainte": "Despărțirea nu poate fi înainte de împerechere.",
+  "eroare.pereche_negasita": "Perechea nu a fost găsită.",
+  "eroare.pereche_exista": "Perechea aceasta există deja în sezonul {sezon}.",
+  "eroare.ou_inainte": "Al doilea ou nu poate fi înaintea primului.",
+  "eroare.pui_inainte_de_ou": "Puii nu pot ieși înainte de ou (sau în aceeași zi).",
+  "eroare.oua_prea_multe": "Puii ieșiți, ouăle limpezi și cele sparte nu pot fi mai multe decât ouăle ({oua}).",
+  "eroare.ponta_negasita": "Ponta nu a fost găsită.",
+  "eroare.doica_alta": "Doica trebuie să fie altă pereche.",
+  "eroare.deja_inelati": "Ai inelat deja {numar} pui din această pontă.",
+  "eroare.toti_inelati_iesiti": "Din această pontă au ieșit {numar} pui, toți inelați deja. Schimbă întâi câți pui au ieșit.",
+  "eroare.toti_inelati_oua": "Din această pontă sunt {numar} pui, toți inelați deja. Schimbă întâi câți pui au ieșit.",
+  "eroare.inel_alti_parinti": "Inelul acesta e deja în program cu alți părinți. Verifică inelul.",
+  "eroare.inel_serie_necitit": "{camp}: inelul nu poate fi citit. Scrie-l ca în exemplu: RO-26-800540.",
+  "eroare.serie_aceeasi_tara": "Primul și ultimul inel trebuie să fie din aceeași țară, același an (și același club).",
+  "eroare.serie_ordine": "Ultimul inel trebuie să aibă numărul mai mare decât primul.",
+  "eroare.serie_negasita": "Seria nu a fost găsită.",
+  "eroare.da_sau_nu": "„{camp}” trebuie să fie da sau nu.",
+  "camp.data_imperecherii": "Data împerecherii",
+  "camp.data_despartirii": "Data despărțirii",
+  "camp.nota": "Notă",
+  "camp.cate_oua": "Câte ouă",
+  "camp.data_eclozarii": "Data eclozării",
+  "camp.cati_pui": "Câți pui au ieșit",
+  "camp.oua_limpezi": "Ouă limpezi",
+  "camp.oua_sparte": "Ouă sparte",
+  "camp.primul_inel": "Primul inel",
+  "camp.ultimul_inel": "Ultimul inel",
+  "camp.culoarea_de_baza": "culoarea de bază",
+  "camp.culoarea_ascunsa": "culoarea ascunsă",
+  "camp.dilutia_ascunsa": "diluția ascunsă",
+  "camp.desenul": "desenul",
+  "camp.uniform": "negrul uniform (spread)",
+  "camp.dilutia": "diluția",
+  "genetica.baza.BA.0": {
+    "text": "Roșu",
+    "sens": "Culoarea de bază a puiului (genetică): roșu (ash-red)."
+  },
+  "genetica.baza.BA.1": {
+    "text": "Gălbui",
+    "sens": "Roșu diluat."
+  },
+  "genetica.baza.plus.0": "Albastru",
+  "genetica.baza.plus.1": {
+    "text": "Argintiu",
+    "sens": "Albastru diluat."
+  },
+  "genetica.baza.b.0": "Maro",
+  "genetica.baza.b.1": {
+    "text": "Kaki",
+    "sens": "Maro diluat."
+  },
+  "genetica.uniform.BA.0": "Roșu uniform",
+  "genetica.uniform.BA.1": "Gălbui uniform",
+  "genetica.uniform.plus.0": "Negru",
+  "genetica.uniform.plus.1": "Dun (maro-cenușiu)",
+  "genetica.uniform.b.0": "Maro uniform",
+  "genetica.uniform.b.1": "Kaki uniform",
+  "genetica.desen.CT": {
+    "text": "solzat închis",
+    "sens": "Desenul, scris după culoarea de bază („Albastru solzat închis”)."
+  },
+  "genetica.desen.C": "solzat",
+  "genetica.desen.plus": "cu dungi",
+  "genetica.desen.c": "fără dungi",
+  "genetica.poarta.C": {
+    "text": "solzat",
+    "sens": "Ce poartă ascuns puiul (după „poartă”)."
+  },
+  "genetica.poarta.plus": "dungi",
+  "genetica.poarta.c": "fără dungi",
+  "genetica.poarta.dilutie": "diluție",
+  "genetica.poarta_baza.plus": "albastru",
+  "genetica.poarta_baza.b": "maro",
+  "genetica.baza_si_desen": "{baza} {desen}",
+  "genetica.uniform_diluat": "Uniform diluat",
+  "genetica.uniform_fara_baza": "Uniform (spread)",
+  "genetica.doar_desen": "{desen}",
+  "genetica.doar_desen_diluat": "{desen} (diluat)",
+  "genetica.diluat": "Diluat",
+  "genetica.necunoscut": "Nu se poate spune",
+  "text.fara_inel": "fără inel",
+  "text.fara_linie": {
+    "text": "Fără linie",
+    "sens": "Linia de sânge a unui strămoș fără linie și fără crescător știut."
+  },
+  "text.necunoscut": {
+    "text": "Necunoscut",
+    "sens": "Strămoș necunoscut (părinte lipsă) la liniile de sânge."
+  },
+  "text.cumparat_de_la": {
+    "text": "Cumpărat de la {vanzator} pe {data}",
+    "sens": "Nota scrisă pe porumbelul primit printr-o vânzare."
+  },
+  "eroare.pedigree_forma": "Pedigree-ul nu are forma așteptată.",
+  "eroare.pedigree_generatii": "Pedigree-ul poate avea cel mult {numar} generații.",
+  "eroare.tip_porumbel": "Tipul porumbelului nu e valid.",
+  "eroare.scrie_inelul": "Scrie cel puțin inelul porumbelului.",
+  "import.conflict_sex_mascul": "{inel} e în program mascul, iar pe hârtie scrie altfel. Am păstrat ce era.",
+  "import.conflict_sex_femela": "{inel} e în program femelă, iar pe hârtie scrie altfel. Am păstrat ce era.",
+  "import.conflict_alt_tata": "La {inel} programul are deja tată {are}, iar pe hârtie scrie {hartie}. Am păstrat ce era.",
+  "import.conflict_alta_mama": "La {inel} programul are deja mamă {are}, iar pe hârtie scrie {hartie}. Am păstrat ce era.",
+  "import.conflict_tata_mascul": "{parinte} e trecut ca tatăl lui {copil}, dar în program e mascul. Nu l-am legat.",
+  "import.conflict_tata_femela": "{parinte} e trecut ca tatăl lui {copil}, dar în program e femelă. Nu l-am legat.",
+  "import.conflict_mama_mascul": "{parinte} e trecut ca mama lui {copil}, dar în program e mascul. Nu l-am legat.",
+  "import.conflict_mama_femela": "{parinte} e trecut ca mama lui {copil}, dar în program e femelă. Nu l-am legat.",
+  "eroare.inel_propriu_stramos": "Inelul {inel} apare și ca strămoș al lui însuși. Verifică inelele.",
+  "eroare.porumbel_negasit": "Porumbelul nu a fost găsit.",
+  "eroare.linii_lista": "Liniile trebuie să fie o listă.",
+  "eroare.evaluare_invalida": "Evaluarea este invalidă.",
+  "eroare.note_1_5": "Notele evaluării sunt de la 1 la 5.",
+  "camp.calitati": "calități",
+  "eroare.inel_necitit": "Inelul nu poate fi citit. Scrie-l ca în exemplu: RO-25-123456.",
+  "camp.rasa": "rasă",
+  "camp.crescator": "crescător",
+  "eroare.inel_deja_la_tine": "Inelul {inel} este deja în porumbarul tău.",
+  "eroare.sex_e_tata": "Porumbelul e deja tatăl unor pui din program, așa că nu i se poate schimba sexul. Schimbă întâi părinții acelor pui.",
+  "eroare.sex_e_mama": "Porumbelul e deja mama unor pui din program, așa că nu i se poate schimba sexul. Schimbă întâi părinții acelor pui.",
+  "eroare.are_pui": "Porumbelul are pui în program. Schimbă-i starea în loc să-l ștergi.",
+  "eroare.numar": "„{camp}” trebuie să fie un număr.",
+  "eroare.numar_intreg": "„{camp}” trebuie să fie un număr întreg.",
+  "eroare.intre": "„{camp}” trebuie să fie între {min} și {max}.",
+  "eroare.ora_forma": "„{camp}” trebuie să fie o oră de forma 10:15 sau 10:15:43.",
+  "camp.locul_lansarii": "Locul lansării",
+  "camp.ora_lansarii": "Ora lansării",
+  "camp.porumbei_angajati": "Porumbei angajați",
+  "camp.distanta_km": "Distanța (km)",
+  "eroare.rezultat_negasit": "Rezultatul nu a fost găsit.",
+  "eroare.loc_prea_mare": "Locul {loc} e mai mare decât numărul de porumbei angajați ({angajati}).",
+  "eroare.rezultat_dublu": "Porumbelul are deja un rezultat la acest concurs. Schimbă-l pe cel existent.",
+  "eroare.parinte_invalid": "Părintele ales este invalid.",
+  "eroare.propriul_parinte": "Un porumbel nu poate fi propriul părinte.",
+  "eroare.tata_mama_acelasi": "Tatăl și mama nu pot fi același porumbel.",
+  "eroare.tata_mascul": "Tatăl trebuie să fie mascul.",
+  "eroare.mama_femela": "Mama trebuie să fie femelă.",
+  "eroare.deja_urmas": "Porumbelul ales e deja urmașul acestui porumbel.",
+  "eroare.generatii_interval": "Numărul de generații este de la 1 la {max}.",
+  "eroare.intrare_negasita": "Intrarea nu a fost găsită.",
+  "eroare.link_doar_proprii": "Doar porumbeii din porumbarul tău pot avea link public.",
+  "eroare.link_invalid": "Linkul nu mai este valabil. Cere-i crescătorului unul nou.",
+  "eroare.deja_al_tau": "Porumbelul este deja în porumbarul tău.",
+  "eroare.vanzare_negasita": "Vânzarea nu a fost găsită.",
+  "eroare.vanzare_primita": "Vânzarea a fost deja primită.",
+  "eroare.vanzare_anulata": "Vânzarea a fost anulată.",
+  "eroare.vinde_doar_proprii": "Poți vinde doar porumbei din porumbarul tău.",
+  "eroare.email_cumparator": "Scrie emailul cumpărătorului.",
+  "eroare.cumparator_fara_cont": "Nu există un cont cu acest email. Cumpărătorul trebuie să-și facă întâi cont în Porumbar, iar contul să fie activ.",
+  "eroare.emailul_tau": "Acesta e emailul contului tău.",
+  "eroare.deja_vandut": "Porumbelul a fost deja vândut.",
+  "eroare.vanzare_in_asteptare": "Porumbelul are deja o vânzare în așteptare. Anuleaz-o întâi.",
+  "eroare.vanzare_nu_se_anuleaza": "Porumbelul a fost deja primit; vânzarea nu se mai poate anula.",
+  "eroare.vanzare_nu_asteapta": "Vânzarea nu mai e în așteptare.",
+  "camp.sezonul": "Sezonul",
+  "camp.anul": "Anul",
+  "camp.cuibul": "Cuibul",
+  "camp.data_primului_ou": "Data primului ou",
+  "camp.data_ou_doi": "Data celui de-al doilea ou",
+  "camp.desenul_ascuns": "desenul ascuns",
+  "camp.uniform_ascuns": "spread ascuns",
+  "camp.linie": "linie",
+  "camp.de_dorit": "de dorit",
+  "camp.defecte": "defecte",
+  "camp.inel": "inel",
+  "camp.sex": "sex",
+  "camp.tip": "tip",
+  "camp.criteriu": "criteriu",
+  "camp.culoare": "culoare",
+  "camp.culoare_text": "culoare (text)",
+  "camp.culoarea_ochilor": "culoarea ochilor",
+  "camp.stare": "stare",
+  "camp.text_pedigree": "text pentru pedigree",
+  "camp.nr_concurs": "Nr. concursului",
+  "camp.organizator": "Organizator",
+  "camp.data_concurs": "Data concursului",
+  "camp.ora_sosirii": "Ora sosirii",
+  "camp.locul": "Locul",
+  "camp.ziua_sosirii": "Ziua sosirii",
+  "camp.viteza": "Viteza (m/min)",
+  "camp.coeficient": "Coeficient FCI",
+  "camp.categoria": "Categoria",
+  "camp.text": "text",
+  "catalog.rasa.voiajor": "Voiajor",
+  "catalog.rasa.jucator": "Jucător",
+  "catalog.rasa.zburator-inaltime": "Zburător de înălțime",
+  "catalog.rasa.rotitor": "Rotitor",
+  "catalog.rasa.expozitie": "Porumbel de expoziție (ornamental)",
+  "catalog.rasa.carne": "Porumbel de carne",
+  "catalog.rasa.alta": "Altă rasă",
+  "catalog.culoare.albastru": "Albastru",
+  "catalog.culoare.albastru-brocat": "Albastru brocat",
+  "catalog.culoare.solzat": "Solzat",
+  "catalog.culoare.solzat-inchis": "Solzat închis",
+  "catalog.culoare.gut": "Gut",
+  "catalog.culoare.negru": "Negru",
+  "catalog.culoare.pestrit": "Pestriț",
+  "catalog.culoare.baltat": "Bălțat",
+  "catalog.culoare.vanat": {
+    "text": "Vânăt",
+    "sens": "Vânăt = albastru cu dungi, culoarea porumbelului sălbatic. În maghiară: presupunere, de verificat."
+  },
+  "catalog.culoare.rosu": "Roșu",
+  "catalog.culoare.rosu-brocat": "Roșu brocat",
+  "catalog.culoare.galbui": "Gălbui",
+  "catalog.culoare.dun": "Dun (maro-cenușiu)",
+  "catalog.culoare.alb": "Alb",
+  "catalog.culoare.tarcat": "Tărcat",
+  "catalog.culoare.argintiu": "Argintiu",
+  "catalog.ochi.galben": "Galben",
+  "catalog.ochi.portocaliu": "Portocaliu",
+  "catalog.ochi.rosu": "Roșu",
+  "catalog.ochi.perlat": "Perlat",
+  "catalog.ochi.visiniu": {
+    "text": "Vișiniu (taurin)",
+    "sens": "Ochi foarte închis la culoare (taurin). Maghiară: presupunere, de verificat; „bükkönyszem” ar însemna ochi complet întunecat (glosarul), nu vișiniu."
+  },
+  "catalog.ochi.mixt": {
+    "text": "Mixt",
+    "sens": "Ochi cu culori amestecate. În maghiară: presupunere, de verificat."
+  },
+  "catalog.stare.concurent": "Concurent",
+  "catalog.stare.reproducator": "Reproducător",
+  "catalog.stare.tanar": "Tânăr",
+  "catalog.stare.vandut": "Vândut",
+  "catalog.stare.pierdut": "Pierdut",
+  "catalog.stare.mort": "Mort",
+  "catalog.stare.accidentat": "Accidentat",
+  "catalog.evaluare.echilibru": "Echilibru",
+  "catalog.evaluare.musculatura": "Musculatură",
+  "catalog.evaluare.spate": "Spate",
+  "catalog.evaluare.aripa": "Aripă",
+  "catalog.evaluare.penaj": "Penaj",
+  "catalog.evaluare.ochi": "Ochi",
+  "catalog.evaluare.bazin": "Bazin",
+  "catalog.evaluare.caracter": "Caracter",
+  "catalog.jurnal.nota": "Notă",
+  "catalog.jurnal.tratament": "Tratament",
+  "catalog.jurnal.vaccin": "Vaccin",
+  "catalog.jurnal.antrenament": "Antrenament",
+  "catalog.jurnal.altele": "Altele",
+  "catalog.concurs.viteza": {
+    "text": "Viteză",
+    "sens": "Categoria de concurs. Limitele în km rămân cele românești."
+  },
+  "catalog.concurs.semifond": "Semifond",
+  "catalog.concurs.fond": "Fond",
+  "catalog.concurs.mare-fond": {
+    "text": "Mare fond",
+    "sens": "În maghiară: presupunere, de verificat."
+  },
+  "catalog.concurs.maraton": "Maraton",
+  "catalog.concurs.pui": "Pui",
+  "catalog.concurs.altele": "Altele",
+  "eroare.citire_refuzata": "Fișierul nu a putut fi citit. Încearcă altă poză.",
+  "eroare.citire_prea_lung": "Pedigree-ul e prea lung pentru o citire. Încearcă o poză cu mai puține generații.",
+  "eroare.citire_nereusita": "Citirea nu a reușit. Încearcă din nou sau altă poză.",
+  "eroare.citire_tip_fisier": "Trimite o poză (JPG, PNG, WebP) sau un PDF.",
+  "eroare.citire_fisier_rupt": "Fișierul nu a ajuns întreg. Încearcă din nou.",
+  "eroare.citire_fisier_gol": "Fișierul e gol.",
+  "eroare.citire_fisier_mare": "Fișierul e prea mare (cel mult 12 MB).",
+  "eroare.citire_oprita": "Citirea din poză nu e pornită încă pe acest server. Completează căsuțele de mână.",
+  "eroare.citire_in_curs": "O citire e deja în curs. Așteaptă să se termine.",
+  "eroare.citire_fara_credit": "Nu mai ai credit pentru citirea pozelor. Poți completa căsuțele de mână (inelele pe care le ai deja se completează singure) sau ceri credit de la cel de la care ai primit programul.",
+  "eroare.citire_limita_zi": "Ai folosit cele {numar} citiri de azi. Mai poți citi mâine sau completezi căsuțele de mână.",
+  "eroare.citire_ocupata": "Citirea e ocupată acum. Încearcă din nou peste un minut.",
+  "eroare.citire_esuata": "Citirea nu a mers acum. Încearcă din nou sau completează de mână.",
+  "eroare.citire_niciun_porumbel": "Nu am găsit niciun porumbel în fișier. Încearcă o poză mai clară.",
+  "eroare.fara_server": "Nu s-a putut ajunge la server. Verifică internetul și încearcă din nou.",
+  "eroare.cod": "A apărut o eroare ({cod}).",
+  "eroare.oarecare": "A apărut o eroare.",
+  "sex.mascul": "Mascul",
+  "sex.femela": "Femelă",
+  "sex.necunoscut": "Sex necunoscut",
+  "sex.m": {
+    "text": "M",
+    "sens": "Litera pentru mascul (M); în maghiară H (hím)."
+  },
+  "sex.f": {
+    "text": "F",
+    "sens": "Litera pentru femelă (F); în maghiară T (tojó)."
+  },
+  "text.fara_inel_mare": "Fără inel",
+  "actiune.renunta": "Renunță",
+  "fisa.titlu": {
+    "text": "Pedigree porumbel:",
+    "sens": "Titlul foii tipărite, urmat de inel."
+  },
+  "fisa.cap_porumbel": {
+    "text": "Porumbelul",
+    "sens": "Capul coloanelor pe fișă (generațiile)."
+  },
+  "fisa.cap_parinti": "Părinți",
+  "fisa.cap_bunici": "Bunici",
+  "fisa.cap_strabunici": "Străbunici",
+  "fisa.cap_rastrabunici": "Răstrăbunici",
+  "fisa.scaneaza": {
+    "text": "Scanează pentru pedigree-ul complet",
+    "sens": "Sub codul QR de pe foaie."
+  },
+  "fisa.tel": "Tel.:",
+  "fisa.repetati": "Strămoșii colorați la fel apar de mai multe ori.",
+  "fisa.tiparit_pe": {
+    "text": "Tipărit pe",
+    "sens": "Urmat de data tipăririi."
+  },
+  "fisa.pene_albe": {
+    "text": "p.a.",
+    "sens": "Pene albe (în aripă), după culoare. Maghiară: presupunere, de verificat."
+  },
+  "public.kicker": "Pedigree",
+  "public.crescator": "crescător:",
+  "public.e_la_tine": "E în porumbarul tău: deschide fișa",
+  "public.preia": "Preia în porumbarul meu",
+  "public.intra_preia": "Intră ca să-l preiei",
+  "public.fa_cont": "Fă-ți cont",
+  "actiune.tipareste": "Tipărește",
+  "public.reclama": "Ții evidența porumbeilor pe hârtie? În Porumbar pedigree-urile se trec dintr-o poză și se dau mai departe cu un cod QR. Ca să preiei porumbei, contul trebuie să fie activ.",
+  "public.generat": "Generat de Porumbar pe {data}. Strămoșii colorați la fel apar de mai multe ori în pedigree.",
+  "public.preia_titlu": "Preiei pedigree-ul lui {inel}?",
+  "public.preia_rand1": "Se copiază în porumbarul tău ca porumbel care nu e în porumbarul tău (de ex. împrumutat pentru pui), cu strămoșii lui.",
+  "public.preia_rand2": "Strămoșii pe care îi ai deja nu se dublează. Dacă l-ai cumpărat, îl poți trece apoi ca al tău din fișa lui.",
+  "public.preia_da": "Da, preia",
+  "public.indisponibil": "Pedigree indisponibil",
+  "public.mergi": "Mergi la Porumbar",
+  "public.se_incarca": "Se încarcă pedigree-ul…",
+  "pdf.gata": "Fișa e gata",
+  "pdf.gata_rand": "{fisier} se poate trimite acum pe WhatsApp, mail sau unde vrei.",
+  "pdf.trimite": "Trimite fișa",
+  "titlu.panou": {
+    "text": "Panou · Porumbar",
+    "sens": "Titlul paginii în bara browserului."
+  },
+  "titlu.arbore": "Arbore · Porumbar",
+  "titlu.intra": "Intră în cont · Porumbar",
+  "titlu.cont_nou": "Cont nou · Porumbar",
+  "titlu.parola_uitata": "Parolă uitată · Porumbar",
+  "titlu.parola_noua": "Parolă nouă · Porumbar",
+  "titlu.porumbar": "Porumbarul meu",
+  "titlu.perechi": "Perechi · Porumbar",
+  "titlu.pereche": "Pereche · Porumbar",
+  "titlu.scaneaza": "Scanează codul QR · Porumbar",
+  "titlu.pedigree_hartie": "Importă pedigree · Porumbar",
+  "titlu.porumbel_nou": "Porumbel nou",
+  "titlu.editeaza": "Editează porumbelul",
+  "titlu.tiparire": "Tipărește pedigree-ul · Porumbar",
+  "titlu.porumbel": "Porumbel",
+  "titlu.vanzator": "Consola vânzătorului · Porumbar",
+  "titlu.vanzari": "Vânzări · Porumbar",
+  "titlu.public": "Pedigree · Porumbar",
+  "titlu.cont": "Contul meu",
+  "meniu.panou": {
+    "text": "Panou",
+    "sens": "Meniul principal: pagina de start cu porumbeii."
+  },
+  "meniu.arbore": {
+    "text": "Arbore",
+    "sens": "Meniul principal: arborele genealogic."
+  },
+  "meniu.perechi": {
+    "text": "Perechi",
+    "sens": "Meniul principal: perechile de împerechere."
+  },
+  "meniu.adauga": {
+    "text": "Adaugă",
+    "sens": "Meniul principal: butonul de adăugat un porumbel. Maghiară: de verificat dacă încape."
+  },
+  "meniu.vanzari": "Vânzări",
+  "meniu.cont": "Cont",
+  "meniu.vanzator": {
+    "text": "Vânzător",
+    "sens": "Meniul vânzătorului (adminul care dă programul crescătorilor)."
+  },
+  "meniu.iesi": {
+    "text": "Ieși",
+    "sens": "Ieșirea din cont, în meniu."
+  },
+  "meniu.brand": {
+    "text": "Porumbar, panoul",
+    "sens": "Eticheta pentru cititorul de ecran a siglei din colț."
+  },
+  "meniu.meniu": "Meniu",
+  "meniu.de_primit": {
+    "one": "{eticheta}: un porumbel trimis de primit",
+    "few": "{eticheta}: {count} porumbei trimiși de primit",
+    "other": "{eticheta}: {count} porumbei trimiși de primit",
+    "sens": "Pentru cititorul de ecran, la Vânzări: câți porumbei trimiși de alți crescători așteaptă. {eticheta} = „Vânzări”."
+  },
+  "banda.expirat": {
+    "text": "Abonamentul a expirat pe {data}: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.{activare}",
+    "sens": "Banda de sus. {activare} = fraza despre activare (începe cu spațiu). Maghiară: de verificat forma datei."
+  },
+  "banda.neactivat": "Contul nu este activ încă: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.{activare}",
+  "banda.expira": {
+    "one": "Abonamentul expiră pe {data} (peste {count} zi).{activare}",
+    "few": "Abonamentul expiră pe {data} (peste {count} zile).{activare}",
+    "other": "Abonamentul expiră pe {data} (peste {count} zile).{activare}",
+    "sens": "Banda de sus, cu o lună înainte de sfârșitul abonamentului. {activare} începe cu spațiu."
+  },
+  "auth.email": {
+    "text": "Email",
+    "sens": "Eticheta câmpului de email la intrare, cont nou, parolă uitată."
+  },
+  "intra.titlu": "Intră în porumbarul tău",
+  "intra.intra": {
+    "text": "Intră",
+    "sens": "Butonul de intrare în cont (și linkul „Intră” de pe pagina de cont nou)."
+  },
+  "intra.se_intra": "Se intră…",
+  "intra.am_uitat": "Am uitat parola",
+  "intra.nu_ai_cont": "Nu ai cont?",
+  "intra.fa_cont": "Fă-ți un cont nou",
+  "cont_nou.titlu": "Cont nou",
+  "cont_nou.nume": "Numele tău (sau al porumbarului)",
+  "cont_nou.parola_hint": "Cel puțin 10 caractere. Poate fi o propoziție, de exemplu „porumbeii mei zboară”.",
+  "cont_nou.se_creeaza": "Se creează…",
+  "cont_nou.fa_contul": "Fă contul",
+  "cont_nou.ai_cont": "Ai deja cont?",
+  "parola_uitata.titlu": "Ai uitat parola?",
+  "parola_uitata.trimis_1": {
+    "text": "Dacă există un cont cu adresa",
+    "sens": "Prima parte a frazei; urmează emailul (îngroșat), apoi parola_uitata.trimis_2."
+  },
+  "parola_uitata.trimis_2": {
+    "text": ", ți-am trimis un email cu un link pentru parola nouă.",
+    "sens": "Continuarea după emailul îngroșat; începe cu virgulă (în maghiară cu spațiu)."
+  },
+  "parola_uitata.trimis_3": "Linkul merge o oră. Uită-te și în dosarul „Spam”.",
+  "parola_uitata.inapoi": "Înapoi la intrare",
+  "parola_uitata.explicatie": "Scrie emailul contului. Îți trimitem un link cu care îți alegi o parolă nouă.",
+  "parola_uitata.trimite": "Trimite linkul",
+  "parola_noua.titlu": "Alege-ți parola",
+  "parola_noua.deja_in_cont": "Ești deja în contul tău ({email}). Dacă ți-ai ales parola din acest link, nu mai ai nevoie de el: se folosește o singură dată.",
+  "parola_noua.mergi": "Mergi la porumbarul tău",
+  "parola_noua.eticheta": "Parola nouă",
+  "parola_noua.hint": "Cel puțin 10 caractere.",
+  "parola_noua.totusi_in_cont": {
+    "text": "Ești însă deja în cont, deci totul e în regulă.",
+    "sens": "Apare după eroarea linkului, când omul e deja în cont."
+  },
+  "parola_noua.link_nou": "Cere un link nou",
+  "parola_noua.salveaza": "Salvează parola",
+  "cont.titlu": "Contul meu",
+  "cont.abonament": "Abonament",
+  "cont.activ": {
+    "text": "Activ",
+    "sens": "Starea abonamentului; urmează „: de pe <data> până pe <data>”."
+  },
+  "cont.expirat": "Expirat",
+  "cont.de_pe": {
+    "text": ": de pe ",
+    "sens": "Între stare și data de început (cu spațiile din jur)."
+  },
+  "cont.pana_pe": {
+    "text": " până pe ",
+    "sens": "Între data de început și cea de sfârșit (cu spațiile din jur)."
+  },
+  "cont.zile_ramase": {
+    "one": "(mai sunt {count} zile)",
+    "few": "(mai sunt {count} zile)",
+    "other": "(mai sunt {count} zile)",
+    "sens": "Câte zile mai are abonamentul."
+  },
+  "cont.neactivat": "Contul nu este activ încă. Până la activare poți doar să vezi porumbeii.",
+  "cont.credit": "Credit pentru citirea pedigree-urilor din poze:",
+  "cont.cost_citire": "(o citire costă în jur de 0,10–0,15 $)",
+  "cont.plata_contact": "Plată, activare și credit: {contact}",
+  "cont.admin_explicatie": "Pe pedigree-ul tipărit apar jos, în stânga, numele de pe pedigree și ce bifezi mai jos.",
+  "cont.nume": "Nume",
+  "cont.nume_pedigree": "Numele de pe pedigree",
+  "cont.nume_pedigree_hint": "(echipa sau crescătoria, de ex. „Popescu-Ionescu Team”)",
+  "cont.telefon": "Telefon",
+  "cont.adresa": "Adresă",
+  "cont.adresa_exemplu": {
+    "text": "Strada, numărul\nLocalitatea, județul",
+    "sens": "Exemplul din căsuța adresei, pe două rânduri."
+  },
+  "cont.date_fisa": "Datele de pe fișă",
+  "cont.date_fisa_explicatie": {
+    "text": "Așa apar jos, în stânga, pe pedigree. Le schimbă doar cel de la care ai primit programul",
+    "sens": "Fără punct la sfârșit: urmează, dacă există, contactul vânzătorului în paranteză, apoi punctul."
+  },
+  "cont.tel": "Tel.: {telefon}",
+  "cont.ce_apare": "Ce apare pe lângă nume",
+  "cont.ce_apare_explicatie": "Numele apare mereu. Linkul public și codul QR le poate vedea oricine le are.",
+  "cont.col_fisa": "Pe fișă și în PDF",
+  "cont.col_link": "La link și codul QR",
+  "cont.rand_telefon": "Telefonul",
+  "cont.rand_adresa": "Adresa",
+  "cont.rand_email": "Emailul",
+  "cont.telefon_fisa": "Telefonul pe fișă",
+  "cont.telefon_link": "Telefonul la link",
+  "cont.adresa_fisa": "Adresa pe fișă",
+  "cont.adresa_link": "Adresa la link",
+  "cont.email_fisa": "Emailul pe fișă",
+  "cont.email_link": "Emailul la link",
+  "cont.telefon_link_public": "Telefonul pe linkul public",
+  "cont.adresa_link_public": "Adresa pe linkul public",
+  "cont.email_link_public": "Emailul pe linkul public",
+  "cont.salvat": "Salvat.",
+  "cont.iesire": "Ieșire",
+  "cont.iesi": "Ieși din cont",
+  "cont.stergere": "Ștergerea contului",
+  "cont.stergere_explicatie": "Se șterg contul și toți porumbeii, pozele și notele tale. Nu se poate da înapoi.",
+  "cont.parola_confirmare": "Scrie parola ca să confirmi",
+  "cont.sterge_definitiv": "Șterge contul definitiv",
+  "cont.salvezi": "Salvezi modificările?",
+  "cont.da_salveaza": "Da, salvează",
+  "cont.stergi": "Ștergi contul și tot porumbarul?",
+  "cont.stergi_rand1": "Se șterg toți porumbeii, notele și datele contului.",
+  "cont.nu_inapoi": "Nu se poate da înapoi.",
+  "cont.da_sterge": "Da, șterge tot",
+  "text.da": {
+    "text": "da",
+    "sens": "În lista de modificări de confirmat: o bifă pusă."
+  },
+  "text.nu": {
+    "text": "nu",
+    "sens": "În lista de modificări de confirmat: o bifă scoasă."
+  },
+  "actiune.salveaza": "Salvează",
+  "drum.unde_esti": {
+    "text": "Unde ești",
+    "sens": "Eticheta pentru cititorul de ecran a drumului până la pagina curentă (breadcrumbs)."
+  },
+  "parola_camp.parola": {
+    "text": "Parola",
+    "sens": "Eticheta câmpului de parolă."
+  },
+  "parola_camp.arata": "Arată parola",
+  "parola_camp.ascunde": "Ascunde parola",
+  "vedere.cum_arati": {
+    "text": "Cum arăți porumbeii",
+    "sens": "Comutatorul Grilă / Listă (pentru cititorul de ecran)."
+  },
+  "vedere.grila": "Grilă",
+  "vedere.lista": "Listă",
+  "trimite.trimite": {
+    "text": "Trimite",
+    "sens": "Butonul care trimite fișa ca PDF prin meniul de partajare al telefonului."
+  },
+  "trimite.se_pregateste": "Se pregătește…",
+  "trimite.descarcat": "Fișa s-a descărcat ca PDF; o poți trimite de acolo.",
+  "trimite.eroare": "Fișa nu s-a putut pregăti: {eroare}",
+  "cip.extern": {
+    "text": "nu e în porumbarul meu",
+    "sens": "Eticheta unui porumbel extern (strămoș notat, care nu e al omului)."
+  },
+  "cip.necunoscut": {
+    "text": "necunoscut",
+    "sens": "Porumbel (părinte) necunoscut."
+  },
+  "inel.eticheta": "Inelul",
+  "inel.exemplu": {
+    "text": "De exemplu RO-25-276971, 276971/25 RO sau RO 25 276971. Litera de la final (M/F, L/T) spune sexul.",
+    "sens": "Literele M/F, L/T sunt cele pe care le înțelege programul în inel; nu se traduc. Maghiară: de verificat."
+  },
+  "inel.recunoscut": "Recunoscut:",
+  "inel.mascul": {
+    "text": "mascul",
+    "sens": "După inelul recunoscut: „…, mascul”."
+  },
+  "inel.femela": "femelă",
+  "inel.necitit": "Nu pot citi inelul. Scrie-l ca în exemplu: RO-25-123456.",
+  "inel.neobisnuit": "Nu e un inel obișnuit: se păstrează exact cum l-ai scris.",
+  "parinti.tatal": "Tatăl",
+  "parinti.mama": "Mama",
+  "parinti.coi": {
+    "text": "Puii acestei perechi ar avea consangvinizare",
+    "sens": "Urmează procentul îngroșat și un punct."
+  },
+  "parinti.stramosi_comuni": "Strămoși comuni:",
+  "parinti.fara_stramosi_comuni": "Tatăl și mama nu au strămoși comuni cunoscuți (consangvinizare 0%).",
+  "parinti.confirma": "Confirmă părinții",
+  "parinti.schimbi": "Schimbi părinții?",
+  "parinti.da_schimba": "Da, schimbă",
+  "parinti.schimba": {
+    "text": "Schimbă",
+    "sens": "Butonul de lângă părintele ales: alegi altul."
+  },
+  "parinti.scrie_inel_tata": "Scrie inelul tatălui",
+  "parinti.scrie_inel_mama": "Scrie inelul mamei",
+  "parinti.inel_exemplu": "de ex. RO-24-199163",
+  "parinti.caut": "Caut…",
+  "parinti.linii": {
+    "text": "Linii: {linii}",
+    "sens": "Liniile de sânge ale porumbelului."
+  },
+  "parinti.tata_eticheta": "Tată:",
+  "parinti.mama_eticheta": "Mamă:",
+  "parinti.numar_pui": {
+    "one": "{count} pui",
+    "few": "{count} pui",
+    "other": "{count} pui",
+    "sens": "Câți pui (urmași) are porumbelul; urmează „în porumbar”. Maghiară: de verificat."
+  },
+  "parinti.in_porumbar": "în porumbar",
+  "parinti.e_mascul": "Acest porumbel e mascul: nu poate fi mama.",
+  "parinti.e_femela": "Acest porumbel e femelă: nu poate fi tatăl.",
+  "parinti.alege_tata": "Alege ca tată",
+  "parinti.alege_mama": "Alege ca mamă",
+  "parinti.porumbel": {
+    "text": "Porumbel",
+    "sens": "Începutul frazei „Porumbel fără inel. Îl notezi ca strămoș…?”"
+  },
+  "parinti.notezi_fara_inel": {
+    "text": ". Îl notezi ca strămoș (nu e în porumbarul tău)?",
+    "sens": "Urmează după „Porumbel fără inel” (începe cu punct)."
+  },
+  "parinti.alt_porumbel": "Sau e alt porumbel, scris la fel? Îl notezi separat:",
+  "parinti.inelul": {
+    "text": "Inelul",
+    "sens": "Urmează inelul îngroșat, apoi parinti.nu_e_in_program."
+  },
+  "parinti.nu_e_in_program": "nu e încă în program. Îl notezi ca strămoș (nu e în porumbarul tău)?",
+  "parinti.nume": "Nume sau poreclă",
+  "parinti.optional": "opțional",
+  "parinti.culoarea": "Culoarea",
+  "parinti.culoarea_hint": "opțional, cum scrie pe pedigree",
+  "parinti.text_pedigree": "Ce scrie pe pedigree despre el",
+  "parinti.noteaza": "Notează-l și alege-l",
+  "actiune.da_sterge": "Da, șterge",
+  "actiune.editeaza": "Editează",
+  "actiune.gata": "Gata",
+  "actiune.inchide": "Închide",
+  "actiune.schimba": "Schimbă",
+  "actiune.sterge": "Șterge",
+  "actiune.trimite": "Trimite",
+  "text.optional": "opțional",
+  "text.de_exemplu": {
+    "text": "de ex. {exemplu}",
+    "sens": "{exemplu} = unul sau mai multe exemple, de ex. „„DE 546”, „Super Velden””."
+  },
+  "text.nu_se_poate_da_inapoi": {
+    "text": "Nu se poate da înapoi.",
+    "sens": "Ultimul rând din confirmarea unei ștergeri."
+  },
+  "panou.titlu": {
+    "text": "Porumbarul meu",
+    "sens": "Titlul panoului și al listei de porumbei."
+  },
+  "panou.importa_pedigree": "Importă pedigree",
+  "panou.scaneaza_qr": "Scanează cod QR",
+  "panou.gol_titlu": "Porumbarul e gol deocamdată",
+  "panou.gol_text": "Adaugă primul porumbel. Durează un minut.",
+  "panou.adauga_primul": "Adaugă primul porumbel",
+  "panou.nimic_gasit": "Niciun porumbel nu se potrivește căutării sau filtrelor.",
+  "panou.fara_nota_mic": {
+    "text": "fără notă",
+    "sens": "Pentru cititorul de ecran, pe căsuța notei (0–100) a porumbelului."
+  },
+  "panou.nota_aria": {
+    "text": "nota {nota}",
+    "sens": "Pentru cititorul de ecran; {nota} = 0–100."
+  },
+  "panou.porumbel_mic": {
+    "text": "porumbel",
+    "sens": "Când porumbelul n-are nici inel, nici nume (în „Tipărește pedigree-ul lui …”)."
+  },
+  "panou.tipareste_aria": {
+    "text": "Tipărește pedigree-ul lui {cine}",
+    "sens": "{cine} = inelul sau numele porumbelului."
+  },
+  "panou.trimite_fisa": "Trimite fișa (PDF)",
+  "panou.trimite_aria": {
+    "text": "Trimite fișa ca PDF pentru {cine}",
+    "sens": "{cine} = inelul sau numele porumbelului."
+  },
+  "panou.culorile_notei": "Culorile notei",
+  "panou.nota": {
+    "text": "Nota:",
+    "sens": "Înaintea legendei cu culorile notei (80–100, 60–79…)."
+  },
+  "panou.banda_sub20": {
+    "text": "sub 20",
+    "sens": "Treapta de notă sub 20 (din 100)."
+  },
+  "panou.banda_fara_date": {
+    "text": "fără date",
+    "sens": "Treapta de notă a porumbeilor fără date pentru notă."
+  },
+  "panou.nota_explicatie": "Nota (0–100) vine din evaluarea la mână, câți pui are în porumbar și dacă e reproducător. După ce introduci rezultatele de concurs, va ține cont și de ele.",
+  "panou.fisa_descarcata": "Fișa s-a descărcat ca PDF; o poți trimite de acolo.",
+  "panou.fisa_nepregatita": "Fișa nu s-a putut pregăti: {eroare}",
+  "panou.motiv_evaluare": {
+    "text": "evaluare {nota}",
+    "sens": "De ce are porumbelul nota: „evaluare 75 · 2 pui · reproducător”."
+  },
+  "panou.motiv_pui": {
+    "one": "{count} pui",
+    "few": "{count} pui",
+    "other": "{count} pui"
+  },
+  "panou.motiv_reproducator": "reproducător",
+  "panou.fara_nota_ajutor": "Fără notă: adaugă evaluarea sau puii",
+  "panou.numar_porumbei": {
+    "one": "{count} porumbel",
+    "few": "{count} porumbei",
+    "other": "{count} porumbei",
+    "sens": "Sub titlu: câți porumbei sunt (azi fără „de”: „20 porumbei”)."
+  },
+  "panou.numar_afisati": {
+    "one": "{count} afișat",
+    "few": "{count} afișați",
+    "other": "{count} afișați"
+  },
+  "panou.dupa": {
+    "text": "după {ordonare}",
+    "sens": "Sub titlu: ordonarea aleasă, cu literă mică („după inel”)."
+  },
+  "panou.grupati": "grupați: {grupare}",
+  "panou.fara_rezultate_concurs": "Fără rezultate la concursuri",
+  "panou.rezultate": {
+    "one": "{count} rezultat",
+    "few": "{count} rezultate",
+    "other": "{count} rezultate"
+  },
+  "panou.premii": {
+    "one": "{count} premiu",
+    "few": "{count} premii",
+    "other": "{count} premii"
+  },
+  "panou.locul": {
+    "text": "locul {loc}",
+    "sens": "Cel mai bun loc la concurs, în rândul de jos al casetei."
+  },
+  "panou.coef": {
+    "text": "coef. {coef}",
+    "sens": "Cel mai bun coeficient la concurs, prescurtat."
+  },
+  "panou.cauta": "Caută…",
+  "panou.cauta_ajutor": "Caută după inel, nume, culoare, crescător, linie sau an",
+  "panou.ordoneaza": "Ordonează",
+  "panou.grupeaza": "Grupează",
+  "panou.filtre": "Filtre",
+  "panou.ordoneaza_val": "Ordonează: {ordonare}",
+  "panou.grupeaza_val": "Grupează: {grupare}",
+  "panou.grupare_fara": {
+    "text": "fără",
+    "sens": "În „Grupează: fără”, când nu e aleasă nicio grupare."
+  },
+  "panou.filtre_val": {
+    "text": "Filtre: {numar}",
+    "sens": "{numar} = câte filtre sunt puse sau „niciunul”."
+  },
+  "panou.niciunul": {
+    "text": "niciunul",
+    "sens": "În „Filtre: niciunul”."
+  },
+  "panou.ordoneaza_dupa": "Ordonează după",
+  "panou.grupeaza_dupa": "Grupează după",
+  "panou.rapide": {
+    "text": "Rapide",
+    "sens": "Titlul filtrelor rapide în fereastra „Filtre”."
+  },
+  "panou.sterge_filtrele": "Șterge filtrele",
+  "panou.filtre_rapide": "Filtre rapide",
+  "panou.pui_an": {
+    "text": "Pui {an}",
+    "sens": "Butonul de filtru: puii din anul {an}."
+  },
+  "panou.premiati_ajutor": "Cu premii (în primii 20% din înscriși)",
+  "panou.reproducatori": "Reproducători",
+  "panou.de_completat": {
+    "text": "De completat",
+    "sens": "Filtru: porumbeii cărora le lipsesc date."
+  },
+  "panou.de_completat_ajutor": "Fără sex, culoare sau părinți",
+  "panou.ordonare.nota": "Notă",
+  "panou.ordonare.nota_scurt": {
+    "text": "Notă",
+    "sens": "Pe pastila din bară: un cuvânt scurt."
+  },
+  "panou.ordonare.nota_ajutor": "cei mai valoroși primii",
+  "panou.ordonare.inel": "Inel",
+  "panou.ordonare.inel_scurt": "Inel",
+  "panou.ordonare.inel_ajutor": "anul, apoi numărul",
+  "panou.ordonare.tineri": "Cei mai tineri",
+  "panou.ordonare.tineri_scurt": "Tineri",
+  "panou.ordonare.tineri_ajutor": "după data eclozării sau anul inelului",
+  "panou.ordonare.batrani": "Cei mai bătrâni",
+  "panou.ordonare.batrani_scurt": "Bătrâni",
+  "panou.ordonare.batrani_ajutor": "după data eclozării sau anul inelului",
+  "panou.ordonare.nume": "Nume",
+  "panou.ordonare.nume_scurt": "Nume",
+  "panou.ordonare.nume_ajutor": "A–Z, cei fără nume la sfârșit",
+  "panou.ordonare.loc": "Cel mai bun loc",
+  "panou.ordonare.loc_scurt": "Loc",
+  "panou.ordonare.loc_ajutor": "din rezultatele la concursuri",
+  "panou.ordonare.premii": "Cele mai multe premii",
+  "panou.ordonare.premii_scurt": "Premii",
+  "panou.ordonare.premii_ajutor": "premiu = în primii 20% din înscriși",
+  "panou.ordonare.coef": "Cel mai bun coeficient",
+  "panou.ordonare.coef_scurt": "Coef.",
+  "panou.ordonare.coef_ajutor": "locul × 1000 / înscriși, mai mic e mai bine",
+  "panou.ordonare.pui": "Cei mai mulți pui",
+  "panou.ordonare.pui_scurt": "Pui",
+  "panou.ordonare.pui_ajutor": "puii din porumbar",
+  "panou.ordonare.recent": "Adăugați recent",
+  "panou.ordonare.recent_scurt": "Recenți",
+  "panou.ordonare.recent_ajutor": "cei puși ultimii în program",
+  "panou.grupare.none": "Fără grupare",
+  "panou.grupare.none_scurt": {
+    "text": "Grupează",
+    "sens": "Pe pastila din bară, când nu e aleasă nicio grupare."
+  },
+  "panou.grupare.none_ajutor": "toți la un loc",
+  "panou.grupare.sex": "Sex",
+  "panou.grupare.sex_scurt": "Sex",
+  "panou.grupare.sex_ajutor": "masculi, femele, nesexați",
+  "panou.grupare.an": "An",
+  "panou.grupare.an_scurt": "An",
+  "panou.grupare.an_ajutor": "puii fiecărui an",
+  "panou.grupare.stare": "Stare",
+  "panou.grupare.stare_scurt": "Stare",
+  "panou.grupare.stare_ajutor": "concurenți, reproducători, tineri…",
+  "panou.grupare.nota": "Notă",
+  "panou.grupare.nota_scurt": "Notă",
+  "panou.grupare.nota_ajutor": "cele 5 trepte de culoare",
+  "panou.grupare.rezultate": "Rezultate",
+  "panou.grupare.rezultate_scurt": "Rezultate",
+  "panou.grupare.rezultate_ajutor": "premiați, cu rezultate, fără rezultate",
+  "panou.grupare.categorie": "Categoria de concurs",
+  "panou.grupare.categorie_scurt": "Categorie",
+  "panou.grupare.categorie_ajutor": "unde au cel mai bun rezultat",
+  "panou.grupare.pereche": "Pereche",
+  "panou.grupare.pereche_scurt": "Pereche",
+  "panou.grupare.pereche_ajutor": "fiecare cuplu din sezon, cu puii lui",
+  "panou.grupare.linie": "Crescător / linie",
+  "panou.grupare.linie_scurt": "Linie",
+  "panou.grupare.linie_ajutor": "de unde vin",
+  "panou.grupare.culoare": "Culoare",
+  "panou.grupare.culoare_scurt": "Culoare",
+  "panou.grupare.culoare_ajutor": "după culoarea penajului",
+  "panou.grupare.generatie": "Generația în porumbar",
+  "panou.grupare.generatie_scurt": "Generație",
+  "panou.grupare.generatie_ajutor": "aduși, puii lor, nepoții…",
+  "panou.grupa.nesexati": {
+    "text": "Nesexați",
+    "sens": "Titlul grupei porumbeilor fără sex știut."
+  },
+  "panou.grupa.puii_anului": "Puii anului {an}",
+  "panou.grupa.anul": "Anul {an}",
+  "panou.grupa.fara_an": "Fără an",
+  "panou.grupa.fara_stare": "Fără stare",
+  "panou.grupa.nota": {
+    "text": "Nota {interval}",
+    "sens": "{interval} = treapta, de ex. „80–100”."
+  },
+  "panou.grupa.nota_sub20": "Nota sub 20",
+  "panou.grupa.fara_nota": "Fără notă",
+  "panou.grupa.premiati": "Premiați",
+  "panou.grupa.cu_rezultate": "Cu rezultate, fără premiu",
+  "panou.grupa.fara_rezultate": "Fără rezultate",
+  "panou.grupa.perechea": {
+    "text": "Perechea {pereche} ({sezon})",
+    "sens": "{pereche} = cele două inele ale perechii, {sezon} = anul."
+  },
+  "panou.grupa.fara_pereche": "Fără pereche în sezon",
+  "panou.grupa.linia": "Linia {linie}",
+  "panou.grupa.crescator": "Crescător: {crescator}",
+  "panou.grupa.crescuti_acasa": "Crescuți în porumbarul meu",
+  "panou.grupa.fara_linie": "Fără crescător sau linie",
+  "panou.grupa.fara_culoare": "Fără culoare",
+  "panou.grupa.fondatori": {
+    "text": "Aduși din afară (fondatori)",
+    "sens": "Porumbeii aduși din alt porumbar, fără părinți crescuți aici."
+  },
+  "panou.grupa.generatia2": "Generația 2: puii lor",
+  "panou.grupa.generatia3": "Generația 3: nepoții",
+  "panou.grupa.generatia": "Generația {numar}",
+  "porumbar.cauta": "Caută după inel sau nume",
+  "porumbar.ce_porumbei": "Ce porumbei",
+  "porumbar.nu_sunt_ai_mei": "Nu sunt în porumbarul meu",
+  "porumbar.toti": "Toți",
+  "porumbar.orice_stare": "Orice stare",
+  "porumbar.masculi_si_femele": "Masculi și femele",
+  "porumbar.nimic_gasit": "Niciun porumbel nu se potrivește căutării.",
+  "porumbar.gol": "Porumbarul e gol deocamdată.",
+  "porumbel.nou": "Porumbel nou",
+  "porumbel.masculi": "Masculi",
+  "porumbel.femele": "Femele",
+  "porumbel.starea": "Starea",
+  "porumbel.sexul": "Sexul",
+  "porumbel.din_porumbarul_meu": {
+    "text": "Din porumbarul meu",
+    "sens": "Porumbelul e al omului (nu împrumutat / din alt porumbar)."
+  },
+  "porumbel.nu_e_al_meu": {
+    "text": "Nu e în porumbarul meu",
+    "sens": "Porumbel din alt porumbar (strămoș, împrumutat)."
+  },
+  "porumbel.nu_e_al_meu_mic": "nu e în porumbarul meu",
+  "porumbel.tipareste_pedigree": "Tipărește pedigree-ul",
+  "porumbel.fila_fisa": {
+    "text": "Fișa",
+    "sens": "Fila cu datele porumbelului."
+  },
+  "porumbel.fila_rezultate": "Rezultate",
+  "porumbel.fila_rude": "Rude",
+  "porumbel.fila_arbore": {
+    "text": "Pedigree",
+    "sens": "Fila cu arborele genealogic (pedigree-ul)."
+  },
+  "porumbel.fila_jurnal": "Jurnal",
+  "porumbel.fila_qr": "QR",
+  "porumbel.firimitura_lista": {
+    "text": "Listă",
+    "sens": "Firimitura: înapoi la lista porumbeilor."
+  },
+  "porumbel.vezi_in_arbore": "Vezi în arbore",
+  "porumbel.rasa": "Rasa",
+  "porumbel.linii": "Linii",
+  "porumbel.culoare": "Culoare",
+  "porumbel.pene_albe": {
+    "text": "pene albe",
+    "sens": "Pene albe în aripă (remige albe), scris după culoare. Maghiară: de verificat."
+  },
+  "porumbel.ochi": {
+    "text": "Ochi",
+    "sens": "Culoarea ochilor, pe fișă."
+  },
+  "porumbel.eclozat": {
+    "text": "Eclozat",
+    "sens": "Data eclozării, pe fișă."
+  },
+  "porumbel.crescator": "Crescător",
+  "porumbel.inel_scris": {
+    "text": "Inel scris",
+    "sens": "Inelul așa cum l-a scris omul, când diferă de forma afișată."
+  },
+  "porumbel.pe_pedigree": "Pe pedigree",
+  "porumbel.evaluare": "Evaluare",
+  "porumbel.calitati": "Calități",
+  "porumbel.de_dorit": {
+    "text": "De dorit",
+    "sens": "Ce lasă de dorit la porumbel (evaluare)."
+  },
+  "porumbel.defecte": "Defecte",
+  "porumbel.parintii": "Părinții",
+  "porumbel.stergerea": "Ștergerea porumbelului",
+  "porumbel.stergerea_text": "Se șterge doar acest porumbel. Dacă are pui în program, nu se poate șterge: schimbă-i starea (de ex. Mort, Pierdut, Vândut).",
+  "porumbel.sterge_buton": "Șterge porumbelul {inel}",
+  "porumbel.tatal": "Tatăl",
+  "porumbel.mama": "Mama",
+  "porumbel.frati": "Frați și surori ({numar})",
+  "porumbel.frati_vitregi": "Frați vitregi — un singur părinte comun ({numar})",
+  "porumbel.pui": "Pui ({numar})",
+  "porumbel.niciunul": "Niciunul în porumbar.",
+  "porumbel.jurnal_tip": {
+    "text": "Ce e",
+    "sens": "Eticheta listei cu felul notei din jurnal (notă, tratament, vaccin…)."
+  },
+  "porumbel.adauga_in_jurnal": "Adaugă în jurnal",
+  "porumbel.nicio_nota": "Nicio notă încă.",
+  "porumbel.sterge_titlu": {
+    "text": "Ștergi porumbelul {cine}?",
+    "sens": "{cine} = inelul și numele."
+  },
+  "porumbel.sterge_rand1": "Se șterg fișa lui, notele și jurnalul. Dacă are link public, codul QR nu mai merge; o vânzare în așteptare se anulează.",
+  "porumbel.sterge_rand2": "Ceilalți porumbei rămân neatinși.",
+  "porumbel.sterge_da": "Da, șterge-l definitiv",
+  "porumbel.sterge_nota_titlu": "Ștergi această notă din jurnal?",
+  "rezultate.schimba_titlu": "Schimbă rezultatul",
+  "rezultate.adauga_titlu": "Adaugă un rezultat",
+  "rezultate.concursul": "Concursul",
+  "rezultate.concurs_nou": "Concurs nou (îl scriu mai jos)",
+  "rezultate.concurs_ales_ajutor": "Dacă ai trecut deja concursul la alt porumbel, alege-l de aici și nu-l mai scrii o dată.",
+  "rezultate.ex_lansare": {
+    "text": "de ex. Yablanița",
+    "sens": "Exemplu de loc de lansare."
+  },
+  "rezultate.organizator": "Organizator (club sau județ)",
+  "rezultate.ex_organizator": {
+    "text": "de ex. Vâlcea",
+    "sens": "Exemplu de organizator (județ)."
+  },
+  "rezultate.angajati": "Porumbei angajați (în tot concursul)",
+  "rezultate.angajati_ajutor": "Fără el nu se poate calcula coeficientul.",
+  "rezultate.rezultatul_porumbelului": "Rezultatul porumbelului",
+  "rezultate.locul_obtinut": "Locul obținut",
+  "rezultate.apare_pe_pedigree": "Apare pe pedigree (fișa tipărită, linkul public, vânzarea)",
+  "rezultate.mai_multe_date": "Mai multe date din clasament (nu sunt obligatorii)",
+  "rezultate.ziua_1": "Ziua 1 (în ziua lansării)",
+  "rezultate.ziua": {
+    "text": "Ziua {zi}",
+    "sens": "Ziua sosirii după lansare (2, 3)."
+  },
+  "rezultate.viteza_ajutor": "Se calculează singură din ora lansării, ora sosirii (ziua 1) și distanță.",
+  "rezultate.salveaza_schimbarea": "Salvează schimbarea",
+  "rezultate.adauga_rezultatul": "Adaugă rezultatul",
+  "rezultate.locul": "Locul {loc}",
+  "rezultate.din": {
+    "text": "din {numar}",
+    "sens": "După „Locul 5”: din câți porumbei angajați."
+  },
+  "rezultate.concursul_nr": {
+    "text": "concursul {nr}",
+    "sens": "Numărul concursului în program."
+  },
+  "rezultate.viteza": "Viteza {viteza} m/min",
+  "rezultate.coeficient": "Coeficient {coef}",
+  "rezultate.pe_pedigree": {
+    "text": "pe pedigree:",
+    "sens": "Urmat de rândul scurt al rezultatului, cum apare pe pedigree."
+  },
+  "rezultate.nu_pe_pedigree": "nu apare pe pedigree",
+  "rezultate.niciunul": "Niciun rezultat încă. Scrie-l mai sus, așa cum apare în clasament.",
+  "rezultate.sterge_titlu": "Ștergi acest rezultat?",
+  "partajare.doar_proprii": {
+    "text": "Doar porumbeii din porumbarul tău au link public. Dacă acesta e al tău, schimbă-l din Editează → „Din porumbarul meu”.",
+    "sens": "Numele butonului și al variantei trebuie să fie ca în actiune.editeaza și porumbel.din_porumbarul_meu."
+  },
+  "partajare.titlu": {
+    "text": "Pedigree-ul lui {cine}",
+    "sens": "{cine} = numele în ghilimele sau inelul."
+  },
+  "partajare.cine_scaneaza": "Cine scanează codul sau deschide linkul vede pedigree-ul pe 5 generații, fără cont. Cu cont, îl poate prelua în porumbarul lui.",
+  "partajare.copiat": "Copiat",
+  "partajare.copiaza": "Copiază linkul",
+  "partajare.pe_pedigree_apare": {
+    "text": "Pe pedigree apare: numele tău{extra}.",
+    "sens": "{extra} = „, telefonul, adresa” sau „ (fără telefon, adresă sau email)”; începe cu virgulă sau spațiu."
+  },
+  "partajare.telefonul": "telefonul",
+  "partajare.adresa": "adresa",
+  "partajare.emailul": "emailul",
+  "partajare.fara_contact": {
+    "text": " (fără telefon, adresă sau email)",
+    "sens": "Începe cu un spațiu."
+  },
+  "partajare.schimba_in_cont": "Schimbă în Contul meu",
+  "partajare.alt_link": "Fă alt link (vechiul nu mai merge)",
+  "partajare.opreste": "Oprește linkul",
+  "partajare.link_si_qr": "Link și cod QR pentru pedigree",
+  "partajare.porneste_explicatie": "Pornește linkul ca să dai pedigree-ul altui crescător: îl scanează cu telefonul sau îl deschide din mesaj. Doar cine are linkul îl vede; îl poți opri oricând.",
+  "partajare.ce_se_vede": "Se văd: inelul, sexul, numele, culoarea, crescătorul și textul pentru pedigree, pe 5 generații. Nu se văd: notele, jurnalul, starea.",
+  "partajare.porneste": "Pornește linkul",
+  "partajare.porniti_titlu": "Pornești linkul public?",
+  "partajare.porniti_rand1": "Oricine are linkul sau scanează codul vede pedigree-ul acestui porumbel (fără note și jurnal).",
+  "partajare.porniti_rand2": "Îl poți opri oricând.",
+  "partajare.porniti_da": "Da, pornește",
+  "partajare.alt_link_titlu": "Faci alt link?",
+  "partajare.alt_link_rand": "Linkul și codul QR de acum nu vor mai merge (și cele tipărite deja).",
+  "partajare.alt_link_da": "Da, fă altul",
+  "partajare.opreste_titlu": "Oprești linkul?",
+  "partajare.opreste_rand": "Nimeni nu va mai putea deschide pedigree-ul cu linkul sau codul QR de acum.",
+  "partajare.opreste_da": "Da, oprește",
+  "partajare.copiere_esuata": "Nu am putut copia. Selectează linkul și copiază-l de mână.",
+  "partajare.titlu_trimitere": {
+    "text": "Pedigree {inel}",
+    "sens": "Titlul trimis cu linkul (WhatsApp, mail…)."
+  },
+  "arbore.mai_putine": {
+    "text": "− generații",
+    "sens": "Butonul care arată o generație mai puțin."
+  },
+  "arbore.mai_multe": {
+    "text": "+ generații",
+    "sens": "Butonul care arată o generație mai mult."
+  },
+  "arbore.generatii": {
+    "text": "generații",
+    "sens": "După numărul de generații arătate (2–6), care e scris îngroșat înainte."
+  },
+  "arbore.consangvinizare": {
+    "text": "Consangvinizare:",
+    "sens": "Urmat de procent."
+  },
+  "arbore.stramosi_comuni": {
+    "text": "— strămoși comuni:",
+    "sens": "Urmat de inelele strămoșilor comuni ai tatălui și mamei."
+  },
+  "arbore.aria": "Arborele genealogic; se poate derula în lateral",
+  "arbore.dublu_clic": "Dublu clic: deschide fișa",
+  "arbore.adauga_tatal": "+ Adaugă tatăl",
+  "arbore.adauga_mama": "+ Adaugă mama",
+  "arbore.apare_de": {
+    "text": "apare de {count} ori.",
+    "sens": "După inelul unui strămoș repetat în arbore."
+  },
+  "vanzare.titlu": "Vinde porumbelul",
+  "vanzare.vandut": "Vândut: {email} l-a primit pe {data}. La tine rămâne cu tot ce știai despre el.",
+  "vanzare.asteapta": {
+    "text": "Așteaptă să-l primească",
+    "sens": "Urmat de emailul cumpărătorului (îngroșat)."
+  },
+  "vanzare.trimis_pe": "(trimis pe {data})",
+  "vanzare.cu_notele": {
+    "text": ", cu notele și jurnalul",
+    "sens": "Începe cu virgulă; lipit de „(trimis pe …)”."
+  },
+  "vanzare.anuleaza": "Anulează vânzarea",
+  "vanzare.explicatie": "Cumpărătorul primește porumbelul cu tot pedigree-ul în contul lui. Trebuie să aibă cont activ în Porumbar. Dacă nu are încă, dă-i linkul sau pedigree-ul tipărit de mai sus.",
+  "vanzare.email_cumparator": "Emailul cumpărătorului",
+  "vanzare.email_exemplu": {
+    "text": "cumparator@exemplu.ro",
+    "sens": "Exemplu de adresă de email în câmpul gol."
+  },
+  "vanzare.trimite_si_notele": "Trimite și notele (evaluarea) și jurnalul",
+  "vanzare.trimite": "Trimite vânzarea",
+  "vanzare.confirma_titlu": "Vinzi porumbelul {inel}?",
+  "vanzare.confirma_rand1": "Cumpărătorul ({email}) îl va vedea în contul lui și îl primește cu tot pedigree-ul.",
+  "vanzare.confirma_cu_note": "Primește și notele (evaluarea) și jurnalul.",
+  "vanzare.confirma_fara_note": "Notele și jurnalul rămân doar la tine.",
+  "vanzare.confirma_rand3": {
+    "text": "După ce îl primește, la tine porumbelul rămâne cu starea „Vândut”.",
+    "sens": "„Vândut” = starea din catalog.stare.vandut."
+  },
+  "vanzare.confirma_da": "Da, trimite vânzarea",
+  "vanzare.anuleaza_titlu": "Anulezi vânzarea?",
+  "vanzare.anuleaza_rand": "{email} nu va mai putea primi porumbelul.",
+  "vanzare.anuleaza_da": "Da, anulează",
+  "tiparire.inapoi": "Înapoi la porumbel",
+  "tiparire.pune_qr": "Pune și codul QR (pornește linkul)",
+  "tiparire.tipareste_pdf": "Tipărește / Salvează PDF",
+  "tiparire.se_pregateste": "Se pregătește pedigree-ul…",
+  "tiparire.porniti_rand": "Codul QR de pe foaie duce la pedigree-ul porumbelului. Oricine scanează codul îl vede (fără note și jurnal).",
+  "form.titlu_editeaza": "Editează porumbelul",
+  "form.porumbel": {
+    "text": "Porumbel",
+    "sens": "Firimitura, când porumbelul n-are inel."
+  },
+  "form.import_titlu": "Importă pedigree: îl ai pe hârtie, în PDF sau în poză?",
+  "form.import_text": "Trece-l tot dintr-o dată (porumbelul și strămoșii), sau lasă programul să-l citească din poză.",
+  "form.qr_titlu": "Are cod QR de la Porumbar?",
+  "form.qr_text": "Scanează-l: se deschide pedigree-ul crescătorului și îl preiei cu tot cu strămoși.",
+  "form.ciorna_pastrata": "Am păstrat ce scriseseși data trecută.",
+  "form.de_la_zero": "Începe de la zero",
+  "form.parinti_text": "Scrie seria de inel a tatălui și a mamei. Vezi pe loc istoricul lor; dacă nu sunt încă în program, îi notezi.",
+  "form.coi_pui": {
+    "text": "Puiul lor are consangvinizare",
+    "sens": "Urmat de procent (îngroșat), apoi „(strămoși comuni: …).”."
+  },
+  "form.coi_stramosi": {
+    "text": "(strămoși comuni:",
+    "sens": "Urmat de inele și de „).”."
+  },
+  "form.coi_zero": "Tatăl și mama nu au strămoși comuni cunoscuți.",
+  "form.identitate": "Identitate",
+  "form.al_cui_aria": "Al cui e porumbelul",
+  "form.sex_nu_stiu": "Nu știu încă",
+  "form.nume": "Nume sau poreclă",
+  "form.crescator_origine": "Crescătorul de origine",
+  "form.rasa_si_linii": "Rasă și linii",
+  "form.liniile": "Liniile",
+  "form.liniile_ajutor": "despărțite prin virgulă, de ex. {exemplu}",
+  "form.culoarea_penajului": "Culoarea penajului",
+  "form.pene_albe": {
+    "text": "Are pene albe (p.a.)",
+    "sens": "Bifa: pene albe în aripă. Maghiară: de verificat."
+  },
+  "form.culoarea_text": "Culoarea, cum o scrii tu",
+  "form.culoarea_ochilor": "Culoarea ochilor",
+  "form.evaluare": "Evaluare la mână",
+  "form.evaluare_text": "Note de la 1 (slab) la 5 (foarte bun). Lasă gol ce n-ai evaluat.",
+  "form.text_pedigree": "Text pentru pedigree",
+  "form.text_pedigree_eticheta": "Ce să scrie în căsuța lui pe pedigree",
+  "form.text_pedigree_ajutor": "titluri, palmares, de ex. „Super reproducătoare”",
+  "form.se_salveaza": "Se salvează…",
+  "form.arunci_titlu": "Arunci ce scriseseși data trecută?",
+  "form.arunci_rand": "Formularul revine la datele salvate.",
+  "form.arunci_da": "Da, aruncă",
+  "form.renunti_titlu": "Renunți la modificări?",
+  "form.renunti_da": "Da, renunță",
+  "form.inapoi_la_formular": "Înapoi la formular",
+  "form.salvezi_titlu": "Salvezi modificările?",
+  "form.salvezi_da": "Da, salvează",
+  "form.fara_internet": {
+    "text": "Nu s-a putut salva. Verifică internetul și apasă din nou Salvează.",
+    "sens": "„Salvează” = butonul actiune.salveaza."
+  },
+  "form.dif_al_cui": {
+    "text": "Al cui e",
+    "sens": "Etichetele din lista schimbărilor („Starea: Tânăr → Reproducător”)."
+  },
+  "form.dif_inelul": "Inelul",
+  "form.dif_numele": "Numele",
+  "form.dif_crescatorul": "Crescătorul",
+  "form.dif_culoarea": "Culoarea",
+  "form.dif_pene_albe": {
+    "text": "Pene albe",
+    "sens": "Maghiară: de verificat."
+  },
+  "form.dif_culoarea_text": "Culoarea (text)",
+  "form.dif_ochii": "Ochii",
+  "form.dif_nota_la": {
+    "text": "Nota la {criteriu}",
+    "sens": "{criteriu} = criteriul evaluării, cu literă mică (de ex. „aripă”)."
+  },
+  "form.dif_text_pedigree": "Textul pentru pedigree",
+  "actiune.mareste": "Mărește",
+  "actiune.micsoreaza": "Micșorează",
+  "actiune.deschide_fisa": "Deschide fișa",
+  "actiune.porneste_de_aici": {
+    "text": "Pornește de aici",
+    "sens": "Butonul care face din porumbelul ales punctul de pornire al arborelui."
+  },
+  "actiune.da_asa": "Da, așa",
+  "text.nu_e_in_porumbarul_meu": "nu e în porumbarul meu",
+  "text.nu_e_in_porumbarul_tau": "nu e în porumbarul tău",
+  "text.nu_e_al_tau": {
+    "text": "nu e al tău",
+    "sens": "Porumbel care nu e al crescătorului (strămoș, împrumutat)."
+  },
+  "text.al_tau": {
+    "text": "al tău",
+    "sens": "Porumbel din porumbarul crescătorului."
+  },
+  "text.de_verificat": {
+    "text": "De verificat ({n}):",
+    "sens": "Titlul listei de diferențe găsite la import / la primirea unui porumbel."
+  },
+  "text.nume": "Nume",
+  "text.se_salveaza": "Se salvează…",
+  "retea.intro": "Fiecare porumbel apare o singură dată. Chenarul gros arată strămoșii comuni, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.",
+  "retea.tot_porumbarul": "Tot porumbarul",
+  "retea.doar_cei_mai_tineri": "Arăt doar cei mai tineri {n} porumbei. Alege un porumbel ca să vezi rudele lui.",
+  "retea.adauga_primul": "Adaugă primul porumbel, apoi îl vezi aici cu strămoșii și urmașii lui.",
+  "retea.pornind_de_la": {
+    "text": "Pornind de la",
+    "sens": "Urmează inelul porumbelului (îngroșat), apoi „retea.pornind_rest”."
+  },
+  "retea.pornind_rest": {
+    "text": ": strămoșii pe 5 generații și urmașii pe 3.",
+    "sens": "Vine după inelul porumbelului de pornire."
+  },
+  "retea.graf_gol": "Niciun porumbel de arătat încă.",
+  "retea.arata_tot": "Arată tot arborele",
+  "arbore.vedere_carduri": {
+    "text": "Carduri",
+    "sens": "Vederea arborelui cu carduri, ca pe pedigree."
+  },
+  "arbore.vedere_evantai": {
+    "text": "Evantai",
+    "sens": "Vederea circulară a arborelui (pedigree în evantai)."
+  },
+  "arbore.vedere_sange": "Linii de sânge",
+  "arbore.vedere_retea": {
+    "text": "Rețea",
+    "sens": "Vederea cu toată rețeaua de rudenie."
+  },
+  "arbore.n_pui": {
+    "text": "{n} pui",
+    "sens": "Câți pui (urmași) are porumbelul."
+  },
+  "arbore.alege_alt": "Alege alt porumbel",
+  "arbore.aria_alege": "Alege porumbelul",
+  "arbore.cauta": "Caută după inel sau nume",
+  "arbore.inchide_lista": "Închide lista",
+  "arbore.rezultate": {
+    "text": "Rezultate",
+    "sens": "Rezultatele căutării."
+  },
+  "arbore.cei_mai_valorosi": "Porumbeii tăi, cei mai valoroși primii",
+  "arbore.atinge_unul": "atinge unul ca să-i vezi arborele",
+  "arbore.niciun_gasit": "Niciun porumbel găsit.",
+  "arbore.aria_comenzi": "Comenzi pentru arbore",
+  "arbore.aria_vederi": "Cum vezi arborele",
+  "arbore.fa_pornire": "Fă-o vederea de pornire",
+  "arbore.se_incarca": "Se încarcă arborele…",
+  "arbore.adauga_primul": "Adaugă primul porumbel, apoi îi vezi aici arborele.",
+  "arbore.titlu_lui": "Arborele lui {nume}",
+  "arbore.titlu_porumbar": "Arborele porumbarului",
+  "arbore.confirma_pornire_titlu": "Arborele se deschide de acum cu „{vedere}”?",
+  "arbore.confirma_pornire_text": "Poți schimba oricând din comutatorul de vederi.",
+  "arbore.rol_porumbelul": {
+    "text": "Porumbelul",
+    "sens": "Porumbelul de la care pornește arborele (și numele primei generații)."
+  },
+  "arbore.rol_tatal": "Tatăl",
+  "arbore.rol_mama": "Mama",
+  "arbore.rol_tatal_tatalui": "Tatăl tatălui",
+  "arbore.rol_mama_tatalui": "Mama tatălui",
+  "arbore.rol_tatal_mamei": "Tatăl mamei",
+  "arbore.rol_mama_mamei": "Mama mamei",
+  "arbore.rol_strabunic": "Străbunic",
+  "arbore.rol_strabunica": "Străbunică",
+  "arbore.rol_rastrabunic": {
+    "text": "Răstrăbunic",
+    "sens": "Tatăl unui străbunic. Maghiară: de verificat."
+  },
+  "arbore.rol_rastrabunica": {
+    "text": "Răstrăbunică",
+    "sens": "Mama unui străbunic. Maghiară: de verificat."
+  },
+  "arbore.rol_stramos": "Strămoș",
+  "arbore.rol_stramosa": {
+    "text": "Strămoșă",
+    "sens": "Strămoș femelă, mai departe de răstrăbunici."
+  },
+  "arbore.rol_linia_tatalui": "{rol} · linia tatălui",
+  "arbore.rol_linia_mamei": "{rol} · linia mamei",
+  "arbore.rol_necunoscut": {
+    "text": "{rol}: necunoscut",
+    "sens": "Căsuță goală în arbore: ruda nu e trecută."
+  },
+  "arbore.gen_parinti": "Părinți",
+  "arbore.gen_bunici": "Bunici",
+  "arbore.gen_strabunici": "Străbunici",
+  "arbore.gen_rastrabunici": {
+    "text": "Răstrăbunici",
+    "sens": "Maghiară: de verificat."
+  },
+  "arbore.niciunul_comun": "Niciunul în pedigree-ul cunoscut.",
+  "arbore.sangele_lui": "Sângele lui {nume}",
+  "arbore.aria_linii": "Liniile de sânge: {linii}",
+  "arbore.puii_lui": "Puii lui {nume} ({n})",
+  "arbore.porumbelului": {
+    "text": "porumbelului",
+    "sens": "În „Sângele lui {nume}” / „Puii lui {nume}”, când porumbelul n-are nici nume, nici inel."
+  },
+  "arbore.aria_generatii": "Generațiile (glisează)",
+  "arbore.gliseaza": {
+    "text": "glisează →",
+    "sens": "Pe telefon: glisezi spre generația următoare."
+  },
+  "arbore.aria_evantai": "Evantaiul strămoșilor",
+  "arbore.familia_tatalui": "← familia tatălui",
+  "arbore.familia_mamei": "familia mamei →",
+  "arbore.evantai_cum": "Atinge o felie ca s-o alegi; dublu clic deschide fișa. Culoarea = nota (gri = nu e în porumbarul tău), dunga = mascul / femelă, conturul colorat = strămoș care se repetă.",
+  "arbore.aria_panglici": "Panglicile liniilor de sânge",
+  "arbore.sange_cum": {
+    "text": "Grosimea = cât sânge aduce · culoarea = linia (fondatorul). Atinge o linie, în bară sau în listă, ca să rămână doar ea. Linia fondatorului vine din câmpul „Linii” din fișă (sau din crescătorul de origine).",
+    "sens": "„Linii” este numele câmpului din fișa porumbelului; în maghiară să fie la fel ca acolo."
+  },
+  "arbore.sange_necunoscut": "Necunoscut, {procent} %: părinți care nu sunt trecuți în program.",
+  "arbore.sange_vine_prin": {
+    "one": "{nume}, {procent} %: vine prin {fondatori}, pe {count} drum ({parti}).",
+    "few": "{nume}, {procent} %: vine prin {fondatori}, pe {count} drumuri ({parti}).",
+    "other": "{nume}, {procent} %: vine prin {fondatori}, pe {count} drumuri ({parti}).",
+    "sens": "Explicația unei linii de sânge: prin ce strămoși vine și pe câte drumuri."
+  },
+  "arbore.sange_se_intalnesc": "Aici se întâlnesc liniile.",
+  "perechi.titlu": "Perechi",
+  "perechi.sezon": {
+    "text": "Perechi {sezon}",
+    "sens": "Firimitura spre lista perechilor dintr-un sezon (an)."
+  },
+  "perechi.status_planificata": {
+    "text": "Plănuită",
+    "sens": "Starea perechii: încă nu au fost puși împreună."
+  },
+  "perechi.status_activa": {
+    "text": "Împreună",
+    "sens": "Starea perechii: sunt puși împreună."
+  },
+  "perechi.status_despartita": {
+    "text": "Despărțită",
+    "sens": "Starea perechii: au fost despărțiți."
+  },
+  "perechi.intro": "Perechile, ouăle și puii fiecărui sezon. Puii inelați intră în porumbar cu tatăl și mama deja puși.",
+  "perechi.pereche_noua": "Pereche nouă",
+  "perechi.cauta": "Caută",
+  "perechi.inel_sau_nume": "inel sau nume",
+  "perechi.masculul": "Masculul",
+  "perechi.femela": "Femela",
+  "perechi.alege_masculul": "— alege masculul —",
+  "perechi.alege_femela": "— alege femela —",
+  "perechi.se_incarca": "Se încarcă porumbeii…",
+  "perechi.sex_lipsa": "Pentru o pereche, porumbeii trebuie să aibă sexul trecut pe fișă (M sau F).",
+  "perechi.coi_ar_avea": {
+    "text": "Puii acestei perechi ar avea consangvinizare",
+    "sens": "Urmează procentul (îngroșat) și un punct."
+  },
+  "perechi.coi_au": {
+    "text": "Puii acestei perechi au consangvinizare",
+    "sens": "Urmează procentul (îngroșat) și un punct."
+  },
+  "perechi.fara_stramosi_comuni": "Masculul și femela nu au strămoși comuni cunoscuți: puii nu sunt consangvini.",
+  "perechi.doar_planuiesc": "Doar o plănuiesc (încă nu i-am pus împreună)",
+  "perechi.cuibul_boxa": "Cuibul / boxa",
+  "perechi.nu_e_obligatoriu": "(nu e obligatoriu)",
+  "perechi.de_ex_12": {
+    "text": "de ex. 12",
+    "sens": "Exemplu de număr de cuib."
+  },
+  "perechi.salveaza_perechea": "Salvează perechea",
+  "perechi.cuibul": "cuibul {n}",
+  "perechi.din_data": {
+    "text": "din {data}",
+    "sens": "Perechea e împreună de la această dată."
+  },
+  "perechi.ponte": {
+    "one": "{count} pontă",
+    "few": "{count} ponte",
+    "other": "{count} ponte"
+  },
+  "perechi.pui_inelati": "{n} pui inelați",
+  "perechi.consangvinizare": "consangvinizare {procent}",
+  "perechi.nicio_pereche": "Nicio pereche în {sezon}. Apasă „Pereche nouă”.",
+  "perechi.inelele_mele": "Inelele mele",
+  "perechi.serii_intro": "Scrie primul și ultimul inel din seria primită de la federație. La inelarea puilor, programul îți propune următorul inel liber.",
+  "perechi.n_inele": "({n} inele)",
+  "perechi.adauga_seria": "Adaugă seria",
+  "perechi.sterge_seria_titlu": "Ștergi seria de inele?",
+  "perechi.sterge_seria_text": "Porumbeii inelați deja rămân neatinși; doar nu se mai propun inele din seria aceasta.",
+  "perechi.sterge_seria_da": "Da, șterge seria",
+  "perechi.despartiti_pe": "despărțiți pe {data}",
+  "perechi.i_am_pus_azi": "I-am pus împreună azi",
+  "perechi.schimba_perechea": "Schimbă perechea",
+  "perechi.hint_goala_planuita": "(goală = doar plănuită)",
+  "perechi.hint_goala_impreuna": "(goală = sunt încă împreună)",
+  "perechi.ponte_titlu": "Ponte",
+  "perechi.ponta_noua": "Pontă nouă",
+  "perechi.primul_ou": "Primul ou",
+  "perechi.al_doilea_ou": "Al doilea ou",
+  "perechi.daca_e": "(dacă e)",
+  "perechi.adauga_ponta": "Adaugă ponta",
+  "perechi.ponte_dupa": "Ponte se adaugă după ce pui perechea împreună.",
+  "perechi.oua_una": "Ouă: {data}",
+  "perechi.oua_doua": "Ouă: {data1} și {data2}",
+  "perechi.n_oua": {
+    "one": "({count} ou)",
+    "few": "({count} ouă)",
+    "other": "({count} ouă)"
+  },
+  "perechi.clocite_de_doica": {
+    "text": "Clocite de doica {pereche}",
+    "sens": "Ouăle au fost clocite de altă pereche (doica). Maghiară: de verificat."
+  },
+  "perechi.ies_intre": {
+    "text": "Puii ar trebui să iasă între {de} și {pana}.",
+    "sens": "{de} și {pana} sunt date, scrise îngroșat."
+  },
+  "perechi.au_iesit": {
+    "text": "Au ieșit pe {data}: {n} pui",
+    "sens": "{data} e scrisă îngroșat; după text pot urma „· N limpezi”, „· N sparte” și un punct."
+  },
+  "perechi.n_limpezi": {
+    "text": "{n} limpezi",
+    "sens": "Ouă limpezi (nefecundate)."
+  },
+  "perechi.n_sparte": {
+    "text": "{n} sparte",
+    "sens": "Ouă sparte."
+  },
+  "perechi.se_ineleaza": {
+    "text": "Se inelează între {de} și {pana}.",
+    "sens": "{de} și {pana} sunt date, scrise îngroșat."
+  },
+  "perechi.oua_limpezi_nefecundate": "Ouă limpezi (nefecundate)",
+  "perechi.doica": {
+    "text": "Doica",
+    "sens": "Maghiară: de verificat."
+  },
+  "perechi.doica_hint": "(altă pereche care clocește ouăle)",
+  "perechi.fara_doica": "— fără doică —",
+  "perechi.schimba_ponta": "Schimbă ponta",
+  "perechi.au_iesit_puii": "Au ieșit puii",
+  "perechi.puii_inelati": "Puii inelați",
+  "perechi.sex_mascul": "mascul",
+  "perechi.sex_femela": "femelă",
+  "perechi.sex_necunoscut": "sex necunoscut",
+  "perechi.inelul_puiului": "Inelul puiului",
+  "perechi.propus": "Propus din seria ta de inele. Îl poți schimba.",
+  "perechi.sexul": "Sexul",
+  "perechi.nu_se_stie": "Nu se știe încă",
+  "perechi.ineleaza_puiul": "Inelează puiul",
+  "perechi.ineleaza_un_pui": "Inelează un pui",
+  "perechi.nicio_ponta": "Nicio pontă încă.",
+  "perechi.stergerea": "Ștergerea perechii",
+  "perechi.stergerea_text": "Se șterg perechea și pontele ei. Puii inelați rămân în porumbar, cu tatăl și mama lor.",
+  "perechi.sterge_perechea": "Șterge perechea",
+  "perechi.sterge_ponta_titlu": "Ștergi ponta?",
+  "perechi.oua_din": "Ouă din {data}.",
+  "perechi.puii_raman": "Puii inelați din ea rămân în porumbar.",
+  "perechi.sterge_ponta_da": "Da, șterge ponta",
+  "perechi.sterge_perechea_titlu": "Ștergi perechea?",
+  "perechi.sterge_perechea_cine": "{mascul} × {femela}, sezonul {sezon}.",
+  "perechi.sterge_perechea_text": "Se șterg și pontele ei. Puii inelați rămân în porumbar.",
+  "perechi.sterge_perechea_da": "Da, șterge perechea",
+  "culori.titlu": "Culorile probabile ale puilor",
+  "culori.baza_rosu": {
+    "text": "Roșu (cenușiu)",
+    "sens": "Culoarea de bază ash-red."
+  },
+  "culori.baza_albastru": "Albastru / negru",
+  "culori.baza_maro": "Maro (cafeniu)",
+  "culori.desen_solzat_inchis": "Solzat închis",
+  "culori.desen_solzat": "Solzat",
+  "culori.desen_dungi": "Cu dungi",
+  "culori.desen_fara_dungi": "Fără dungi",
+  "culori.pui_masculi": "Pui masculi",
+  "culori.pui_femele": "Pui femele",
+  "culori.poarta_ascuns_lista": "poartă ascuns: {lista}",
+  "culori.nu_stim": {
+    "text": "Nu știm la amândoi părinții:",
+    "sens": "Urmează lista (îngroșat), apoi „culori.nu_stim_rest”."
+  },
+  "culori.nu_stim_rest": "Partea asta nu intră în calcul; o poți completa mai jos.",
+  "culori.corecteaza": "Corectează culorile părinților (ce știi mai bine)",
+  "culori.culoarea_de_baza": "Culoarea de bază",
+  "culori.nu_stiu": "Nu știu",
+  "culori.poarta_ascuns": "Poartă ascuns",
+  "culori.nimic": "Nimic (sau nu știu)",
+  "culori.desenul_aripii": "Desenul aripii",
+  "culori.desen_ascuns": "Desen ascuns",
+  "culori.uniform": "Negru uniform (spread)",
+  "culori.parinte_neuniform": "Un părinte al lui nu era uniform",
+  "culori.diluat": "Diluat (argintiu, gălbui)",
+  "culori.poarta_dilutia": "Poartă diluția ascuns",
+  "culori.nota": "Sunt procente, nu garanții: un porumbel poate purta ascuns ce nu se vede pe pene. Calculul folosește genetica clasică a porumbeilor (culoarea de bază și diluția legate de sex, desenul și negrul uniform); bălțatul, tărcatul, albul și alte gene nu intră.",
+  "vanzari.titlu": "Vânzări",
+  "vanzari.e_in_porumbar": "Porumbelul e în porumbarul tău.",
+  "vanzari.vin_la_tine": "Porumbei care vin la tine",
+  "vanzari.de_la": {
+    "text": "de la",
+    "sens": "Urmează numele vânzătorului (îngroșat)."
+  },
+  "vanzari.primesti_pedigree": "Îl primești în porumbarul tău cu tot pedigree-ul. Strămoșii pe care îi ai deja nu se dublează.",
+  "vanzari.primesti_tot": "Îl primești în porumbarul tău cu tot pedigree-ul, notele și jurnalul. Strămoșii pe care îi ai deja nu se dublează.",
+  "vanzari.primesc": "Primesc porumbelul",
+  "vanzari.nu_primesc": "Nu îl primesc",
+  "vanzari.niciunul": "Niciun porumbel în așteptare. Când cineva îți vinde un porumbel pe emailul contului tău, apare aici.",
+  "vanzari.vandute": "Vândute de tine",
+  "vanzari.nimic": "Nimic încă. Vinzi un porumbel din fișa lui, fila „QR”.",
+  "vanzari.st_pending": {
+    "text": "În așteptare",
+    "sens": "Vânzarea așteaptă să fie primită de cumpărător."
+  },
+  "vanzari.st_accepted": {
+    "text": "Primit",
+    "sens": "Cumpărătorul a primit porumbelul."
+  },
+  "vanzari.st_cancelled": {
+    "text": "Anulat",
+    "sens": "Vânzarea a fost anulată sau refuzată."
+  },
+  "vanzari.primesti_titlu": "Primești porumbelul {inel}?",
+  "vanzari.primesti_text": "De la {vanzator}. Intră în porumbarul tău, ca porumbel al tău, cu tot pedigree-ul.",
+  "vanzari.da_primesc": "Da, îl primesc",
+  "vanzari.refuzi_titlu": "Nu primești porumbelul?",
+  "vanzari.refuzi_text": "{vanzator} va vedea vânzarea anulată.",
+  "vanzari.da_refuz": "Da, refuz",
+  "scan.titlu": "Scanează codul QR",
+  "scan.intro": "Ține telefonul deasupra codului QR de pe pedigree-ul altui crescător care folosește Porumbar. Se deschide pedigree-ul, iar de acolo îl poți prelua.",
+  "scan.caut": "Caut codul… Ține telefonul nemișcat, cu codul în pătrat.",
+  "scan.opreste": "Oprește camera",
+  "scan.porneste": "Pornește camera",
+  "scan.poza": "Fă o poză codului (sau alege una)",
+  "scan.alt_cod": "Acest cod nu e al unui pedigree din Porumbar.",
+  "scan.in_cod_scrie": "În cod scrie:",
+  "scan.alte_programe": "Pedigree-urile din alte programe (sau de pe hârtie) le treci cu „Importă pedigree”: dintr-o poză le citește programul.",
+  "scan.fara_camera_browser": "Browserul acesta nu poate folosi camera aici. Folosește „Fă o poză codului”.",
+  "scan.fara_voie": "Nu ai dat voie programului să folosească camera. Poți da voie din setările browserului, sau folosește „Fă o poză codului”.",
+  "scan.fara_camera": "Nu am găsit nicio cameră. Folosește „Fă o poză codului”.",
+  "scan.camera_nu_a_pornit": "Camera nu a pornit. Încearcă din nou, sau folosește „Fă o poză codului”.",
+  "scan.fara_cod_in_poza": "Nu am găsit niciun cod QR în poză. Fă poza mai de aproape, cu codul întreg și clar.",
+  "scan.poza_nedeschisa": "Nu am putut deschide poza. Încearcă altă poză.",
+  "hartie.titlu": "Importă pedigree",
+  "hartie.porumbel_nou": "Porumbel nou",
+  "hartie.intro": "Ai primit un pedigree pe hârtie, în PDF sau în poză? Trece-l aici tot dintr-o dată. Inelele pe care le ai deja în program sunt recunoscute și nu se dublează.",
+  "hartie.e_in_program": "Pedigree-ul e în program",
+  "hartie.rezultat_noi": {
+    "one": "{count} porumbel nou",
+    "few": "{count} porumbei noi",
+    "other": "{count} porumbei noi",
+    "sens": "Câți porumbei noi a adăugat importul; urmează „hartie.rezultat_existau”."
+  },
+  "hartie.rezultat_existau": {
+    "one": "{count} era deja în program.",
+    "few": "{count} erau deja în program.",
+    "other": "{count} erau deja în program."
+  },
+  "hartie.vezi_arborele": "Vezi arborele",
+  "hartie.inca_unul": "Încă un pedigree",
+  "hartie.am_pastrat": "Am păstrat ce scriseseși data trecută.",
+  "hartie.de_la_zero": "Începe de la zero",
+  "hartie.porumbelul_este": "Porumbelul de pe pedigree este",
+  "hartie.al_meu": "Din porumbarul meu",
+  "hartie.nu_al_meu": "Nu e în porumbarul meu",
+  "hartie.imprumutat": "(de ex. împrumutat pentru pui)",
+  "hartie.sexul": "Sexul porumbelului",
+  "hartie.nu_stiu": "nu știu",
+  "hartie.aria_inel": "{rol}: inel",
+  "hartie.aria_nume": "{rol}: nume",
+  "hartie.aria_culoare": "{rol}: culoare",
+  "hartie.aria_text": "{rol}: ce scrie pe pedigree",
+  "hartie.ph_inel": "Inel, ex. RO-15-412084",
+  "hartie.ph_culoare": {
+    "text": "Culoare, ex. Solzat p.a.",
+    "sens": "Exemplu de culoare scrisă pe pedigree."
+  },
+  "hartie.ph_text": "Ce scrie pe pedigree (crescător, rezultate)",
+  "hartie.adauga_n": "Adaugă pedigree-ul ({n} căsuțe)",
+  "hartie.goleste_tot": "Golește tot",
+  "hartie.hint_necitit_al_meu": "Inelul nu poate fi citit. Ex.: RO-15-412084",
+  "hartie.hint_necitit": "Inel necitit: se trece așa cum e scris.",
+  "hartie.hint_nou": "{inel} · nou în program",
+  "hartie.hint_exista": "{inel} · îl ai deja, se folosește acela",
+  "hartie.hint_completat": "Completat din program",
+  "hartie.citit_titlu": "Începi pedigree-ul de la zero cu ce s-a citit?",
+  "hartie.citit_text": "Ai deja {n} căsuțe completate. „Da” le golește și pune doar ce s-a citit din poză.",
+  "hartie.citit_renunta": {
+    "text": "„Renunță” păstrează ce ai scris și completează doar căsuțele goale.",
+    "sens": "„Renunță” e butonul actiune.renunta; în maghiară numele lui de acolo."
+  },
+  "hartie.citit_da": "Da, de la zero",
+  "hartie.fara_inel_radacina": "Scrie întâi inelul porumbelului (prima căsuță).",
+  "hartie.adaug_titlu": "Adaug pedigree-ul în program?",
+  "hartie.adaug_al_meu": "{n} căsuțe completate; porumbelul {inel} din porumbarul meu.",
+  "hartie.adaug_extern": "{n} căsuțe completate; porumbelul {inel} care nu e în porumbarul meu.",
+  "hartie.adaug_text": "Porumbeii pe care îi ai deja se folosesc așa cum sunt; doar ce lipsea se completează.",
+  "hartie.adaug_da": "Da, adaugă",
+  "hartie.golesti_titlu": "Golești toate căsuțele?",
+  "hartie.golesti_text": "Ce ai scris aici se pierde.",
+  "hartie.golesti_da": "Da, golește",
+  "cititor.poza_nepregatita": "Poza nu a putut fi pregătită.",
+  "cititor.titlu": "Ai pedigree-ul în poză sau în PDF?",
+  "cititor.intro": "Programul îl citește și completează căsuțele. Tu doar verifici și corectezi. Poza nu se păstrează.",
+  "cititor.credit": {
+    "text": "Credit pentru citiri:",
+    "sens": "Urmează suma rămasă (îngroșat)."
+  },
+  "cititor.fara_credit_contact": "Nu mai ai credit pentru citirea pozelor. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere credit: {contact}.",
+  "cititor.fara_credit": "Nu mai ai credit pentru citirea pozelor. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere credit de la cel de la care ai primit programul.",
+  "cititor.se_citeste": "Se citește… (până la un minut)",
+  "cititor.citeste": "Citește din poză sau PDF",
+  "cititor.completat": {
+    "one": "Am completat {count} căsuță. Verifică fiecare inel înainte să salvezi.",
+    "few": "Am completat {count} căsuțe. Verifică fiecare inel înainte să salvezi.",
+    "other": "Am completat {count} căsuțe. Verifică fiecare inel înainte să salvezi."
+  },
+  "text.da_mare": "Da",
+  "text.nu_mare": "Nu",
+  "arbore.stramosi_comuni_titlu": "Strămoși comuni",
+  "cont.limba": {
+    "text": "Limba",
+    "sens": "Titlul alegerii limbii în Cont."
+  },
+  "cont.limba_schimbi": "Schimbi limba?",
+  "cont.limba_avertisment": {
+    "text": "După ce treci în altă limbă, {limba} ți-o poate pune înapoi doar vânzătorul.",
+    "sens": "{limba} = numele limbii în probă (de ex. Magyar)."
+  },
+  "cont.limba_da": "Da, schimbă",
+  "tiparire.limba_fisei": {
+    "text": "Limba fișei",
+    "sens": "Pe pagina de tipărire: în ce limbă iese fișa (și PDF-ul de la Trimite)."
+  },
+  "eroare.serie_prea_lunga": "O serie are cel mult {max} de inele.",
+  "eroare.lipsa_culoare": "Lipsesc datele culorii.",
+  "eroare.prea_multe_linii": "Cel mult {max} linii.",
+  "eroare.an_invalid": "Anul este invalid.",
+  "eroare.lipsa_concurs": "Lipsesc datele concursului."
+}

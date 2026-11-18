@@ -1,18 +1,19 @@
 import { Component, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TPipe } from '../core/i18n';
 
 /** Câmpul de parolă cu „ochi”: omul își poate vedea parola ca să verifice ce a scris, apoi o ascunde la loc. */
 @Component({
   selector: 'app-password-field',
-  imports: [FormsModule],
+  imports: [FormsModule, TPipe],
   template: `
-    <label class="field">{{ label() }}
+    <label class="field">{{ label() || ('parola_camp.parola' | t) }}
       @if (hint()) { <span class="hint">{{ hint() }}</span> }
       <span class="wrap">
         <input [type]="visible() ? 'text' : 'password'" [name]="name()" [attr.autocomplete]="autocomplete()" required
                [(ngModel)]="value" autocapitalize="off" spellcheck="false" />
         <button type="button" class="eye" (click)="visible.set(!visible())"
-                [attr.aria-label]="visible() ? 'Ascunde parola' : 'Arată parola'" [attr.aria-pressed]="visible()">
+                [attr.aria-label]="(visible() ? 'parola_camp.ascunde' : 'parola_camp.arata') | t" [attr.aria-pressed]="visible()">
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             @if (visible()) {
               <path d="M10.7 5.1A10.7 10.7 0 0 1 22 12a11 11 0 0 1-1.7 2.6M14.1 14.2a3 3 0 0 1-4.2-4.2M17.5 17.5A10.8 10.8 0 0 1 2 12a10.8 10.8 0 0 1 4.4-5.4M2 2l20 20" />
@@ -35,7 +36,8 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class PasswordField {
-  readonly label = input('Parola');
+  /** Fără etichetă: „Parola”, din dicționar. */
+  readonly label = input('');
   readonly hint = input('');
   readonly name = input('password');
   readonly autocomplete = input('current-password');

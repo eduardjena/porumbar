@@ -1,0 +1,74 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+/*
+ * Paza împotriva textelor uitate: orice text pe care îl vede omul stă în i18n/<limba>.json. Testul caută în cod rânduri
+ * cu litere românești (ă, â, î, ș, ț) în afara comentariilor. Prinde doar textele cu diacritice, deci nu tot; restul se
+ * vede pe ecran, în maghiară.
+ */
+const ROOT = path.join(import.meta.dirname, '..');
+
+// Fișiere care au voie să aibă text românesc, cu motivul. Un singur rând se poate lăsa în română cu semnul
+// `// i18n: ro` la capătul lui (de ex. jurnalul serverului, notele din consola vânzătorului).
+const EXCEPTII = {
+  'src/db.js': 'SQL-ul migrărilor și comentariile',
+  'src/catalog.js': 'sinonimele culorilor, pentru citirea pedigree-urilor scrise în română',
+  'src/pedigree-reader.js': 'promptul pentru citirea din poză (scris în română, pentru model)',
+  'src/boot.js': 'jurnalul serverului',
+  'src/config.js': 'jurnalul serverului',
+  'web/src/app/pages/admin/consola.ts': 'consola vânzătorului rămâne în română',
+  'web/src/app/pages/admin/identity-fields.ts': 'consola vânzătorului rămâne în română',
+};
+
+// Ecranele încă nemutate în dicționar; fiecare pas al planului le scoate pe ale lui, până lista rămâne goală.
+const DE_MUTAT = new Set([]);
+
+const RO = /[ăâîșțĂÂÎȘȚ]/;
+
+function files(dir, ext) {
+  return fs.readdirSync(path.join(ROOT, dir), { recursive: true })
+    .filter((f) => f.endsWith(ext) && !f.endsWith(`.spec${ext}`))
+    .map((f) => `${dir}/${f.replaceAll('\\', '/')}`);
+}
+
+/** Rândurile cu text românesc, fără comentarii (`//…`, `/* … *\/`, `<!-- … -->`). */
+export function romanianLines(source) {
+  const noBlocks = source.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' ')).replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n]/g, ' '));
+  return noBlocks
+    .split('\n')
+    .map((line, i) => ({ n: i + 1, text: line.includes('// i18n: ro') ? '' : line.replace(/(^|\s)\/\/.*$/, '').trim() }))
+    .filter((l) => RO.test(l.text));
+}
+
+test('niciun text românesc rămas în cod în afara dicționarelor', () => {
+  const found = [];
+  const emptied = [];
+  for (const f of [...files('src', '.js'), ...files('web/src/app', '.ts')]) {
+    const lines = romanianLines(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+    if (DE_MUTAT.has(f)) {
+      if (!lines.length) emptied.push(f);
+      continue;
+    }
+    if (EXCEPTII[f]) continue;
+    for (const l of lines) found.push(`${f}:${l.n}: ${l.text.slice(0, 100)}`);
+  }
+  assert.deepEqual(found, [], `Texte de mutat în i18n/:\n${found.join('\n')}`);
+  assert.deepEqual(emptied, [], 'Fișiere mutate deja: scoate-le din DE_MUTAT');
+});
+
+test('mesajele de eroare ale serverului sunt chei din dicționar (și cele fără diacritice)', () => {
+  const ro = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', 'ro.json'), 'utf8'));
+  const bad = [];
+  for (const f of files('src', '.js')) {
+    if (f === 'src/routes/admin.js') continue; // consola vânzătorului rămâne în română
+    const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    const re = /(?:badRequest|notFound|fail)\(\s*(['`])([^'`]*)\1|new HttpError\(\s*\d+\s*,\s*(['`])([^'`]*)\3/g;
+    for (const m of src.matchAll(re)) {
+      const key = m[2] ?? m[4];
+      if (!(key in ro)) bad.push(`${f}: ${key.slice(0, 80)}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});

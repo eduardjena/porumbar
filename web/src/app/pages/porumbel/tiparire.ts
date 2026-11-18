@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
@@ -6,6 +6,9 @@ import { PedigreeV1 } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { PedigreePage } from '../../shared/pedigree-page';
 import { ShareButton } from '../../shared/share-button';
+import { LANGS, TPipe, currentLang, ensureLang, t } from '../../core/i18n';
+import { AuthService } from '../../core/auth';
+import { sheetLang } from '../../core/share-pdf';
 
 /*
  * Pedigree-ul tipărit (A4 vertical, ca fișele de pedigree pe hârtie): 5 generații în căsuțe, strămoșii repetați colorați, jos datele
@@ -14,26 +17,35 @@ import { ShareButton } from '../../shared/share-button';
  */
 @Component({
   selector: 'app-tiparire',
-  imports: [RouterLink, Icon, PedigreePage, ShareButton],
+  imports: [RouterLink, Icon, PedigreePage, ShareButton, TPipe],
   template: `
     <div class="bar no-print">
-      <a class="btn" [routerLink]="['/porumbei', id()]" [queryParams]="{ fila: inapoi() === 'arbore' ? 'arbore' : 'qr' }"><app-icon name="inapoi" />Înapoi la porumbel</a>
+      <a class="btn" [routerLink]="['/porumbei', id()]" [queryParams]="{ fila: inapoi() === 'arbore' ? 'arbore' : 'qr' }"><app-icon name="inapoi" />{{ 'tiparire.inapoi' | t }}</a>
       @if (!url() && loaded()) {
-        <button type="button" (click)="startLink()"><app-icon name="qr" />Pune și codul QR (pornește linkul)</button>
+        <button type="button" (click)="startLink()"><app-icon name="qr" />{{ 'tiparire.pune_qr' | t }}</button>
       }
-      <button type="button" class="primary" (click)="print()"><app-icon name="tipar" />Tipărește / Salvează PDF</button>
+      <button type="button" class="primary" (click)="print()"><app-icon name="tipar" />{{ 'tiparire.tipareste_pdf' | t }}</button>
       <app-share-button [pigeonId]="+id()" />
+      @if (langChoices().length > 1) {
+        <label class="lang">{{ 'tiparire.limba_fisei' | t }}
+          <select [value]="lang()" (change)="pickLang($any($event.target).value)">
+            @for (l of langChoices(); track l.code) { <option [value]="l.code" [selected]="l.code === lang()">{{ l.name }}</option> }
+          </select>
+        </label>
+      }
     </div>
     @if (error()) { <div class="error no-print" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
     @if (data(); as d) {
-      <app-pedigree-page [data]="d" [url]="url()" />
+      <app-pedigree-page [data]="d" [url]="url()" [lang]="lang()" />
     } @else if (!error()) {
-      <p class="muted">Se pregătește pedigree-ul…</p>
+      <p class="muted">{{ 'tiparire.se_pregateste' | t }}</p>
     }
   `,
   styles: `
-    .bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .lang { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .lang select { min-height: 48px; }
     @media print {
       :host { display: block; }
       .no-print { display: none !important; }
@@ -50,6 +62,23 @@ export default class Tiparire {
   readonly url = signal<string | null>(null);
   readonly loaded = signal(false);
   readonly error = signal('');
+  private readonly auth = inject(AuthService);
+  /** Limbile fișei: româna, limbile publice și limba contului (una „în probă” doar la cine o are). */
+  protected readonly langChoices = computed(() => {
+    const mine = this.auth.account()?.lang;
+    return LANGS.filter((l) => l.code === 'ro' || l.public || l.code === mine);
+  });
+  /** Limba fișei: cea aleasă aici (ține și pentru PDF-ul de la „Trimite”), altfel limba ecranului. */
+  protected readonly lang = computed(() => {
+    const chosen = sheetLang();
+    return chosen && this.langChoices().some((l) => l.code === chosen) ? chosen : currentLang();
+  });
+
+  async pickLang(code: string) {
+    await ensureLang(code).catch(() => undefined);
+    sheetLang.set(code);
+  }
+
   constructor() {
     effect(() => {
       const id = this.id();
@@ -74,9 +103,9 @@ export default class Tiparire {
 
   async startLink() {
     const ok = await this.confirm.ask({
-      title: 'Pornești linkul public?',
-      lines: ['Codul QR de pe foaie duce la pedigree-ul porumbelului. Oricine scanează codul îl vede (fără note și jurnal).'],
-      confirmLabel: 'Da, pornește',
+      title: t('partajare.porniti_titlu'),
+      lines: [t('tiparire.porniti_rand')],
+      confirmLabel: t('partajare.porniti_da'),
     });
     if (!ok) return;
     try {

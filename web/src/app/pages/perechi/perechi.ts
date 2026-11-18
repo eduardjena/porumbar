@@ -4,14 +4,14 @@ import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { percent, ringText } from '../../core/catalog';
+import { formatDay, t, TPipe } from '../../core/i18n';
 import { Pair, PigeonSummary, RingSeries } from '../../core/models';
 import { Icon } from '../../shared/icon';
 
 const today = () => new Date().toISOString().slice(0, 10);
-export const roDate = (d: string | null | undefined) => (d ? d.split('-').reverse().join('.') : '');
-export const STATUS_LABEL: Record<Pair['status'], string> = { planificata: 'Plănuită', activa: 'Împreună', despartita: 'Despărțită' };
+export const statusLabel = (s: Pair['status']) => t(`perechi.status_${s}`);
 // În listă: întâi ai tăi; strămoșii / împrumutații sunt marcați (o pereche se poate face și cu un porumbel împrumutat).
-const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p.name}”` : ''}${p.kind === 'external' ? ' · nu e în porumbarul meu' : ''}` : '—');
+const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p.name}”` : ''}${p.kind === 'external' ? ` · ${t('text.nu_e_in_porumbarul_meu')}` : ''}` : '—');
 
 /*
  * Reproducția: perechile sezonului (an), perechea nouă (cu consangvinizarea puilor văzută înainte de salvare) și
@@ -19,53 +19,53 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
  */
 @Component({
   selector: 'app-perechi',
-  imports: [FormsModule, RouterLink, Icon],
+  imports: [FormsModule, RouterLink, Icon, TPipe],
   template: `
     <div class="head">
-      <h1>Perechi</h1>
-      <label class="season">Sezonul
+      <h1>{{ 'perechi.titlu' | t }}</h1>
+      <label class="season">{{ 'camp.sezonul' | t }}
         <select [ngModel]="season()" (ngModelChange)="changeSeason($event)">
           @for (s of seasons(); track s) { <option [ngValue]="s">{{ s }}</option> }
         </select>
       </label>
     </div>
-    <p class="muted">Perechile, ouăle și puii fiecărui sezon. Puii inelați intră în porumbar cu tatăl și mama deja puși.</p>
+    <p class="muted">{{ 'perechi.intro' | t }}</p>
 
     @if (!adding()) {
-      <button type="button" class="primary big" (click)="openAdd()"><app-icon name="plus" />Pereche nouă</button>
+      <button type="button" class="primary big" (click)="openAdd()"><app-icon name="plus" />{{ 'perechi.pereche_noua' | t }}</button>
     } @else {
       <form class="card stack" (ngSubmit)="create()">
-        <h2>Pereche nouă</h2>
-        <label class="field">Caută <input name="filter" [(ngModel)]="filter" placeholder="inel sau nume" autocomplete="off" /></label>
-        <label class="field">Masculul
+        <h2>{{ 'perechi.pereche_noua' | t }}</h2>
+        <label class="field">{{ 'perechi.cauta' | t }} <input name="filter" [(ngModel)]="filter" [placeholder]="'perechi.inel_sau_nume' | t" autocomplete="off" /></label>
+        <label class="field">{{ 'perechi.masculul' | t }}
           <select name="cock" [(ngModel)]="cockId" (ngModelChange)="checkCoi()" required>
-            <option [ngValue]="null">— alege masculul —</option>
+            <option [ngValue]="null">{{ 'perechi.alege_masculul' | t }}</option>
             @for (p of cocks(); track p.id) { <option [ngValue]="p.id">{{ label(p) }}</option> }
           </select>
         </label>
-        <label class="field">Femela
+        <label class="field">{{ 'perechi.femela' | t }}
           <select name="hen" [(ngModel)]="henId" (ngModelChange)="checkCoi()" required>
-            <option [ngValue]="null">— alege femela —</option>
+            <option [ngValue]="null">{{ 'perechi.alege_femela' | t }}</option>
             @for (p of hens(); track p.id) { <option [ngValue]="p.id">{{ label(p) }}</option> }
           </select>
         </label>
-        @if (!allPigeons().length) { <p class="muted">Se încarcă porumbeii…</p> }
-        @else if (!cocks().length || !hens().length) { <p class="muted">Pentru o pereche, porumbeii trebuie să aibă sexul trecut pe fișă (M sau F).</p> }
+        @if (!allPigeons().length) { <p class="muted">{{ 'perechi.se_incarca' | t }}</p> }
+        @else if (!cocks().length || !hens().length) { <p class="muted">{{ 'perechi.sex_lipsa' | t }}</p> }
         @if (coi() != null) {
           <div [class]="coi()! >= 0.125 ? 'warning' : 'notice'" role="status">
-            @if (coi()! > 0) { Puii acestei perechi ar avea consangvinizare <strong>{{ pct(coi()!) }}</strong>. }
-            @else { Masculul și femela nu au strămoși comuni cunoscuți: puii nu sunt consangvini. }
+            @if (coi()! > 0) { {{ 'perechi.coi_ar_avea' | t }} <strong>{{ pct(coi()!) }}</strong>. }
+            @else { {{ 'perechi.fara_stramosi_comuni' | t }} }
           </div>
         }
-        <label class="check"><input type="checkbox" name="planned" [(ngModel)]="planned" /> Doar o plănuiesc (încă nu i-am pus împreună)</label>
+        <label class="check"><input type="checkbox" name="planned" [(ngModel)]="planned" /> {{ 'perechi.doar_planuiesc' | t }}</label>
         @if (!planned) {
-          <label class="field">Data împerecherii <input type="date" name="pairedOn" [(ngModel)]="pairedOn" required /></label>
+          <label class="field">{{ 'camp.data_imperecherii' | t }} <input type="date" name="pairedOn" [(ngModel)]="pairedOn" required /></label>
         }
-        <label class="field">Cuibul / boxa <span class="hint">(nu e obligatoriu)</span><input name="nest" [(ngModel)]="nest" placeholder="de ex. 12" /></label>
+        <label class="field">{{ 'perechi.cuibul_boxa' | t }} <span class="hint">{{ 'perechi.nu_e_obligatoriu' | t }}</span><input name="nest" [(ngModel)]="nest" [placeholder]="'perechi.de_ex_12' | t" /></label>
         @if (formError()) { <div class="error" role="alert">{{ formError() }}</div> }
         <div class="row">
-          <button class="primary" type="submit" [disabled]="!cockId || !henId || busy()"><app-icon name="bifa" />Salvează perechea</button>
-          <button type="button" (click)="adding.set(false)">Renunță</button>
+          <button class="primary" type="submit" [disabled]="!cockId || !henId || busy()"><app-icon name="bifa" />{{ 'perechi.salveaza_perechea' | t }}</button>
+          <button type="button" (click)="adding.set(false)">{{ 'actiune.renunta' | t }}</button>
         </div>
       </form>
     }
@@ -76,38 +76,38 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
         <li>
           <a class="card pair" [routerLink]="['/perechi', p.id]">
             <span class="birds">
-              <span class="sx sM">M</span><strong class="mono">{{ ring(p.cock) }}</strong>
+              <span class="sx sM">{{ 'sex.m' | t }}</span><strong class="mono">{{ ring(p.cock) }}</strong>
               <span class="x">×</span>
-              <span class="sx sF">F</span><strong class="mono">{{ ring(p.hen) }}</strong>
+              <span class="sx sF">{{ 'sex.f' | t }}</span><strong class="mono">{{ ring(p.hen) }}</strong>
             </span>
             <span class="meta">
-              <span class="badge" [class]="'badge st-' + p.status">{{ status[p.status] }}</span>
-              @if (p.nest) { <span>cuibul {{ p.nest }}</span> }
-              @if (p.pairedOn) { <span>din {{ date(p.pairedOn) }}</span> }
-              <span>{{ p.clutchCount }} {{ p.clutchCount === 1 ? 'pontă' : 'ponte' }} · {{ p.youngCount }} pui inelați</span>
-              @if (p.coi > 0) { <span [class.warn]="p.coi >= 0.125">consangvinizare {{ pct(p.coi) }}</span> }
+              <span class="badge" [class]="'badge st-' + p.status">{{ status(p.status) }}</span>
+              @if (p.nest) { <span>{{ 'perechi.cuibul' | t: { n: p.nest } }}</span> }
+              @if (p.pairedOn) { <span>{{ 'perechi.din_data' | t: { data: date(p.pairedOn) } }}</span> }
+              <span>{{ 'perechi.ponte' | t: { count: p.clutchCount } }} · {{ 'perechi.pui_inelati' | t: { n: p.youngCount } }}</span>
+              @if (p.coi > 0) { <span [class.warn]="p.coi >= 0.125">{{ 'perechi.consangvinizare' | t: { procent: pct(p.coi) } }}</span> }
             </span>
             <app-icon name="inainte" />
           </a>
         </li>
       } @empty {
-        @if (loaded()) { <p class="muted">Nicio pereche în {{ season() }}. Apasă „Pereche nouă”.</p> }
+        @if (loaded()) { <p class="muted">{{ 'perechi.nicio_pereche' | t: { sezon: season() } }}</p> }
       }
     </ul>
 
     <section class="card stack series">
-      <h2>Inelele mele</h2>
-      <p class="muted">Scrie primul și ultimul inel din seria primită de la federație. La inelarea puilor, programul îți propune următorul inel liber.</p>
+      <h2>{{ 'perechi.inelele_mele' | t }}</h2>
+      <p class="muted">{{ 'perechi.serii_intro' | t }}</p>
       @for (s of series(); track s.id) {
         <div class="row between">
-          <span><strong>{{ s.year }}</strong>: <span class="mono">{{ s.first }}</span> → <span class="mono">{{ s.last }}</span> <span class="muted">({{ s.count }} inele)</span></span>
-          <button type="button" class="link" (click)="removeSeries(s)">Șterge</button>
+          <span><strong>{{ s.year }}</strong>: <span class="mono">{{ s.first }}</span> → <span class="mono">{{ s.last }}</span> <span class="muted">{{ 'perechi.n_inele' | t: { n: s.count } }}</span></span>
+          <button type="button" class="link" (click)="removeSeries(s)">{{ 'actiune.sterge' | t }}</button>
         </div>
       }
       <form class="row" (ngSubmit)="addSeries()">
-        <label class="field grow">Primul inel <input name="first" [(ngModel)]="first" class="mono" placeholder="RO-26-800540" /></label>
-        <label class="field grow">Ultimul inel <input name="last" [(ngModel)]="last" class="mono" placeholder="RO-26-800589" /></label>
-        <button type="submit" class="end" [disabled]="!first.trim() || !last.trim()"><app-icon name="plus" />Adaugă seria</button>
+        <label class="field grow">{{ 'camp.primul_inel' | t }} <input name="first" [(ngModel)]="first" class="mono" placeholder="RO-26-800540" /></label>
+        <label class="field grow">{{ 'camp.ultimul_inel' | t }} <input name="last" [(ngModel)]="last" class="mono" placeholder="RO-26-800589" /></label>
+        <button type="submit" class="end" [disabled]="!first.trim() || !last.trim()"><app-icon name="plus" />{{ 'perechi.adauga_seria' | t }}</button>
       </form>
       @if (seriesError()) { <div class="error" role="alert">{{ seriesError() }}</div> }
     </section>
@@ -164,9 +164,9 @@ export default class Perechi {
   nest = '';
   first = '';
   last = '';
-  protected readonly status = STATUS_LABEL;
+  protected readonly status = statusLabel;
   protected readonly pct = percent;
-  protected readonly date = roDate;
+  protected readonly date = formatDay;
   protected readonly label = who;
   protected readonly ring = (p: PigeonSummary | null) => (p ? ringText(p) : '—');
 
@@ -268,9 +268,9 @@ export default class Perechi {
 
   async removeSeries(s: RingSeries) {
     const ok = await this.confirm.ask({
-      title: 'Ștergi seria de inele?',
-      lines: [`${s.first} → ${s.last}`, 'Porumbeii inelați deja rămân neatinși; doar nu se mai propun inele din seria aceasta.'],
-      confirmLabel: 'Da, șterge seria',
+      title: t('perechi.sterge_seria_titlu'),
+      lines: [`${s.first} → ${s.last}`, t('perechi.sterge_seria_text')],
+      confirmLabel: t('perechi.sterge_seria_da'),
       danger: true,
     });
     if (!ok) return;

@@ -1,4 +1,5 @@
 import express from 'express';
+import { tr } from '../i18n.js';
 import { all } from '../db.js';
 import { badRequest } from '../http.js';
 import { requireAccount } from '../accounts.js';
@@ -18,7 +19,7 @@ export const networkLimit = () => Number(process.env.NETWORK_LIMIT) || 200;
 const intParam = (value, fallback, min, max, field) => {
   if (value === undefined || value === '') return fallback;
   const n = Number(value);
-  if (!Number.isInteger(n) || n < min || n > max) throw badRequest(`„${field}” trebuie să fie între ${min} și ${max}.`);
+  if (!Number.isInteger(n) || n < min || n > max) throw badRequest('eroare.intre', { camp: field, min, max });
   return n;
 };
 
@@ -38,7 +39,7 @@ async function accountRows(accountId) {
 const valueOf = (row, offspringCount) => pigeonValue({ scores: row.evaluation?.scores ?? {}, offspringCount, status: row.status });
 
 const ringText = (row) => {
-  if (!row?.ring_raw) return 'fără inel';
+  if (!row?.ring_raw) return tr('text.fara_inel');
   const r = parseRing(row.ring_raw);
   return r.ok && !r.unringed ? formatRing(r) : row.ring_raw;
 };
@@ -189,7 +190,7 @@ export function viewsRouter() {
       const s = toSummary(row);
       const offspringCount = children.get(id)?.length ?? 0;
       const v = row.kind === 'own' ? valueOf(row, offspringCount) : { score: null, band: 0 };
-      return { id, ring: s.ring?.display ?? 'fără inel', name: s.name, sex: s.sex, year: s.year, kind: s.kind, score: v.score, band: v.band, offspringCount };
+      return { id, ring: s.ring?.display ?? tr('text.fara_inel'), name: s.name, sex: s.sex, year: s.year, kind: s.kind, score: v.score, band: v.band, offspringCount };
     });
     const edges = [];
     for (const id of ids) {

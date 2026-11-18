@@ -1,3 +1,4 @@
+import { tr } from './i18n.js';
 /*
  * Liniile de sânge ale unui porumbel: cât aduce fiecare linie (fondator) pe fiecare drum din pedigree.
  * Fiecare drum de la porumbel în sus până la un fondator (porumbel fără părinți cunoscuți, sau la maxGen) aduce
@@ -5,10 +6,8 @@
  * (așa se vede consangvinizarea). Linia fondatorului: primul din „Linii”, altfel crescătorul de origine, altfel „Fără linie”.
  */
 
-const UNKNOWN = 'Necunoscut';
-const NO_LINE = 'Fără linie';
 
-const lineOf = (row) => row?.lines?.[0]?.trim() || row?.breeder_text?.trim() || NO_LINE;
+const lineOf = (row) => row?.lines?.[0]?.trim() || row?.breeder_text?.trim() || tr('text.fara_linie');
 
 /**
  * @param {number} rootId
@@ -30,10 +29,10 @@ export function bloodlines(rootId, rowsById, maxGen = 8) {
     for (const p of parents) {
       if (p == null || !rowsById.has(p)) {
         // Părinte necunoscut: jumătatea lui de sânge e „Necunoscut”.
-        paths.push({ founderId: null, line: UNKNOWN, share: 0.5 ** (depth + 1), via: [...trail].reverse() });
+        paths.push({ founderId: null, line: tr('text.necunoscut'), share: 0.5 ** (depth + 1), via: [...trail].reverse() });
       } else if (trail.includes(p)) {
         // Ciclu în date (greșeală de introducere): drumul se oprește aici, socotit necunoscut.
-        paths.push({ founderId: null, line: UNKNOWN, share: 0.5 ** (depth + 1), via: [...trail].reverse() });
+        paths.push({ founderId: null, line: tr('text.necunoscut'), share: 0.5 ** (depth + 1), via: [...trail].reverse() });
       } else {
         walk(p, depth + 1, [...trail, p]);
       }

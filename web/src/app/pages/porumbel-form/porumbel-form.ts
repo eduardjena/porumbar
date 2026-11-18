@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
@@ -8,6 +9,7 @@ import { RingInput } from '../../shared/ring-input';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { PigeonPicker } from '../../shared/pigeon-picker';
 import { ConfirmService, changes } from '../../core/confirm';
+import { TPipe, t } from '../../core/i18n';
 
 interface Draft {
   kind: Kind;
@@ -67,24 +69,24 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker],
+  imports: [FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker, TPipe],
   template: `
     <app-breadcrumbs [items]="crumbs()" />
-    <h1>{{ id() ? 'Editează porumbelul' : 'Porumbel nou' }}</h1>
+    <h1>{{ (id() ? 'form.titlu_editeaza' : 'porumbel.nou') | t }}</h1>
     @if (!id()) {
       <a class="paper card" routerLink="/porumbei/pedigree">
-        <strong>Importă pedigree: îl ai pe hârtie, în PDF sau în poză?</strong>
-        <span class="muted">Trece-l tot dintr-o dată (porumbelul și strămoșii), sau lasă programul să-l citească din poză.</span>
+        <strong>{{ 'form.import_titlu' | t }}</strong>
+        <span class="muted">{{ 'form.import_text' | t }}</span>
       </a>
       <a class="paper card" routerLink="/scaneaza">
-        <strong>Are cod QR de la Porumbar?</strong>
-        <span class="muted">Scanează-l: se deschide pedigree-ul crescătorului și îl preiei cu tot cu strămoși.</span>
+        <strong>{{ 'form.qr_titlu' | t }}</strong>
+        <span class="muted">{{ 'form.qr_text' | t }}</span>
       </a>
     }
     @if (restored()) {
       <div class="notice row" role="status">
-        Am păstrat ce scriseseși data trecută.
-        <button type="button" class="link" (click)="discardDraft()">Începe de la zero</button>
+        {{ 'form.ciorna_pastrata' | t }}
+        <button type="button" class="link" (click)="discardDraft()">{{ 'form.de_la_zero' | t }}</button>
       </div>
     }
     @if (d(); as f) {
@@ -92,17 +94,17 @@ function writeDraft(id: string | undefined, d: Draft | null) {
         <!-- Întâi părinții (cerut de crescător): cine e tatăl, cine e mama, apoi seria puiului. În afara formularului,
              ca Enter în căutarea unui părinte să nu salveze porumbelul. -->
         <section class="card stack parents">
-          <h2>Părinții</h2>
-          <p class="muted">Scrie seria de inel a tatălui și a mamei. Vezi pe loc istoricul lor; dacă nu sunt încă în program, îi notezi.</p>
-          <app-pigeon-picker label="Tatăl" sex="M" [selected]="f.father ?? null" (picked)="setParent('father', $event)" />
-          <app-pigeon-picker label="Mama" sex="F" [selected]="f.mother ?? null" (picked)="setParent('mother', $event)" />
+          <h2>{{ 'porumbel.parintii' | t }}</h2>
+          <p class="muted">{{ 'form.parinti_text' | t }}</p>
+          <app-pigeon-picker [label]="'porumbel.tatal' | t" sex="M" [selected]="f.father ?? null" (picked)="setParent('father', $event)" />
+          <app-pigeon-picker [label]="'porumbel.mama' | t" sex="F" [selected]="f.mother ?? null" (picked)="setParent('mother', $event)" />
           @if (pairCoi(); as c) {
             <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
               @if (c.coi > 0) {
-                Puiul lor are consangvinizare <strong>{{ pct(c.coi) }}</strong> (strămoși comuni:
+                {{ 'form.coi_pui' | t }} <strong>{{ pct(c.coi) }}</strong> {{ 'form.coi_stramosi' | t }}
                 @for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : ', ' }}}).
               } @else {
-                Tatăl și mama nu au strămoși comuni cunoscuți.
+                {{ 'form.coi_zero' | t }}
               }
             </div>
           }
@@ -110,28 +112,28 @@ function writeDraft(id: string | undefined, d: Draft | null) {
       }
       <form class="stack" (ngSubmit)="save()" (input)="keep()" (change)="keep()">
         <section class="card stack">
-          <h2>Identitate</h2>
-          <div class="row kinds" role="radiogroup" aria-label="Al cui e porumbelul">
-            <label class="check"><input type="radio" name="kind" value="own" [(ngModel)]="f.kind" /> Din porumbarul meu</label>
-            <label class="check"><input type="radio" name="kind" value="external" [(ngModel)]="f.kind" /> Nu e în porumbarul meu</label>
+          <h2>{{ 'form.identitate' | t }}</h2>
+          <div class="row kinds" role="radiogroup" [attr.aria-label]="'form.al_cui_aria' | t">
+            <label class="check"><input type="radio" name="kind" value="own" [(ngModel)]="f.kind" /> {{ 'porumbel.din_porumbarul_meu' | t }}</label>
+            <label class="check"><input type="radio" name="kind" value="external" [(ngModel)]="f.kind" /> {{ 'porumbel.nu_e_al_meu' | t }}</label>
           </div>
           <app-ring-input [(value)]="f.ring" [required]="f.kind === 'own'" />
           <fieldset class="row sexes">
-            <legend>Sexul</legend>
-            <label class="check"><input type="radio" name="sex" value="M" [(ngModel)]="f.sex" /> Mascul</label>
-            <label class="check"><input type="radio" name="sex" value="F" [(ngModel)]="f.sex" /> Femelă</label>
-            <label class="check"><input type="radio" name="sex" value="" [(ngModel)]="f.sex" /> Nu știu încă</label>
+            <legend>{{ 'porumbel.sexul' | t }}</legend>
+            <label class="check"><input type="radio" name="sex" value="M" [(ngModel)]="f.sex" /> {{ 'sex.mascul' | t }}</label>
+            <label class="check"><input type="radio" name="sex" value="F" [(ngModel)]="f.sex" /> {{ 'sex.femela' | t }}</label>
+            <label class="check"><input type="radio" name="sex" value="" [(ngModel)]="f.sex" /> {{ 'form.sex_nu_stiu' | t }}</label>
           </fieldset>
-          <label class="field">Nume sau poreclă <span class="hint">de ex. „DE 546”, „Super Velden”</span>
+          <label class="field">{{ 'form.nume' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: '„DE 546”, „Super Velden”' } }}</span>
             <input name="name" [(ngModel)]="f.name" />
           </label>
-          <label class="field">Data eclozării <span class="hint">opțional</span>
+          <label class="field">{{ 'camp.data_eclozarii' | t }} <span class="hint">{{ 'text.optional' | t }}</span>
             <input type="date" name="hatchedOn" [(ngModel)]="f.hatchedOn" />
           </label>
-          <label class="field">Crescătorul de origine <span class="hint">de ex. „Van Heteren”, „Comb. Den Haan”</span>
+          <label class="field">{{ 'form.crescator_origine' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: '„Van Heteren”, „Comb. Den Haan”' } }}</span>
             <input name="breederText" [(ngModel)]="f.breederText" />
           </label>
-          <label class="field">Starea
+          <label class="field">{{ 'porumbel.starea' | t }}
             <select name="status" [(ngModel)]="f.status">
               <option value="">—</option>
               @for (s of cat()?.statuses ?? []; track s.code) { <option [value]="s.code">{{ s.label }}</option> }
@@ -140,30 +142,30 @@ function writeDraft(id: string | undefined, d: Draft | null) {
         </section>
 
         <section class="card stack">
-          <h2>Rasă și linii</h2>
-          <label class="field">Rasa
+          <h2>{{ 'form.rasa_si_linii' | t }}</h2>
+          <label class="field">{{ 'porumbel.rasa' | t }}
             <select name="breed" [(ngModel)]="f.breed">
               @for (b of cat()?.breeds ?? []; track b.code) { <option [value]="b.code">{{ b.label }}</option> }
             </select>
           </label>
-          <label class="field">Liniile <span class="hint">despărțite prin virgulă, de ex. „Janssen, Van Heteren”</span>
+          <label class="field">{{ 'form.liniile' | t }} <span class="hint">{{ 'form.liniile_ajutor' | t: { exemplu: '„Janssen, Van Heteren”' } }}</span>
             <input name="lines" [(ngModel)]="f.lines" />
           </label>
         </section>
 
         <section class="card stack">
-          <h2>Culoare</h2>
-          <label class="field">Culoarea penajului
+          <h2>{{ 'porumbel.culoare' | t }}</h2>
+          <label class="field">{{ 'form.culoarea_penajului' | t }}
             <select name="color" [(ngModel)]="f.color">
               <option value="">—</option>
               @for (c of cat()?.colors ?? []; track c.code) { <option [value]="c.code">{{ c.label }}</option> }
             </select>
           </label>
-          <label class="check"><input type="checkbox" name="colorPa" [(ngModel)]="f.colorPa" /> Are pene albe (p.a.)</label>
-          <label class="field">Culoarea, cum o scrii tu <span class="hint">opțional</span>
+          <label class="check"><input type="checkbox" name="colorPa" [(ngModel)]="f.colorPa" /> {{ 'form.pene_albe' | t }}</label>
+          <label class="field">{{ 'form.culoarea_text' | t }} <span class="hint">{{ 'text.optional' | t }}</span>
             <input name="colorText" [(ngModel)]="f.colorText" />
           </label>
-          <label class="field">Culoarea ochilor
+          <label class="field">{{ 'form.culoarea_ochilor' | t }}
             <select name="eyeColor" [(ngModel)]="f.eyeColor">
               <option value="">—</option>
               @for (c of cat()?.eyeColors ?? []; track c.code) { <option [value]="c.code">{{ c.label }}</option> }
@@ -172,8 +174,8 @@ function writeDraft(id: string | undefined, d: Draft | null) {
         </section>
 
         <section class="card stack">
-          <h2>Evaluare la mână</h2>
-          <p class="muted">Note de la 1 (slab) la 5 (foarte bun). Lasă gol ce n-ai evaluat.</p>
+          <h2>{{ 'form.evaluare' | t }}</h2>
+          <p class="muted">{{ 'form.evaluare_text' | t }}</p>
           @for (c of cat()?.evalCriteria ?? []; track c.code) {
             <div class="score" role="radiogroup" [attr.aria-label]="c.label">
               <span class="score-label">{{ c.label }}</span>
@@ -185,22 +187,22 @@ function writeDraft(id: string | undefined, d: Draft | null) {
               </div>
             </div>
           }
-          <label class="field">Calități <textarea name="calitati" [(ngModel)]="f.calitati"></textarea></label>
-          <label class="field">De dorit <textarea name="deDorit" [(ngModel)]="f.deDorit"></textarea></label>
-          <label class="field">Defecte <textarea name="defecte" [(ngModel)]="f.defecte"></textarea></label>
+          <label class="field">{{ 'porumbel.calitati' | t }} <textarea name="calitati" [(ngModel)]="f.calitati"></textarea></label>
+          <label class="field">{{ 'porumbel.de_dorit' | t }} <textarea name="deDorit" [(ngModel)]="f.deDorit"></textarea></label>
+          <label class="field">{{ 'porumbel.defecte' | t }} <textarea name="defecte" [(ngModel)]="f.defecte"></textarea></label>
         </section>
 
         <section class="card stack">
-          <h2>Text pentru pedigree</h2>
-          <label class="field">Ce să scrie în căsuța lui pe pedigree <span class="hint">titluri, palmares, de ex. „Super reproducătoare”</span>
+          <h2>{{ 'form.text_pedigree' | t }}</h2>
+          <label class="field">{{ 'form.text_pedigree_eticheta' | t }} <span class="hint">{{ 'form.text_pedigree_ajutor' | t }}</span>
             <textarea name="pedigreeText" [(ngModel)]="f.pedigreeText"></textarea>
           </label>
         </section>
 
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
         <div class="actions">
-          <button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Se salvează…' : 'Salvează' }}</button>
-          <button type="button" (click)="cancel()">Renunță</button>
+          <button class="primary" type="submit" [disabled]="busy()">{{ (busy() ? 'form.se_salveaza' : 'actiune.salveaza') | t }}</button>
+          <button type="button" (click)="cancel()">{{ 'actiune.renunta' | t }}</button>
         </div>
       </form>
     }
@@ -235,8 +237,8 @@ export default class PorumbelForm implements OnInit {
   protected readonly ring = ringText;
   protected readonly crumbs = computed<Crumb[]>(() =>
     this.id()
-      ? [{ label: 'Panou', link: ['/panou'] }, { label: this.savedRing() || 'Porumbel', link: ['/porumbei', this.id()!] }, { label: 'Editează' }]
-      : [{ label: 'Panou', link: ['/panou'] }, { label: 'Porumbel nou' }],
+      ? [{ label: t('meniu.panou'), link: ['/panou'] }, { label: this.savedRing() || t('form.porumbel'), link: ['/porumbei', this.id()!] }, { label: t('actiune.editeaza') }]
+      : [{ label: t('meniu.panou'), link: ['/panou'] }, { label: t('porumbel.nou') }],
   );
   readonly restored = signal(false);
   private readonly confirm = inject(ConfirmService);
@@ -265,7 +267,7 @@ export default class PorumbelForm implements OnInit {
   }
 
   async discardDraft() {
-    const ok = await this.confirm.ask({ title: 'Arunci ce scriseseși data trecută?', lines: ['Formularul revine la datele salvate.'], confirmLabel: 'Da, aruncă', danger: true });
+    const ok = await this.confirm.ask({ title: t('form.arunci_titlu'), lines: [t('form.arunci_rand')], confirmLabel: t('form.arunci_da'), danger: true });
     if (!ok) return;
     writeDraft(this.id(), null);
     this.restored.set(false);
@@ -275,7 +277,7 @@ export default class PorumbelForm implements OnInit {
   /** „Renunță” aruncă și ciorna: altfel modificările lăsate baltă ar reapărea data viitoare peste datele salvate. */
   async cancel() {
     if (this.diff().length) {
-      const ok = await this.confirm.ask({ title: 'Renunți la modificări?', lines: this.diff(), confirmLabel: 'Da, renunță', cancelLabel: 'Înapoi la formular', danger: true });
+      const ok = await this.confirm.ask({ title: t('form.renunti_titlu'), lines: this.diff(), confirmLabel: t('form.renunti_da'), cancelLabel: t('form.inapoi_la_formular'), danger: true });
       if (!ok) return;
     }
     writeDraft(this.id(), null);
@@ -288,28 +290,29 @@ export default class PorumbelForm implements OnInit {
     const b = this.d();
     if (!b) return [];
     const L = (list: 'breeds' | 'colors' | 'eyeColors' | 'statuses', code: string) => this.catalog.label(list, code);
-    const sex = (x: string) => (x === 'M' ? 'Mascul' : x === 'F' ? 'Femelă' : '');
-    const kind = (x: string) => (x === 'own' ? 'Din porumbarul meu' : 'Nu e în porumbarul meu');
+    const sex = (x: string) => (x === 'M' ? t('sex.mascul') : x === 'F' ? t('sex.femela') : '');
+    const kind = (x: string) => t(x === 'own' ? 'porumbel.din_porumbarul_meu' : 'porumbel.nu_e_al_meu');
+    const yesNo = (x: boolean) => t(x ? 'text.da' : 'text.nu');
     const crit = this.catalog.catalog()?.evalCriteria ?? [];
     return changes([
-      { label: 'Al cui e', before: kind(a.kind), after: kind(b.kind) },
-      { label: 'Inelul', before: a.ring.trim(), after: b.ring.trim() },
-      { label: 'Sexul', before: sex(a.sex), after: sex(b.sex) },
-      { label: 'Numele', before: a.name.trim(), after: b.name.trim() },
-      { label: 'Data eclozării', before: a.hatchedOn, after: b.hatchedOn },
-      { label: 'Crescătorul', before: a.breederText.trim(), after: b.breederText.trim() },
-      { label: 'Starea', before: L('statuses', a.status), after: L('statuses', b.status) },
-      { label: 'Rasa', before: L('breeds', a.breed), after: L('breeds', b.breed) },
-      { label: 'Liniile', before: a.lines.trim(), after: b.lines.trim() },
-      { label: 'Culoarea', before: L('colors', a.color), after: L('colors', b.color) },
-      { label: 'Pene albe', before: a.colorPa ? 'da' : 'nu', after: b.colorPa ? 'da' : 'nu' },
-      { label: 'Culoarea (text)', before: a.colorText.trim(), after: b.colorText.trim() },
-      { label: 'Ochii', before: L('eyeColors', a.eyeColor), after: L('eyeColors', b.eyeColor) },
-      ...crit.map((c) => ({ label: 'Nota la ' + c.label.toLowerCase(), before: a.scores[c.code] ?? '', after: b.scores[c.code] ?? '' })),
-      { label: 'Calități', before: a.calitati.trim(), after: b.calitati.trim() },
-      { label: 'De dorit', before: a.deDorit.trim(), after: b.deDorit.trim() },
-      { label: 'Defecte', before: a.defecte.trim(), after: b.defecte.trim() },
-      { label: 'Textul pentru pedigree', before: a.pedigreeText.trim(), after: b.pedigreeText.trim() },
+      { label: t('form.dif_al_cui'), before: kind(a.kind), after: kind(b.kind) },
+      { label: t('form.dif_inelul'), before: a.ring.trim(), after: b.ring.trim() },
+      { label: t('porumbel.sexul'), before: sex(a.sex), after: sex(b.sex) },
+      { label: t('form.dif_numele'), before: a.name.trim(), after: b.name.trim() },
+      { label: t('camp.data_eclozarii'), before: a.hatchedOn, after: b.hatchedOn },
+      { label: t('form.dif_crescatorul'), before: a.breederText.trim(), after: b.breederText.trim() },
+      { label: t('porumbel.starea'), before: L('statuses', a.status), after: L('statuses', b.status) },
+      { label: t('porumbel.rasa'), before: L('breeds', a.breed), after: L('breeds', b.breed) },
+      { label: t('form.liniile'), before: a.lines.trim(), after: b.lines.trim() },
+      { label: t('form.dif_culoarea'), before: L('colors', a.color), after: L('colors', b.color) },
+      { label: t('form.dif_pene_albe'), before: yesNo(a.colorPa), after: yesNo(b.colorPa) },
+      { label: t('form.dif_culoarea_text'), before: a.colorText.trim(), after: b.colorText.trim() },
+      { label: t('form.dif_ochii'), before: L('eyeColors', a.eyeColor), after: L('eyeColors', b.eyeColor) },
+      ...crit.map((c) => ({ label: t('form.dif_nota_la', { criteriu: c.label.toLowerCase() }), before: a.scores[c.code] ?? '', after: b.scores[c.code] ?? '' })),
+      { label: t('porumbel.calitati'), before: a.calitati.trim(), after: b.calitati.trim() },
+      { label: t('porumbel.de_dorit'), before: a.deDorit.trim(), after: b.deDorit.trim() },
+      { label: t('porumbel.defecte'), before: a.defecte.trim(), after: b.defecte.trim() },
+      { label: t('form.dif_text_pedigree'), before: a.pedigreeText.trim(), after: b.pedigreeText.trim() },
     ]);
   }
 
@@ -348,7 +351,7 @@ export default class PorumbelForm implements OnInit {
         this.router.navigate(['/porumbei', this.id()]);
         return;
       }
-      if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
+      if (!(await this.confirm.ask({ title: t('form.salvezi_titlu'), lines: diff, confirmLabel: t('form.salvezi_da') }))) return;
     }
     this.busy.set(true);
     this.error.set('');
@@ -384,8 +387,8 @@ export default class PorumbelForm implements OnInit {
       writeDraft(this.id(), null);
       this.router.navigate(['/porumbei', r.pigeon.id], { queryParams: this.id() ? {} : { nou: 1 } });
     } catch (e) {
-      const msg = errorMessage(e);
-      this.error.set(msg.startsWith('Nu s-a putut ajunge') ? 'Nu s-a putut salva. Verifică internetul și apasă din nou Salvează.' : msg);
+      // Fără legătură cu serverul (status 0): mesajul spune ce să facă; altfel, eroarea serverului.
+      this.error.set(e instanceof HttpErrorResponse && e.status === 0 ? t('form.fara_internet') : errorMessage(e));
     } finally {
       this.busy.set(false);
     }

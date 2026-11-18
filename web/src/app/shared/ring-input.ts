@@ -1,5 +1,6 @@
 import { Component, computed, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TPipe, t } from '../core/i18n';
 
 /*
  * Câmpul de inel: arată sub el ce a înțeles programul, ca omul să vadă imediat dacă a scris bine.
@@ -16,7 +17,7 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
     sex = SEX[m0[2]];
     s = m0[1].trim();
   }
-  if (/^0+$/.test(s)) return { ok: true, display: 'fără inel', sex, unringed: true };
+  if (/^0+$/.test(s)) return { ok: true, display: t('text.fara_inel'), sex, unringed: true };
   const yy = (y: string) => (y.length === 4 ? y.slice(2) : y);
   const strip = (n: string) => n.replace(/^0+(?=\d)/, '');
   let m = s.match(/^([A-Z]{1,4})[\s-]+(\d{1,5})[\s-]+(\d{2})[\s-]+(\d+)$/);
@@ -39,21 +40,21 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
 
 @Component({
   selector: 'app-ring-input',
-  imports: [FormsModule],
+  imports: [FormsModule, TPipe],
   template: `
-    <label class="field">{{ label() }}
-      <span class="hint">De exemplu RO-25-276971, 276971/25 RO sau RO 25 276971. Litera de la final (M/F, L/T) spune sexul.</span>
+    <label class="field">{{ label() || ('inel.eticheta' | t) }}
+      <span class="hint">{{ 'inel.exemplu' | t }}</span>
       <input class="mono" [name]="name()" [(ngModel)]="value" autocapitalize="characters" autocomplete="off" spellcheck="false" />
     </label>
     @if (value().trim()) {
       @if (preview().ok) {
         <p class="ok" role="status">
-          Recunoscut: <strong class="mono">{{ preview().display }}</strong>@if (preview().sex) {, {{ preview().sex === 'M' ? 'mascul' : 'femelă' }}}
+          {{ 'inel.recunoscut' | t }} <strong class="mono">{{ preview().display }}</strong>@if (preview().sex) {, {{ (preview().sex === 'M' ? 'inel.mascul' : 'inel.femela') | t }}}
         </p>
       } @else if (required()) {
-        <p class="bad" role="status">Nu pot citi inelul. Scrie-l ca în exemplu: RO-25-123456.</p>
+        <p class="bad" role="status">{{ 'inel.necitit' | t }}</p>
       } @else {
-        <p class="muted" role="status">Nu e un inel obișnuit: se păstrează exact cum l-ai scris.</p>
+        <p class="muted" role="status">{{ 'inel.neobisnuit' | t }}</p>
       }
     }
   `,
@@ -63,7 +64,8 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
   `,
 })
 export class RingInput {
-  readonly label = input('Inelul');
+  /** Fără etichetă: „Inelul”, din dicționar. */
+  readonly label = input('');
   readonly name = input('ring');
   readonly required = input(true);
   readonly value = model('');

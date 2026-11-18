@@ -4,27 +4,30 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
+import { LangSwitch } from '../../shared/lang-switch';
+import { TPipe } from '../../core/i18n';
 
 @Component({
   selector: 'app-parola-noua',
-  imports: [FormsModule, RouterLink, PasswordField],
+  imports: [FormsModule, RouterLink, PasswordField, LangSwitch, TPipe],
   template: `
     <div class="auth-page stack">
-      <h1>Alege-ți parola</h1>
+      <app-lang-switch />
+      <h1>{{ 'parola_noua.titlu' | t }}</h1>
       @if (auth.account(); as a) {
         <!-- Linkul se folosește o singură dată și te și intră în cont: redeschis, ar spune doar „folosit”. -->
         <div class="notice stack" role="status">
-          <span>Ești deja în contul tău ({{ a.email }}). Dacă ți-ai ales parola din acest link, nu mai ai nevoie de el: se folosește o singură dată.</span>
-          <a class="btn primary" routerLink="/panou">Mergi la porumbarul tău</a>
+          <span>{{ 'parola_noua.deja_in_cont' | t: { email: a.email } }}</span>
+          <a class="btn primary" routerLink="/panou">{{ 'parola_noua.mergi' | t }}</a>
         </div>
       }
       <form class="card stack" (ngSubmit)="submit()">
-        <app-password-field [(value)]="password" label="Parola nouă" autocomplete="new-password" hint="Cel puțin 10 caractere." />
+        <app-password-field [(value)]="password" [label]="'parola_noua.eticheta' | t" autocomplete="new-password" [hint]="'parola_noua.hint' | t" />
         @if (error()) {
-          <div class="error" role="alert">{{ error() }}@if (auth.account()) { Ești însă deja în cont, deci totul e în regulă. }</div>
-          @if (!auth.account()) { <a routerLink="/parola-uitata">Cere un link nou</a> }
+          <div class="error" role="alert">{{ error() }}@if (auth.account()) { {{ 'parola_noua.totusi_in_cont' | t }} }</div>
+          @if (!auth.account()) { <a routerLink="/parola-uitata">{{ 'parola_noua.link_nou' | t }}</a> }
         }
-        <button class="primary wide" type="submit" [disabled]="busy()">Salvează parola</button>
+        <button class="primary wide" type="submit" [disabled]="busy()">{{ 'parola_noua.salveaza' | t }}</button>
       </form>
     </div>
   `,

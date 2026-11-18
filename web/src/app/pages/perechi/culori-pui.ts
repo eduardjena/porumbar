@@ -1,6 +1,7 @@
 import { Component, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
+import { TPipe } from '../../core/i18n';
 
 /** Factorii de culoare ai unui părinte (ca în src/color-genetics.js). */
 interface Factors {
@@ -17,8 +18,9 @@ interface Factors {
 interface Young { name: string; pct: number; carries: string[] }
 interface Prediction { cocks: Young[]; hens: Young[]; unknown: string[] }
 
-const BASES = [{ v: 'BA', l: 'Roșu (cenușiu)' }, { v: '+', l: 'Albastru / negru' }, { v: 'b', l: 'Maro (cafeniu)' }];
-const PATTERNS = [{ v: 'CT', l: 'Solzat închis' }, { v: 'C', l: 'Solzat' }, { v: '+', l: 'Cu dungi' }, { v: 'c', l: 'Fără dungi' }];
+// l = cheia din dicționar
+const BASES = [{ v: 'BA', l: 'culori.baza_rosu' }, { v: '+', l: 'culori.baza_albastru' }, { v: 'b', l: 'culori.baza_maro' }];
+const PATTERNS = [{ v: 'CT', l: 'culori.desen_solzat_inchis' }, { v: 'C', l: 'culori.desen_solzat' }, { v: '+', l: 'culori.desen_dungi' }, { v: 'c', l: 'culori.desen_fara_dungi' }];
 const lower = (list: { v: string; l: string }[], v: string | null) => (v ? list.slice(list.findIndex((x) => x.v === v) + 1) : []);
 
 /*
@@ -28,90 +30,88 @@ const lower = (list: { v: string; l: string }[], v: string | null) => (v ? list.
  */
 @Component({
   selector: 'app-culori-pui',
-  imports: [FormsModule],
+  imports: [FormsModule, TPipe],
   template: `
     <section class="card stack">
-      <h2>Culorile probabile ale puilor</h2>
+      <h2>{{ 'culori.titlu' | t }}</h2>
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
       @if (result(); as r) {
         <div class="cols">
           <div>
-            <h3><span class="sx sM">M</span> Pui masculi</h3>
+            <h3><span class="sx sM">{{ 'sex.m' | t }}</span> {{ 'culori.pui_masculi' | t }}</h3>
             @for (y of r.cocks; track y.name + y.carries.join()) {
-              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · poartă ascuns: {{ y.carries.join(', ') }}</span>}</span></div>
+              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · {{ 'culori.poarta_ascuns_lista' | t: { lista: y.carries.join(', ') } }}</span>}</span></div>
             }
           </div>
           <div>
-            <h3><span class="sx sF">F</span> Pui femele</h3>
+            <h3><span class="sx sF">{{ 'sex.f' | t }}</span> {{ 'culori.pui_femele' | t }}</h3>
             @for (y of r.hens; track y.name + y.carries.join()) {
-              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · poartă ascuns: {{ y.carries.join(', ') }}</span>}</span></div>
+              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · {{ 'culori.poarta_ascuns_lista' | t: { lista: y.carries.join(', ') } }}</span>}</span></div>
             }
           </div>
         </div>
         @if (r.unknown.length) {
-          <p class="notice">Nu știm la amândoi părinții: <strong>{{ r.unknown.join(', ') }}</strong>. Partea asta nu intră în calcul; o poți completa mai jos.</p>
+          <p class="notice">{{ 'culori.nu_stim' | t }} <strong>{{ r.unknown.join(', ') }}</strong>. {{ 'culori.nu_stim_rest' | t }}</p>
         }
       }
       <details>
-        <summary>Corectează culorile părinților (ce știi mai bine)</summary>
+        <summary>{{ 'culori.corecteaza' | t }}</summary>
         @if (sire && dam) {
           <div class="cols edit">
             @for (side of sides; track side.key) {
               @let f = side.key === 'sire' ? sire : dam;
               <fieldset class="stack">
-                <legend>{{ side.label }}</legend>
-                <label class="field">Culoarea de bază
+                <legend>{{ side.label | t }}</legend>
+                <label class="field">{{ 'culori.culoarea_de_baza' | t }}
                   <select [(ngModel)]="f.base" [name]="side.key + 'base'" (ngModelChange)="f.baseHidden = null; recalc()">
-                    <option [ngValue]="null">Nu știu</option>
-                    @for (o of bases; track o.v) { <option [ngValue]="o.v">{{ o.l }}</option> }
+                    <option [ngValue]="null">{{ 'culori.nu_stiu' | t }}</option>
+                    @for (o of bases; track o.v) { <option [ngValue]="o.v">{{ o.l | t }}</option> }
                   </select>
                 </label>
                 @if (f.sex === 'M' && lowerBases(f.base).length) {
-                  <label class="field">Poartă ascuns
+                  <label class="field">{{ 'culori.poarta_ascuns' | t }}
                     <select [(ngModel)]="f.baseHidden" [name]="side.key + 'baseH'" (ngModelChange)="recalc()">
-                      <option [ngValue]="null">Nimic (sau nu știu)</option>
-                      @for (o of lowerBases(f.base); track o.v) { <option [ngValue]="o.v">{{ o.l }}</option> }
+                      <option [ngValue]="null">{{ 'culori.nimic' | t }}</option>
+                      @for (o of lowerBases(f.base); track o.v) { <option [ngValue]="o.v">{{ o.l | t }}</option> }
                     </select>
                   </label>
                 }
-                <label class="field">Desenul aripii
+                <label class="field">{{ 'culori.desenul_aripii' | t }}
                   <select [(ngModel)]="f.pattern" [name]="side.key + 'pat'" (ngModelChange)="f.patternHidden = null; recalc()">
-                    <option [ngValue]="null">Nu știu</option>
-                    @for (o of patterns; track o.v) { <option [ngValue]="o.v">{{ o.l }}</option> }
+                    <option [ngValue]="null">{{ 'culori.nu_stiu' | t }}</option>
+                    @for (o of patterns; track o.v) { <option [ngValue]="o.v">{{ o.l | t }}</option> }
                   </select>
                 </label>
                 @if (lowerPatterns(f.pattern).length) {
-                  <label class="field">Desen ascuns
+                  <label class="field">{{ 'culori.desen_ascuns' | t }}
                     <select [(ngModel)]="f.patternHidden" [name]="side.key + 'patH'" (ngModelChange)="recalc()">
-                      <option [ngValue]="null">Nimic (sau nu știu)</option>
-                      @for (o of lowerPatterns(f.pattern); track o.v) { <option [ngValue]="o.v">{{ o.l }}</option> }
+                      <option [ngValue]="null">{{ 'culori.nimic' | t }}</option>
+                      @for (o of lowerPatterns(f.pattern); track o.v) { <option [ngValue]="o.v">{{ o.l | t }}</option> }
                     </select>
                   </label>
                 }
-                <label class="field">Negru uniform (spread)
+                <label class="field">{{ 'culori.uniform' | t }}
                   <select [(ngModel)]="f.spread" [name]="side.key + 'spr'" (ngModelChange)="f.spreadHidden = null; recalc()">
-                    <option [ngValue]="null">Nu știu</option><option [ngValue]="true">Da</option><option [ngValue]="false">Nu</option>
+                    <option [ngValue]="null">{{ 'culori.nu_stiu' | t }}</option><option [ngValue]="true">{{ 'text.da_mare' | t }}</option><option [ngValue]="false">{{ 'text.nu_mare' | t }}</option>
                   </select>
                 </label>
                 @if (f.spread === true) {
-                  <label class="check"><input type="checkbox" [name]="side.key + 'sprH'" [ngModel]="f.spreadHidden === false" (ngModelChange)="f.spreadHidden = $event ? false : null; recalc()" /> Un părinte al lui nu era uniform</label>
+                  <label class="check"><input type="checkbox" [name]="side.key + 'sprH'" [ngModel]="f.spreadHidden === false" (ngModelChange)="f.spreadHidden = $event ? false : null; recalc()" /> {{ 'culori.parinte_neuniform' | t }}</label>
                 }
-                <label class="field">Diluat (argintiu, gălbui)
+                <label class="field">{{ 'culori.diluat' | t }}
                   <select [(ngModel)]="f.dilute" [name]="side.key + 'dil'" (ngModelChange)="f.diluteHidden = null; recalc()">
-                    <option [ngValue]="null">Nu știu</option><option [ngValue]="true">Da</option><option [ngValue]="false">Nu</option>
+                    <option [ngValue]="null">{{ 'culori.nu_stiu' | t }}</option><option [ngValue]="true">{{ 'text.da_mare' | t }}</option><option [ngValue]="false">{{ 'text.nu_mare' | t }}</option>
                   </select>
                 </label>
                 @if (f.sex === 'M' && f.dilute === false) {
-                  <label class="check"><input type="checkbox" [name]="side.key + 'dilH'" [ngModel]="f.diluteHidden === true" (ngModelChange)="f.diluteHidden = $event ? true : null; recalc()" /> Poartă diluția ascuns</label>
+                  <label class="check"><input type="checkbox" [name]="side.key + 'dilH'" [ngModel]="f.diluteHidden === true" (ngModelChange)="f.diluteHidden = $event ? true : null; recalc()" /> {{ 'culori.poarta_dilutia' | t }}</label>
                 }
               </fieldset>
             }
           </div>
         }
       </details>
-      <p class="muted small">Sunt procente, nu garanții: un porumbel poate purta ascuns ce nu se vede pe pene. Calculul folosește genetica
-        clasică a porumbeilor (culoarea de bază și diluția legate de sex, desenul și negrul uniform); bălțatul, tărcatul, albul și
-        alte gene nu intră.</p>
+      <p class="muted small">{{ 'culori.nota' | t }}</p>
     </section>
   `,
   styles: `
@@ -141,7 +141,7 @@ export class CuloriPui {
   dam: Factors | null = null;
   protected readonly bases = BASES;
   protected readonly patterns = PATTERNS;
-  protected readonly sides = [{ key: 'sire', label: 'Masculul' }, { key: 'dam', label: 'Femela' }] as const;
+  protected readonly sides = [{ key: 'sire', label: 'perechi.masculul' }, { key: 'dam', label: 'perechi.femela' }] as const;
   protected readonly lowerBases = (v: string | null) => lower(BASES, v);
   protected readonly lowerPatterns = (v: string | null) => lower(PATTERNS, v);
 

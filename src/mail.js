@@ -10,7 +10,7 @@ let transport = null;
 export async function sendMail({ to, subject, text }) {
   if (!config.smtpUrl) {
     sentMails.push({ to, subject, text });
-    if (process.env.NODE_ENV !== 'test') console.log(`[porumbar] Email către ${to}: ${subject}\n${text}`);
+    if (process.env.NODE_ENV !== 'test') console.log(`[porumbar] Email către ${to}: ${subject}\n${text}`); // i18n: ro
     return;
   }
   transport ??= nodemailer.createTransport(config.smtpUrl);

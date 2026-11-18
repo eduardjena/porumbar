@@ -81,6 +81,9 @@ export function toImportNode(n) {
     sex: n.sex,
     name: n.name,
     color: n.colorText ?? (n.colorLabel ? `${n.colorLabel}${n.colorPa ? ' p.a.' : ''}` : null),
+    // Culoarea din listă pleacă și ca cod: la cel care preia apare în limba lui (nu ca text românesc).
+    colorCode: n.colorText ? null : n.color ?? null,
+    colorPa: !!n.colorPa,
     // La preluare / cumpărare, rezultatele intră în textul de pedigree al porumbelului nou.
     text: [(n.results ?? []).join('; '), n.pedigreeText].filter(Boolean).join('; ') || null,
     breeder: n.breeder,

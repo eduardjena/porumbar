@@ -1,10 +1,11 @@
-import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, Injector, effect, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, untracked } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding, withNavigationErrorHandler } from '@angular/router';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/api';
 import { AuthService } from './core/auth';
 import { CatalogService } from './core/catalog';
+import { currentLang, guestLang, useLang } from './core/i18n';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,10 +29,23 @@ export const appConfig: ApplicationConfig = {
         location.assign(e.url);
       }),
     ),
-    provideAppInitializer(() => {
+    provideAppInitializer(async () => {
+      const auth = inject(AuthService);
+      const catalog = inject(CatalogService);
+      const injector = inject(Injector);
       // Catalogul nu blochează pornirea; dacă pică, paginile îl cer din nou.
-      inject(CatalogService).load().catch(() => undefined);
-      return inject(AuthService).load();
+      catalog.load().catch(() => undefined);
+      await auth.load();
+      // Limba: a contului; fără cont, cea aleasă pe telefon (doar limbile publice).
+      await useLang(auth.account()?.lang ?? guestLang());
+      // La intrare / ieșire din cont (sau când vânzătorul schimbă limba contului) se schimbă și limba ecranului.
+      effect(
+        () => {
+          const code = auth.account()?.lang ?? guestLang();
+          if (code !== untracked(currentLang)) void useLang(code).then(() => catalog.reload().catch(() => undefined));
+        },
+        { injector },
+      );
     }),
   ],
 };

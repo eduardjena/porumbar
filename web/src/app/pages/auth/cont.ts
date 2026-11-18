@@ -1,15 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
+import { LANGS, TPipe, formatDay, formatMoney, isPublicLang, t } from '../../core/i18n';
 
-const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
+const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 
 @Component({
   selector: 'app-cont',
-  imports: [FormsModule],
+  imports: [FormsModule, TPipe],
   styles: `
     .subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; }
     .h { margin: 0; }
@@ -24,81 +25,93 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
     .ticks input { width: 28px; height: 28px; margin: 0; }
   `,
   template: `
-    <h1>Contul meu</h1>
+    <h1>{{ 'cont.titlu' | t }}</h1>
     @if (auth.account(); as a) {
       @if (!a.isAdmin && a.subscription; as s) {
         <section class="card stack subs">
-          <h2>Abonament</h2>
+          <h2>{{ 'cont.abonament' | t }}</h2>
           @if (s.start) {
-            <p>{{ s.active ? 'Activ' : 'Expirat' }}: de pe <strong>{{ day(s.start) }}</strong> până pe <strong>{{ day(s.end) }}</strong>@if (s.active) { (mai sunt {{ s.daysLeft }} zile) }.</p>
+            <p>{{ (s.active ? 'cont.activ' : 'cont.expirat') | t }}{{ 'cont.de_pe' | t }}<strong>{{ day(s.start) }}</strong>{{ 'cont.pana_pe' | t }}<strong>{{ day(s.end) }}</strong>@if (s.active) { {{ 'cont.zile_ramase' | t: { count: s.daysLeft } }} }.</p>
           } @else {
-            <p>Contul nu este activ încă. Până la activare poți doar să vezi porumbeii.</p>
+            <p>{{ 'cont.neactivat' | t }}</p>
           }
-          <p>Credit pentru citirea pedigree-urilor din poze: <strong>{{ money(a.aiCredit ?? 0) }}</strong> <span class="muted">(o citire costă în jur de 0,10–0,15 $)</span></p>
-          @if (a.sellerContact) { <p class="muted">Plată, activare și credit: {{ a.sellerContact }}</p> }
+          <p>{{ 'cont.credit' | t }} <strong>{{ money(a.aiCredit ?? 0) }}</strong> <span class="muted">{{ 'cont.cost_citire' | t }}</span></p>
+          @if (a.sellerContact) { <p class="muted">{{ 'cont.plata_contact' | t: { contact: a.sellerContact } }}</p> }
         </section>
       }
     }
     <form class="card stack" (ngSubmit)="save()">
       @if (auth.account()?.isAdmin) {
-        <p class="muted">Pe pedigree-ul tipărit apar jos, în stânga, numele de pe pedigree și ce bifezi mai jos.</p>
-        <label class="field">Nume
+        <p class="muted">{{ 'cont.admin_explicatie' | t }}</p>
+        <label class="field">{{ 'cont.nume' | t }}
           <input name="name" required [(ngModel)]="name" autocomplete="name" />
         </label>
-        <label class="field">Numele de pe pedigree <span class="hint">(echipa sau crescătoria, de ex. „Popescu-Ionescu Team”)</span>
+        <label class="field">{{ 'cont.nume_pedigree' | t }} <span class="hint">{{ 'cont.nume_pedigree_hint' | t }}</span>
           <input name="pedigreeName" [(ngModel)]="pedigreeName" />
         </label>
-        <label class="field">Telefon
+        <label class="field">{{ 'cont.telefon' | t }}
           <input name="phone" type="tel" inputmode="tel" [(ngModel)]="phone" autocomplete="tel" />
         </label>
-        <label class="field">Adresă
-          <textarea name="address" [(ngModel)]="address" autocomplete="street-address" rows="3" placeholder="Strada, numărul&#10;Localitatea, județul"></textarea>
+        <label class="field">{{ 'cont.adresa' | t }}
+          <textarea name="address" [(ngModel)]="address" autocomplete="street-address" rows="3" [placeholder]="'cont.adresa_exemplu' | t"></textarea>
         </label>
       } @else if (auth.account(); as a) {
-        <h2 class="h">Datele de pe fișă</h2>
-        <p class="muted">Așa apar jos, în stânga, pe pedigree. Le schimbă doar cel de la care ai primit programul{{ a.sellerContact ? ' (' + a.sellerContact + ')' : '' }}.</p>
+        <h2 class="h">{{ 'cont.date_fisa' | t }}</h2>
+        <p class="muted">{{ 'cont.date_fisa_explicatie' | t }}{{ a.sellerContact ? ' (' + a.sellerContact + ')' : '' }}.</p>
         <div class="sheet">
           <strong>{{ a.pedigreeName || '—' }}</strong>
           <!-- Ca pe foaie: doar ce e bifat la „Pe fișă” (se schimbă pe loc când bifezi). -->
           @if (a.address && printAddress) { <span class="addr">{{ a.address }}</span> }
-          @if (a.phone && printPhone) { <span>Tel.: {{ a.phone }}</span> }
+          @if (a.phone && printPhone) { <span>{{ 'cont.tel' | t: { telefon: a.phone } }}</span> }
           @if (printEmail) { <span>{{ a.email }}</span> }
         </div>
       }
       <fieldset class="show">
-        <legend>Ce apare pe lângă nume</legend>
-        <p class="muted">Numele apare mereu. Linkul public și codul QR le poate vedea oricine le are.</p>
+        <legend>{{ 'cont.ce_apare' | t }}</legend>
+        <p class="muted">{{ 'cont.ce_apare_explicatie' | t }}</p>
         <table class="ticks">
-          <thead><tr><th></th><th scope="col">Pe fișă și în PDF</th><th scope="col">La link și codul QR</th></tr></thead>
+          <thead><tr><th></th><th scope="col">{{ 'cont.col_fisa' | t }}</th><th scope="col">{{ 'cont.col_link' | t }}</th></tr></thead>
           <tbody>
-            <tr><th scope="row">Telefonul</th>
-              <td><input type="checkbox" name="printPhone" [(ngModel)]="printPhone" aria-label="Telefonul pe fișă" /></td>
-              <td><input type="checkbox" name="showPhone" [(ngModel)]="showPhone" aria-label="Telefonul la link" /></td></tr>
-            <tr><th scope="row">Adresa</th>
-              <td><input type="checkbox" name="printAddress" [(ngModel)]="printAddress" aria-label="Adresa pe fișă" /></td>
-              <td><input type="checkbox" name="showAddress" [(ngModel)]="showAddress" aria-label="Adresa la link" /></td></tr>
-            <tr><th scope="row">Emailul</th>
-              <td><input type="checkbox" name="printEmail" [(ngModel)]="printEmail" aria-label="Emailul pe fișă" /></td>
-              <td><input type="checkbox" name="showEmail" [(ngModel)]="showEmail" aria-label="Emailul la link" /></td></tr>
+            <tr><th scope="row">{{ 'cont.rand_telefon' | t }}</th>
+              <td><input type="checkbox" name="printPhone" [(ngModel)]="printPhone" [attr.aria-label]="'cont.telefon_fisa' | t" /></td>
+              <td><input type="checkbox" name="showPhone" [(ngModel)]="showPhone" [attr.aria-label]="'cont.telefon_link' | t" /></td></tr>
+            <tr><th scope="row">{{ 'cont.rand_adresa' | t }}</th>
+              <td><input type="checkbox" name="printAddress" [(ngModel)]="printAddress" [attr.aria-label]="'cont.adresa_fisa' | t" /></td>
+              <td><input type="checkbox" name="showAddress" [(ngModel)]="showAddress" [attr.aria-label]="'cont.adresa_link' | t" /></td></tr>
+            <tr><th scope="row">{{ 'cont.rand_email' | t }}</th>
+              <td><input type="checkbox" name="printEmail" [(ngModel)]="printEmail" [attr.aria-label]="'cont.email_fisa' | t" /></td>
+              <td><input type="checkbox" name="showEmail" [(ngModel)]="showEmail" [attr.aria-label]="'cont.email_link' | t" /></td></tr>
           </tbody>
         </table>
       </fieldset>
-      @if (saved()) { <div class="notice" role="status">Salvat.</div> }
+      @if (saved()) { <div class="notice" role="status">{{ 'cont.salvat' | t }}</div> }
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
-      <button class="primary" type="submit">Salvează</button>
+      <button class="primary" type="submit">{{ 'actiune.salveaza' | t }}</button>
     </form>
 
-    <h2>Ieșire</h2>
-    <button type="button" class="wide" (click)="logout()">Ieși din cont</button>
+    @if (langChoices().length > 1) {
+      <h2>{{ 'cont.limba' | t }}</h2>
+      <div class="card stack">
+        <div class="row wrap" role="group" [attr.aria-label]="'cont.limba' | t">
+          @for (l of langChoices(); track l.code) {
+            <button type="button" [class.primary]="l.code === auth.account()?.lang" [attr.aria-pressed]="l.code === auth.account()?.lang" (click)="pickLang(l.code)">{{ l.name }}</button>
+          }
+        </div>
+        @if (langError()) { <div class="error" role="alert">{{ langError() }}</div> }
+      </div>
+    }
 
-    <h2>Ștergerea contului</h2>
+    <h2>{{ 'cont.iesire' | t }}</h2>
+    <button type="button" class="wide" (click)="logout()">{{ 'cont.iesi' | t }}</button>
+
+    <h2>{{ 'cont.stergere' | t }}</h2>
     <div class="card stack">
-      <p>Se șterg contul și toți porumbeii, pozele și notele tale. Nu se poate da înapoi.</p>
-      <label class="field">Scrie parola ca să confirmi
+      <p>{{ 'cont.stergere_explicatie' | t }}</p>
+      <label class="field">{{ 'cont.parola_confirmare' | t }}
         <input type="password" name="deletePassword" [(ngModel)]="deletePassword" autocomplete="current-password" />
       </label>
       @if (deleteError()) { <div class="error" role="alert">{{ deleteError() }}</div> }
-      <button type="button" class="danger" [disabled]="!deletePassword" (click)="remove()">Șterge contul definitiv</button>
+      <button type="button" class="danger" [disabled]="!deletePassword" (click)="remove()">{{ 'cont.sterge_definitiv' | t }}</button>
     </div>
   `,
 })
@@ -121,8 +134,8 @@ export default class Cont {
   readonly saved = signal(false);
   readonly error = signal('');
   readonly deleteError = signal('');
-  protected readonly day = (d: string | null) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('ro-RO') : '');
-  protected readonly money = (n: number) => `${n.toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`;
+  protected readonly day = formatDay;
+  protected readonly money = formatMoney;
 
   async save() {
     this.saved.set(false);
@@ -132,21 +145,21 @@ export default class Cont {
     const diff = changes([
       ...(admin
         ? [
-            { label: 'Nume', before: a?.name, after: this.name },
-            { label: 'Numele de pe pedigree', before: a?.pedigreeName, after: this.pedigreeName },
-            { label: 'Telefon', before: a?.phone, after: this.phone },
-            { label: 'Adresă', before: a?.address, after: this.address },
+            { label: t('cont.nume'), before: a?.name, after: this.name },
+            { label: t('cont.nume_pedigree'), before: a?.pedigreeName, after: this.pedigreeName },
+            { label: t('cont.telefon'), before: a?.phone, after: this.phone },
+            { label: t('cont.adresa'), before: a?.address, after: this.address },
           ]
         : []),
-      { label: 'Telefonul pe fișă', before: yes(a?.printPhone !== false), after: yes(this.printPhone) },
-      { label: 'Adresa pe fișă', before: yes(a?.printAddress !== false), after: yes(this.printAddress) },
-      { label: 'Emailul pe fișă', before: yes(a?.printEmail !== false), after: yes(this.printEmail) },
-      { label: 'Telefonul pe linkul public', before: yes(a?.showPhone), after: yes(this.showPhone) },
-      { label: 'Adresa pe linkul public', before: yes(a?.showAddress), after: yes(this.showAddress) },
-      { label: 'Emailul pe linkul public', before: yes(a?.showEmail), after: yes(this.showEmail) },
+      { label: t('cont.telefon_fisa'), before: yes(a?.printPhone !== false), after: yes(this.printPhone) },
+      { label: t('cont.adresa_fisa'), before: yes(a?.printAddress !== false), after: yes(this.printAddress) },
+      { label: t('cont.email_fisa'), before: yes(a?.printEmail !== false), after: yes(this.printEmail) },
+      { label: t('cont.telefon_link_public'), before: yes(a?.showPhone), after: yes(this.showPhone) },
+      { label: t('cont.adresa_link_public'), before: yes(a?.showAddress), after: yes(this.showAddress) },
+      { label: t('cont.email_link_public'), before: yes(a?.showEmail), after: yes(this.showEmail) },
     ]);
     if (!diff.length) return this.saved.set(true);
-    if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
+    if (!(await this.confirm.ask({ title: t('cont.salvezi'), lines: diff, confirmLabel: t('cont.da_salveaza') }))) return;
     try {
       // Crescătorul trimite doar bifele (numele, telefonul și adresa le pune vânzătorul; serverul le refuză).
       await this.auth.update({
@@ -160,6 +173,30 @@ export default class Cont {
     }
   }
 
+  /** Limbile pe care omul le poate alege singur: cele publice și limba pe care i-a pus-o vânzătorul. */
+  protected readonly langChoices = computed(() => {
+    const mine = this.auth.account()?.lang;
+    return LANGS.filter((l) => l.public || l.code === mine);
+  });
+  readonly langError = signal('');
+
+  async pickLang(code: string) {
+    const current = this.auth.account()?.lang;
+    if (!current || code === current) return;
+    this.langError.set('');
+    // Dintr-o limbă „în probă” nu se mai poate întoarce singur: îl întrebăm înainte.
+    if (!isPublicLang(current)) {
+      const name = LANGS.find((l) => l.code === current)?.name ?? current;
+      const ok = await this.confirm.ask({ title: t('cont.limba_schimbi'), lines: [t('cont.limba_avertisment', { limba: name })], confirmLabel: t('cont.limba_da') });
+      if (!ok) return;
+    }
+    try {
+      await this.auth.update({ lang: code });
+    } catch (e) {
+      this.langError.set(errorMessage(e));
+    }
+  }
+
   async logout() {
     await this.auth.logout();
     this.router.navigateByUrl('/intra');
@@ -167,9 +204,9 @@ export default class Cont {
 
   async remove() {
     const ok = await this.confirm.ask({
-      title: 'Ștergi contul și tot porumbarul?',
-      lines: ['Se șterg toți porumbeii, notele și datele contului.', 'Nu se poate da înapoi.'],
-      confirmLabel: 'Da, șterge tot',
+      title: t('cont.stergi'),
+      lines: [t('cont.stergi_rand1'), t('cont.nu_inapoi')],
+      confirmLabel: t('cont.da_sterge'),
       danger: true,
     });
     if (!ok) return;

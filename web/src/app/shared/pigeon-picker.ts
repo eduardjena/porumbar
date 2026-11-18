@@ -4,6 +4,7 @@ import { Api, errorMessage } from '../core/api';
 import { HistoryCard, LookupResult, Pigeon, PigeonSummary, Sex } from '../core/models';
 import { CatalogService } from '../core/catalog';
 import { PigeonChip } from './pigeon-chip';
+import { TPipe } from '../core/i18n';
 
 /*
  * Alegerea unui părinte după inel (cerut de crescător): scrii inelul și vezi imediat istoricul acelui porumbel —
@@ -11,63 +12,63 @@ import { PigeonChip } from './pigeon-chip';
  */
 @Component({
   selector: 'app-pigeon-picker',
-  imports: [FormsModule, PigeonChip],
+  imports: [FormsModule, PigeonChip, TPipe],
   template: `
     <div class="picker stack">
       <div class="head">
         <strong>{{ label() }}</strong>
         @if (selected()) {
           <span class="row"><app-pigeon-chip [pigeon]="selected()" [link]="false" />
-            <button type="button" class="link" (click)="clear()">Schimbă</button></span>
+            <button type="button" class="link" (click)="clear()">{{ 'parinti.schimba' | t }}</button></span>
         }
       </div>
 
       @if (!selected()) {
         <label class="field">
-          <span class="hint">Scrie inelul {{ sex() === 'M' ? 'tatălui' : 'mamei' }}</span>
+          <span class="hint">{{ (sex() === 'M' ? 'parinti.scrie_inel_tata' : 'parinti.scrie_inel_mama') | t }}</span>
           <input class="mono" [name]="'ring-' + sex()" [(ngModel)]="ring" (ngModelChange)="search()"
-                 placeholder="de ex. RO-24-199163" autocapitalize="characters" autocomplete="off" spellcheck="false" />
+                 [placeholder]="'parinti.inel_exemplu' | t" autocapitalize="characters" autocomplete="off" spellcheck="false" />
         </label>
-        @if (searching()) { <p class="muted">Caut…</p> }
+        @if (searching()) { <p class="muted">{{ 'parinti.caut' | t }}</p> }
         @for (c of result()?.matches ?? []; track c.pigeon.id) {
           <div class="history card stack">
             <app-pigeon-chip [pigeon]="c.pigeon" [link]="false" />
-            @if (c.pigeon.lines.length) { <p class="muted">Linii: {{ c.pigeon.lines.join(', ') }}</p> }
+            @if (c.pigeon.lines.length) { <p class="muted">{{ 'parinti.linii' | t: { linii: c.pigeon.lines.join(', ') } }}</p> }
             @if (c.pigeon.pedigreeText) { <p class="text">{{ c.pigeon.pedigreeText }}</p> }
-            <p>Tată: <app-pigeon-chip [pigeon]="c.father" [link]="false" /></p>
-            <p>Mamă: <app-pigeon-chip [pigeon]="c.mother" [link]="false" /></p>
-            <p><strong>{{ c.offspringCount }} {{ c.offspringCount === 1 ? 'pui' : 'pui' }}</strong> în porumbar</p>
+            <p>{{ 'parinti.tata_eticheta' | t }} <app-pigeon-chip [pigeon]="c.father" [link]="false" /></p>
+            <p>{{ 'parinti.mama_eticheta' | t }} <app-pigeon-chip [pigeon]="c.mother" [link]="false" /></p>
+            <p><strong>{{ 'parinti.numar_pui' | t: { count: c.offspringCount } }}</strong> {{ 'parinti.in_porumbar' | t }}</p>
             @if (c.offspring.length) {
               <ul class="kids">
                 @for (k of c.offspring; track k.id) { <li><app-pigeon-chip [pigeon]="k" [link]="false" /></li> }
               </ul>
             }
             @if (wrongSex(c)) {
-              <div class="warning">Acest porumbel e {{ c.pigeon.sex === 'M' ? 'mascul' : 'femelă' }}: nu poate fi {{ sex() === 'M' ? 'tatăl' : 'mama' }}.</div>
+              <div class="warning">{{ (c.pigeon.sex === 'M' ? 'parinti.e_mascul' : 'parinti.e_femela') | t }}</div>
             } @else {
-              <button type="button" class="primary" (click)="pick(c.pigeon)">Alege ca {{ sex() === 'M' ? 'tată' : 'mamă' }}</button>
+              <button type="button" class="primary" (click)="pick(c.pigeon)">{{ (sex() === 'M' ? 'parinti.alege_tata' : 'parinti.alege_mama') | t }}</button>
             }
           </div>
         }
         @if (result() && ring.trim() && (!result()!.matches.length || !result()!.ring.ok)) {
           <div class="card stack">
             @if (result()!.ring.unringed) {
-              <p>Porumbel <strong>fără inel</strong>. Îl notezi ca strămoș (nu e în porumbarul tău)?</p>
+              <p>{{ 'parinti.porumbel' | t }} <strong>{{ 'text.fara_inel' | t }}</strong>{{ 'parinti.notezi_fara_inel' | t }}</p>
             } @else if (result()!.matches.length) {
-              <p>Sau e alt porumbel, scris la fel? Îl notezi separat:</p>
+              <p>{{ 'parinti.alt_porumbel' | t }}</p>
             } @else {
-              <p>Inelul <strong class="mono">{{ result()!.ring.display }}</strong> nu e încă în program. Îl notezi ca strămoș (nu e în porumbarul tău)?</p>
+              <p>{{ 'parinti.inelul' | t }} <strong class="mono">{{ result()!.ring.display }}</strong> {{ 'parinti.nu_e_in_program' | t }}</p>
             }
-            <label class="field">Nume sau poreclă <span class="hint">opțional</span>
+            <label class="field">{{ 'parinti.nume' | t }} <span class="hint">{{ 'parinti.optional' | t }}</span>
               <input [name]="'name-' + sex()" [(ngModel)]="newName" />
             </label>
-            <label class="field">Culoarea <span class="hint">opțional, cum scrie pe pedigree</span>
+            <label class="field">{{ 'parinti.culoarea' | t }} <span class="hint">{{ 'parinti.culoarea_hint' | t }}</span>
               <input [name]="'color-' + sex()" [(ngModel)]="newColor" />
             </label>
-            <label class="field">Ce scrie pe pedigree despre el <span class="hint">opțional</span>
+            <label class="field">{{ 'parinti.text_pedigree' | t }} <span class="hint">{{ 'parinti.optional' | t }}</span>
               <textarea [name]="'text-' + sex()" [(ngModel)]="newText"></textarea>
             </label>
-            <button type="button" class="primary" (click)="addExternal()" [disabled]="busy()">Notează-l și alege-l</button>
+            <button type="button" class="primary" (click)="addExternal()" [disabled]="busy()">{{ 'parinti.noteaza' | t }}</button>
           </div>
         }
         @if (error()) { <div class="error" role="alert">{{ error() }}</div> }

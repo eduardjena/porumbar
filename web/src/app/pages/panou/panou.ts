@@ -1,7 +1,8 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
-import { CatalogService, sexShort } from '../../core/catalog';
+import { CatalogService, ringText, sexShort } from '../../core/catalog';
+import { TPipe, t } from '../../core/i18n';
 import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
@@ -9,38 +10,38 @@ import { PanouBar } from './panou-bar';
 import { GROUPS, SORTS, ViewState, buildGroups, loadView, resultsLine, saveView } from './panou-view';
 import { SharePdfService } from '../../core/share-pdf';
 
-const BANDS = [
+const BANDS: { band: number; label: string; key?: string }[] = [
   { band: 5, label: '80–100' },
   { band: 4, label: '60–79' },
   { band: 3, label: '40–59' },
   { band: 2, label: '20–39' },
-  { band: 1, label: 'sub 20' },
-  { band: 0, label: 'fără date' },
+  { band: 1, label: '', key: 'panou.banda_sub20' },
+  { band: 0, label: '', key: 'panou.banda_fara_date' },
 ];
 
 /** De ce are porumbelul nota asta, pe scurt: „evaluare 75 · 2 pui · reproducător”. */
 function reasons(p: BoardPigeon): string {
   const out: string[] = [];
-  if (p.value.parts.evaluare != null) out.push(`evaluare ${Math.round(p.value.parts.evaluare)}`);
-  if (p.offspringCount) out.push(p.offspringCount === 1 ? '1 pui' : `${p.offspringCount} pui`);
-  if (p.value.parts.reproducator) out.push('reproducător');
-  return out.length ? out.join(' · ') : 'Fără notă: adaugă evaluarea sau puii';
+  if (p.value.parts.evaluare != null) out.push(t('panou.motiv_evaluare', { nota: Math.round(p.value.parts.evaluare) }));
+  if (p.offspringCount) out.push(t('panou.motiv_pui', { count: p.offspringCount }));
+  if (p.value.parts.reproducator) out.push(t('panou.motiv_reproducator'));
+  return out.length ? out.join(' · ') : t('panou.fara_nota_ajutor');
 }
 
 @Component({
   selector: 'app-panou',
-  imports: [RouterLink, Icon, ViewToggle, PanouBar],
+  imports: [RouterLink, Icon, ViewToggle, PanouBar, TPipe],
   template: `
     <div class="head">
       <div>
-        <h1>Porumbarul meu</h1>
+        <h1>{{ 'panou.titlu' | t }}</h1>
         @if (loaded()) { <p class="muted count">{{ countLine() }}</p> }
       </div>
       <div class="row actions">
         <app-view-toggle current="grila" />
-        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />Importă pedigree</a>
-        <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />Scanează cod QR</a>
-        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />Porumbel nou</a>
+        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
+        <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
+        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
       </div>
     </div>
 
@@ -52,12 +53,12 @@ function reasons(p: BoardPigeon): string {
     @if (loaded() && !all().length) {
       <div class="empty card">
         <span class="empty-ico"><app-icon name="porumbel" [size]="48" /></span>
-        <h2>Porumbarul e gol deocamdată</h2>
-        <p class="muted">Adaugă primul porumbel. Durează un minut.</p>
-        <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />Adaugă primul porumbel</a>
+        <h2>{{ 'panou.gol_titlu' | t }}</h2>
+        <p class="muted">{{ 'panou.gol_text' | t }}</p>
+        <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />{{ 'panou.adauga_primul' | t }}</a>
       </div>
     } @else if (loaded() && !shownCount()) {
-      <p class="muted">Niciun porumbel nu se potrivește căutării sau filtrelor.</p>
+      <p class="muted">{{ 'panou.nimic_gasit' | t }}</p>
     }
 
     <!-- Grilă compactă: încap zeci de porumbei pe ecran (2 pe rând pe telefon, 5–6 pe calculator); cu grupare, câte o secțiune pe grupă. -->
@@ -74,23 +75,23 @@ function reasons(p: BoardPigeon): string {
             <li>
               <a [routerLink]="['/porumbei', p.id]" class="tile" [title]="why(p)">
                 <span class="top">
-                  <span class="score" [class]="'score band-' + p.value.band" [attr.aria-label]="p.value.score == null ? 'fără notă' : 'nota ' + p.value.score">
+                  <span class="score" [class]="'score band-' + p.value.band" [attr.aria-label]="p.value.score == null ? ('panou.fara_nota_mic' | t) : ('panou.nota_aria' | t: { nota: p.value.score })">
                     {{ p.value.score ?? '–' }}
                   </span>
                   <span [class]="'sex sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
                 </span>
-                <span class="mono ring">{{ p.ring?.display ?? 'Fără inel' }}</span>
+                <span class="mono ring">{{ ring(p) }}</span>
                 <span class="name">{{ p.name || ' ' }}</span>
                 <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
                 <span class="why">{{ resultsMode() ? resultsLine(p) : why(p) }}</span>
               </a>
               <!-- Tipărirea direct din panou, în colțul din dreapta sus al casetei (nu în link-ul casetei: link în link nu se poate). -->
-              <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" title="Tipărește pedigree-ul" [attr.aria-label]="'Tipărește pedigree-ul lui ' + (p.ring?.display ?? p.name ?? 'porumbel')">
+              <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" [title]="'porumbel.tipareste_pedigree' | t" [attr.aria-label]="'panou.tipareste_aria' | t: { cine: p.ring?.display ?? p.name ?? ('panou.porumbel_mic' | t) }">
                 <app-icon name="tipar" [size]="22" />
               </a>
               <!-- Trimite fișa ca PDF (WhatsApp, mail…), în colțul din dreapta jos: sus nu mai e loc lângă notă pe telefon. -->
               <button type="button" class="share" (click)="send(p.id)" [disabled]="share.busy() === p.id" [attr.aria-busy]="share.busy() === p.id"
-                      title="Trimite fișa (PDF)" [attr.aria-label]="'Trimite fișa ca PDF pentru ' + (p.ring?.display ?? p.name ?? 'porumbel')">
+                      [title]="'panou.trimite_fisa' | t" [attr.aria-label]="'panou.trimite_aria' | t: { cine: p.ring?.display ?? p.name ?? ('panou.porumbel_mic' | t) }">
                 <app-icon name="trimite" [size]="22" />
               </button>
             </li>
@@ -100,11 +101,11 @@ function reasons(p: BoardPigeon): string {
     }
 
     @if (all().length) {
-      <div class="legend" aria-label="Culorile notei">
-        <span class="muted">Nota:</span>
-        @for (b of bands; track b.band) { <span class="chip" [class]="'chip band-' + b.band">{{ b.label }}</span> }
+      <div class="legend" [attr.aria-label]="'panou.culorile_notei' | t">
+        <span class="muted">{{ 'panou.nota' | t }}</span>
+        @for (b of bands; track b.band) { <span class="chip" [class]="'chip band-' + b.band">{{ b.key ? (b.key | t) : b.label }}</span> }
       </div>
-      <p class="muted small">Nota (0–100) vine din evaluarea la mână, câți pui are în porumbar și dacă e reproducător. După ce introduci rezultatele de concurs, va ține cont și de ele.</p>
+      <p class="muted small">{{ 'panou.nota_explicatie' | t }}</p>
     }
   `,
   styles: `
@@ -167,6 +168,7 @@ export default class Panou {
   protected readonly bands = BANDS;
   protected readonly sex = sexShort;
   protected readonly why = reasons;
+  protected readonly ring = ringText;
   readonly all = signal<BoardPigeon[]>([]);
   readonly loaded = signal(false);
   readonly error = signal('');
@@ -177,9 +179,9 @@ export default class Panou {
   async send(id: number) {
     this.shareNote.set('');
     try {
-      if ((await this.share.sharePigeon(id)) === 'downloaded') this.shareNote.set('Fișa s-a descărcat ca PDF; o poți trimite de acolo.');
+      if ((await this.share.sharePigeon(id)) === 'downloaded') this.shareNote.set(t('panou.fisa_descarcata'));
     } catch (e) {
-      this.error.set(`Fișa nu s-a putut pregăti: ${errorMessage(e)}`);
+      this.error.set(t('panou.fisa_nepregatita', { eroare: errorMessage(e) }));
     }
   }
   /** Ce arată bara: căutarea, ordonarea, gruparea, filtrele (ținute minte, fără căutare). */
@@ -197,10 +199,10 @@ export default class Panou {
     const v = this.view();
     const shown = this.shownCount();
     const sort = SORTS.find((s) => s.key === v.sort);
-    const parts = [`${n} ${n === 1 ? 'porumbel' : 'porumbei'}`];
-    if (shown !== n) parts.push(`${shown} ${shown === 1 ? 'afișat' : 'afișați'}`);
-    parts.push(v.sort === 'nota' ? 'cei mai valoroși primii' : `după ${sort?.label.toLowerCase()}`);
-    if (v.group !== 'none') parts.push(`grupați: ${GROUPS.find((g) => g.key === v.group)?.label.toLowerCase()}`);
+    const parts = [t('panou.numar_porumbei', { count: n })];
+    if (shown !== n) parts.push(t('panou.numar_afisati', { count: shown }));
+    parts.push(v.sort === 'nota' ? t('panou.ordonare.nota_ajutor') : t('panou.dupa', { ordonare: sort?.label.toLowerCase() }));
+    if (v.group !== 'none') parts.push(t('panou.grupati', { grupare: GROUPS.find((g) => g.key === v.group)?.label.toLowerCase() }));
     return parts.join(' · ');
   });
 

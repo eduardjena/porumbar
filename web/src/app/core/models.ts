@@ -19,6 +19,8 @@ export interface Account {
   subscription?: Subscription;
   /** Creditul pentru citirea pozelor, în dolari. */
   aiCredit?: number;
+  /** Limba contului (o pune vânzătorul). */
+  lang: string;
 }
 
 export interface Subscription {

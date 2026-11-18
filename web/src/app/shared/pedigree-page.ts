@@ -1,6 +1,7 @@
 import { Component, DestroyRef, ElementRef, effect, inject, input, signal, viewChild } from '@angular/core';
 import { PedigreeV1 } from '../core/models';
-import { PedigreeSheet } from './pedigree-sheet';
+import { PedigreeSheet, colorOf } from './pedigree-sheet';
+import { currentLang, localeOf, tIn } from '../core/i18n';
 import { QrCode } from './qr-code';
 
 /*
@@ -18,29 +19,29 @@ import { QrCode } from './qr-code';
       <article class="page" [style.zoom]="zoom()">
         <header>
           <div class="title">
-            <h1>Pedigree porumbel: <span class="mono">{{ d.root.ring ?? 'fără inel' }}</span>@if (d.root.sex) { {{ d.root.sex }} }</h1>
+            <h1>{{ tx('fisa.titlu') }} <span class="mono">{{ d.root.ring ?? tx('text.fara_inel') }}</span>@if (d.root.sex) { {{ tx(d.root.sex === 'M' ? 'sex.m' : 'sex.f') }} }</h1>
             <p>@if (d.root.name) { <strong>„{{ d.root.name }}”</strong> · }{{ facts() }}</p>
           </div>
           @if (url(); as u) {
             <div class="qr">
               <app-qr-code [url]="u" [size]="240" />
-              <span>Scanează pentru pedigree-ul complet</span>
+              <span>{{ tx('fisa.scaneaza') }}</span>
             </div>
           }
         </header>
-        <div class="sheet-area"><app-pedigree-sheet [root]="d.root" [paper]="true" /></div>
+        <div class="sheet-area"><app-pedigree-sheet [root]="d.root" [paper]="true" [lang]="L()" /></div>
         <footer>
           <!-- Ca pe fișele crescătorilor: jos în stânga numele (echipa), adresa, telefonul, emailul — ce e completat în Cont. -->
           @let o = owner();
           <div class="owner">
             <strong>{{ o.name }}</strong>
             @if (o.address) { <span class="addr">{{ o.address }}</span> }
-            @if (o.phone) { <span>Tel.: {{ o.phone }}</span> }
+            @if (o.phone) { <span>{{ tx('fisa.tel') }} {{ o.phone }}</span> }
             @if (o.email) { <span>{{ o.email }}</span> }
           </div>
           <div class="stamp">
-            <span>Strămoșii colorați la fel apar de mai multe ori.</span>
-            <span class="made">Tipărit pe {{ today }} · <img src="/icon.svg" alt="" width="12" height="12" />Porumbar</span>
+            <span>{{ tx('fisa.repetati') }}</span>
+            <span class="made">{{ tx('fisa.tiparit_pe') }} {{ today() }} · <img src="/icon.svg" alt="" width="12" height="12" />Porumbar</span>
             <span class="site">www.porumbar.ro</span>
           </div>
         </footer>
@@ -86,7 +87,13 @@ export class PedigreePage {
   /** Cât se micșorează foaia pe ecran ca să încapă pe lățime (1 = mărime reală, 210 mm). */
   readonly zoom = signal(1);
   private readonly preview = viewChild<ElementRef<HTMLElement>>('preview');
-  protected readonly today = new Date().toLocaleDateString('ro-RO');
+  /** Limba foii (implicit limba ecranului); dicționarul ei trebuie adus înainte (ensureLang). */
+  readonly lang = input<string | null>(null);
+  protected readonly L = () => this.lang() ?? currentLang();
+  protected tx(key: string) {
+    return tIn(this.L(), key);
+  }
+  protected readonly today = () => new Date().toLocaleDateString(localeOf(this.L()));
 
   /** Datele crescătorului de jos: cum le dă serverul (numele de pe fișă pus de vânzător + ce a bifat omul pentru fișă). */
   protected owner() {
@@ -96,8 +103,8 @@ export class PedigreePage {
   /** Rândul de sub titlu: sexul, anul, culoarea, crescătorul (ce se știe). */
   protected facts() {
     const r = this.data().root;
-    const sex = r.sex === 'M' ? 'Mascul' : r.sex === 'F' ? 'Femelă' : '';
-    const color = r.colorText || (r.colorLabel ? `${r.colorLabel}${r.colorPa ? ' p.a.' : ''}` : '');
+    const sex = r.sex === 'M' ? this.tx('sex.mascul') : r.sex === 'F' ? this.tx('sex.femela') : '';
+    const color = colorOf(r, this.L());
     return [sex, r.year ? String(r.year) : '', color, r.breeder ?? ''].filter(Boolean).join(' · ');
   }
 

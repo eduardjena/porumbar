@@ -124,3 +124,9 @@ export async function requireAccount(req, res, next) {
     next(err);
   }
 }
+
+/** Ca requireAccount, dar fără cont merge mai departe (de ex. catalogul: în limba contului, dacă e cineva intrat). */
+export function optionalAccount(req, res, next) {
+  if (!parseCookies(req.headers.cookie)[SESSION_COOKIE]) return next();
+  return requireAccount(req, res, () => next());
+}

@@ -83,3 +83,12 @@ test('mesajele serverului vin în limba contului (maghiară), iar în română r
   const badRo = await call('/api/pigeons', { method: 'POST', cookie: ro, body: { kind: 'own', ring: 'xyz' } });
   assert.equal(badRo.data.error, 'Inelul nu poate fi citit. Scrie-l ca în exemplu: RO-25-123456.');
 });
+
+test('catalogul de la server vine în limba contului', async () => {
+  const a = await newAccount(call, 'Ilona');
+  await setLang(call, (await me(a)).id, 'hu');
+  const hu = (await call('/api/catalog', { cookie: a })).data;
+  assert.equal(hu.colors.find((c) => c.code === 'solzat').label, 'Kék kovácsolt');
+  const none = (await call('/api/catalog', { auth: 'none' })).data;
+  assert.equal(none.colors.find((c) => c.code === 'solzat').label, 'Solzat');
+});

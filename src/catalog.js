@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 /*
  * Listele predefinite ale fișei porumbelului: rase, culori (cu variantele scrise pe pedigree-uri), culoarea ochilor,
  * stări, criteriile evaluării la mână și tipurile din jurnal. Codurile se salvează în bază; etichetele se afișează.
@@ -13,28 +14,28 @@ export const BREEDS = [
   { code: 'alta', label: 'Altă rasă' },
 ];
 
-// Sinonimele includ abrevierile de pe pedigree-uri și clasamente: românești (A, S, G, R, b) și internaționale
+// Sinonimele (și cele maghiare, din docs/cercetare/termeni-maghiari.md) includ abrevierile de pe pedigree-uri și clasamente: românești (A, S, G, R, b) și internaționale
 // (BB = blue bar, BC = blue check, DC = dark check, PD = pied, GRZ = grizzle). Literele singure se recunosc doar
 // când sunt tot textul culorii (altfel „A fost neinelat” ar însemna albastru).
 export const COLORS = [
-  { code: 'albastru', label: 'Albastru', synonyms: ['albastra', 'albastru cu dungi', 'blue', 'bleu', 'blue bar', 'bb', 'a'] },
-  { code: 'albastru-brocat', label: 'Albastru brocat', synonyms: ['albastra brocata', 'brocat', 'brocata'] },
-  { code: 'solzat', label: 'Solzat', synonyms: ['solzata', 'cenusiu solzat', 'blue check', 'check', 'bc', 's'] },
-  { code: 'solzat-inchis', label: 'Solzat închis', synonyms: ['solzata inchisa', 'dark check', 'dark', 'dc'] },
-  { code: 'gut', label: 'Gut', synonyms: ['guta', 'g'] },
-  { code: 'negru', label: 'Negru', synonyms: ['neagra', 'black'] },
-  { code: 'pestrit', label: 'Pestriț', synonyms: ['pestrita', 'pestrit alb'] },
-  { code: 'baltat', label: 'Bălțat', synonyms: ['baltata', 'pied', 'pd', 'b'] },
+  { code: 'albastru', label: 'Albastru', synonyms: ['albastra', 'albastru cu dungi', 'blue', 'bleu', 'blue bar', 'bb', 'a', 'kek', 'kek szalagos', 'kekszalagos', 'kek csikos', 'k cs'] },
+  { code: 'albastru-brocat', label: 'Albastru brocat', synonyms: ['albastra brocata', 'brocat', 'brocata', 'vilagos kovacsolt'] },
+  { code: 'solzat', label: 'Solzat', synonyms: ['solzata', 'cenusiu solzat', 'blue check', 'check', 'bc', 's', 'kek kovacsolt', 'kekkovacsolt', 'k kov', 'kk', 'kek kockas', 'pikkelyes'] },
+  { code: 'solzat-inchis', label: 'Solzat închis', synonyms: ['solzata inchisa', 'dark check', 'dark', 'dc', 'sotet kovacsolt', 'skt'] },
+  { code: 'gut', label: 'Gut', synonyms: ['guta', 'g', 'sotet', 'barsonypajzsos', 't mintas'] },
+  { code: 'negru', label: 'Negru', synonyms: ['neagra', 'black', 'fekete'] },
+  { code: 'pestrit', label: 'Pestriț', synonyms: ['pestrita', 'pestrit alb', 'babos'] },
+  { code: 'baltat', label: 'Bălțat', synonyms: ['baltata', 'pied', 'pd', 'b', 'tarka'] },
   // Vânăt = albastru cu dungi, culoarea porumbelului sălbatic (utilizatorul, 2026-11-16).
   { code: 'vanat', label: 'Vânăt', synonyms: ['vanata', 'vnata', 'vanat inchis'] },
-  { code: 'rosu', label: 'Roșu', synonyms: ['rosie', 'rosu solzat', 'red', 'mealy', 'r'] },
-  { code: 'rosu-brocat', label: 'Roșu brocat', synonyms: ['rosie brocata', 'red check'] },
+  { code: 'rosu', label: 'Roșu', synonyms: ['rosie', 'rosu solzat', 'red', 'mealy', 'r', 'voros', 'hamuvoros', 'fako', 'vorosfako'] },
+  { code: 'rosu-brocat', label: 'Roșu brocat', synonyms: ['rosie brocata', 'red check', 'voros kovacsolt', 'voroskovacsolt', 'vk'] },
   // Gălbui = roșu diluat; dun = negru diluat, altă culoare (utilizatorul, 2026-11-16).
-  { code: 'galbui', label: 'Gălbui', synonyms: ['galbuie', 'galben', 'galbena'] },
-  { code: 'dun', label: 'Dun (maro-cenușiu)', synonyms: ['dun', 'maro cenusiu', 'fumuriu'] },
-  { code: 'alb', label: 'Alb', synonyms: ['alba', 'white'] },
-  { code: 'tarcat', label: 'Tărcat', synonyms: ['tarcata', 'grizzle', 'gris', 'grizonat', 'grz'] },
-  { code: 'argintiu', label: 'Argintiu', synonyms: ['argintie', 'silver'] },
+  { code: 'galbui', label: 'Gălbui', synonyms: ['galbuie', 'galben', 'galbena', 'sarga', 'sargafako'] },
+  { code: 'dun', label: 'Dun (maro-cenușiu)', synonyms: ['dun', 'maro cenusiu', 'fumuriu', 'olajszin'] },
+  { code: 'alb', label: 'Alb', synonyms: ['alba', 'white', 'feher'] },
+  { code: 'tarcat', label: 'Tărcat', synonyms: ['tarcata', 'grizzle', 'gris', 'grizonat', 'grz', 'deres'] },
+  { code: 'argintiu', label: 'Argintiu', synonyms: ['argintie', 'silver', 'ezust', 'kekfako'] },
 ];
 
 export const EYE_COLORS = [
@@ -123,15 +124,18 @@ export function matchColor(text) {
   return { code: null, pa, rest: words.join(' ') };
 }
 
-/** Ce primește interfața (fără sinonime). */
-export function publicCatalog() {
+// Etichetele afișate vin din i18n/ (catalog.<listă>.<cod>); cele de aici rămân pentru citirea textelor românești.
+const tr = (lang, group, list) => list.map(({ code }) => ({ code, label: t(lang, `catalog.${group}.${code}`) }));
+
+/** Ce primește interfața (fără sinonime), în limba dată. */
+export function publicCatalog(lang = 'ro') {
   return {
-    breeds: BREEDS,
-    colors: COLORS.map(({ code, label }) => ({ code, label })),
-    eyeColors: EYE_COLORS,
-    statuses: STATUSES,
-    evalCriteria: EVAL_CRITERIA,
-    journalTypes: JOURNAL_TYPES,
-    raceCategories: RACE_CATEGORIES,
+    breeds: tr(lang, 'rasa', BREEDS),
+    colors: tr(lang, 'culoare', COLORS),
+    eyeColors: tr(lang, 'ochi', EYE_COLORS),
+    statuses: tr(lang, 'stare', STATUSES),
+    evalCriteria: tr(lang, 'evaluare', EVAL_CRITERIA),
+    journalTypes: tr(lang, 'jurnal', JOURNAL_TYPES),
+    raceCategories: tr(lang, 'concurs', RACE_CATEGORIES),
   };
 }

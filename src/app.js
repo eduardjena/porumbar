@@ -12,7 +12,7 @@ import { resultsRouter } from './routes/results.js';
 import { breedingRouter } from './routes/breeding.js';
 import { viewsRouter } from './routes/views.js';
 import { pedigreesRouter } from './routes/pedigrees.js';
-import { requireAccount } from './accounts.js';
+import { requireAccount, optionalAccount } from './accounts.js';
 import { publicRouter } from './routes/public.js';
 import { transfersRouter } from './routes/transfers.js';
 import { adminRouter } from './routes/admin.js';
@@ -80,7 +80,7 @@ export function createApp() {
   app.use(express.json({ limit: '1mb', inflate: false }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
-  app.get('/api/catalog', (req, res) => res.json(publicCatalog()));
+  app.get('/api/catalog', optionalAccount, (req, res) => res.json(publicCatalog(req.lang)));
   app.use('/api/auth', authRouter());
   // Familia înaintea fișei: /api/pigeons/lookup nu trebuie luat drept id de porumbel.
   app.use('/api', familyRouter());

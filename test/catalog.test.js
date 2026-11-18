@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { matchColor } from '../src/catalog.js';
+import { matchColor, publicCatalog } from '../src/catalog.js';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
 
@@ -54,4 +54,30 @@ test('catalogul public', async () => {
   assert.ok(r.data.colors.length >= 10);
   assert.ok(r.data.colors.every((c) => !('synonyms' in c)));
   for (const k of ['eyeColors', 'statuses', 'evalCriteria', 'journalTypes']) assert.ok(r.data[k].length > 0, k);
+});
+
+test('culorile scrise de crescătorii maghiari se recunosc (glosarul din docs/cercetare)', () => {
+  const code = (s) => matchColor(s).code;
+  assert.equal(code('kék kovácsolt'), 'solzat');
+  assert.equal(code('Kk'), 'solzat');
+  assert.equal(code('k.kov.'), 'solzat');
+  assert.equal(code('sötét kovácsolt'), 'solzat-inchis');
+  assert.equal(code('vörös kovácsolt'), 'rosu-brocat');
+  assert.equal(code('Vk'), 'rosu-brocat');
+  assert.equal(code('vörös'), 'rosu');
+  assert.equal(code('kék'), 'albastru');
+  assert.equal(code('deres'), 'tarcat');
+  assert.equal(code('tarka'), 'baltat');
+  assert.equal(code('ezüst'), 'argintiu');
+  assert.equal(code('fekete'), 'negru');
+});
+
+test('catalogul pentru interfață vine în limba cerută; româna rămâne cea de azi', () => {
+  const ro = publicCatalog('ro');
+  const hu = publicCatalog('hu');
+  assert.equal(ro.colors.find((c) => c.code === 'solzat').label, 'Solzat');
+  assert.equal(hu.colors.find((c) => c.code === 'solzat').label, 'Kék kovácsolt');
+  assert.equal(hu.statuses.find((c) => c.code === 'reproducator').label, 'Tenyészgalamb');
+  assert.deepEqual(Object.keys(publicCatalog()), Object.keys(hu));
+  assert.equal(publicCatalog().breeds.find((b) => b.code === 'voiajor').label, 'Voiajor');
 });

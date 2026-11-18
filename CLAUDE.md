@@ -29,7 +29,8 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   accounts.js     sesiuni (cookie `porumbar_session`), requireAccount / optionalAccount, publicAccount
   i18n.js         dicționarele, t(), limba cererii (vezi „Limbi”)
   http.js         HttpError(status, cheie, valori), validări (text, realDate, oneOf), rateLimit, errorHandler
-  rings.js        citirea inelelor scrise în orice formă (RO-26-800546 L, 412084/15 RO, …)
+  rings.js        citirea inelelor scrise în orice formă (RO-26-800546 L, 412084/15 RO, HU-2023-29-14530 H, …); inelele
+                  maghiare cer numărul organizatorului (2 cifre sau litera seriei); H / T = sexul (hím / tojó)
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js

@@ -11,8 +11,8 @@ const COUNTRIES = {
   CZ: 'CZ', SK: 'SK', RS: 'RS', SRB: 'RS', UA: 'UA', IT: 'IT', I: 'IT', ES: 'ES', E: 'ES',
   PT: 'PT', P: 'PT', ESP: 'ES', TW: 'TW', CN: 'CN', CHN: 'CN', US: 'US', USA: 'US', AT: 'AT', A: 'AT', AUS: 'AT', AUT: 'AT', CH: 'CH', DK: 'DK', DAN: 'DK',
 };
-// Litera de sex de la final: L/M = mascul, T/F = femelă (Compuclub folosește L/T).
-const SEX = { L: 'M', M: 'M', T: 'F', F: 'F' };
+// Litera de sex de la final: L/M = mascul, T/F = femelă (Compuclub folosește L/T); maghiarii scriu H (hím) / T (tojó).
+const SEX = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F' };
 
 const stripZeros = (s) => s.replace(/^0+(?=\d)/, '');
 const country = (code) => (code ? COUNTRIES[code] ?? null : 'RO');
@@ -34,7 +34,7 @@ export function parseRing(text, { now = new Date() } = {}) {
   if (!s) return result;
 
   // Sexul: cuvânt separat la final („RO-26-800546 L”) sau lipit de cifre („738256/09F”).
-  let m = s.match(/^(.*?)(?:\s+|(?<=\d))([LMTF])$/);
+  let m = s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/);
   if (m && m[1]) {
     result.sex = SEX[m[2]];
     s = m[1].trim();
@@ -44,6 +44,10 @@ export function parseRing(text, { now = new Date() } = {}) {
   if (/^0+$/.test(s)) return { ...result, ok: true, unringed: true };
 
   let parts = null;
+  // Ungaria: HU-2023-29-14530 (anul, numărul organizatorului regional din două cifre sau o literă de serie, numărul).
+  if ((m = s.match(/^(HU|H)[\s-]*(\d{2}|\d{4})[\s-]+(\d{2}|[A-Z])[\s-]+(\d{3,6})$/))) {
+    parts = { country: 'HU', club: m[3], year: m[2], number: m[4] };
+  } else
   // Țara la început: RO-26-800546, RO 25 1326835, DV-08778-24-271 (cu club).
   if ((m = s.match(/^([A-Z]{1,4})[\s-]+(\d{1,5})[\s-]+(\d{2})[\s-]+(\d+)$/)) && COUNTRIES[m[1]] === 'DV' && m[2].length > 2) {
     parts = { country: 'DV', club: stripZeros(m[2]), year: m[3], number: m[4] };
@@ -60,6 +64,8 @@ export function parseRing(text, { now = new Date() } = {}) {
     parts = { country: COUNTRIES[m[1]], year: m[3], number: m[2] };
   }
   if (!parts || !parts.country) return result;
+  // Un inel maghiar fără numărul organizatorului s-ar încurca cu inelul altei asociații (numerele se repetă).
+  if (parts.country === 'HU' && !parts.club) return { ...result, needsClub: true };
 
   const number = stripZeros(parts.number);
   const out = { ...result, ok: true, country: parts.country, year: fullYear(parts.year, now), number, club: parts.club ?? null };
@@ -74,6 +80,8 @@ export function parseRing(text, { now = new Date() } = {}) {
 export function formatRing(r) {
   if (!r?.ok || r.unringed) return r?.raw ?? '';
   const yy = String(r.year % 100).padStart(2, '0');
+  // Ungaria: anul întreg, ca pe inel (HU-2023-29-14530).
+  if (r.country === 'HU' && r.club) return `HU-${r.year}-${r.club}-${r.number}`;
   if (!r.club) return `${r.country}-${yy}-${r.number}`;
   return r.country === 'DV' ? `${r.country}-${r.club.padStart(5, '0')}-${yy}-${r.number}` : `${r.country}-${yy}-${r.club}-${r.number}`;
 }

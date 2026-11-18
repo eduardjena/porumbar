@@ -117,3 +117,14 @@ test('preluat de pe linkul unui crescător român: culoarea din listă rămâne 
   assert.equal(mine.colorPa, true);
   assert.equal(mine.colorText ?? null, null, 'fără textul românesc al culorii');
 });
+
+test('inel maghiar fără numărul asociației: mesaj clar, în limba omului', async () => {
+  const a = await newAccount(call, 'Ferenc');
+  const ro = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: '14530/23 HU' } });
+  assert.equal(ro.status, 400);
+  assert.match(ro.data.error, /HU-2023-29-14530/);
+  const ok = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: 'HU-2023-29-14530 H' } });
+  assert.equal(ok.status, 201, JSON.stringify(ok.data));
+  assert.equal(ok.data.pigeon.ring.display, 'HU-2023-29-14530');
+  assert.equal(ok.data.pigeon.sex, 'M');
+});

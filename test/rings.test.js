@@ -96,3 +96,48 @@ test('aceleași inele scrise pe pedigree-uri diferite dau aceeași cheie', () =>
   assert.equal(k('B 6024428 - 2019'), k('BE-19-6024428'));
   assert.equal(k('159989/19 ESP'), k('ES-19-159989'));
 });
+
+// Inelele maghiare (docs/cercetare/reports/Aplicații columbofile în Ungaria.md): HU-AAAA-OO-NNNNN, cu OO = numărul
+// organizatorului regional (două cifre) sau o literă de serie (D, P, N, M, R); sexul după inel: H (hím) / T (tojó).
+const huCases = [
+  ['HU-2023-29-14530', { country: 'HU', year: 2023, club: '29', number: '14530', sex: null }, 'HU-2023-29-14530'],
+  ['HU-2023-29-14530 H', { country: 'HU', year: 2023, club: '29', number: '14530', sex: 'M' }, 'HU-2023-29-14530'],
+  ['HU-2019-10-12345 T', { country: 'HU', year: 2019, club: '10', number: '12345', sex: 'F' }, 'HU-2019-10-12345'],
+  ['HU 2019-10-12345', { country: 'HU', year: 2019, club: '10', number: '12345' }, 'HU-2019-10-12345'],
+  ['HU-23-29-14530', { country: 'HU', year: 2023, club: '29', number: '14530' }, 'HU-2023-29-14530'],
+  ['HU 2019 10 12345', { country: 'HU', year: 2019, club: '10', number: '12345' }, 'HU-2019-10-12345'],
+  ['HU-2024-D-123456', { country: 'HU', year: 2024, club: 'D', number: '123456' }, 'HU-2024-D-123456'],
+  ['HU-2024-M-12345 T', { country: 'HU', year: 2024, club: 'M', number: '12345', sex: 'F' }, 'HU-2024-M-12345'],
+  ['HU-2023-04-41013 H', { country: 'HU', year: 2023, club: '04', number: '41013', sex: 'M' }, 'HU-2023-04-41013'],
+  ['HU24-04-41013', { country: 'HU', year: 2024, club: '04', number: '41013' }, 'HU-2024-04-41013'],
+];
+
+test('inelele maghiare: numărul organizatorului (sau litera de serie) rămâne în inel, H / T e sexul', () => {
+  for (const [text, want, shown] of huCases) {
+    const r = parseRing(text, { now });
+    assert.equal(r.ok, true, text);
+    for (const [k, v] of Object.entries(want)) assert.equal(r[k], v, `${text}: ${k}`);
+    assert.equal(formatRing(r), shown, text);
+  }
+});
+
+test('două asociații diferite nu dau același inel; aceeași scriere în forme diferite dă același inel', () => {
+  const a = ringKey(parseRing('HU-2023-29-14530', { now }));
+  const b = ringKey(parseRing('HU-2023-10-14530', { now }));
+  assert.notEqual(a, b);
+  assert.equal(ringKey(parseRing('HU 23-29-14530 H', { now })), a);
+});
+
+test('un inel maghiar fără numărul asociației nu se acceptă (s-ar încurca cu alții)', () => {
+  for (const text of ['14530/23 HU', 'HU-23-14530', 'HU 2023 14530']) {
+    const r = parseRing(text, { now });
+    assert.equal(r.ok, false, text);
+    assert.equal(r.needsClub, true, text);
+  }
+});
+
+test('inelele românești rămân neatinse de regulile maghiare', () => {
+  assert.equal(formatRing(parseRing('RO-26-800546 H', { now })), 'RO-26-800546');
+  assert.equal(parseRing('RO-26-800546 L', { now }).sex, 'M');
+  assert.equal(formatRing(parseRing('RO 25 1326835', { now })), 'RO-25-1326835');
+});

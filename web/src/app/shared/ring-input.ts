@@ -7,12 +7,12 @@ import { TPipe, t } from '../core/i18n';
  * Aceleași reguli ca pe server (src/rings.js), simplificate: doar pentru mesajul de sub câmp.
  */
 const COUNTRIES: Record<string, string> = { RO: 'RO', NL: 'NL', BE: 'BE', BELG: 'BE', B: 'BE', DV: 'DV', D: 'DV', DE: 'DV', GB: 'GB', PL: 'PL', HU: 'HU', BG: 'BG', MD: 'MD', FR: 'FR', AT: 'AT', AUS: 'AT', AUT: 'AT', ES: 'ES', ESP: 'ES', E: 'ES' };
-const SEX: Record<string, 'M' | 'F'> = { L: 'M', M: 'M', T: 'F', F: 'F' };
+const SEX: Record<string, 'M' | 'F'> = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F' };
 
 export function previewRing(text: string): { ok: boolean; display: string; sex: 'M' | 'F' | null; unringed: boolean } {
   let s = text.trim().toUpperCase().replace(/\s+/g, ' ');
   let sex: 'M' | 'F' | null = null;
-  const m0 = s.match(/^(.*?)(?:\s+|(?<=\d))([LMTF])$/);
+  const m0 = s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/);
   if (m0 && m0[1]) {
     sex = SEX[m0[2]];
     s = m0[1].trim();
@@ -20,7 +20,10 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
   if (/^0+$/.test(s)) return { ok: true, display: t('text.fara_inel'), sex, unringed: true };
   const yy = (y: string) => (y.length === 4 ? y.slice(2) : y);
   const strip = (n: string) => n.replace(/^0+(?=\d)/, '');
-  let m = s.match(/^([A-Z]{1,4})[\s-]+(\d{1,5})[\s-]+(\d{2})[\s-]+(\d+)$/);
+  // Ungaria: HU-2023-29-14530 (anul, organizatorul din două cifre sau litera de serie, numărul).
+  let m = s.match(/^(HU|H)[\s-]*(\d{2}|\d{4})[\s-]+(\d{2}|[A-Z])[\s-]+(\d{3,6})$/);
+  if (m) return { ok: true, display: `HU-${m[2].length === 2 ? `20${m[2]}` : m[2]}-${m[3]}-${strip(m[4])}`, sex, unringed: false };
+  m = s.match(/^([A-Z]{1,4})[\s-]+(\d{1,5})[\s-]+(\d{2})[\s-]+(\d+)$/);
   if (m && COUNTRIES[m[1]] === 'DV' && m[2].length > 2) return { ok: true, display: `DV-${strip(m[2]).padStart(5, '0')}-${m[3]}-${strip(m[4])}`, sex, unringed: false };
   // Anul în față, apoi clubul (myloft): DV 17-01063-813, AUS 18-301-1405.
   m = s.match(/^([A-Z]{1,4})[\s-]+(\d{2})[\s-]+(\d{3,5})[\s-]+(\d+)$/);
@@ -30,11 +33,12 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
     return { ok: true, display, sex, unringed: false };
   }
   m = s.match(/^([A-Z]{1,4})[\s-]+(\d{2}|\d{4})[\s-]+(\d+)$/);
-  if (m && COUNTRIES[m[1]]) return { ok: true, display: `${COUNTRIES[m[1]]}-${yy(m[2])}-${strip(m[3])}`, sex, unringed: false };
+  // Un inel maghiar fără numărul organizatorului nu se acceptă (pe server la fel).
+  if (m && COUNTRIES[m[1]] && COUNTRIES[m[1]] !== 'HU') return { ok: true, display: `${COUNTRIES[m[1]]}-${yy(m[2])}-${strip(m[3])}`, sex, unringed: false };
   m = s.match(/^([A-Z]{1,4})\s+(\d{4,})\s*-\s*(\d{4})$/);
-  if (m && COUNTRIES[m[1]]) return { ok: true, display: `${COUNTRIES[m[1]]}-${yy(m[3])}-${strip(m[2])}`, sex, unringed: false };
+  if (m && COUNTRIES[m[1]] && COUNTRIES[m[1]] !== 'HU') return { ok: true, display: `${COUNTRIES[m[1]]}-${yy(m[3])}-${strip(m[2])}`, sex, unringed: false };
   m = s.match(/^(\d+)\s*[/-]\s*(\d{2}|\d{4})(?:[\s-]+([A-Z]{1,4}))?$/);
-  if (m && (!m[3] || COUNTRIES[m[3]])) return { ok: true, display: `${m[3] ? COUNTRIES[m[3]] : 'RO'}-${yy(m[2])}-${strip(m[1])}`, sex, unringed: false };
+  if (m && (!m[3] || (COUNTRIES[m[3]] && COUNTRIES[m[3]] !== 'HU'))) return { ok: true, display: `${m[3] ? COUNTRIES[m[3]] : 'RO'}-${yy(m[2])}-${strip(m[1])}`, sex, unringed: false };
   return { ok: false, display: '', sex, unringed: false };
 }
 

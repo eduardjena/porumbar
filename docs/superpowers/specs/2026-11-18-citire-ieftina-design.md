@@ -24,6 +24,13 @@ câmpuri goale, prompt caching) au fost cântărite.
 - Prompt caching: ~0,02 cenți pe citire la Haiku; cere mutarea instrucțiunilor înaintea pozei.
 - Batch (50% reducere): răspuns după minute / ore; doar dacă vine încărcarea mai multor fișe deodată.
 
-## Neverificat încă
-Fără cheie API nu s-a făcut nicio citire reală. Înainte să conteze, un test pe 10–20 de fișe reale (tipar și scris de
-mână): Haiku fără gândire vs Sonnet, căsuță cu căsuță, cu costul real.
+## Primul test (2026-11-18, aproximativ)
+Fără cheie API, testul s-a făcut prin Claude Code: Haiku 5.5 și Sonnet 5.5 au citit, cu aceleași instrucțiuni ca
+aplicația, cele 3 fișe reale de pe calculator (2 tipărite, 1 scrisă de mână). Nu e chiar cererea din aplicație (fără
+schema JSON impusă, fără setarea de „gândire”), deci e un semn, nu o măsurătoare; costul nu s-a putut măsura.
+- Tipărite (46 de inele): Haiku 46/46 (fără căsuța „000 M” de neinelat), Sonnet 46/46.
+- Scrisă de mână (31 de inele): la prima încercare Haiku citea „NL” drept „ML” / „MC” și amândouă puneau „AS” în
+  inel. După ce instrucțiunile au cerut doar inelul în câmpul de inel și au spus că „NL” scris de mână seamănă cu „ML”:
+  Haiku 28/31 corecte (lipsă: porumbelul de sub autocolant, o țară tăiată pe margine, o cifră nesigură și în referință).
+- Concluzie: Haiku e de ajuns pentru citirea obișnuită; Sonnet rămâne pentru „Recitește cu precizie maximă”.
+  Testul se repetă pe mai multe fișe, cu cererea adevărată, când există cheia API.

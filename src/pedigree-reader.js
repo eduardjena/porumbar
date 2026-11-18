@@ -21,11 +21,22 @@ import { MAX_GENERATIONS } from './pedigree-import.js';
 export const MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const MAX_BYTES = 12 * 1024 * 1024;
 const SLOTS = 2 ** MAX_GENERATIONS - 1; // 31
-const MODEL = 'claude-opus-5-5';
-// Prețul lui claude-opus-5-5: 4 $ / milion de jetoane intrare, 20 $ / milion ieșire → microdolari pe jeton.
-const MICROS_PER_INPUT = 4;
-const MICROS_PER_OUTPUT = 20;
-const costOf = (usage) => Math.round((Number(usage?.input_tokens) || 0) * MICROS_PER_INPUT + (Number(usage?.output_tokens) || 0) * MICROS_PER_OUTPUT);
+/*
+ * Modelul și prețul lui se pot schimba din variabilele serverului (Railway), fără cod:
+ * PEDIGREE_MODEL (implicit claude-opus-5-5), PEDIGREE_PRICE_INPUT / PEDIGREE_PRICE_OUTPUT în dolari pe milion de
+ * jetoane (implicit prețul lui claude-opus-5-5: 4 $ intrare, 20 $ ieșire). Prețul doar socotește costul din consolă.
+ */
+export const readerModel = () => process.env.PEDIGREE_MODEL?.trim() || 'claude-opus-5-5';
+const pricePerMillion = (name, fallback) => {
+  const v = Number(process.env[name]);
+  return Number.isFinite(v) && v > 0 ? v : fallback;
+};
+/** Costul unei citiri, în microdolari (1 $ pe milion de jetoane = 1 microdolar pe jeton). */
+export const costOf = (usage) =>
+  Math.round(
+    (Number(usage?.input_tokens) || 0) * pricePerMillion('PEDIGREE_PRICE_INPUT', 4) +
+      (Number(usage?.output_tokens) || 0) * pricePerMillion('PEDIGREE_PRICE_OUTPUT', 20),
+  );
 
 const readsPerDay = () => Number(process.env.PEDIGREE_READS_PER_DAY) || 20;
 
@@ -89,7 +100,7 @@ async function claudeModel({ mime, data }) {
       ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } }
       : { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } };
   const response = await client.beta.messages.create({
-    model: MODEL,
+    model: readerModel(),
     max_tokens: 16000,
     // Dacă modelul refuză (rar, de exemplu din greșeală), cererea trece singură pe un model de rezervă.
     betas: ['server-side-fallback-2026-07-01'],

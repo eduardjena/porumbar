@@ -244,7 +244,7 @@ test('pornește / înlocuiește / oprește linkul deodată: la final linkul ară
   if (url) assert.equal((await call(`/api/public/${url.split('/p/')[1]}`, { auth: 'none' })).status, 200);
 });
 
-// ---------------------------------------------------------------- credit, limită, abonament, conturi
+// ---------------------------------------------------------------- citiri, limită, abonament, conturi
 
 const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 /** Model fals: răspunde după `ms`, cu un cost de `micros` (4 µ$ pe jeton de intrare). */
@@ -254,19 +254,22 @@ const slowModel = (ms, micros) => async () => {
 };
 const readPhoto = (cookie) => call('/api/pedigrees/read', { method: 'POST', cookie, body: { mime: 'image/png', data: PNG } });
 
-test('6 citiri de poze deodată cu credit pentru una singură: nu trec toate', async () => {
-  const c = await newAccount(call, 'Credit');
+test('6 citiri de poze deodată când mai e loc pentru una singură în abonament: nu trec toate', async () => {
+  const prev = process.env.PEDIGREE_READS_PER_YEAR;
+  process.env.PEDIGREE_READS_PER_YEAR = '1';
+  const c = await newAccount(call, 'Limita an');
   const id = (await meOf(c)).id;
-  await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: 0.04 } });
   reader.setPedigreeModel(slowModel(300, 40_000)); // fiecare citire costă 0,04 $
   try {
     const rs = await Promise.all(Array.from({ length: 6 }, () => readPhoto(c)));
     no500(rs, 'citiri');
     const ok = rs.filter((r) => r.status === 200).length;
     const d = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data.account;
-    assert.ok(ok <= 1, `${ok} citiri reușite (cost ${(ok * 0.04).toFixed(2)} $) cu un credit de 0,04 $; creditul acum ${d.aiCredit} $`);
+    assert.ok(ok <= 1, `${ok} citiri reușite cu loc pentru una; contorul acum ${d.reads.used} / ${d.reads.allowed}`);
   } finally {
     reader.setPedigreeModel(null);
+    if (prev === undefined) delete process.env.PEDIGREE_READS_PER_YEAR;
+    else process.env.PEDIGREE_READS_PER_YEAR = prev;
   }
 });
 
@@ -275,7 +278,6 @@ test('limita de citiri pe zi (2) nu se depășește cu cereri deodată', async (
   process.env.PEDIGREE_READS_PER_DAY = '2';
   const c = await newAccount(call, 'Limita');
   const id = (await meOf(c)).id;
-  await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: 100 } });
   reader.setPedigreeModel(slowModel(300, 4));
   try {
     const rs = await Promise.all(Array.from({ length: 6 }, () => readPhoto(c)));
@@ -289,14 +291,15 @@ test('limita de citiri pe zi (2) nu se depășește cu cereri deodată', async (
   }
 });
 
-test('20 de adăugări de credit deodată (+1 $): niciuna pierdută; istoricul are 20 de rânduri', async () => {
+test('20 de adăugări de citiri în plus deodată (+1): niciuna pierdută; istoricul are 20 de rânduri', async () => {
   const c = await newAccount(call, 'Plus');
   const id = (await meOf(c)).id;
-  const rs = await Promise.all(Array.from({ length: 20 }, () => call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: 1 } })));
-  no500(rs, 'credit x20');
+  const base = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data.account.reads.allowed;
+  const rs = await Promise.all(Array.from({ length: 20 }, () => call(`/api/admin/accounts/${id}/reads`, { method: 'POST', cookie: admin, body: { amount: 1 } })));
+  no500(rs, 'citiri x20');
   const d = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data;
-  assert.equal(d.account.aiCredit, 20);
-  assert.equal(d.events.filter((e) => e.kind === 'credit').length, 20);
+  assert.equal(d.account.reads.allowed, base + 20);
+  assert.equal(d.events.filter((e) => e.kind === 'reads').length, 20);
 });
 
 test('10 activări de abonament deodată, cu date diferite: început și sfârșit din aceeași cerere', async () => {

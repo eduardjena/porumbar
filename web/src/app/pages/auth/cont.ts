@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
-import { LANGS, TPipe, formatDay, formatMoney, isPublicLang, t } from '../../core/i18n';
+import { LANGS, TPipe, formatDay, isPublicLang, t } from '../../core/i18n';
 
 const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 
@@ -35,7 +35,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
           } @else {
             <p>{{ 'cont.neactivat' | t }}</p>
           }
-          <p>{{ 'cont.credit' | t }} <strong>{{ money(a.aiCredit ?? 0) }}</strong> <span class="muted">{{ 'cont.cost_citire' | t }}</span></p>
+          @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong> <span class="muted">{{ 'cont.citiri_explicatie' | t }}</span></p> }
           @if (a.sellerContact) { <p class="muted">{{ 'cont.plata_contact' | t: { contact: a.sellerContact } }}</p> }
         </section>
       }
@@ -135,7 +135,6 @@ export default class Cont {
   readonly error = signal('');
   readonly deleteError = signal('');
   protected readonly day = formatDay;
-  protected readonly money = formatMoney;
 
   async save() {
     this.saved.set(false);

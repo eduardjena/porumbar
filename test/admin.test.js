@@ -88,33 +88,7 @@ test('adminul are mereu acces, fără abonament', async () => {
   assert.equal((await newPigeon(admin, 'RO-26-100006')).status, 201);
 });
 
-test('creditul pentru citiri: îl pune adminul; citirea scade costul real; la zero se oprește', async () => {
-  const c = await newAccount(call, 'Cititor');
-  const id = (await me(c)).id;
-  const reader = await import('../src/pedigree-reader.js');
-  reader.setPedigreeModel(async () => ({
-    slots: [{ slot: 1, ring: 'RO-20-1', name: null, color: null, text: null, breeder: null }],
-    rootSex: null,
-    notes: '',
-    usage: { input_tokens: 10_000, output_tokens: 5_000 }, // 0,04 $ + 0,10 $
-  }));
-  const photo = { mime: 'image/png', data: Buffer.from('x').toString('base64') };
-  const none = await call('/api/pedigrees/read', { method: 'POST', cookie: c, body: photo });
-  assert.equal(none.status, 402);
-  assert.match(none.data.error, /credit/i);
-  const cr = await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: 0.2, note: 'plătit' } });
-  assert.equal(cr.status, 200, JSON.stringify(cr.data));
-  assert.equal((await me(c)).aiCredit, 0.2);
-  assert.equal((await call('/api/pedigrees/read', { method: 'POST', cookie: c, body: photo })).status, 200);
-  assert.equal((await me(c)).aiCredit, 0.06);
-  assert.equal((await call('/api/pedigrees/read', { method: 'POST', cookie: c, body: photo })).status, 200);
-  assert.equal((await me(c)).aiCredit, 0); // nu sub zero
-  assert.equal((await call('/api/pedigrees/read', { method: 'POST', cookie: c, body: photo })).status, 402);
-  const detail = await call(`/api/admin/accounts/${id}`, { cookie: admin });
-  assert.ok(detail.data.events.some((e) => e.kind === 'credit' && e.note === 'plătit'));
-  reader.setPedigreeModel(null);
-});
-
+// Citirile din poze (incluse în abonament, fără credit): test/citiri.test.js.
 test('link de parolă nouă din consolă: emailul pleacă, adminul vede linkul, parola nu', async () => {
   const c = await newAccount(call, 'Uituc');
   const a = await me(c);
@@ -180,14 +154,14 @@ test('crescător nou din consolă: cont fără parolă, link de activare pe 7 zi
   assert.ok(row.events.some((e) => e.kind === 'created'));
 });
 
-test('crescător nou care a plătit deja: activat și cu credit din același pas', async () => {
-  const r = await createBreeder({ name: 'Ion Plătit', email: 'ion.platit@exemplu.test', sheetName: 'Ion Plătit', activate: true, start: today(), credit: 5, note: 'plătit cash' });
+test('crescător nou care a plătit deja: activat din același pas, cu citirile din poze incluse', async () => {
+  const r = await createBreeder({ name: 'Ion Plătit', email: 'ion.platit@exemplu.test', sheetName: 'Ion Plătit', activate: true, start: today(), note: 'plătit cash' });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.account.status, 'active');
-  assert.equal(r.data.account.aiCredit, 5);
+  assert.deepEqual(r.data.account.reads, { used: 0, allowed: 200, costUsd: 0 });
   const detail = await call(`/api/admin/accounts/${r.data.account.id}`, { cookie: admin });
   const kinds = detail.data.events.map((e) => e.kind);
-  for (const k of ['created', 'subscription', 'credit']) assert.ok(kinds.includes(k), k);
+  for (const k of ['created', 'subscription']) assert.ok(kinds.includes(k), k);
 });
 
 test('crescător nou: emailuri greșite sau ocupate, emailul adminului, cont care nu e admin', async () => {
@@ -195,7 +169,6 @@ test('crescător nou: emailuri greșite sau ocupate, emailul adminului, cont car
   assert.equal((await createBreeder({ name: '', email: 'gol@exemplu.test' })).status, 400);
   assert.equal((await createBreeder({ name: 'Dublură', email: 'GHEORGHE.NOU@exemplu.test' })).status, 409);
   assert.equal((await createBreeder({ name: 'Admin', email: process.env.ADMIN_EMAIL })).status, 409);
-  assert.equal((await createBreeder({ name: 'Ion', email: 'ion2@exemplu.test', credit: '5' })).status, 400);
   const c = await newAccount(call, 'Simplu');
   assert.equal((await createBreeder({ name: 'Y', email: 'y@exemplu.test' }, c)).status, 403);
 });

@@ -27,14 +27,15 @@ interface Row {
   subscriptionEnd: string | null;
   status: Status;
   daysLeft: number | null;
-  aiCredit: number;
   pigeons: number;
-  reads: number;
+  /** Citirile din poze în anul curent de abonament: folosite / limită, costul lor în dolari. */
+  reads: { used: number; allowed: number; costUsd: number };
+  readsTotal: number;
   reminderSentAt: string | null;
   invited: boolean;
 }
 interface Event {
-  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity';
+  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity' | 'reads';
   amount: number | null;
   note: string | null;
   createdAt: string;
@@ -50,7 +51,7 @@ const FILTERS: { id: '' | Status; label: string }[] = [
 ];
 const STATUS_LABEL: Record<Status, string> = { pending: 'Neactivat', active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat' };
 const EVENT_LABEL: Record<Event['kind'], string> = {
-  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă',
+  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă', reads: 'Citiri în plus',
 };
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -62,8 +63,8 @@ function plusOneYear(start: string) {
 }
 
 /*
- * Consola vânzătorului (doar adminul): toți crescătorii, cu abonamentul, creditul pentru citiri și câți porumbei au.
- * După plată: Activează / Prelungește (un an de la data aleasă) și Adaugă credit. Fără să vadă parola cuiva:
+ * Consola vânzătorului (doar adminul): toți crescătorii, cu abonamentul, citirile din poze (câte și cât au costat) și câți porumbei au.
+ * După plată: Activează / Prelungește (un an de la data aleasă); la nevoie, citiri în plus. Fără să vadă parola cuiva:
  * „Link de parolă nouă” (pe email, iar linkul apare și aici, ca să-l trimită pe telefon).
  */
 @Component({
@@ -92,7 +93,6 @@ function plusOneYear(start: string) {
               <span class="muted">→ ține până pe <strong>{{ nb.start ? date(endFor(nb.start)) : '—' }}</strong></span>
             </div>
           }
-          <label class="field narrow">Credit pentru citirea pozelor ($, opțional) <input type="number" step="0.5" min="0" [(ngModel)]="nb.credit" name="nbCredit" /></label>
           <div class="row">
             <button type="button" class="primary" (click)="createBreeder()"><app-icon name="bifa" />Fă contul</button>
             <button type="button" (click)="toggleNew()">Renunță</button>
@@ -134,7 +134,7 @@ function plusOneYear(start: string) {
 
       <div class="layout">
         <div class="list">
-          <div class="thead" aria-hidden="true"><span>Crescător</span><span>Abonament</span><span>Ultima intrare</span><span>Credit</span><span>Porumbei</span></div>
+          <div class="thead" aria-hidden="true"><span>Crescător</span><span>Abonament</span><span>Ultima intrare</span><span>Citiri</span><span>Cost</span><span>Porumbei</span></div>
           @for (r of shown(); track r.id) {
             <button type="button" class="tr" [class.sel]="r.id === selectedId()" (click)="open(r.id)">
               <span class="who"><strong>{{ r.name }}</strong><span class="muted">@if (r.sheetName && r.sheetName !== r.name) { pe fișă: {{ r.sheetName }} · }@if (r.lang && r.lang !== 'ro') { limba: {{ r.lang | uppercase }} · }{{ r.email }}@if (r.phone) { · {{ r.phone }} }</span></span>
@@ -143,7 +143,8 @@ function plusOneYear(start: string) {
                 @if (r.subscriptionEnd) { <span class="muted">până pe {{ date(r.subscriptionEnd) }}@if (r.status === 'expiring') { ({{ r.daysLeft }} zile) }</span> }
               </span>
               <span class="seen" [title]="r.lastLoginAt ? 'Ultima intrare: ' + when(r.lastLoginAt) : 'Nu a intrat încă'">{{ ago(r.lastLoginAt) }}</span>
-              <span class="mono">{{ money(r.aiCredit) }}</span>
+              <span class="mono" [class.full]="r.reads.used >= r.reads.allowed" [title]="'Citiri din poze în anul de abonament: ' + r.reads.used + ' din ' + r.reads.allowed">{{ r.reads.used }} / {{ r.reads.allowed }}</span>
+              <span class="mono" title="Costul acestor citiri (cât plătești la Anthropic)">{{ money(r.reads.costUsd) }}</span>
               <span class="mono">{{ r.pigeons }}</span>
             </button>
           } @empty {
@@ -158,7 +159,7 @@ function plusOneYear(start: string) {
               <button type="button" class="icon-btn" aria-label="Închide" (click)="selectedId.set(null)"><app-icon name="inchide" /></button>
             </div>
             @if (d.invited) { <p class="warning">Nu și-a ales încă parola. Dacă a pierdut linkul, trimite-i unul nou mai jos („Link de parolă nouă”, 7 zile).</p> }
-            <p class="muted">{{ d.email }}@if (d.phone) { · {{ d.phone }} }<br />Cont din {{ date(d.createdAt) }} · ultima intrare: {{ d.lastLoginAt ? when(d.lastLoginAt) : 'încă niciuna' }} · ultima activitate: {{ d.lastSeenAt ? when(d.lastSeenAt) : '—' }} · {{ d.pigeons }} porumbei · {{ d.reads }} citiri din poze</p>
+            <p class="muted">{{ d.email }}@if (d.phone) { · {{ d.phone }} }<br />Cont din {{ date(d.createdAt) }} · ultima intrare: {{ d.lastLoginAt ? when(d.lastLoginAt) : 'încă niciuna' }} · ultima activitate: {{ d.lastSeenAt ? when(d.lastSeenAt) : '—' }} · {{ d.pigeons }} porumbei · {{ d.readsTotal }} citiri din poze de la început</p>
 
             <section class="stack box">
               <h3>Date pe fișă</h3>
@@ -196,12 +197,13 @@ function plusOneYear(start: string) {
             </section>
 
             <section class="stack box">
-              <h3>Credit pentru citirea pozelor: {{ money(d.aiCredit) }}</h3>
+              <h3>Citiri din poze: {{ d.reads.used }} din {{ d.reads.allowed }} <span class="muted">· cost {{ money(d.reads.costUsd) }}</span></h3>
+              <p class="muted">Incluse în abonament: {{ perYear }} pe an (cel mult 20 pe zi). La prelungire contorul pornește iar de la zero.</p>
               <div class="row">
-                <label class="field">Suma ($) <input type="number" step="0.5" [(ngModel)]="creditAmount" name="amount" /></label>
-                <label class="field grow">Notă <input [(ngModel)]="creditNote" name="creditNote" placeholder="de ex. plătit 25 lei" /></label>
+                <label class="field">Citiri în plus <input type="number" step="1" [(ngModel)]="extraReads" name="extraReads" /></label>
+                <label class="field grow">Notă <input [(ngModel)]="readsNote" name="readsNote" placeholder="de ex. a cerut mai multe" /></label>
               </div>
-              <button type="button" (click)="addCredit(d)"><app-icon name="plus" />Adaugă creditul</button>
+              <button type="button" (click)="addReads(d)"><app-icon name="plus" />Dă citiri în plus</button>
             </section>
 
             <section class="stack box">
@@ -250,8 +252,9 @@ function plusOneYear(start: string) {
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 16px; align-items: start; }
     .layout:has(> .list:only-child) { grid-template-columns: 1fr; }
     .list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .thead, .tr { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.6fr) 130px 90px 80px; gap: 12px; align-items: center; padding: 10px 16px; }
+    .thead, .tr { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.6fr) 120px 90px 80px 70px; gap: 12px; align-items: center; padding: 10px 16px; }
     .thead { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border-bottom: 1px solid var(--border); }
+    .full { color: var(--danger); font-weight: 700; }
     .tr { width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: none; font-weight: 400; min-height: 64px; }
     .tr:hover, .tr.sel { background: var(--accent-soft); }
     .who, .sub { display: flex; flex-direction: column; min-width: 0; }
@@ -307,14 +310,16 @@ export default class Consola implements OnInit {
   readonly copied = signal(false);
   readonly showNew = signal(false);
   readonly invite = signal<{ name: string; phone: string | null; link: string; emailed: boolean } | null>(null);
-  nb = { email: '', note: '', activate: false, start: iso(new Date()), credit: 0 };
+  nb = { email: '', note: '', activate: false, start: iso(new Date()) };
   nbIdent: IdentityForm = emptyIdentity();
   /** Formularul „Date pe fișă” deschis în fișa crescătorului (null = doar se văd). */
   readonly editIdent = signal<IdentityForm | null>(null);
   startDate = '';
   subNote = '';
-  creditAmount = 5;
-  creditNote = '';
+  extraReads = 50;
+  readsNote = '';
+  /** Citirile incluse pe an (pentru text; limita adevărată o ține serverul). */
+  protected readonly perYear = 200;
 
   protected readonly shown = computed(() => {
     const q = this.q().trim().toLowerCase();
@@ -372,8 +377,8 @@ export default class Consola implements OnInit {
     // Prelungirea pornește de unde se termină abonamentul de acum; altfel de azi.
     this.startDate = r && (r.status === 'active' || r.status === 'expiring') && r.subscriptionEnd ? r.subscriptionEnd : iso(new Date());
     this.subNote = '';
-    this.creditAmount = 5;
-    this.creditNote = '';
+    this.extraReads = 50;
+    this.readsNote = '';
     try {
       this.events.set((await this.api.get<{ events: Event[] }>(`/admin/accounts/${id}`)).events);
     } catch (e) {
@@ -430,21 +435,19 @@ export default class Consola implements OnInit {
     const ident = identityBody(this.nbIdent);
     if (!ident.name || !b.email.trim()) return this.error.set('Scrie numele și emailul crescătorului.');
     if (b.activate && !ident.sheetName) return this.error.set('Ca să activezi abonamentul, scrie și numele de pe fișă.');
-    const credit = Number(b.credit) || 0;
     const lines = [`${ident.name} · ${b.email.trim()}${ident.phone ? ' · ' + ident.phone : ''}`];
     if (ident.sheetName) lines.push(`Pe fișă: ${ident.sheetName}.`);
     lines.push(b.activate ? `Abonament de pe ${this.date(b.start)} până pe ${this.date(plusOneYear(b.start))} (confirmă doar dacă ai primit banii).` : 'Fără abonament deocamdată: contul e doar pentru citire până îl activezi.');
-    if (credit > 0) lines.push(`Credit pentru citiri: ${this.money(credit)}.`);
     const ok = await this.confirm.ask({ title: 'Faci contul acestui crescător?', lines, confirmLabel: 'Da, fă contul' });
     if (!ok) return;
     try {
       const r = await this.api.post<{ account: Row; link: string; emailed: boolean }>('/admin/accounts', {
         ...ident, email: b.email.trim(), note: b.note.trim() || null,
-        activate: b.activate, start: b.activate ? b.start : undefined, credit,
+        activate: b.activate, start: b.activate ? b.start : undefined,
       });
       this.invite.set({ name: r.account.name, phone: r.account.phone, link: r.link, emailed: r.emailed });
       this.showNew.set(false);
-      this.nb = { email: '', note: '', activate: false, start: iso(new Date()), credit: 0 };
+      this.nb = { email: '', note: '', activate: false, start: iso(new Date()) };
       this.nbIdent = emptyIdentity();
       this.filter.set('');
       await this.load();
@@ -475,19 +478,19 @@ export default class Consola implements OnInit {
     }
   }
 
-  async addCredit(d: Row) {
-    const amount = Number(this.creditAmount);
-    if (!amount) return this.error.set('Scrie suma în dolari.');
+  async addReads(d: Row) {
+    const amount = Number(this.extraReads);
+    if (!Number.isInteger(amount) || !amount) return this.error.set('Scrie câte citiri, de exemplu 50 (sau -10 ca să scazi).');
     const ok = await this.confirm.ask({
-      title: `${amount > 0 ? 'Adaugi' : 'Scazi'} ${this.money(Math.abs(amount))} lui ${d.name}?`,
-      lines: [`Creditul pentru citirea pozelor devine ${this.money(Math.max(0, d.aiCredit + amount))}.`],
+      title: `${amount > 0 ? 'Dai' : 'Scazi'} ${Math.abs(amount)} citiri ${amount > 0 ? 'în plus lui' : 'de la'} ${d.name}?`,
+      lines: [`Pentru anul acesta de abonament poate citi ${Math.max(this.perYear, d.reads.allowed + amount)} poze (a folosit ${d.reads.used}).`],
       confirmLabel: 'Da',
     });
     if (!ok) return;
     try {
-      await this.api.post(`/admin/accounts/${d.id}/credit`, { amount, note: this.creditNote || null });
+      await this.api.post(`/admin/accounts/${d.id}/reads`, { amount, note: this.readsNote || null });
       await this.refresh(d.id);
-      this.creditNote = '';
+      this.readsNote = '';
     } catch (e) {
       this.error.set(errorMessage(e));
     }

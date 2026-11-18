@@ -13,17 +13,11 @@ before(async () => {
   process.env.PEDIGREE_READS_PER_DAY = '3';
   ({ server, base } = await startTestApp());
   reader = await import('../src/pedigree-reader.js');
-  a = await withCredit(await newAccount(call, 'A'));
+  a = await newAccount(call, 'A'); // citirile sunt incluse în abonament
 });
 afterEach(() => reader.setPedigreeModel(null));
 after(() => server?.close());
 
-/** Creditul pentru citiri, pus de vânzător (fără el citirea e refuzată, vezi admin.test.js). */
-async function withCredit(cookie) {
-  const id = (await call('/api/auth/me', { cookie })).data.account.id;
-  await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: await adminCookie(call), body: { amount: 5 } });
-  return cookie;
-}
 
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 const send = (cookie, body) => call('/api/pedigrees/read', { method: 'POST', cookie, body });
@@ -84,7 +78,7 @@ test('nimic citit: 422, ca omul să încerce altă poză', async () => {
 });
 
 test('limita pe zi: după 3 citiri, a patra e refuzată (429)', async () => {
-  const b = await withCredit(await newAccount(call, 'B'));
+  const b = await newAccount(call, 'B');
   reader.setPedigreeModel(async () => ({ slots: [{ slot: 1, ring: 'RO-20-1', name: null, color: null, text: null, breeder: null }], rootSex: null, notes: '' }));
   for (let i = 0; i < 3; i++) assert.equal((await send(b, photo)).status, 200);
   const r = await send(b, photo);

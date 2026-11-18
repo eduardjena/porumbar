@@ -10,6 +10,7 @@ import {
 } from '../accounts.js';
 import { isAdminEmail } from '../subscriptions.js';
 import { isLang, isPublicLang, t } from '../i18n.js';
+import { readsOf } from '../reads.js';
 
 const RESET_MINUTES = 60;
 let dummyHash = null;
@@ -88,7 +89,11 @@ export function authRouter() {
     res.status(204).end();
   });
 
-  r.get('/me', requireAccount, (req, res) => res.json({ account: req.account }));
+  r.get('/me', requireAccount, async (req, res) => {
+    // Citirile din poze ale anului de abonament (fără cost: acela e pentru vânzător).
+    const { used, allowed } = await readsOf(req.account.id);
+    res.json({ account: { ...req.account, reads: { used, allowed } } });
+  });
 
   r.patch('/me', requireAccount, async (req, res) => {
     const b = req.body ?? {};

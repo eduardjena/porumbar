@@ -345,7 +345,6 @@
   "eroare.citire_fisier_mare": "Fișierul e prea mare (cel mult 12 MB).",
   "eroare.citire_oprita": "Citirea din poză nu e pornită încă pe acest server. Completează căsuțele de mână.",
   "eroare.citire_in_curs": "O citire e deja în curs. Așteaptă să se termine.",
-  "eroare.citire_fara_credit": "Nu mai ai credit pentru citirea pozelor. Poți completa căsuțele de mână (inelele pe care le ai deja se completează singure) sau ceri credit de la cel de la care ai primit programul.",
   "eroare.citire_limita_zi": "Ai folosit cele {numar} citiri de azi. Mai poți citi mâine sau completezi căsuțele de mână.",
   "eroare.citire_ocupata": "Citirea e ocupată acum. Încearcă din nou peste un minut.",
   "eroare.citire_esuata": "Citirea nu a mers acum. Încearcă din nou sau completează de mână.",
@@ -546,8 +545,6 @@
     "sens": "Câte zile mai are abonamentul."
   },
   "cont.neactivat": "Contul nu este activ încă. Până la activare poți doar să vezi porumbeii.",
-  "cont.credit": "Credit pentru citirea pedigree-urilor din poze:",
-  "cont.cost_citire": "(o citire costă în jur de 0,10–0,15 $)",
   "cont.plata_contact": "Plată, activare și credit: {contact}",
   "cont.admin_explicatie": "Pe pedigree-ul tipărit apar jos, în stânga, numele de pe pedigree și ce bifezi mai jos.",
   "cont.nume": "Nume",
@@ -1693,12 +1690,6 @@
   "cititor.poza_nepregatita": "Poza nu a putut fi pregătită.",
   "cititor.titlu": "Ai pedigree-ul în poză sau în PDF?",
   "cititor.intro": "Programul îl citește și completează căsuțele. Tu doar verifici și corectezi. Poza nu se păstrează.",
-  "cititor.credit": {
-    "text": "Credit pentru citiri:",
-    "sens": "Urmează suma rămasă (îngroșat)."
-  },
-  "cititor.fara_credit_contact": "Nu mai ai credit pentru citirea pozelor. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere credit: {contact}.",
-  "cititor.fara_credit": "Nu mai ai credit pentru citirea pozelor. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere credit de la cel de la care ai primit programul.",
   "cititor.se_citeste": "Se citește… (până la un minut)",
   "cititor.citeste": "Citește din poză sau PDF",
   "cititor.completat": {
@@ -1727,5 +1718,21 @@
   "eroare.lipsa_culoare": "Lipsesc datele culorii.",
   "eroare.prea_multe_linii": "Cel mult {max} linii.",
   "eroare.an_invalid": "Anul este invalid.",
-  "eroare.lipsa_concurs": "Lipsesc datele concursului."
+  "eroare.lipsa_concurs": "Lipsesc datele concursului.",
+  "eroare.citire_epuizate": {
+    "text": "Ai folosit toate cele {numar} citiri din abonament pentru anul acesta. Poți completa căsuțele de mână (inelele pe care le ai deja se completează singure) sau ceri citiri în plus de la cel de la care ai primit programul.",
+    "sens": "Citirile din poze incluse în abonament s-au terminat."
+  },
+  "cont.citiri": {
+    "text": "Citiri din poze incluse în abonament:",
+    "sens": "Urmează „37 din 200” (îngroșat)."
+  },
+  "cont.citiri_explicatie": "(200 pe an, cel mult 20 pe zi)",
+  "cititor.citiri": "Citiri din abonament:",
+  "cititor.citiri_din": {
+    "text": "{folosite} din {total}",
+    "sens": "Câte citiri a folosit din câte are în anul de abonament."
+  },
+  "cititor.fara_citiri": "Ai folosit toate cele {numar} citiri din abonament pentru anul acesta. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere citiri în plus de la cel de la care ai primit programul.",
+  "cititor.fara_citiri_contact": "Ai folosit toate cele {numar} citiri din abonament pentru anul acesta. Completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere citiri în plus: {contact}."
 }

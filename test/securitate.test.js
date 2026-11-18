@@ -180,7 +180,7 @@ test('IDOR: consola adminului e refuzată unui crescător (orice metodă, orice 
     ['GET', '/API/ADMIN/accounts'],
     ['GET', '/api/admin/accounts/'],
     ['POST', `/api/admin/accounts/${accId}/subscription`, { start: '2026-01-01' }],
-    ['POST', `/api/admin/accounts/${accId}/credit`, { amount: 100 }],
+    ['POST', `/api/admin/accounts/${accId}/reads`, { amount: 100 }],
     ['POST', `/api/admin/accounts/${accId}/password-link`],
   ];
   for (const who of [B, R]) {
@@ -190,7 +190,7 @@ test('IDOR: consola adminului e refuzată unui crescător (orice metodă, orice 
     }
   }
   for (const [method, p, body] of probes) assert.equal((await call(p, { method, auth: 'none', body })).status, 401, `${method} ${p} fără cont`);
-  assert.equal((await me(B)).aiCredit, 0);
+  assert.equal((await me(B)).reads.allowed, 200, 'citirile în plus nu s-au schimbat');
 });
 
 test('fără cont: toate rutele cu date dau 401', async () => {
@@ -461,7 +461,7 @@ test('prototype pollution: cheile __proto__ / constructor din JSON nu schimbă n
   assert.equal(ev.status, 400);
   const ev2 = await send('PATCH', `/api/pigeons/${bOwn}`, '{"evaluation":{"scores":{"constructor":5}}}');
   assert.equal(ev2.status, 400);
-  const adm = await send('POST', `/api/admin/accounts/${(await me(B)).id}/credit`, '{"amount":1,"__proto__":{"amount":1000}}', admin);
+  const adm = await send('POST', `/api/admin/accounts/${(await me(B)).id}/reads`, '{"amount":1,"__proto__":{"amount":1000}}', admin);
   assert.equal(adm.status, 200);
   assert.equal(({}).polluted, undefined);
   assert.equal(({}).isAdmin, undefined);

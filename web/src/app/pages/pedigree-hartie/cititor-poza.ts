@@ -1,7 +1,7 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
-import { formatMoney, t, TPipe } from '../../core/i18n';
+import { t, TPipe } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 
 /** Un porumbel citit din poză (aceeași formă ca la import). */
@@ -53,10 +53,10 @@ function toBase64(blob: Blob): Promise<string> {
       <div class="text">
         <h2>{{ 'cititor.titlu' | t }}</h2>
         <p class="muted">{{ 'cititor.intro' | t }}
-          @if (!isAdmin()) { {{ 'cititor.credit' | t }} <strong>{{ credit() }}</strong>. }</p>
+          @if (!isAdmin() && reads(); as r) { {{ 'cititor.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>. }</p>
       </div>
-      @if (noCredit()) {
-        <p class="warning">{{ contact() ? ('cititor.fara_credit_contact' | t: { contact: contact() }) : ('cititor.fara_credit' | t) }}</p>
+      @if (noReads()) {
+        <p class="warning">{{ contact() ? ('cititor.fara_citiri_contact' | t: { numar: reads()!.allowed, contact: contact() }) : ('cititor.fara_citiri' | t: { numar: reads()!.allowed }) }}</p>
       } @else {
         <label class="btn primary pick" [class.busy]="busy()">
           <app-icon name="poze" />{{ (busy() ? 'cititor.se_citeste' : 'cititor.citeste') | t }}
@@ -83,8 +83,9 @@ export class CititorPoza {
   readonly read = output<PedigreeNode>();
   protected readonly isAdmin = computed(() => !!this.auth.account()?.isAdmin);
   protected readonly contact = computed(() => this.auth.account()?.sellerContact ?? null);
-  protected readonly credit = computed(() => formatMoney(this.auth.account()?.aiCredit ?? 0));
-  protected readonly noCredit = computed(() => !this.isAdmin() && (this.auth.account()?.aiCredit ?? 0) <= 0);
+  /** Citirile din poze ale anului de abonament (incluse în abonament). */
+  protected readonly reads = computed(() => this.auth.account()?.reads ?? null);
+  protected readonly noReads = computed(() => !this.isAdmin() && !!this.reads() && this.reads()!.used >= this.reads()!.allowed);
   readonly busy = signal(false);
   readonly message = signal<{ kind: 'notice' | 'warning' | 'error'; text: string } | null>(null);
 
@@ -99,7 +100,7 @@ export class CititorPoza {
       const body = await prepare(file);
       const r = await this.api.post<{ root: PedigreeNode; filled: number; notes: string }>('/pedigrees/read', body);
       this.read.emit(r.root);
-      this.auth.refresh().catch(() => undefined); // creditul rămas
+      this.auth.refresh().catch(() => undefined); // contorul de citiri
       const text = `${t('cititor.completat', { count: r.filled })}${r.notes ? ' ' + r.notes : ''}`;
       this.message.set({ kind: r.notes ? 'warning' : 'notice', text });
     } catch (e) {

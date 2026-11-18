@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { isLang } from './i18n.js';
 import bcrypt from 'bcryptjs';
 import { config } from './config.js';
 import { one, run, nowIso } from './db.js';
@@ -40,6 +41,8 @@ export const publicAccount = (a) => ({
   printPhone: a.print_phone !== false,
   printAddress: a.print_address !== false,
   printEmail: a.print_email !== false,
+  // Limba în care vede aplicația (o pune vânzătorul).
+  lang: isLang(a.lang) ? a.lang : 'ro',
   isAdmin: isAdminEmail(a.email),
   sellerContact: config.sellerContact,
   subscription: subscriptionOf(a),
@@ -95,7 +98,7 @@ export async function requireAccount(req, res, next) {
     const hash = sha256(token);
     const row = await one(
       `SELECT a.id, a.email, a.name, a.pedigree_name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
-              a.print_phone, a.print_address, a.print_email,
+              a.print_phone, a.print_address, a.print_email, a.lang,
               a.subscription_start, a.subscription_end, a.ai_credit_micros, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
@@ -109,6 +112,7 @@ export async function requireAccount(req, res, next) {
       await run('UPDATE accounts SET last_seen_at = ? WHERE id = (SELECT account_id FROM sessions WHERE token_hash = ?)', now, hash);
     }
     req.account = publicAccount(row);
+    req.lang = req.account.lang;
     req.sessionHash = hash;
     // Fără abonament activ: doar citire. Setările contului (/api/auth) și consola (/api/admin) merg oricum.
     const writes = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);

@@ -5,6 +5,7 @@ import { HttpError, badRequest, notFound, realDate, text } from '../http.js';
 import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.js';
 import { sendMail } from '../mail.js';
 import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscriptions.js';
+import { isLang } from '../i18n.js';
 
 /*
  * Consola vânzătorului (un singur admin: contul cu ADMIN_EMAIL). Vede datele de cont ale crescătorilor (nume,
@@ -58,11 +59,14 @@ function identityOf(b) {
     sheetName: text(b.sheetName, 'numele de pe fișă', { max: 120, optional: true }),
     phone: text(b.phone, 'telefon', { max: 40, optional: true }),
     address: text(b.address, 'adresă', { max: 300, optional: true }),
+    // Lipsă = rămâne cea de acum.
+    lang: b.lang ?? null,
     cnp: null,
     companyName: null,
     cui: null,
     regCom: null,
   };
+  if (out.lang !== null && !isLang(out.lang)) throw badRequest('Limba aleasă nu este disponibilă.');
   if (kind === 'pf') {
     // Lipit din alt document poate avea spații între cifre.
     out.cnp = text(typeof b.cnp === 'string' ? b.cnp.replace(/\s+/g, '') : b.cnp, 'CNP', { max: 13, optional: true });
@@ -78,8 +82,8 @@ function identityOf(b) {
 }
 
 const IDENTITY_SQL = `UPDATE accounts SET legal_kind = ?, name = ?, pedigree_name = ?, phone = ?, address = ?, cnp = ?, company_name = ?,
-  company_cui = ?, company_reg = ? WHERE id = ?`;
-const identityParams = (i, id) => [i.kind, i.name, i.sheetName, i.phone, i.address, i.cnp, i.companyName, i.cui, i.regCom, id];
+  company_cui = ?, company_reg = ?, lang = COALESCE(?, lang) WHERE id = ?`;
+const identityParams = (i, id) => [i.kind, i.name, i.sheetName, i.phone, i.address, i.cnp, i.companyName, i.cui, i.regCom, i.lang, id];
 const NEED_SHEET_NAME = 'Pune întâi numele de pe fișă (la „Date pe fișă”), apoi activează abonamentul.';
 
 function row(a) {
@@ -97,6 +101,7 @@ function row(a) {
     companyName: a.company_name ?? null,
     cui: a.company_cui ?? null,
     regCom: a.company_reg ?? null,
+    lang: a.lang ?? 'ro',
     createdAt: a.created_at,
     lastLoginAt: a.last_login_at ?? null,
     lastSeenAt: a.last_seen_at ?? a.last_seen ?? null,
@@ -229,8 +234,8 @@ export function adminRouter() {
       if (!ident.sheetName && acc.subscription_start) throw badRequest('Numele de pe fișă nu poate rămâne gol la un cont activat.');
       await run(IDENTITY_SQL, ...identityParams(ident, acc.id));
       // În istoric: ce era și ce e acum (la o neînțelegere se vede cine ce a avut pe fișă).
-      const was = { nume: acc.name, 'pe fișă': acc.pedigree_name, telefon: acc.phone, adresa: acc.address };
-      const now = { nume: ident.name, 'pe fișă': ident.sheetName, telefon: ident.phone, adresa: ident.address };
+      const was = { nume: acc.name, 'pe fișă': acc.pedigree_name, telefon: acc.phone, adresa: acc.address, limba: acc.lang };
+      const now = { nume: ident.name, 'pe fișă': ident.sheetName, telefon: ident.phone, adresa: ident.address, limba: ident.lang ?? acc.lang };
       const changed = Object.keys(was)
         .filter((k) => (was[k] ?? null) !== (now[k] ?? null))
         .map((k) => `${k}: ${was[k] ?? '—'} → ${now[k] ?? '—'}`)

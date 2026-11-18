@@ -3,7 +3,7 @@ import path from 'node:path';
 import express from 'express';
 import { errorHandler } from './http.js';
 import { publicCatalog } from './catalog.js';
-import { isLang, flatDictionary } from './i18n.js';
+import { isLang, flatDictionary, requestLang } from './i18n.js';
 import { authRouter } from './routes/auth.js';
 import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
@@ -75,6 +75,13 @@ export function createApp() {
   // se citește doar după ce se știe cine e omul, iar conținutul arhivat (gzip) nu se dezarhivează nicăieri.
   app.use('/api/pedigrees/read', requireAccount, express.json({ limit: '17mb', inflate: false }));
   app.use(express.json({ limit: '1mb', inflate: false }));
+
+  // Limba cererii: fără cont, limba aleasă pe ecran (Accept-Language), dacă e publică; altfel româna.
+  // Cu cont, requireAccount o înlocuiește cu limba contului.
+  app.use((req, res, next) => {
+    req.lang = requestLang(req.headers['accept-language']);
+    next();
+  });
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.get('/api/catalog', (req, res) => res.json(publicCatalog()));

@@ -45,3 +45,13 @@ export async function setIdentity(call, accountId, body) {
   if (r.status !== 200) throw new Error(`Datele de pe fișă: ${r.status} ${JSON.stringify(r.data)}`);
   return r.data.account;
 }
+
+/** Vânzătorul schimbă limba contului (restul datelor de pe fișă rămân cum sunt). */
+export async function setLang(call, accountId, lang) {
+  const cookie = await adminCookie(call);
+  const a = (await call(`/api/admin/accounts/${accountId}`, { cookie })).data.account;
+  const body = { kind: a.kind, name: a.name, sheetName: a.sheetName, phone: a.phone, address: a.address, cnp: a.cnp, companyName: a.companyName, cui: a.cui, regCom: a.regCom, lang };
+  const r = await call(`/api/admin/accounts/${accountId}/identity`, { method: 'PATCH', cookie, body });
+  if (r.status !== 200) throw new Error(`Limba contului: ${r.status} ${JSON.stringify(r.data)}`);
+  return r.data.account;
+}

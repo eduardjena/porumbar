@@ -58,3 +58,12 @@ export function flatDictionary(lang) {
   }
   return out;
 }
+
+/** Prima limbă publică din antetul Accept-Language („hu-HU,hu;q=0.9,ro;q=0.8”); altfel româna. */
+export function requestLang(header) {
+  for (const part of String(header ?? '').split(',')) {
+    const code = part.trim().slice(0, 2).toLowerCase();
+    if (isPublicLang(code)) return code;
+  }
+  return 'ro';
+}

@@ -9,6 +9,7 @@ import {
   publicAccount, randomToken, sha256, TREE_VIEWS,
 } from '../accounts.js';
 import { isAdminEmail } from '../subscriptions.js';
+import { isLang, isPublicLang } from '../i18n.js';
 
 const RESET_MINUTES = 60;
 let dummyHash = null;
@@ -41,12 +42,15 @@ export function authRouter() {
     if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.');
     const password = validatePassword(req.body?.password);
     const name = text(req.body?.name, 'nume', { max: 120 });
+    // Limba de pe ecran; una „în probă” (nepublică) o poate pune doar vânzătorul.
+    const lang = req.body?.lang ?? 'ro';
+    if (!isPublicLang(lang)) throw badRequest('Limba aleasă nu este disponibilă.');
     if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) {
       throw new HttpError(409, 'Există deja un cont cu acest email.');
     }
     const id = await insert(
-      'INSERT INTO accounts (email, name, password_hash, created_at) VALUES (?, ?, ?, ?)',
-      email, name, await hashPassword(password), nowIso(),
+      'INSERT INTO accounts (email, name, password_hash, created_at, lang) VALUES (?, ?, ?, ?, ?)',
+      email, name, await hashPassword(password), nowIso(), lang,
     );
     await createSession(res, id, req.headers['user-agent']);
     // Vânzătorul află de contul nou, ca să-l contacteze și să-i activeze abonamentul. Un mail eșuat nu oprește contul.
@@ -97,6 +101,15 @@ export function authRouter() {
     const pedigreeName = b.pedigreeName === undefined ? req.account.pedigreeName : text(b.pedigreeName, 'numele de pe pedigree', { max: 120, optional: true });
     const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
     const address = b.address === undefined ? req.account.address : text(b.address, 'adresă', { max: 300, optional: true });
+    // Limba: oricare publică sau cea pe care o are deja; una în probă o pune doar vânzătorul.
+    let lang = req.account.lang;
+    if (b.lang !== undefined) {
+      if (!isLang(b.lang)) throw badRequest('Limba aleasă nu este disponibilă.');
+      if (b.lang !== lang && !isPublicLang(b.lang) && !req.account.isAdmin) {
+        throw new HttpError(403, 'Această limbă ți-o poate pune doar cel de la care ai primit programul (vânzătorul).');
+      }
+      lang = b.lang;
+    }
     const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'vederea Arborelui');
     const flag = (key) => {
       if (b[key] === undefined) return req.account[key];
@@ -105,9 +118,9 @@ export function authRouter() {
     };
     await run(
       `UPDATE accounts SET name = ?, pedigree_name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ?,
-              print_phone = ?, print_address = ?, print_email = ? WHERE id = ?`,
+              print_phone = ?, print_address = ?, print_email = ?, lang = ? WHERE id = ?`,
       name, pedigreeName, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'),
-      flag('printPhone'), flag('printAddress'), flag('printEmail'), req.account.id,
+      flag('printPhone'), flag('printAddress'), flag('printEmail'), lang, req.account.id,
     );
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });

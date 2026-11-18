@@ -302,6 +302,11 @@ const MIGRATIONS = [
   ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
     CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created', 'identity'));
   `,
+
+  // 18: limba contului (lista limbilor stă în i18n/languages.json; o pune vânzătorul, omul o poate schimba din Cont).
+  `
+  ALTER TABLE accounts ADD COLUMN lang TEXT NOT NULL DEFAULT 'ro';
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

@@ -80,6 +80,15 @@ test('firmă: denumire, CUI, Reg. Com.; datele greșite sunt refuzate', async ()
   await identity(aId, { kind: 'pf', name: 'Ion Popescu', sheetName: 'Popescu-Ionescu Team', phone: '0722 000 111', address: 'Str. Exemplu 1' });
 });
 
+test('CNP-ul lipit cu spații se acceptă; istoricul ține ce era înainte și ce e acum', async () => {
+  const r = await identity(aId, { kind: 'pf', name: 'Ion Popescu', cnp: ' 1800101 420010 ', sheetName: 'Popescu-Ionescu Team', phone: '0722 000 222', address: 'Str. Exemplu 1' });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.account.cnp, CNP);
+  const ev = (await call(`/api/admin/accounts/${aId}`, { cookie: admin })).data.events.find((e) => e.kind === 'identity');
+  assert.match(ev.note, /telefon: 0722 000 111 → 0722 000 222/);
+  await identity(aId, { kind: 'pf', name: 'Ion Popescu', sheetName: 'Popescu-Ionescu Team', phone: '0722 000 111', address: 'Str. Exemplu 1' });
+});
+
 test('fără numele de pe fișă abonamentul nu se activează', async () => {
   const c = await newAccount(call, 'Fără', { active: false });
   const id = (await me(c)).id;

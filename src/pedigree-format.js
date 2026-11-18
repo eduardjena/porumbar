@@ -4,6 +4,7 @@ import { formatRing } from './rings.js';
 import { yearOf } from './pigeons.js';
 import { parseRing } from './rings.js';
 import { pedigreeLines } from './results.js';
+import { isAdminEmail } from './subscriptions.js';
 
 /*
  * Formatul deschis „porumbar-pedigree” v1 (spec §2): ce se vede pe linkul public / QR și ce se copiază la preluare.
@@ -53,18 +54,19 @@ function node(row, byId, depth, lines) {
 /**
  * Pedigree-ul porumbelului (al contului dat) în formatul deschis. `forPrint`: pentru foaia tipărită / PDF-ul omului
  * (bifele print_*, implicit tot); altfel pentru link, cod QR, preluare și vânzare (bifele show_*, implicit doar numele).
- * Numele de jos e doar numele de pe fișă pus de vânzător (nu cade pe numele contului).
+ * Numele de jos e doar numele de pe fișă pus de vânzător (la crescători nu cade pe numele contului).
  */
 export async function pedigreeV1(accountId, rootId, { forPrint = false } = {}) {
   const account = await one(
-    `SELECT pedigree_name, phone, address, email, show_phone, show_address, show_email, print_phone, print_address, print_email
+    `SELECT name, pedigree_name, phone, address, email, show_phone, show_address, show_email, print_phone, print_address, print_email
        FROM accounts WHERE id = ?`,
     accountId,
   );
   const rows = await all('SELECT * FROM pigeons WHERE account_id = ?', accountId);
   const byId = new Map(rows.map((r) => [r.id, r]));
   const shows = (what) => (forPrint ? account[`print_${what}`] : account[`show_${what}`]);
-  const owner = { name: account.pedigree_name ?? '' };
+  // Vânzătorul (adminul) își scrie singur numele; fără el, pe fișa lui rămâne numele contului.
+  const owner = { name: account.pedigree_name ?? (isAdminEmail(account.email) ? account.name : '') };
   if (shows('phone') && account.phone) owner.phone = account.phone;
   if (shows('address') && account.address) owner.address = account.address;
   if (shows('email')) owner.email = account.email;

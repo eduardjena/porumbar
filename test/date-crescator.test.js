@@ -16,6 +16,15 @@ before(async () => {
 });
 after(() => server?.close());
 
+test('adminul fără nume de pe fișă: pe fișa lui apare numele contului (nu rămâne gol)', async () => {
+  const me = (await call('/api/auth/me', { cookie: admin })).data.account;
+  assert.equal(me.pedigreeName, null);
+  const pigeon = (await call('/api/pigeons', { method: 'POST', cookie: admin, body: { kind: 'own', ring: 'RO-26-800547' } })).data.pigeon;
+  const ped = (await call(`/api/pigeons/${pigeon.id}/pedigree`, { cookie: admin })).data;
+  assert.equal(ped.owner.name, me.name);
+  assert.ok(me.name);
+});
+
 test('adminul își schimbă singur numele de pe fișă, telefonul și adresa; textul prea lung e refuzat', async () => {
   const r = await call('/api/auth/me', { method: 'PATCH', cookie: admin, body: { pedigreeName: '  Porumbar Team ', phone: '0700 000 000', address: 'Str. Exemplu 1' } });
   assert.equal(r.status, 200, JSON.stringify(r.data));

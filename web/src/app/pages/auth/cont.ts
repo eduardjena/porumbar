@@ -59,9 +59,10 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
         <p class="muted">Așa apar jos, în stânga, pe pedigree. Le schimbă doar cel de la care ai primit programul{{ a.sellerContact ? ' (' + a.sellerContact + ')' : '' }}.</p>
         <div class="sheet">
           <strong>{{ a.pedigreeName || '—' }}</strong>
-          @if (a.address) { <span class="addr">{{ a.address }}</span> }
-          @if (a.phone) { <span>Tel.: {{ a.phone }}</span> }
-          <span>{{ a.email }}</span>
+          <!-- Ca pe foaie: doar ce e bifat la „Pe fișă” (se schimbă pe loc când bifezi). -->
+          @if (a.address && printAddress) { <span class="addr">{{ a.address }}</span> }
+          @if (a.phone && printPhone) { <span>Tel.: {{ a.phone }}</span> }
+          @if (printEmail) { <span>{{ a.email }}</span> }
         </div>
       }
       <fieldset class="show">

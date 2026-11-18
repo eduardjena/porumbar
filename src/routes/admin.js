@@ -64,7 +64,8 @@ function identityOf(b) {
     regCom: null,
   };
   if (kind === 'pf') {
-    out.cnp = text(b.cnp, 'CNP', { max: 13, optional: true });
+    // Lipit din alt document poate avea spații între cifre.
+    out.cnp = text(typeof b.cnp === 'string' ? b.cnp.replace(/\s+/g, '') : b.cnp, 'CNP', { max: 13, optional: true });
     if (out.cnp && !validCnp(out.cnp)) throw badRequest('CNP-ul nu pare corect (13 cifre, verifică-l încă o dată).');
   } else {
     out.companyName = text(b.companyName, 'denumirea firmei', { max: 200, optional: true });
@@ -227,8 +228,13 @@ export function adminRouter() {
       const acc = await accountRow(req.params.id);
       if (!ident.sheetName && acc.subscription_start) throw badRequest('Numele de pe fișă nu poate rămâne gol la un cont activat.');
       await run(IDENTITY_SQL, ...identityParams(ident, acc.id));
-      const changed = [acc.pedigree_name !== ident.sheetName && `pe fișă: ${ident.sheetName ?? '—'}`, acc.name !== ident.name && `nume: ${ident.name}`]
-        .filter(Boolean).join(' · ');
+      // În istoric: ce era și ce e acum (la o neînțelegere se vede cine ce a avut pe fișă).
+      const was = { nume: acc.name, 'pe fișă': acc.pedigree_name, telefon: acc.phone, adresa: acc.address };
+      const now = { nume: ident.name, 'pe fișă': ident.sheetName, telefon: ident.phone, adresa: ident.address };
+      const changed = Object.keys(was)
+        .filter((k) => (was[k] ?? null) !== (now[k] ?? null))
+        .map((k) => `${k}: ${was[k] ?? '—'} → ${now[k] ?? '—'}`)
+        .join(' · ');
       await logEvent(acc.id, 'identity', { note: changed || 'date actualizate' });
       return accountRow(acc.id);
     });

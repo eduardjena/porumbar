@@ -36,4 +36,8 @@ altora, care nu mai cumpărau programul. Acum numele de pe fișă, telefonul și
 - **„Numele” contului**, cel de la înregistrare, îl corectează tot vânzătorul.
 
 ## Ce nu putem opri
-Un PDF deja scos se poate modifica într-un program de editat PDF-uri. Închidem doar calea din aplicație.
+- Un PDF deja scos se poate modifica într-un program de editat PDF-uri. Închidem doar calea din aplicație.
+- „Crescătorul” fiecărui porumbel (textul liber din fișa porumbelului) apare în căsuțe și în rândul de sus. Omul îl
+  scrie el, pentru că e informație despre porumbel, nu despre proprietarul fișei. Numele de jos rămâne blocat.
+- Numele pe care crescătorii activi și le scriseseră singuri înainte rămân pe fișă după migrare. Vânzătorul le
+  verifică în consolă: lista arată „pe fișă: …” când diferă de numele contului.

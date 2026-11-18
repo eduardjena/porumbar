@@ -87,6 +87,12 @@ export function authRouter() {
 
   r.patch('/me', requireAccount, async (req, res) => {
     const b = req.body ?? {};
+    // Numele, numele de pe fișă, telefonul și adresa le pune vânzătorul (altfel oricine ar face fișe pe numele altora).
+    // Adminul (vânzătorul) își schimbă singur datele lui.
+    const locked = ['name', 'pedigreeName', 'phone', 'address'].filter((k) => b[k] !== undefined);
+    if (locked.length && !req.account.isAdmin) {
+      throw new HttpError(403, 'Numele, numele de pe fișă, telefonul și adresa le schimbă doar cel de la care ai primit programul (vânzătorul).');
+    }
     const name = b.name === undefined ? req.account.name : text(b.name, 'nume', { max: 120 });
     const pedigreeName = b.pedigreeName === undefined ? req.account.pedigreeName : text(b.pedigreeName, 'numele de pe pedigree', { max: 120, optional: true });
     const phone = b.phone === undefined ? req.account.phone : text(b.phone, 'telefon', { max: 40, optional: true });
@@ -98,8 +104,10 @@ export function authRouter() {
       return b[key];
     };
     await run(
-      'UPDATE accounts SET name = ?, pedigree_name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ? WHERE id = ?',
-      name, pedigreeName, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'), req.account.id,
+      `UPDATE accounts SET name = ?, pedigree_name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ?,
+              print_phone = ?, print_address = ?, print_email = ? WHERE id = ?`,
+      name, pedigreeName, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'),
+      flag('printPhone'), flag('printAddress'), flag('printEmail'), req.account.id,
     );
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });

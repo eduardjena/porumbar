@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setIdentity } from './helpers/accounts.js';
 import { PEDIGREE_FOTO } from './fixtures/pedigree-foto.js';
 
 let server;
@@ -17,7 +17,8 @@ before(async () => {
   b = await newAccount(call, 'Vasile');
   fumur = (await call('/api/pedigrees/import', { method: 'POST', cookie: a, body: { root: PEDIGREE_FOTO } })).data.pigeonId;
   await call(`/api/pigeons/${fumur}`, { method: 'PATCH', cookie: a, body: { name: 'FUMUR', status: 'reproducator', evaluation: { scores: { aripa: 5 }, calitati: 'secret' } } });
-  await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { phone: '0722 000 111', address: 'Str. Exemplu 1' } });
+  const aId = (await call('/api/auth/me', { cookie: a })).data.account.id;
+  await setIdentity(call, aId, { name: 'Ion', sheetName: 'Ion Team', phone: '0722 000 111', address: 'Str. Exemplu 1' });
 });
 after(() => server?.close());
 
@@ -87,7 +88,7 @@ test('preluarea: pedigree-ul ajunge în contul celuilalt ca „din alt porumbar�
   const mine = (await call(`/api/pigeons/${r.data.pigeonId}`, { cookie: b })).data.pigeon;
   assert.equal(mine.kind, 'external');
   assert.equal(mine.ring.display, 'RO-15-412084');
-  assert.match(mine.sourceNote, /^Preluat de la Ion \d+ pe \d{2}\.\d{2}\.\d{4}$/);
+  assert.match(mine.sourceNote, /^Preluat de la Ion Team pe \d{2}\.\d{2}\.\d{4}$/);
   assert.equal(mine.evaluation.calitati ?? null, null);
   const t = (await call(`/api/pigeons/${r.data.pigeonId}/tree?generations=4`, { cookie: b })).data;
   assert.equal(Object.keys(t.pigeons).length >= 25, true);

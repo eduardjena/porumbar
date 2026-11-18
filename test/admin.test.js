@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { adminCookie, newAccount, today } from './helpers/accounts.js';
+import { adminCookie, newAccount, setIdentity, today } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -34,12 +34,13 @@ test('cont nou, neactivat: doar citire (vede, nu scrie), cu mesaj clar', async (
   assert.equal(w.status, 402);
   assert.match(w.data.error, /doar citire|nu este activ/i);
   assert.equal((await call('/api/pigeons', { cookie: c })).status, 200);
-  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { phone: '0700 000 000' } })).status, 200); // setările contului merg
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { showPhone: true } })).status, 200); // bifele contului merg
 });
 
 test('adminul activează: un an de la data aleasă; apoi se poate scrie', async () => {
   const c = await newAccount(call, 'Plătitor', { active: false });
   const id = (await me(c)).id;
+  await setIdentity(call, id, { name: 'Plătitor', sheetName: 'Plătitor Team' });
   const r = await activate(id, { start: '2026-11-16', note: 'plătit cash' });
   assert.equal(r.status, 200, JSON.stringify(r.data));
   assert.equal(r.data.account.subscriptionStart, '2026-11-16');
@@ -180,7 +181,7 @@ test('crescător nou din consolă: cont fără parolă, link de activare pe 7 zi
 });
 
 test('crescător nou care a plătit deja: activat și cu credit din același pas', async () => {
-  const r = await createBreeder({ name: 'Ion Plătit', email: 'ion.platit@exemplu.test', activate: true, start: today(), credit: 5, note: 'plătit cash' });
+  const r = await createBreeder({ name: 'Ion Plătit', email: 'ion.platit@exemplu.test', sheetName: 'Ion Plătit', activate: true, start: today(), credit: 5, note: 'plătit cash' });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.account.status, 'active');
   assert.equal(r.data.account.aiCredit, 5);

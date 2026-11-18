@@ -10,7 +10,19 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
 @Component({
   selector: 'app-cont',
   imports: [FormsModule],
-  styles: `.subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; } .show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0; }`,
+  styles: `
+    .subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; }
+    .h { margin: 0; }
+    .sheet { display: flex; flex-direction: column; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; background: #fff; color: #2b2117; line-height: 1.35; }
+    .sheet strong { font-size: 1.2rem; }
+    .sheet .addr { white-space: pre-line; }
+    .show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0 0 6px; }
+    .ticks { border-collapse: collapse; width: 100%; max-width: 520px; }
+    .ticks th, .ticks td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--border); }
+    .ticks thead th { font-size: 0.9rem; color: var(--muted); font-weight: 700; }
+    .ticks tbody th { text-align: left; font-weight: 600; }
+    .ticks input { width: 28px; height: 28px; margin: 0; }
+  `,
   template: `
     <h1>Contul meu</h1>
     @if (auth.account(); as a) {
@@ -28,26 +40,48 @@ const yes = (v: boolean | undefined) => (v ? 'da' : 'nu');
       }
     }
     <form class="card stack" (ngSubmit)="save()">
-      <p class="muted">Pe pedigree-ul tipărit apar jos, în stânga, numele, adresa, telefonul și emailul completate aici.</p>
-      <label class="field">Nume
-        <input name="name" required [(ngModel)]="name" autocomplete="name" />
-      </label>
-      <label class="field">Numele de pe pedigree <span class="hint">(echipa sau crescătoria, de ex. „Popescu-Ionescu Team”; gol = numele de mai sus)</span>
-        <input name="pedigreeName" [(ngModel)]="pedigreeName" />
-      </label>
-      <label class="field">Telefon
-        <input name="phone" type="tel" inputmode="tel" [(ngModel)]="phone" autocomplete="tel" />
-      </label>
-      <label class="field">Adresă
-        <textarea name="address" [(ngModel)]="address" autocomplete="street-address" rows="3" placeholder="Strada, numărul&#10;Localitatea, județul"></textarea>
-      </label>
-      <p class="muted">Email: {{ auth.account()?.email }}</p>
-      <fieldset class="stack show">
-        <legend>Ce apare pe linkul public și la codul QR</legend>
-        <p class="muted">Acolo îl poate vedea oricine are linkul: numele apare mereu, restul doar dacă bifezi. Pe foaia tipărită apar toate.</p>
-        <label class="check"><input type="checkbox" name="showPhone" [(ngModel)]="showPhone" /> Telefonul</label>
-        <label class="check"><input type="checkbox" name="showAddress" [(ngModel)]="showAddress" /> Adresa</label>
-        <label class="check"><input type="checkbox" name="showEmail" [(ngModel)]="showEmail" /> Emailul</label>
+      @if (auth.account()?.isAdmin) {
+        <p class="muted">Pe pedigree-ul tipărit apar jos, în stânga, numele de pe pedigree și ce bifezi mai jos.</p>
+        <label class="field">Nume
+          <input name="name" required [(ngModel)]="name" autocomplete="name" />
+        </label>
+        <label class="field">Numele de pe pedigree <span class="hint">(echipa sau crescătoria, de ex. „Popescu-Ionescu Team”)</span>
+          <input name="pedigreeName" [(ngModel)]="pedigreeName" />
+        </label>
+        <label class="field">Telefon
+          <input name="phone" type="tel" inputmode="tel" [(ngModel)]="phone" autocomplete="tel" />
+        </label>
+        <label class="field">Adresă
+          <textarea name="address" [(ngModel)]="address" autocomplete="street-address" rows="3" placeholder="Strada, numărul&#10;Localitatea, județul"></textarea>
+        </label>
+      } @else if (auth.account(); as a) {
+        <h2 class="h">Datele de pe fișă</h2>
+        <p class="muted">Așa apar jos, în stânga, pe pedigree. Le schimbă doar cel de la care ai primit programul{{ a.sellerContact ? ' (' + a.sellerContact + ')' : '' }}.</p>
+        <div class="sheet">
+          <strong>{{ a.pedigreeName || '—' }}</strong>
+          <!-- Ca pe foaie: doar ce e bifat la „Pe fișă” (se schimbă pe loc când bifezi). -->
+          @if (a.address && printAddress) { <span class="addr">{{ a.address }}</span> }
+          @if (a.phone && printPhone) { <span>Tel.: {{ a.phone }}</span> }
+          @if (printEmail) { <span>{{ a.email }}</span> }
+        </div>
+      }
+      <fieldset class="show">
+        <legend>Ce apare pe lângă nume</legend>
+        <p class="muted">Numele apare mereu. Linkul public și codul QR le poate vedea oricine le are.</p>
+        <table class="ticks">
+          <thead><tr><th></th><th scope="col">Pe fișă și în PDF</th><th scope="col">La link și codul QR</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Telefonul</th>
+              <td><input type="checkbox" name="printPhone" [(ngModel)]="printPhone" aria-label="Telefonul pe fișă" /></td>
+              <td><input type="checkbox" name="showPhone" [(ngModel)]="showPhone" aria-label="Telefonul la link" /></td></tr>
+            <tr><th scope="row">Adresa</th>
+              <td><input type="checkbox" name="printAddress" [(ngModel)]="printAddress" aria-label="Adresa pe fișă" /></td>
+              <td><input type="checkbox" name="showAddress" [(ngModel)]="showAddress" aria-label="Adresa la link" /></td></tr>
+            <tr><th scope="row">Emailul</th>
+              <td><input type="checkbox" name="printEmail" [(ngModel)]="printEmail" aria-label="Emailul pe fișă" /></td>
+              <td><input type="checkbox" name="showEmail" [(ngModel)]="showEmail" aria-label="Emailul la link" /></td></tr>
+          </tbody>
+        </table>
       </fieldset>
       @if (saved()) { <div class="notice" role="status">Salvat.</div> }
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
@@ -80,6 +114,9 @@ export default class Cont {
   showPhone = !!this.auth.account()?.showPhone;
   showAddress = !!this.auth.account()?.showAddress;
   showEmail = !!this.auth.account()?.showEmail;
+  printPhone = this.auth.account()?.printPhone !== false;
+  printAddress = this.auth.account()?.printAddress !== false;
+  printEmail = this.auth.account()?.printEmail !== false;
   deletePassword = '';
   readonly saved = signal(false);
   readonly error = signal('');
@@ -91,11 +128,19 @@ export default class Cont {
     this.saved.set(false);
     this.error.set('');
     const a = this.auth.account();
+    const admin = !!a?.isAdmin;
     const diff = changes([
-      { label: 'Nume', before: a?.name, after: this.name },
-      { label: 'Numele de pe pedigree', before: a?.pedigreeName, after: this.pedigreeName },
-      { label: 'Telefon', before: a?.phone, after: this.phone },
-      { label: 'Adresă', before: a?.address, after: this.address },
+      ...(admin
+        ? [
+            { label: 'Nume', before: a?.name, after: this.name },
+            { label: 'Numele de pe pedigree', before: a?.pedigreeName, after: this.pedigreeName },
+            { label: 'Telefon', before: a?.phone, after: this.phone },
+            { label: 'Adresă', before: a?.address, after: this.address },
+          ]
+        : []),
+      { label: 'Telefonul pe fișă', before: yes(a?.printPhone !== false), after: yes(this.printPhone) },
+      { label: 'Adresa pe fișă', before: yes(a?.printAddress !== false), after: yes(this.printAddress) },
+      { label: 'Emailul pe fișă', before: yes(a?.printEmail !== false), after: yes(this.printEmail) },
       { label: 'Telefonul pe linkul public', before: yes(a?.showPhone), after: yes(this.showPhone) },
       { label: 'Adresa pe linkul public', before: yes(a?.showAddress), after: yes(this.showAddress) },
       { label: 'Emailul pe linkul public', before: yes(a?.showEmail), after: yes(this.showEmail) },
@@ -103,9 +148,11 @@ export default class Cont {
     if (!diff.length) return this.saved.set(true);
     if (!(await this.confirm.ask({ title: 'Salvezi modificările?', lines: diff, confirmLabel: 'Da, salvează' }))) return;
     try {
+      // Crescătorul trimite doar bifele (numele, telefonul și adresa le pune vânzătorul; serverul le refuză).
       await this.auth.update({
-        name: this.name, pedigreeName: this.pedigreeName || null, phone: this.phone || null, address: this.address || null,
+        ...(admin ? { name: this.name, pedigreeName: this.pedigreeName || null, phone: this.phone || null, address: this.address || null } : {}),
         showPhone: this.showPhone, showAddress: this.showAddress, showEmail: this.showEmail,
+        printPhone: this.printPhone, printAddress: this.printAddress, printEmail: this.printEmail,
       });
       this.saved.set(true);
     } catch (e) {

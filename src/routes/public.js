@@ -41,7 +41,7 @@ export function publicRouter() {
   // Pedigree-ul unui porumbel al meu în formatul deschis (pentru tipar).
   r.get('/pigeons/:id/pedigree', requireAccount, async (req, res) => {
     const row = await getPigeonRow(req.account.id, req.params.id);
-    res.json(await pedigreeV1(req.account.id, row.id));
+    res.json(await pedigreeV1(req.account.id, row.id, { forPrint: true }));
   });
 
   r.post('/pigeons/:id/public', requireAccount, async (req, res) => {

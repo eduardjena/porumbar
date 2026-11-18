@@ -283,6 +283,25 @@ const MIGRATIONS = [
   );
   CREATE INDEX ix_ring_series_account ON ring_series (account_id, year);
   `,
+
+  // 17: datele de pe fișă le pune vânzătorul (numele de pe fișă, telefonul, adresa; persoană fizică / firmă, doar în
+  // consolă); omul alege doar ce apare: bife separate pentru foaia tipărită (implicit tot) și pentru link (show_*).
+  // Conturile care au deja abonament păstrează ce aveau pe fișă.
+  `
+  ALTER TABLE accounts ADD COLUMN legal_kind TEXT NOT NULL DEFAULT 'pf' CHECK (legal_kind IN ('pf', 'firma'));
+  ALTER TABLE accounts ADD COLUMN cnp TEXT;
+  ALTER TABLE accounts ADD COLUMN company_name TEXT;
+  ALTER TABLE accounts ADD COLUMN company_cui TEXT;
+  ALTER TABLE accounts ADD COLUMN company_reg TEXT;
+  ALTER TABLE accounts ADD COLUMN print_phone BOOLEAN NOT NULL DEFAULT true;
+  ALTER TABLE accounts ADD COLUMN print_address BOOLEAN NOT NULL DEFAULT true;
+  ALTER TABLE accounts ADD COLUMN print_email BOOLEAN NOT NULL DEFAULT true;
+  UPDATE accounts SET pedigree_name = name
+   WHERE subscription_start IS NOT NULL AND (pedigree_name IS NULL OR btrim(pedigree_name) = '');
+  ALTER TABLE account_events DROP CONSTRAINT account_events_kind_check;
+  ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
+    CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created', 'identity'));
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

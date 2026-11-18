@@ -29,8 +29,19 @@ export async function newAccount(call, name = 'Crescător', { active = true } = 
   });
   if (r.status !== 201) throw new Error(`Contul de test nu s-a creat: ${r.status} ${JSON.stringify(r.data)}`);
   if (active) {
+    // Abonamentul se activează doar cu numele de pe fișă pus de vânzător.
+    const id = r.data.account.id;
+    const i = await call(`/api/admin/accounts/${id}/identity`, { method: 'PATCH', cookie: await adminCookie(call), body: { name: `${name} ${n}`, sheetName: `${name} ${n}` } });
+    if (i.status !== 200) throw new Error(`Datele de pe fișă ale contului de test: ${i.status} ${JSON.stringify(i.data)}`);
     const a = await call(`/api/admin/accounts/${r.data.account.id}/subscription`, { method: 'POST', cookie: await adminCookie(call), body: { start: today() } });
     if (a.status !== 200) throw new Error(`Activarea contului de test: ${a.status} ${JSON.stringify(a.data)}`);
   }
   return r.res.headers.get('set-cookie').split(';')[0];
+}
+
+/** Vânzătorul pune datele de pe fișă (numele de pe fișă e cerut la activare). */
+export async function setIdentity(call, accountId, body) {
+  const r = await call(`/api/admin/accounts/${accountId}/identity`, { method: 'PATCH', cookie: await adminCookie(call), body });
+  if (r.status !== 200) throw new Error(`Datele de pe fișă: ${r.status} ${JSON.stringify(r.data)}`);
+  return r.data.account;
 }

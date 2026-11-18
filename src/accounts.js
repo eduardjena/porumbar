@@ -26,15 +26,20 @@ export const publicAccount = (a) => ({
   id: a.id,
   email: a.email,
   name: a.name,
-  // Numele scris jos pe pedigree (echipa / crescătoria); gol = numele contului.
+  // Numele scris jos pe fișă, telefonul și adresa: le pune vânzătorul (omul doar le vede). CNP-ul / datele firmei nu
+  // ajung aici niciodată.
   pedigreeName: a.pedigree_name ?? null,
   phone: a.phone ?? null,
   address: a.address ?? null,
   treeView: TREE_VIEWS.includes(a.tree_view) ? a.tree_view : TREE_VIEWS[0],
-  // Ce apare pe linkul public / codul QR, pe lângă nume (implicit nimic). Foaia tipărită are tot ce e completat.
+  // Ce apare pe linkul public / codul QR, pe lângă nume (implicit nimic).
   showPhone: !!a.show_phone,
   showAddress: !!a.show_address,
   showEmail: !!a.show_email,
+  // Ce apare pe foaia tipărită și în PDF, pe lângă nume (implicit tot).
+  printPhone: a.print_phone !== false,
+  printAddress: a.print_address !== false,
+  printEmail: a.print_email !== false,
   isAdmin: isAdminEmail(a.email),
   sellerContact: config.sellerContact,
   subscription: subscriptionOf(a),
@@ -90,6 +95,7 @@ export async function requireAccount(req, res, next) {
     const hash = sha256(token);
     const row = await one(
       `SELECT a.id, a.email, a.name, a.pedigree_name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
+              a.print_phone, a.print_address, a.print_email,
               a.subscription_start, a.subscription_end, a.ai_credit_micros, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,

@@ -6,6 +6,8 @@ WORKDIR /app/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY web/ ./
+# Dicționarele (i18n/) le citește și interfața la build (ro.json intră în pachet).
+COPY i18n/ /app/i18n/
 RUN npm run build
 
 # 2. Serverul
@@ -15,6 +17,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY src ./src
+COPY i18n ./i18n
 COPY --from=web /app/web/dist ./web/dist
 # Railway dă portul în PORT; local implicit 3100.
 EXPOSE 3100

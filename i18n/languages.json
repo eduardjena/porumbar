@@ -1,0 +1,4 @@
+[
+  { "code": "ro", "name": "Română", "locale": "ro-RO", "public": true },
+  { "code": "hu", "name": "Magyar", "locale": "hu-HU", "public": false }
+]

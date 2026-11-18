@@ -3,6 +3,7 @@ import path from 'node:path';
 import express from 'express';
 import { errorHandler } from './http.js';
 import { publicCatalog } from './catalog.js';
+import { isLang, flatDictionary } from './i18n.js';
 import { authRouter } from './routes/auth.js';
 import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
@@ -91,6 +92,13 @@ export function createApp() {
   app.use('/api/pigeons', pigeonsRouter());
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'Nu a fost găsit.' }));
+
+  // Dicționarele pentru interfață (româna e deja în pachet; celelalte se aduc de aici).
+  app.get('/i18n/:file', (req, res) => {
+    const lang = /^([a-z]{2})\.json$/.exec(req.params.file)?.[1];
+    if (!lang || !isLang(lang)) return res.status(404).json({ error: 'Nu a fost găsit.' });
+    res.set('Cache-Control', 'no-cache').json(flatDictionary(lang));
+  });
 
   // Interfața (build Angular). Fișierele cu hash în nume se pot ține în cache un an; restul rutelor primesc index.html.
   if (fs.existsSync(WEB_INDEX)) {

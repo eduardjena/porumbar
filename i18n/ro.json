@@ -1,0 +1,4 @@
+{
+  "test.salut": { "text": "Bună, {nume}!", "sens": "Doar pentru teste: salut cu numele omului." },
+  "test.porumbei": { "one": "{count} porumbel", "few": "{count} porumbei", "other": "{count} de porumbei", "sens": "Doar pentru teste: pluralul." }
+}

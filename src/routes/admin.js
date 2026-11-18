@@ -6,6 +6,7 @@ import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.j
 import { sendMail } from '../mail.js';
 import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscriptions.js';
 import { isLang, t } from '../i18n.js';
+import { YEAR_READS_WHERE, readsOfRow } from '../reads.js';
 
 /*
  * Consola vânzătorului (un singur admin: contul cu ADMIN_EMAIL). Vede datele de cont ale crescătorilor (nume,
@@ -109,9 +110,10 @@ function row(a) {
     subscriptionEnd: a.subscription_end ?? null,
     status: isAdminEmail(a.email) ? 'admin' : sub.status,
     daysLeft: sub.daysLeft,
-    aiCredit: Math.round(Number(a.ai_credit_micros ?? 0) / 1e4) / 100,
+    // Citirile din poze: în anul curent de abonament (folosite / limită, costul în dolari) și de la început.
+    reads: readsOfRow(a),
     pigeons: Number(a.pigeons ?? 0),
-    reads: Number(a.reads ?? 0),
+    readsTotal: Number(a.reads ?? 0),
     reminderSentAt: a.reminder_sent_for && a.reminder_sent_for === a.subscription_end ? a.reminder_sent_at : null,
     // Făcut din consolă și încă fără parolă aleasă.
     invited: !!a.invited,
@@ -122,6 +124,8 @@ const ACCOUNT_SQL = `
   SELECT a.*,
          (SELECT count(*) FROM pigeons p WHERE p.account_id = a.id AND p.kind = 'own') AS pigeons,
          (SELECT count(*) FROM pedigree_reads r WHERE r.account_id = a.id) AS reads,
+         (SELECT count(*) FROM pedigree_reads r WHERE ${YEAR_READS_WHERE}) AS reads_year,
+         (SELECT coalesce(sum(r.cost_micros), 0) FROM pedigree_reads r WHERE ${YEAR_READS_WHERE}) AS cost_year,
          (SELECT max(last_seen_at) FROM sessions s WHERE s.account_id = a.id) AS last_seen
     FROM accounts a`;
 
@@ -150,7 +154,7 @@ export function adminRouter() {
   });
 
   // „Crescător nou”: contul fără parolă + link de activare (7 zile) pe care vânzătorul îl trimite pe telefon / email.
-  // Opțional, în același pas: abonamentul (a plătit deja) și credit pentru citiri.
+  // Opțional, în același pas: abonamentul (a plătit deja; citirile din poze sunt incluse în el).
   r.post('/accounts', async (req, res) => {
     const b = req.body ?? {};
     const ident = identityOf(b);
@@ -160,8 +164,6 @@ export function adminRouter() {
     const activate = b.activate === true;
     if (activate && !ident.sheetName) throw badRequest(NEED_SHEET_NAME);
     const start = activate ? validDate(b.start, 'Data de început') : null; // i18n: ro
-    const credit = b.credit == null || b.credit === 0 ? 0 : b.credit;
-    if (typeof credit !== 'number' || !Number.isFinite(credit) || credit < 0 || credit > 1000) throw badRequest('Creditul se scrie în dolari, de exemplu 5.'); // i18n: ro
     const note = text(b.note, 'notă', { max: 300, optional: true }); // i18n: ro
     if (isAdminEmail(email)) throw new HttpError(409, 'Există deja un cont cu acest email.'); // i18n: ro
     const created = await tx(async () => {
@@ -176,11 +178,6 @@ export function adminRouter() {
       if (activate) {
         await run('UPDATE accounts SET subscription_start = ?, subscription_end = ? WHERE id = ?', start, plusOneYear(start), id);
         await logEvent(id, 'subscription', { note: [`${start} → ${plusOneYear(start)}`, note].filter(Boolean).join(' · ') });
-      }
-      if (credit > 0) {
-        const micros = Math.round(credit * 1e6);
-        await run('UPDATE accounts SET ai_credit_micros = ? WHERE id = ?', micros, id);
-        await logEvent(id, 'credit', { amountMicros: micros, note });
       }
       return { id, link: await passwordLinkFor(id, INVITE_LINK_HOURS) };
     });
@@ -216,7 +213,7 @@ export function adminRouter() {
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
       if (!acc.pedigree_name) throw badRequest(NEED_SHEET_NAME);
-      await run('UPDATE accounts SET subscription_start = ?, subscription_end = ? WHERE id = ?', start, end, acc.id);
+      await run('UPDATE accounts SET subscription_start = ?, subscription_end = ?, extra_reads = 0 WHERE id = ?', start, end, acc.id);
       await logEvent(acc.id, 'subscription', { note: [`${start} → ${end}`, note].filter(Boolean).join(' · ') });
       return accountRow(acc.id);
     });
@@ -244,22 +241,20 @@ export function adminRouter() {
     res.json({ account: row(a) });
   });
 
-  // Credit pentru citirea pozelor, în dolari (negativ = corectură). Nu coboară sub zero.
-  r.post('/accounts/:id/credit', async (req, res) => {
+  // Citiri din poze în plus pentru anul curent de abonament (negativ = corectură; nu coboară sub zero).
+  r.post('/accounts/:id/reads', async (req, res) => {
     const amount = req.body?.amount;
-    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount === 0 || Math.abs(amount) > 1000) {
-      throw badRequest('Scrie suma în dolari, de exemplu 5.'); // i18n: ro
+    if (!Number.isInteger(amount) || amount === 0 || Math.abs(amount) > 10000) {
+      throw badRequest('Scrie câte citiri, de exemplu 50 (sau -10 ca să scazi).'); // i18n: ro
     }
-    const micros = Math.round(amount * 1e6);
     const note = text(req.body?.note, 'notă', { max: 300, optional: true }); // i18n: ro
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
-      const { ai_credit_micros: before } = await one('SELECT ai_credit_micros FROM accounts WHERE id = ? FOR UPDATE', acc.id);
-      const { ai_credit_micros: after } = await one(
-        'UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros + ?) WHERE id = ? RETURNING ai_credit_micros', micros, acc.id,
-      );
-      // În istoric: ce s-a schimbat de fapt (o corectură de -10 $ pe 2 $ scade 2 $, nu 10 $).
-      await logEvent(acc.id, 'credit', { amountMicros: Number(after) - Number(before), note });
+      const { extra_reads: before } = await one('SELECT extra_reads FROM accounts WHERE id = ? FOR UPDATE', acc.id);
+      const { extra_reads: after } = await one('UPDATE accounts SET extra_reads = GREATEST(0, extra_reads + ?) WHERE id = ? RETURNING extra_reads', amount, acc.id);
+      // În istoric: ce s-a schimbat de fapt (o corectură de -10 pe 2 scade 2).
+      const diff = Number(after) - Number(before);
+      await logEvent(acc.id, 'reads', { note: [`${diff > 0 ? '+' : ''}${diff} citiri`, note].filter(Boolean).join(' · ') }); // i18n: ro
       return accountRow(acc.id);
     });
     res.json({ account: row(a) });

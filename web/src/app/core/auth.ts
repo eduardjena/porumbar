@@ -27,7 +27,7 @@ export class AuthService {
     return this.loaded;
   }
 
-  /** Citește din nou contul (de ex. creditul rămas după o citire, abonamentul după activare). */
+  /** Citește din nou contul (de ex. citirile rămase după o citire, abonamentul după activare). */
   async refresh(): Promise<void> {
     const r = await this.api.get<{ account: Account }>('/auth/me');
     this.account.set(r.account);

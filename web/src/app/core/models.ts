@@ -18,7 +18,8 @@ export interface Account {
   sellerContact?: string | null;
   subscription?: Subscription;
   /** Creditul pentru citirea pozelor, în dolari. */
-  aiCredit?: number;
+  /** Citirile din poze în anul de abonament (doar la /auth/me). */
+  reads?: { used: number; allowed: number };
   /** Limba contului (o pune vânzătorul). */
   lang: string;
 }

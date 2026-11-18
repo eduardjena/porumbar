@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { readsOf } from './reads.js';
 import { currentLang } from './i18n.js';
 import { HttpError, badRequest } from './http.js';
 import { insert, one, run as runSql } from './db.js';
@@ -96,7 +97,7 @@ async function claudeModel({ mime, data }) {
     output_config: { effort: 'medium', format: { type: 'json_schema', schema: SCHEMA } },
     messages: [{ role: 'user', content: [file, { type: 'text', text: instructionsFor(currentLang()) }] }],
   });
-  // Și o citire nereușită se plătește: costul ei pleacă împreună cu eroarea, ca să fie scăzut din credit.
+  // Și o citire nereușită se plătește: costul ei pleacă împreună cu eroarea, ca să fie trecut lângă citire.
   const fail = (message) => Object.assign(new HttpError(422, message), { usage: response.usage });
   if (response.stop_reason === 'refusal') throw fail('eroare.citire_refuzata');
   if (response.stop_reason === 'max_tokens') throw fail('eroare.citire_prea_lung');
@@ -157,11 +158,12 @@ export async function readPedigree(accountId, body) {
 const reading = new Set();
 
 async function readLocked(accountId, mime, data, run) {
-  // Creditul pus de vânzător după plată (adminul citește fără credit).
-  const acc = await one('SELECT email, ai_credit_micros FROM accounts WHERE id = ?', accountId);
+  // Citirile incluse în abonament (adminul citește fără limită pe an).
+  const acc = await one('SELECT email FROM accounts WHERE id = ?', accountId);
   const admin = isAdminEmail(acc.email);
-  if (!admin && Number(acc.ai_credit_micros) <= 0) {
-    throw new HttpError(402, 'eroare.citire_fara_credit');
+  if (!admin) {
+    const reads = await readsOf(accountId);
+    if (reads.used >= reads.allowed) throw new HttpError(402, 'eroare.citire_epuizate', { numar: reads.allowed });
   }
   const used = await one(`SELECT count(*)::int AS n FROM pedigree_reads WHERE account_id = ? AND created_at > now() - interval '1 day'`, accountId);
   if (used.n >= readsPerDay()) throw new HttpError(429, 'eroare.citire_limita_zi', { numar: readsPerDay() });
@@ -170,7 +172,6 @@ async function readLocked(accountId, mime, data, run) {
   const charge = async (usage) => {
     const cost = costOf(usage);
     await runSql('UPDATE pedigree_reads SET cost_micros = ? WHERE id = ?', cost, readId);
-    if (!admin) await runSql('UPDATE accounts SET ai_credit_micros = GREATEST(0, ai_credit_micros - ?) WHERE id = ?', cost, accountId);
   };
   let out;
   try {
@@ -182,7 +183,7 @@ async function readLocked(accountId, mime, data, run) {
     console.error('[porumbar] Citirea pedigree-ului a eșuat:', e?.message);
     throw new HttpError(502, 'eroare.citire_esuata');
   }
-  // Costul real al citirii se scade din credit (nu sub zero) și rămâne lângă citire.
+  // Costul real al citirii rămâne lângă citire (îl vede vânzătorul în consolă).
   await charge(out?.usage);
   const { root, filled } = toTree(out?.slots, out?.rootSex);
   const notes = typeof out?.notes === 'string' ? out.notes.trim() : '';

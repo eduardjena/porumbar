@@ -220,37 +220,29 @@ test('import dublu-clic (aceeași cerere de două ori la rând): a doua refolose
   assert.equal(await count(c), one.data.created);
 });
 
-// ---------------------------------------------------------------- consola: credit și abonament
+// ---------------------------------------------------------------- consola: citiri în plus și abonament
 
-test('credit: sume aberante (negativ uriaș, NaN, Infinity, 1e308, text, null, 0) → 400 cu mesaj', async () => {
+test('citiri în plus: numere aberante (NaN, Infinity, 1e308, zecimale, text, null, 0, uriașe) → 400 cu mesaj', async () => {
   const id = (await meOf(a)).id;
-  for (const amount of [Number.NaN, 'Infinity', '-Infinity', 1e308, -1e308, 1001, -1001, 'cinci', null, 0, '', {}, [1, 2]]) {
-    const r = await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount } });
+  const before = (await meOf(a)).reads.allowed;
+  for (const amount of [Number.NaN, 'Infinity', 1e308, -1e308, 10001, -10001, 1.5, 'cinci', null, 0, '', {}, [1, 2], true, '0x10']) {
+    const r = await call(`/api/admin/accounts/${id}/reads`, { method: 'POST', cookie: admin, body: { amount } });
     assert.equal(r.status, 400, `${JSON.stringify(amount)}: ${r.status}`);
-    assert.match(r.data.error, /dolari/);
+    assert.match(r.data.error, /citiri/);
   }
-  assert.equal((await meOf(a)).aiCredit, 0);
+  assert.equal((await meOf(a)).reads.allowed, before);
 });
 
-test('credit: o sumă care nu e număr (true, [5], "0x10") e refuzată, nu socotită 1 $ / 5 $ / 16 $', async () => {
-  const c = await newAccount(call, 'CreditTip');
-  const id = (await meOf(c)).id;
-  for (const amount of [true, [5], '0x10']) {
-    const r = await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount } });
-    assert.equal(r.status, 400, `${JSON.stringify(amount)} a fost acceptat: credit acum ${(await meOf(c)).aiCredit} $`);
-  }
-});
-
-test('credit: corectura negativă mai mare decât creditul — istoricul arată ce s-a scăzut de fapt', async () => {
+test('citiri în plus: corectura negativă mai mare decât ce era — istoricul arată ce s-a scăzut de fapt', async () => {
   const c = await newAccount(call, 'Corectura');
   const id = (await meOf(c)).id;
-  await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: 2 } });
-  const r = await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: -10 } });
-  assert.ok(r.status === 200 || r.status === 400);
+  const base = (await meOf(c)).reads.allowed;
+  await call(`/api/admin/accounts/${id}/reads`, { method: 'POST', cookie: admin, body: { amount: 2 } });
+  const r = await call(`/api/admin/accounts/${id}/reads`, { method: 'POST', cookie: admin, body: { amount: -10 } });
+  assert.equal(r.status, 200);
   const d = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data;
-  const sum = d.events.filter((e) => e.kind === 'credit').reduce((s, e) => s + e.amount, 0);
-  assert.equal(d.account.aiCredit, 0);
-  assert.equal(sum, d.account.aiCredit, `istoricul adună ${sum} $, dar creditul e ${d.account.aiCredit} $ (logEvent scrie -10, se scad doar 2)`);
+  assert.equal(d.account.reads.allowed, base, 'nu scade sub limita din abonament');
+  assert.ok(d.events.some((e) => e.kind === 'reads' && e.note === '-2 citiri'), JSON.stringify(d.events.map((e) => e.note)));
 });
 
 test('abonament: date imposibile (30 februarie, anul 99999, 0000) → 400 cu mesaj despre dată, abonamentul neschimbat', async () => {
@@ -439,7 +431,6 @@ test('query aberant: q de 10.000 de caractere, % și _, filtre ca liste, an uria
 test('pozele: date care nu sunt base64 (obiect, număr) sunt refuzate fără să cheme modelul și fără cost', async () => {
   const c = await newAccount(call, 'Poza');
   const id = (await meOf(c)).id;
-  await call(`/api/admin/accounts/${id}/credit`, { method: 'POST', cookie: admin, body: { amount: 1 } });
   const reader = await import('../src/pedigree-reader.js');
   let calls = 0;
   reader.setPedigreeModel(async () => {

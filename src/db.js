@@ -307,6 +307,15 @@ const MIGRATIONS = [
   `
   ALTER TABLE accounts ADD COLUMN lang TEXT NOT NULL DEFAULT 'ro';
   `,
+
+  // 19: citirile din poze sunt incluse în abonament (200 pe an); vânzătorul poate da citiri în plus pentru anul curent.
+  // Creditul în dolari (ai_credit_micros) nu se mai folosește.
+  `
+  ALTER TABLE accounts ADD COLUMN extra_reads INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE account_events DROP CONSTRAINT account_events_kind_check;
+  ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
+    CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created', 'identity', 'reads'));
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

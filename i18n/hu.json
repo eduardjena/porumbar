@@ -277,7 +277,6 @@
   "eroare.citire_fisier_mare": "A fájl túl nagy (legfeljebb 12 MB).",
   "eroare.citire_oprita": "A fényképről való beolvasás ezen a szerveren még nincs bekapcsolva. Töltsd ki a mezőket kézzel.",
   "eroare.citire_in_curs": "Egy beolvasás már folyamatban van. Várd meg, amíg befejeződik.",
-  "eroare.citire_fara_credit": "Elfogyott a fényképek beolvasására szolgáló kereted. Kitöltheted a mezőket kézzel (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj keretet attól, akitől a programot kaptad.",
   "eroare.citire_limita_zi": "Felhasználtad a mai {numar} beolvasást. Holnap újra olvashatsz, vagy töltsd ki a mezőket kézzel.",
   "eroare.citire_ocupata": "A beolvasás most foglalt. Próbáld újra egy perc múlva.",
   "eroare.citire_esuata": "A beolvasás most nem sikerült. Próbáld újra, vagy töltsd ki kézzel.",
@@ -400,8 +399,6 @@
     "other": "(még {count} nap)"
   },
   "cont.neactivat": "A fiókod még nincs aktiválva. Az aktiválásig csak megnézheted a galambjaidat.",
-  "cont.credit": "Egyenleg a származási lapok fényképről való beolvasásához:",
-  "cont.cost_citire": "(egy beolvasás nagyjából 0,10–0,15 $)",
   "cont.plata_contact": "Fizetés, aktiválás és egyenleg: {contact}",
   "cont.admin_explicatie": "A kinyomtatott származási lap bal alsó részén a lapon szereplő név és az alább bejelölt adatok jelennek meg.",
   "cont.nume": "Név",
@@ -1145,9 +1142,6 @@
   "cititor.poza_nepregatita": "A képet nem sikerült előkészíteni.",
   "cititor.titlu": "Fényképen vagy PDF-ben van meg a származási lap?",
   "cititor.intro": "A program beolvassa és kitölti a mezőket. Neked csak ellenőrizned és javítanod kell. A képet nem tároljuk.",
-  "cititor.credit": "Beolvasási kredit:",
-  "cititor.fara_credit_contact": "Elfogyott a kredited a képek beolvasásához. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj kreditet: {contact}.",
-  "cititor.fara_credit": "Elfogyott a kredited a képek beolvasásához. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj kreditet attól, akitől a programot kaptad.",
   "cititor.se_citeste": "Beolvasás… (legfeljebb egy perc)",
   "cititor.citeste": "Beolvasás fényképről vagy PDF-ből",
   "cititor.completat": {
@@ -1167,5 +1161,15 @@
   "eroare.prea_multe_linii": "Legfeljebb {max} vonal.",
   "eroare.an_invalid": "Az év érvénytelen.",
   "eroare.lipsa_concurs": "Hiányoznak a verseny adatai.",
+<<<<<<< HEAD
   "eroare.inel_hu_asociatie": "A magyar gyűrűknél írd be a szervezet számát is, ahogy a gyűrűn áll: HU-2023-29-14530."
+=======
+  "eroare.citire_epuizate": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Kitöltheted a mezőket kézzel (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat attól, akitől a programot kaptad.",
+  "cont.citiri": "Az előfizetésben foglalt fényképes beolvasások:",
+  "cont.citiri_explicatie": "(évente 200, naponta legfeljebb 20)",
+  "cititor.citiri": "Beolvasások az előfizetésből:",
+  "cititor.citiri_din": "{folosite} / {total}",
+  "cititor.fara_citiri": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat attól, akitől a programot kaptad.",
+  "cititor.fara_citiri_contact": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat: {contact}."
+>>>>>>> feat/citiri-incluse
 }

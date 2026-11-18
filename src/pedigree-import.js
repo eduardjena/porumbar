@@ -2,7 +2,7 @@ import { lockAccount, one, run, tx } from './db.js';
 import { tr } from './i18n.js';
 import { ancestorIds } from './genealogy.js';
 import { badRequest } from './http.js';
-import { matchColor } from './catalog.js';
+import { COLORS, matchColor } from './catalog.js';
 import { createPigeon, getPigeonRow, loadNodes, updatePigeon } from './pigeons.js';
 import { formatRing, parseRing, ringKey } from './rings.js';
 
@@ -38,6 +38,8 @@ function readNode(raw, depth) {
     sex: raw.sex === 'M' || raw.sex === 'F' ? raw.sex : null,
     name: str(raw.name, 80),
     color: str(raw.color, 120),
+    colorCode: typeof raw.colorCode === 'string' && COLORS.some((c) => c.code === raw.colorCode) ? raw.colorCode : null,
+    colorPa: raw.colorPa === true,
     text: str(raw.text, MAX_TEXT),
     breeder: str(raw.breeder, 200),
     father: readNode(raw.father, depth + 1),
@@ -53,7 +55,8 @@ const label = (node) => (node.parsed?.ok && !node.parsed.unringed ? formatRing(n
 
 /** Câmpurile fișei din căsuță (pentru un porumbel nou). */
 function fields(node, kind, sex) {
-  const color = node.color ? matchColor(node.color) : null;
+  // Culoarea din listă venită ca cod (preluare / vânzare): se păstrează codul, fără textul în română.
+  const color = node.colorCode ? { code: node.colorCode, pa: node.colorPa } : node.color ? matchColor(node.color) : null;
   return {
     kind,
     ring: node.ring,
@@ -61,7 +64,7 @@ function fields(node, kind, sex) {
     name: node.name,
     color: color?.code ?? null,
     colorPa: color?.pa ?? false,
-    colorText: node.color,
+    colorText: node.colorCode ? null : node.color,
     breederText: node.breeder,
     pedigreeText: node.text,
   };

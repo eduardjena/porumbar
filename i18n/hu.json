@@ -239,7 +239,7 @@
   "catalog.ochi.portocaliu": "Narancs",
   "catalog.ochi.rosu": "Vörös",
   "catalog.ochi.perlat": "Gyöngy",
-  "catalog.ochi.visiniu": "Bükkönyszem (sötét)",
+  "catalog.ochi.visiniu": "Sötétvörös",
   "catalog.ochi.mixt": "Vegyes",
   "catalog.stare.concurent": "Versenygalamb",
   "catalog.stare.reproducator": "Tenyészgalamb",
@@ -1161,5 +1161,10 @@
   "cont.limba_schimbi": "Nyelvet váltasz?",
   "cont.limba_avertisment": "Ha más nyelvre váltasz, a(z) {limba} nyelvet csak az eladó tudja visszaállítani.",
   "cont.limba_da": "Igen, váltok",
-  "tiparire.limba_fisei": "A lap nyelve"
+  "tiparire.limba_fisei": "A lap nyelve",
+  "eroare.serie_prea_lunga": "Egy sorozat legfeljebb {max} gyűrűből állhat.",
+  "eroare.lipsa_culoare": "Hiányoznak a szín adatai.",
+  "eroare.prea_multe_linii": "Legfeljebb {max} vonal.",
+  "eroare.an_invalid": "Az év érvénytelen.",
+  "eroare.lipsa_concurs": "Hiányoznak a verseny adatai."
 }

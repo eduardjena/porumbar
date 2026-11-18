@@ -294,7 +294,7 @@ export async function createSeries(accountId, body) {
   const first = Number(a.number);
   const last = Number(b.number);
   if (last < first) throw badRequest('eroare.serie_ordine');
-  if (last - first + 1 > MAX_SERIES) throw badRequest(`O serie are cel mult ${MAX_SERIES} de inele.`);
+  if (last - first + 1 > MAX_SERIES) throw badRequest('eroare.serie_prea_lunga', { max: MAX_SERIES });
   const id = await insert(
     'INSERT INTO ring_series (account_id, country, year, club, first_number, last_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
     accountId, a.country, a.year, a.club ?? '', first, last, nowIso(),

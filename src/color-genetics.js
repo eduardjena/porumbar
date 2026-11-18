@@ -68,7 +68,7 @@ export function inferHidden(child, father, mother) {
 
 /** Factorii trimiși de om (de pe ecran), verificați. */
 export function cleanFactors(f, sex) {
-  if (!f || typeof f !== 'object') throw badRequest('Lipsesc datele culorii.');
+  if (!f || typeof f !== 'object') throw badRequest('eroare.lipsa_culoare');
   const one = (v, allowed, label) => {
     if (v === undefined || v === null || v === '') return null;
     if (!allowed.includes(v)) throw badRequest('eroare.valoare_invalida_camp', { camp: ref(label) });

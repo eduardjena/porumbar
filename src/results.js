@@ -38,7 +38,7 @@ function clock(value, label, { optional = true } = {}) {
 const seconds = (t) => t.split(':').reduce((acc, x) => acc * 60 + Number(x), 0);
 
 function parseRace(body) {
-  if (!body || typeof body !== 'object') throw badRequest('Lipsesc datele concursului.');
+  if (!body || typeof body !== 'object') throw badRequest('eroare.lipsa_concurs');
   const race = {
     number: number(body.number, 'camp.nr_concurs', { min: 1, max: 9999, integer: true, optional: true }),
     organizer: text(body.organizer, 'camp.organizator', { max: 120 }),

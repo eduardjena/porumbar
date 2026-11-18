@@ -57,3 +57,18 @@ test('niciun text românesc rămas în cod în afara dicționarelor', () => {
   assert.deepEqual(found, [], `Texte de mutat în i18n/:\n${found.join('\n')}`);
   assert.deepEqual(emptied, [], 'Fișiere mutate deja: scoate-le din DE_MUTAT');
 });
+
+test('mesajele de eroare ale serverului sunt chei din dicționar (și cele fără diacritice)', () => {
+  const ro = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', 'ro.json'), 'utf8'));
+  const bad = [];
+  for (const f of files('src', '.js')) {
+    if (f === 'src/routes/admin.js') continue; // consola vânzătorului rămâne în română
+    const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    const re = /(?:badRequest|notFound|fail)\(\s*(['`])([^'`]*)\1|new HttpError\(\s*\d+\s*,\s*(['`])([^'`]*)\3/g;
+    for (const m of src.matchAll(re)) {
+      const key = m[2] ?? m[4];
+      if (!(key in ro)) bad.push(`${f}: ${key.slice(0, 80)}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});

@@ -7,9 +7,16 @@ const HEADS = ['fisa.cap_porumbel', 'fisa.cap_parinti', 'fisa.cap_bunici', 'fisa
 
 /** Culoarea de pe fișă: textul scris de om, altfel culoarea din listă în limba fișei (cu „p.a.” = pene albe). */
 export function colorOf(n: Pick<PedigreeV1Node, 'color' | 'colorLabel' | 'colorPa' | 'colorText'>, lang: string): string {
-  if (n.colorText) return n.colorText;
-  const label = n.color ? tIn(lang, `catalog.culoare.${n.color}`) : n.colorLabel;
-  return label ? `${label}${n.colorPa ? ` ${tIn(lang, 'fisa.pene_albe')}` : ''}` : '';
+  const key = n.color ? `catalog.culoare.${n.color}` : null;
+  const inList = (code: string) => (key && tIn(code, key) !== key ? tIn(code, key) : null);
+  // Porumbeii preluați înainte au ca „text” chiar eticheta românească a culorii din listă: o tratăm ca pe culoarea din listă.
+  const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[.\s]+/g, ' ').trim();
+  const ro = inList('ro');
+  const sameAsList = !!(n.colorText && ro && fold(n.colorText) === fold(`${ro}${n.colorPa ? ' p.a.' : ''}`));
+  if (n.colorText && !sameAsList) return n.colorText;
+  // Un cod necunoscut (date vechi): eticheta venită de la server, nu cheia.
+  const label = inList(lang) ?? n.colorLabel;
+  return label ? `${label}${n.colorPa ? ` ${tIn(lang, 'fisa.pene_albe')}` : ''}` : (n.colorText ?? '');
 }
 
 interface Box {

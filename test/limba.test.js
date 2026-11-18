@@ -92,3 +92,28 @@ test('catalogul de la server vine în limba contului', async () => {
   const none = (await call('/api/catalog', { auth: 'none' })).data;
   assert.equal(none.colors.find((c) => c.code === 'solzat').label, 'Solzat');
 });
+
+test('mesajele fără diacritice (serii, linii, an, culori, concurs) vin și ele în maghiară', async () => {
+  const a = await newAccount(call, 'Lajos');
+  await setLang(call, (await me(a)).id, 'hu');
+  const colors = await call('/api/colors/predict', { method: 'POST', cookie: a, body: {} });
+  assert.equal(colors.status, 400);
+  assert.doesNotMatch(colors.data.error, /Lipsesc/);
+  const lines = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: 'RO-26-800560', lines: Array.from({ length: 11 }, (_, i) => `L${i}`) } });
+  assert.equal(lines.status, 400);
+  assert.doesNotMatch(lines.data.error, /Cel mult/);
+});
+
+test('preluat de pe linkul unui crescător român: culoarea din listă rămâne cod, deci apare tradusă', async () => {
+  const ro = await newAccount(call, 'Petru');
+  const p = (await call('/api/pigeons', { method: 'POST', cookie: ro, body: { kind: 'own', ring: 'RO-26-800561', color: 'solzat', colorPa: true } })).data.pigeon;
+  const link = (await call(`/api/pigeons/${p.id}/public`, { method: 'POST', cookie: ro })).data.url;
+  const hu = await newAccount(call, 'Zoltán');
+  await setLang(call, (await me(hu)).id, 'hu');
+  const r = await call(`/api/public/${link.split('/p/')[1]}/import`, { method: 'POST', cookie: hu });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const mine = (await call(`/api/pigeons/${r.data.pigeonId}`, { cookie: hu })).data.pigeon;
+  assert.equal(mine.color, 'solzat');
+  assert.equal(mine.colorPa, true);
+  assert.equal(mine.colorText ?? null, null, 'fără textul românesc al culorii');
+});

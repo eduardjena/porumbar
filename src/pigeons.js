@@ -89,14 +89,14 @@ function validLines(value) {
   if (value == null) return [];
   if (!Array.isArray(value)) throw badRequest('eroare.linii_lista');
   // O listă uriașă e refuzată înainte de orice lucru (altfel o singură cerere ar ține serverul ocupat pentru toți).
-  if (value.length > MAX_LINES * 3) throw badRequest(`Cel mult ${MAX_LINES} linii.`);
+  if (value.length > MAX_LINES * 3) throw badRequest('eroare.prea_multe_linii', { max: MAX_LINES });
   const out = [];
   const seen = new Set();
   for (const v of value) {
     const s = text(v, 'camp.linie', { max: 40, optional: true });
     if (s && !seen.has(fold(s))) seen.add(fold(s)), out.push(s);
   }
-  if (out.length > MAX_LINES) throw badRequest(`Cel mult ${MAX_LINES} linii.`);
+  if (out.length > MAX_LINES) throw badRequest('eroare.prea_multe_linii', { max: MAX_LINES });
   return out;
 }
 
@@ -255,7 +255,7 @@ export async function listPigeons(accountId, { q, status, sex, year, kind } = {}
   if (kind) where.push('kind = ?') && params.push(oneOf(kind, KINDS, 'camp.tip'));
   if (year) {
     const y = Number(year);
-    if (!Number.isInteger(y)) throw badRequest('Anul este invalid.');
+    if (!Number.isInteger(y)) throw badRequest('eroare.an_invalid');
     where.push('ring_year = ?');
     params.push(y);
   }

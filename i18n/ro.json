@@ -297,7 +297,7 @@
   "catalog.ochi.perlat": "Perlat",
   "catalog.ochi.visiniu": {
     "text": "Vișiniu (taurin)",
-    "sens": "Ochi foarte închis la culoare (taurin). În maghiară: presupunere, de verificat."
+    "sens": "Ochi foarte închis la culoare (taurin). Maghiară: presupunere, de verificat; „bükkönyszem” ar însemna ochi complet întunecat (glosarul), nu vișiniu."
   },
   "catalog.ochi.mixt": {
     "text": "Mixt",
@@ -1722,5 +1722,10 @@
   "tiparire.limba_fisei": {
     "text": "Limba fișei",
     "sens": "Pe pagina de tipărire: în ce limbă iese fișa (și PDF-ul de la Trimite)."
-  }
+  },
+  "eroare.serie_prea_lunga": "O serie are cel mult {max} de inele.",
+  "eroare.lipsa_culoare": "Lipsesc datele culorii.",
+  "eroare.prea_multe_linii": "Cel mult {max} linii.",
+  "eroare.an_invalid": "Anul este invalid.",
+  "eroare.lipsa_concurs": "Lipsesc datele concursului."
 }

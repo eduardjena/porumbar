@@ -4,49 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, percent, ringText } from '../../core/catalog';
-import { CoiResult, Kind, Pigeon, PigeonSummary, Sex } from '../../core/models';
+import { CoiResult, Pigeon, PigeonSummary } from '../../core/models';
 import { RingInput } from '../../shared/ring-input';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { PigeonPicker } from '../../shared/pigeon-picker';
-import { ConfirmService, changes } from '../../core/confirm';
+import { ConfirmService } from '../../core/confirm';
+import { Draft, draftBody, draftChanges, draftOf, emptyDraft } from './pigeon-draft';
 import { TPipe, t } from '../../core/i18n';
 
-interface Draft {
-  kind: Kind;
-  ring: string;
-  sex: Sex | '';
-  name: string;
-  breed: string;
-  lines: string;
-  color: string;
-  colorPa: boolean;
-  colorText: string;
-  eyeColor: string;
-  status: string;
-  hatchedOn: string;
-  breederText: string;
-  pedigreeText: string;
-  scores: Record<string, number | null>;
-  calitati: string;
-  deDorit: string;
-  defecte: string;
-  /** Doar la porumbel nou: părinții aleși înainte de salvare. */
-  father?: PigeonSummary | null;
-  mother?: PigeonSummary | null;
-}
-
-const empty = (): Draft => ({
-  kind: 'own', ring: '', sex: '', name: '', breed: 'voiajor', lines: '', color: '', colorPa: false, colorText: '', eyeColor: '',
-  status: '', hatchedOn: '', breederText: '', pedigreeText: '', scores: {}, calitati: '', deDorit: '', defecte: '',
-});
-
-const fromPigeon = (p: Pigeon): Draft => ({
-  kind: p.kind, ring: p.ring?.raw ?? '', sex: p.sex ?? '', name: p.name ?? '', breed: p.breed, lines: p.lines.join(', '),
-  color: p.color ?? '', colorPa: p.colorPa, colorText: p.colorText ?? '', eyeColor: p.eyeColor ?? '', status: p.status ?? '',
-  hatchedOn: p.hatchedOn ?? '', breederText: p.breederText ?? '', pedigreeText: p.pedigreeText ?? '',
-  scores: { ...(p.evaluation.scores ?? {}) }, calitati: p.evaluation.calitati ?? '', deDorit: p.evaluation.deDorit ?? '',
-  defecte: p.evaluation.defecte ?? '',
-});
+const empty = emptyDraft;
+const fromPigeon = draftOf;
 
 /** Ciorna rămâne pe telefon până la salvare: o cădere scurtă a internetului nu pierde ce ai scris. */
 const DRAFT_KEY = (id: string | undefined) => `porumbar.ciorna.${id ?? 'nou'}`;
@@ -286,34 +253,8 @@ export default class PorumbelForm implements OnInit {
 
   /** Ce s-a schimbat față de fișa salvată, pe înțelesul omului („Starea: Tânăr → Reproducător”). */
   private diff(): string[] {
-    const a = this.original;
     const b = this.d();
-    if (!b) return [];
-    const L = (list: 'breeds' | 'colors' | 'eyeColors' | 'statuses', code: string) => this.catalog.label(list, code);
-    const sex = (x: string) => (x === 'M' ? t('sex.mascul') : x === 'F' ? t('sex.femela') : '');
-    const kind = (x: string) => t(x === 'own' ? 'porumbel.din_porumbarul_meu' : 'porumbel.nu_e_al_meu');
-    const yesNo = (x: boolean) => t(x ? 'text.da' : 'text.nu');
-    const crit = this.catalog.catalog()?.evalCriteria ?? [];
-    return changes([
-      { label: t('form.dif_al_cui'), before: kind(a.kind), after: kind(b.kind) },
-      { label: t('form.dif_inelul'), before: a.ring.trim(), after: b.ring.trim() },
-      { label: t('porumbel.sexul'), before: sex(a.sex), after: sex(b.sex) },
-      { label: t('form.dif_numele'), before: a.name.trim(), after: b.name.trim() },
-      { label: t('camp.data_eclozarii'), before: a.hatchedOn, after: b.hatchedOn },
-      { label: t('form.dif_crescatorul'), before: a.breederText.trim(), after: b.breederText.trim() },
-      { label: t('porumbel.starea'), before: L('statuses', a.status), after: L('statuses', b.status) },
-      { label: t('porumbel.rasa'), before: L('breeds', a.breed), after: L('breeds', b.breed) },
-      { label: t('form.liniile'), before: a.lines.trim(), after: b.lines.trim() },
-      { label: t('form.dif_culoarea'), before: L('colors', a.color), after: L('colors', b.color) },
-      { label: t('form.dif_pene_albe'), before: yesNo(a.colorPa), after: yesNo(b.colorPa) },
-      { label: t('form.dif_culoarea_text'), before: a.colorText.trim(), after: b.colorText.trim() },
-      { label: t('form.dif_ochii'), before: L('eyeColors', a.eyeColor), after: L('eyeColors', b.eyeColor) },
-      ...crit.map((c) => ({ label: t('form.dif_nota_la', { criteriu: c.label.toLowerCase() }), before: a.scores[c.code] ?? '', after: b.scores[c.code] ?? '' })),
-      { label: t('porumbel.calitati'), before: a.calitati.trim(), after: b.calitati.trim() },
-      { label: t('porumbel.de_dorit'), before: a.deDorit.trim(), after: b.deDorit.trim() },
-      { label: t('porumbel.defecte'), before: a.defecte.trim(), after: b.defecte.trim() },
-      { label: t('form.dif_text_pedigree'), before: a.pedigreeText.trim(), after: b.pedigreeText.trim() },
-    ]);
+    return b ? draftChanges(this.original, b, this.catalog) : [];
   }
 
   /** Alege un părinte; liniile puiului se propun din liniile părinților, dacă n-ai scris altele. */
@@ -355,24 +296,7 @@ export default class PorumbelForm implements OnInit {
     }
     this.busy.set(true);
     this.error.set('');
-    const scores = Object.fromEntries(Object.entries(f.scores).filter(([, v]) => v != null));
-    const body = {
-      kind: f.kind,
-      ring: f.ring.trim() || null,
-      sex: f.sex || null,
-      name: f.name.trim() || null,
-      breed: f.breed,
-      lines: f.lines.split(',').map((s) => s.trim()).filter(Boolean),
-      color: f.color || null,
-      colorPa: f.colorPa,
-      colorText: f.colorText.trim() || null,
-      eyeColor: f.eyeColor || null,
-      status: f.status || null,
-      hatchedOn: f.hatchedOn || null,
-      breederText: f.breederText.trim() || null,
-      pedigreeText: f.pedigreeText.trim() || null,
-      evaluation: { scores, calitati: f.calitati || null, deDorit: f.deDorit || null, defecte: f.defecte || null },
-    };
+    const body = draftBody(f);
     try {
       const r = this.id()
         ? await this.api.patch<{ pigeon: Pigeon }>(`/pigeons/${this.id()}`, body)

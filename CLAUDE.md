@@ -50,7 +50,9 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   /concursuri/lista, tabelul din rezultate/rezultate-toate.ts, și Introdu rezultat nou /concursuri/nou,
                   concurs/concurs-rezultate.ts: toți porumbeii la un concurs, de mână sau lipind clasamentul)
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
-                  concurs, rezultate (vezi mai sus)
+                  concurs, rezultate (vezi mai sus). Fișa porumbelului se editează pe loc, pe secțiuni
+                  (porumbel/fisa-editabila.ts, butonul „Schimbă”); câmpurile, lista „Ce se schimbă” și corpul trimis la
+                  server sunt comune cu „Porumbel nou” (porumbel-form/pigeon-draft.ts)
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
                   clasament.ts: citește clasamentul Columba lipit DOAR în telefon; la server pleacă numai rândurile omului
                   (după codul de crescător din Cont sau după inelele lui). Fără importuri, testat cu Node

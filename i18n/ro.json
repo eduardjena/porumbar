@@ -1894,5 +1894,10 @@
   "panou.adauga_porumbel_nou": {
     "text": "Adaugă un porumbel nou",
     "sens": "Textul de la hover al butonului cu iconițe „+ porumbel” din Panou."
-  }
+  },
+  "fisa.schimba": {
+    "text": "Schimbă",
+    "sens": "Butonul din colțul fiecărei secțiuni a fișei: o deschide pentru editare pe loc."
+  },
+  "fisa.inapoi": "Înapoi la fișă"
 }

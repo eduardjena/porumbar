@@ -7,7 +7,7 @@ import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
 import { PanouBar } from './panou-bar';
-import { GROUPS, SORTS, ViewState, buildGroups, loadView, resultsLine, saveView } from './panou-view';
+import { ViewState, buildGroups, countLine, loadView, resultsLine, saveView, showsResults } from './panou-view';
 import { SharePdfService } from '../../core/share-pdf';
 
 const BANDS: { band: number; label: string; key?: string }[] = [
@@ -194,18 +194,8 @@ export default class Panou {
   protected readonly shownCount = computed(() => this.groups().reduce((n, g) => n + g.items.length, 0));
   protected readonly years = computed(() => [...new Set(this.all().map((p) => p.year).filter((y): y is number => !!y))].sort((a, b) => b - a));
   /** Rândul de jos al casetei arată rezultatele când ordonarea sau gruparea e după ele. */
-  protected readonly resultsMode = computed(() => ['loc', 'premii', 'coef'].includes(this.view().sort) || ['rezultate', 'categorie'].includes(this.view().group));
-  protected readonly countLine = computed(() => {
-    const n = this.all().length;
-    const v = this.view();
-    const shown = this.shownCount();
-    const sort = SORTS.find((s) => s.key === v.sort);
-    const parts = [t('panou.numar_porumbei', { count: n })];
-    if (shown !== n) parts.push(t('panou.numar_afisati', { count: shown }));
-    parts.push(v.sort === 'nota' ? t('panou.ordonare.nota_ajutor') : t('panou.dupa', { ordonare: sort?.label.toLowerCase() }));
-    if (v.group !== 'none') parts.push(t('panou.grupati', { grupare: GROUPS.find((g) => g.key === v.group)?.label.toLowerCase() }));
-    return parts.join(' · ');
-  });
+  protected readonly resultsMode = computed(() => showsResults(this.view()));
+  protected readonly countLine = computed(() => countLine(this.all().length, this.shownCount(), this.view()));
 
   toggleGroup(key: string) {
     const next = new Set(this.collapsed());

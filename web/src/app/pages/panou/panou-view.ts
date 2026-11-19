@@ -228,3 +228,16 @@ export function saveView(v: ViewState) {
     /* fără memorie în browser: alegerea ține doar cât e pagina deschisă */
   }
 }
+
+/** Rândul de sub titlu, la Grilă și la Listă: câți porumbei, câți se văd, cum sunt ordonați și grupați. */
+export function countLine(total: number, shown: number, v: ViewState): string {
+  const sort = SORTS.find((s) => s.key === v.sort);
+  const parts = [t('panou.numar_porumbei', { count: total })];
+  if (shown !== total) parts.push(t('panou.numar_afisati', { count: shown }));
+  parts.push(v.sort === 'nota' ? t('panou.ordonare.nota_ajutor') : t('panou.dupa', { ordonare: sort?.label.toLowerCase() }));
+  if (v.group !== 'none') parts.push(t('panou.grupati', { grupare: GROUPS.find((g) => g.key === v.group)?.label.toLowerCase() }));
+  return parts.join(' · ');
+}
+
+/** Rândul de jos arată rezultatele când ordonarea sau gruparea e după ele (la Grilă și la Listă). */
+export const showsResults = (v: ViewState) => ['loc', 'premii', 'coef'].includes(v.sort) || ['rezultate', 'categorie'].includes(v.group);

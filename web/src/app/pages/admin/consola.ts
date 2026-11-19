@@ -29,7 +29,7 @@ interface Row {
   daysLeft: number | null;
   pigeons: number;
   /** Citirile din poze în anul curent de abonament: folosite / limită, costul lor în dolari. */
-  reads: { used: number; allowed: number; costUsd: number };
+  reads: { used: number; allowed: number; perYear: number; costUsd: number };
   readsTotal: number;
   reminderSentAt: string | null;
   invited: boolean;
@@ -198,7 +198,7 @@ function plusOneYear(start: string) {
 
             <section class="stack box">
               <h3>Citiri din poze: {{ d.reads.used }} din {{ d.reads.allowed }} <span class="muted">· cost {{ money(d.reads.costUsd) }}</span></h3>
-              <p class="muted">Incluse în abonament: {{ perYear }} pe an (cel mult 20 pe zi). La prelungire contorul pornește iar de la zero.</p>
+              <p class="muted">Incluse în abonament: {{ d.reads.perYear }} pe an (cel mult 20 pe zi). La prelungire contorul pornește iar de la zero.</p>
               <div class="row">
                 <label class="field">Citiri în plus <input type="number" step="1" [(ngModel)]="extraReads" name="extraReads" /></label>
                 <label class="field grow">Notă <input [(ngModel)]="readsNote" name="readsNote" placeholder="de ex. a cerut mai multe" /></label>
@@ -318,8 +318,6 @@ export default class Consola implements OnInit {
   subNote = '';
   extraReads = 50;
   readsNote = '';
-  /** Citirile incluse pe an (pentru text; limita adevărată o ține serverul). */
-  protected readonly perYear = 200;
 
   protected readonly shown = computed(() => {
     const q = this.q().trim().toLowerCase();
@@ -483,7 +481,7 @@ export default class Consola implements OnInit {
     if (!Number.isInteger(amount) || !amount) return this.error.set('Scrie câte citiri, de exemplu 50 (sau -10 ca să scazi).');
     const ok = await this.confirm.ask({
       title: `${amount > 0 ? 'Dai' : 'Scazi'} ${Math.abs(amount)} citiri ${amount > 0 ? 'în plus lui' : 'de la'} ${d.name}?`,
-      lines: [`Pentru anul acesta de abonament poate citi ${Math.max(this.perYear, d.reads.allowed + amount)} poze (a folosit ${d.reads.used}).`],
+      lines: [`Pentru anul acesta de abonament poate citi ${Math.max(d.reads.perYear, d.reads.allowed + amount)} poze (a folosit ${d.reads.used}).`],
       confirmLabel: 'Da',
     });
     if (!ok) return;

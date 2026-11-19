@@ -190,7 +190,7 @@ test('IDOR: consola adminului e refuzată unui crescător (orice metodă, orice 
     }
   }
   for (const [method, p, body] of probes) assert.equal((await call(p, { method, auth: 'none', body })).status, 401, `${method} ${p} fără cont`);
-  assert.equal((await me(B)).reads.allowed, 200, 'citirile în plus nu s-au schimbat');
+  assert.equal((await me(B)).reads.allowed, 100, 'citirile în plus nu s-au schimbat');
 });
 
 test('fără cont: toate rutele cu date dau 401', async () => {

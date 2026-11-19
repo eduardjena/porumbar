@@ -14,7 +14,7 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   confirmare la orice schimbare sau ștergere.
 - **Vânzătorul** = un singur admin, contul cu `ADMIN_EMAIL` (se face la pornire din `ADMIN_EMAIL` + `ADMIN_PASSWORD`).
   Activează abonamentele (150 lei/an, plătite în afara aplicației) și pune datele de pe fișă. Citirile pedigree-urilor
-  din poze sunt incluse în abonament: 200 pe an de abonament, cel mult 20 pe zi (`src/reads.js`); vânzătorul poate da
+  din poze sunt incluse în abonament: 100 pe an de abonament, cel mult 20 pe zi (`src/reads.js`); vânzătorul poate da
   citiri în plus și vede în consolă, la fiecare crescător, câte a folosit și cât au costat (în dolari). Fără credit. Fără abonament contul e doar citire; datele nu se pierd.
 - **Local = dezvoltare și test** (date de probă, conturi de test). **Railway = producție, cu date reale.**
 
@@ -88,10 +88,11 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
   verifici că `main-*.js` de pe site e același cu cel din build-ul local și că `/api/health` răspunde 200.
 - Variabilele secrete (`ADMIN_PASSWORD`, `ANTHROPIC_API_KEY`, SMTP) le pune vânzătorul în Railway, niciodată prin chat.
 - Citirea din poze: cheia în `ANTHROPIC_API_KEY` (cheie API de pe console.anthropic.com, plătită separat de abonamentul
-  Claude). Citirea obișnuită: `PEDIGREE_MODEL` (implicit `claude-haiku-5-5`, fără „gândire”); „Recitește cu precizie
-  maximă”: `PEDIGREE_MODEL_PRECISE` (implicit `claude-sonnet-5-5`); plafon pe an pe crescător: `PEDIGREE_BUDGET_USD`
+  Claude; cheia trebuie făcută într-un spațiu de lucru anume, de ex. „Default”, nu pentru toate). Modelul:
+  `PEDIGREE_MODEL` (implicit `claude-sonnet-5-5`, ~2,5–3 cenți pe citire; Haiku a fost încercat și greșea cam o dată din
+  6, vezi `docs/superpowers/specs/2026-11-18-citire-ieftina-design.md`); plafon pe an pe crescător: `PEDIGREE_BUDGET_USD`
   (implicit 3 $). Prețurile modelelor sunt în `src/pedigree-reader.js`; `PEDIGREE_PRICE_INPUT` / `PEDIGREE_PRICE_OUTPUT`
-  le înlocuiesc pe ale modelului principal.
+  le înlocuiesc pe ale modelului ales.
   Altă firmă decât Anthropic = schimbare de cod, doar în `src/pedigree-reader.js` (funcția `claudeModel`).
 
 ## Regulile vânzătorului (de respectat mereu)

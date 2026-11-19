@@ -35,7 +35,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
           } @else {
             <p>{{ 'cont.neactivat' | t }}</p>
           }
-          @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong> <span class="muted">{{ 'cont.citiri_explicatie' | t }}</span></p> }
+          @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong> <span class="muted">{{ 'cont.citiri_explicatie' | t: { numar: r.perYear } }}</span></p> }
           @if (a.sellerContact) { <p class="muted">{{ 'cont.plata_contact' | t: { contact: a.sellerContact } }}</p> }
         </section>
       }

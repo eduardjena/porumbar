@@ -158,7 +158,7 @@ test('crescător nou care a plătit deja: activat din același pas, cu citirile 
   const r = await createBreeder({ name: 'Ion Plătit', email: 'ion.platit@exemplu.test', sheetName: 'Ion Plătit', activate: true, start: today(), note: 'plătit cash' });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.account.status, 'active');
-  assert.deepEqual(r.data.account.reads, { used: 0, allowed: 200, costUsd: 0 });
+  assert.deepEqual(r.data.account.reads, { used: 0, allowed: 100, perYear: 100, costUsd: 0 }); // 100 pe an, implicit
   const detail = await call(`/api/admin/accounts/${r.data.account.id}`, { cookie: admin });
   const kinds = detail.data.events.map((e) => e.kind);
   for (const k of ['created', 'subscription']) assert.ok(kinds.includes(k), k);

@@ -46,10 +46,10 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
 - **Panou și Arbore**: porumbeii după valoare; Arborele în Carduri, Evantai, Linii de sânge sau Rețea, cu „Alege alt
   porumbel”; pe telefon generațiile se glisează. (Vederea 3D a existat și a fost scoasă: frumoasă, dar fără folos.)
 - **Importă pedigree** (`/porumbei/pedigree`): 31 de căsuțe ca pe foaie; inelele știute se recunosc și părinții lor se
-  completează singuri; **citirea din poză sau PDF** cu Claude (doar cu `ANTHROPIC_API_KEY`; 200 de citiri pe an de
+  completează singuri; **citirea din poză sau PDF** cu Claude (doar cu `ANTHROPIC_API_KEY`; 100 de citiri pe an de
   abonament, `PEDIGREE_READS_PER_YEAR`, cel mult 20 pe zi, `PEDIGREE_READS_PER_DAY`; poza nu se păstrează). Citirea
-  obișnuită merge pe Claude Haiku 5.5 (`PEDIGREE_MODEL`), iar „Recitește cu precizie maximă” pe Claude Sonnet 5.5
-  (`PEDIGREE_MODEL_PRECISE`); costul are un plafon pe an pe crescător (`PEDIGREE_BUDGET_USD`, implicit 3 $).
+  merge pe Claude Sonnet 5.5 (`PEDIGREE_MODEL`, ~2,5–3 cenți pe citire); costul are un plafon pe an pe crescător
+  (`PEDIGREE_BUDGET_USD`, implicit 3 $).
 - **Separare totală între conturi**: același inel poate exista în mai multe conturi și nimeni nu vede nimic din alt cont.
   Datele trec doar prin copii:
   - **link public / cod QR** pe fiecare porumbel (fila „QR”): pedigree-ul pe 5 generații fără cont, în formatul deschis

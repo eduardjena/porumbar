@@ -64,14 +64,7 @@ function toBase64(blob: Blob): Promise<string> {
         </label>
       }
       @if (message(); as m) { <div [class]="m.kind" role="status">{{ m.text }}</div> }
-      @if (canRetry()) {
-        <div class="retry">
-          @if (unclear()) { <p>{{ 'cititor.neclar' | t: { count: unclear() } }}</p> }
-          <button type="button" [class.primary]="unclear() > 0" [disabled]="busy()" (click)="readAgainPrecise()">
-            <app-icon name="cautare" />{{ 'cititor.precizie' | t }}
-          </button>
-        </div>
-      }
+      @if (unclear()) { <p class="warning unclear">{{ 'cititor.neclar' | t: { count: unclear() } }}</p> }
     </section>
   `,
   styles: `
@@ -83,8 +76,7 @@ function toBase64(blob: Blob): Promise<string> {
     .pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .pick.busy { opacity: 0.7; cursor: progress; }
     .reader > div[role='status'] { flex-basis: 100%; }
-    .retry { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-    .retry p { margin: 0; font-weight: 600; }
+    .unclear { flex-basis: 100%; margin: 0; font-weight: 600; }
   `,
 })
 export class CititorPoza {
@@ -98,14 +90,8 @@ export class CititorPoza {
   protected readonly noReads = computed(() => !this.isAdmin() && !!this.reads() && this.reads()!.used >= this.reads()!.allowed);
   readonly busy = signal(false);
   readonly message = signal<{ kind: 'notice' | 'warning' | 'error'; text: string } | null>(null);
-  /** Ultimul fișier citit (doar în memorie), ca să poată fi recitit cu precizie maximă fără să-l aleagă iar. */
-  private last: { mime: string; data: string } | null = null;
-  /** Câte inele n-au ieșit clar la ultima citire obișnuită; după o recitire, butonul dispare. */
+  /** Câte inele n-au ieșit clar la ultima citire (omul trebuie să le verifice). */
   protected readonly unclear = signal(0);
-  private readonly lastWasNormal = signal(false);
-  protected readonly canRetry = computed(
-    () => this.lastWasNormal() && (this.isAdmin() || (!this.noReads() && this.reads()?.precise !== false)),
-  );
 
   async pick(ev: Event) {
     const input = ev.target as HTMLInputElement;
@@ -114,10 +100,9 @@ export class CititorPoza {
     if (!file) return;
     this.busy.set(true);
     this.message.set(null);
-    this.lastWasNormal.set(false);
+    this.unclear.set(0);
     try {
-      this.last = await prepare(file);
-      await this.send(false);
+      await this.send(await prepare(file));
     } catch (e) {
       this.message.set({ kind: 'error', text: errorMessage(e) });
     } finally {
@@ -125,30 +110,11 @@ export class CititorPoza {
     }
   }
 
-  /** „Recitește cu precizie maximă”: același fișier, pe modelul mai bun (mai scump, de aceea doar la cerere). */
-  async readAgainPrecise() {
-    if (!this.last) return;
-    this.busy.set(true);
-    this.message.set(null);
-    try {
-      await this.send(true);
-    } catch (e) {
-      this.message.set({ kind: 'error', text: errorMessage(e) });
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  private async send(precise: boolean) {
-    const r = await this.api.post<{ root: PedigreeNode; filled: number; notes: string; unclear?: number }>('/pedigrees/read', {
-      ...this.last!,
-      ...(precise ? { precise: true } : {}),
-    });
+  private async send(body: { mime: string; data: string }) {
+    const r = await this.api.post<{ root: PedigreeNode; filled: number; notes: string; unclear?: number }>('/pedigrees/read', body);
     this.read.emit(r.root);
     this.auth.refresh().catch(() => undefined); // contorul de citiri
-    this.unclear.set(precise ? 0 : r.unclear ?? 0);
-    this.lastWasNormal.set(!precise);
-    if (precise) this.last = null;
+    this.unclear.set(r.unclear ?? 0);
     const text = `${t('cititor.completat', { count: r.filled })}${r.notes ? ' ' + r.notes : ''}`;
     this.message.set({ kind: r.notes ? 'warning' : 'notice', text });
   }

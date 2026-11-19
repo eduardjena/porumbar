@@ -1163,7 +1163,7 @@
   "eroare.lipsa_concurs": "Hiányoznak a verseny adatai.",
   "eroare.citire_epuizate": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Kitöltheted a mezőket kézzel (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat attól, akitől a programot kaptad.",
   "cont.citiri": "Az előfizetésben foglalt fényképes beolvasások:",
-  "cont.citiri_explicatie": "(évente 200, naponta legfeljebb 20)",
+  "cont.citiri_explicatie": "(évente {numar}, naponta legfeljebb 20)",
   "cititor.citiri": "Beolvasások az előfizetésből:",
   "cititor.citiri_din": "{folosite} / {total}",
   "cititor.fara_citiri": "Felhasználtad az előfizetésedben idénre járó mind a(z) {numar} beolvasást. Töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat attól, akitől a programot kaptad.",
@@ -1171,9 +1171,8 @@
   "eroare.inel_hu_asociatie": "A magyar gyűrűknél írd be a szervezet számát is, ahogy a gyűrűn áll: HU-2023-29-14530.",
   "hartie.sau_de_mana": "Vagy add meg kézzel az összes adatot",
   "eroare.citire_plafon": "Felhasználtad az előfizetésedben idénre járó fényképes beolvasásokat. Kitöltheted a mezőket kézzel (a már meglévő gyűrűszámok maguktól kitöltődnek), vagy kérj további beolvasásokat attól, akitől a programot kaptad.",
-  "cititor.precizie": "Újraolvasás maximális pontossággal",
   "cititor.neclar": {
-    "one": "{count} gyűrűszám nem lett egyértelmű.",
-    "other": "{count} gyűrűszám nem lett egyértelmű."
+    "one": "{count} gyűrűszám nem lett egyértelmű: mentés előtt ellenőrizd a mezőkben.",
+    "other": "{count} gyűrűszám nem lett egyértelmű: mentés előtt ellenőrizd a mezőkben."
   }
 }

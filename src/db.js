@@ -308,7 +308,7 @@ const MIGRATIONS = [
   ALTER TABLE accounts ADD COLUMN lang TEXT NOT NULL DEFAULT 'ro';
   `,
 
-  // 19: citirile din poze sunt incluse în abonament (200 pe an); vânzătorul poate da citiri în plus pentru anul curent.
+  // 19: citirile din poze sunt incluse în abonament (100 pe an, la început 200); vânzătorul poate da citiri în plus pentru anul curent.
   // Creditul în dolari (ai_credit_micros) nu se mai folosește.
   `
   ALTER TABLE accounts ADD COLUMN extra_reads INTEGER NOT NULL DEFAULT 0;

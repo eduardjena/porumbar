@@ -1,18 +1,26 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
-import { TPipe } from '../../core/i18n';
+import { TPipe, t } from '../../core/i18n';
 import { CatalogService } from '../../core/catalog';
 import { Icon } from '../../shared/icon';
 import { ViewToggle } from '../../shared/view-toggle';
 import { PanouBar } from './panou-bar';
 import { PorumbarState } from './porumbar-state';
 
-type Tab = 'grila' | 'lista' | 'rezultate';
-const tabOf = (url: string): Tab => (url.startsWith('/porumbar') ? 'lista' : url.startsWith('/rezultate') ? 'rezultate' : 'grila');
+/** Unde e omul în cadru: Grilă, Listă sau pagina „Rezultate concurs” (listarea ori introducerea). */
+type Tab = 'grila' | 'lista' | 'rez-lista' | 'rez-nou';
+const tabOf = (url: string): Tab => {
+  const path = url.split(/[?#]/)[0];
+  if (path.startsWith('/porumbar')) return 'lista';
+  if (path.startsWith('/concursuri/nou')) return 'rez-nou';
+  if (path.startsWith('/concursuri')) return 'rez-lista';
+  return 'grila';
+};
 
 /*
- * Cadrul comun al filelor Grilă / Listă / Rezultate: titlul, comutatorul, butoanele și bara de filtre stau pe loc;
- * la schimbarea filei se schimbă doar ce e sub bară (<router-outlet>). Datele și alegerea din bară: PorumbarState.
+ * Cadrul comun al Panoului: Grilă, Listă și „Rezultate concurs” (cu submeniurile Listare rezultate / Introdu rezultat
+ * nou). Titlul, comutatorul, butoanele și bara de filtre stau pe loc; la schimbare se schimbă doar ce e dedesubt
+ * (<router-outlet>). Datele și alegerea din bară: PorumbarState.
  */
 @Component({
   selector: 'app-porumbar-cadru',
@@ -21,19 +29,30 @@ const tabOf = (url: string): Tab => (url.startsWith('/porumbar') ? 'lista' : url
     <div class="head">
       <div>
         <h1>{{ 'panou.titlu' | t }}</h1>
-        @if (s.loaded()) { <p class="muted count">{{ tab() === 'rezultate' ? s.resultsLine() : s.countLine() }}</p> }
+        @if (s.loaded()) { <p class="muted count">{{ subtitle() }}</p> }
       </div>
       <div class="row actions">
-        <app-view-toggle [current]="tab()" />
+        <app-view-toggle [current]="toggle()" />
         <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
-        <a routerLink="/concursuri/rezultate" class="btn"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
+        <a routerLink="/concursuri" class="btn" [class.on]="results()" [attr.aria-current]="results() ? 'page' : null"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
         <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
         <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
       </div>
     </div>
 
-    @if (s.all().length) {
-      <app-panou-bar [(state)]="s.view" [statuses]="catalog.catalog()?.statuses ?? []" [years]="s.years()" [orderTools]="tab() !== 'rezultate'" />
+    @if (results()) {
+      <nav class="sub" [attr.aria-label]="'panou.rezultate_concurs' | t">
+        <a routerLink="/concursuri/lista" class="pill" [class.on]="tab() === 'rez-lista'" [attr.aria-current]="tab() === 'rez-lista' ? 'page' : null">
+          <app-icon name="lista" [size]="18" />{{ 'concurs.sub_lista' | t }}
+        </a>
+        <a routerLink="/concursuri/nou" class="pill" [class.on]="tab() === 'rez-nou'" [attr.aria-current]="tab() === 'rez-nou' ? 'page' : null">
+          <app-icon name="plus" [size]="18" />{{ 'concurs.sub_nou' | t }}
+        </a>
+      </nav>
+    }
+
+    @if (s.all().length && tab() !== 'rez-nou') {
+      <app-panou-bar [(state)]="s.view" [statuses]="catalog.catalog()?.statuses ?? []" [years]="s.years()" [orderTools]="!results()" />
     }
     @if (s.error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ s.error() }}</div> }
 
@@ -43,8 +62,19 @@ const tabOf = (url: string): Tab => (url.startsWith('/porumbar') ? 'lista' : url
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .head h1 { margin-bottom: 2px; }
     .count { margin: 0; }
+    .actions .btn.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+    /* Submeniurile „Rezultate concurs”: pastile ca în bara de filtre. */
+    .sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; white-space: nowrap;
+      background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-weight: 700; font-size: 0.9rem; text-decoration: none;
+    }
+    .pill:hover { border-color: var(--accent); }
+    .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
     @media (max-width: 767px) {
       .actions .add { display: none; }
+      .sub { flex-wrap: nowrap; }
+      .pill { flex: 1 1 0; min-width: 0; justify-content: center; gap: 4px; padding: 0 6px; font-size: 0.82rem; }
     }
   `,
 })
@@ -53,6 +83,16 @@ export default class PorumbarCadru {
   protected readonly catalog = inject(CatalogService);
   private readonly router = inject(Router);
   protected readonly tab = signal<Tab>(tabOf(this.router.url));
+  protected readonly results = computed(() => this.tab() === 'rez-lista' || this.tab() === 'rez-nou');
+  /** Comutatorul Grilă / Listă: niciunul aprins pe „Rezultate concurs”. */
+  protected readonly toggle = computed(() => (this.tab() === 'grila' ? 'grila' : this.tab() === 'lista' ? 'lista' : null));
+  protected readonly subtitle = computed(() => {
+    switch (this.tab()) {
+      case 'rez-lista': return this.s.resultsLine();
+      case 'rez-nou': return t('concurs.intro');
+      default: return this.s.countLine();
+    }
+  });
 
   constructor() {
     this.s.load();

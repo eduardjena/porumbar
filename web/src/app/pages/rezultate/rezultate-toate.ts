@@ -49,7 +49,7 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
     @if (s.resultsLoaded() && !shown().length) {
       <div class="card empty">
         <p>{{ (s.results().length ? 'toate.nimic_gasit' : 'toate.niciunul') | t }}</p>
-        @if (!s.results().length) { <a routerLink="/concursuri/rezultate" class="btn primary"><app-icon name="cupa" />{{ 'toate.adauga' | t }}</a> }
+        @if (!s.results().length) { <a routerLink="/concursuri/nou" class="btn primary"><app-icon name="cupa" />{{ 'toate.adauga' | t }}</a> }
       </div>
     } @else if (shown().length) {
       <div class="card wrap">

@@ -1800,7 +1800,6 @@
     "sens": "Butonul de pe Panou spre ecranul cu rezultatele mai multor porumbei la același concurs."
   },
   "rezultate.mai_multi_deodata": "Pune rezultatele mai multor porumbei deodată",
-  "concurs.titlu": "Rezultatele unui concurs",
   "concurs.intro": "Toți porumbeii tăi la același concurs, deodată: alegi concursul, scrii distanța o dată și locul la fiecare porumbel.",
   "concurs.lipeste_titlu": "Lipește clasamentul",
   "concurs.lipeste_cum": {
@@ -1860,8 +1859,7 @@
   },
   "concurs.cauta": "Caută",
   "concurs.salveaza_gol": "Salvează rezultatele",
-  "vedere.rezultate": "Rezultate",
-  "titlu.rezultate": "Rezultate · Porumbar",
+  "titlu.rezultate": "Rezultate concurs · Porumbar",
   "toate.numar": {
     "one": "{count} rezultat la concursuri",
     "few": "{count} rezultate la concursuri",
@@ -1890,5 +1888,7 @@
   "toate.ordoneaza_dupa": {
     "text": "Ordonează după {coloana}",
     "sens": "Capul unei coloane din tabelul de rezultate."
-  }
+  },
+  "concurs.sub_lista": "Listare rezultate",
+  "concurs.sub_nou": "Introdu rezultat nou"
 }

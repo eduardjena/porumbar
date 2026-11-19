@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Icon } from './icon';
 import { TPipe } from '../core/i18n';
 
-/** Comutatorul Grilă / Listă / Rezultate al porumbarului: aceleași butoane pe toate cele trei pagini. */
+/** Comutatorul Grilă / Listă al porumbarului (pe „Rezultate concurs” niciunul nu e aprins). */
 @Component({
   selector: 'app-view-toggle',
   imports: [RouterLink, Icon, TPipe],
@@ -14,9 +14,6 @@ import { TPipe } from '../core/i18n';
       </a>
       <a routerLink="/porumbar" [class.on]="current() === 'lista'" [attr.aria-current]="current() === 'lista' ? 'page' : null">
         <app-icon name="lista" [size]="22" />{{ 'vedere.lista' | t }}
-      </a>
-      <a routerLink="/rezultate" [class.on]="current() === 'rezultate'" [attr.aria-current]="current() === 'rezultate' ? 'page' : null">
-        <app-icon name="cupa" [size]="22" />{{ 'vedere.rezultate' | t }}
       </a>
     </div>
   `,
@@ -36,5 +33,5 @@ import { TPipe } from '../core/i18n';
   `,
 })
 export class ViewToggle {
-  readonly current = input.required<'grila' | 'lista' | 'rezultate'>();
+  readonly current = input.required<'grila' | 'lista' | null>();
 }

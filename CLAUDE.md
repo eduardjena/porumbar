@@ -44,11 +44,13 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
-                  (Grilă /panou, Listă /porumbar și Rezultate /rezultate stau într-un cadru comun, panou/porumbar-cadru.ts:
-                  antetul, butoanele și bara de filtre nu se redesenează la schimbarea filei; datele și filtrele în
-                  panou/porumbar-state.ts)
+                  (Grilă /panou, Listă /porumbar și Rezultate concurs /concursuri stau într-un cadru comun,
+                  panou/porumbar-cadru.ts: antetul, butoanele și bara de filtre nu se redesenează la schimbare; datele și
+                  filtrele în panou/porumbar-state.ts. Rezultate concurs are 2 submeniuri: Listare rezultate
+                  /concursuri/lista, tabelul din rezultate/rezultate-toate.ts, și Introdu rezultat nou /concursuri/nou,
+                  concurs/concurs-rezultate.ts: toți porumbeii la un concurs, de mână sau lipind clasamentul)
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
-                  concurs (/concursuri/rezultate: toți porumbeii la un concurs, de mână sau lipind clasamentul)
+                  concurs, rezultate (vezi mai sus)
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
                   clasament.ts: citește clasamentul Columba lipit DOAR în telefon; la server pleacă numai rândurile omului
                   (după codul de crescător din Cont sau după inelele lui). Fără importuri, testat cu Node

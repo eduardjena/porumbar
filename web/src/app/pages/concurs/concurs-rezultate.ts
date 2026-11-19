@@ -5,9 +5,9 @@ import { AuthService } from '../../core/auth';
 import { CatalogService } from '../../core/catalog';
 import { TPipe, formatDay, formatNumber, t } from '../../core/i18n';
 import { PigeonSummary, Race } from '../../core/models';
-import { Breadcrumbs } from '../../shared/breadcrumbs';
 import { Icon } from '../../shared/icon';
 import { PastedRow, ownRows, readPasted, ringKeyOf } from '../../shared/clasament';
+import { PorumbarState } from '../panou/porumbar-state';
 
 /** Concursul, ca în formularul unui rezultat (texte, ca să primească și „196,608”). */
 interface RaceForm {
@@ -46,11 +46,8 @@ const GONE = new Set(['vandut', 'pierdut', 'mort']);
  */
 @Component({
   selector: 'app-concurs-rezultate',
-  imports: [FormsModule, Icon, TPipe, Breadcrumbs],
+  imports: [FormsModule, Icon, TPipe],
   template: `
-    <app-breadcrumbs [items]="crumbs()" />
-    <h1>{{ 'concurs.titlu' | t }}</h1>
-    <p class="muted intro">{{ 'concurs.intro' | t }}</p>
 
     @if (done(); as d) {
       <div class="notice" role="status">
@@ -167,8 +164,6 @@ const GONE = new Set(['vandut', 'pierdut', 'mort']);
     </form>
   `,
   styles: `
-    h1 { margin-bottom: 4px; }
-    .intro { margin-top: 0; }
     h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.2rem; }
     fieldset { border: 1px solid var(--border); margin: 0; }
     legend { font-weight: 800; padding: 0 6px; }
@@ -189,6 +184,7 @@ const GONE = new Set(['vandut', 'pierdut', 'mort']);
 export default class ConcursRezultate {
   private readonly api = inject(Api);
   private readonly auth = inject(AuthService);
+  private readonly state = inject(PorumbarState);
   protected readonly catalog = inject(CatalogService);
   protected readonly formatNumber = (n: number) => formatNumber(n);
 
@@ -207,7 +203,6 @@ export default class ConcursRezultate {
   pasted = '';
   q = '';
 
-  protected readonly crumbs = computed(() => [{ label: t('concurs.titlu') }]);
   protected readonly active = computed(() => this.pigeons().filter((p) => p.kind === 'own' && !GONE.has(p.status ?? '')));
   protected enteredNum() {
     return this.race.entered ? Number(this.race.entered) || null : null;
@@ -359,6 +354,8 @@ export default class ConcursRezultate {
       this.distanceKm = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
       await this.load();
+      // Listarea rezultatelor și panoul (ordonarea după rezultate) văd și ce s-a adăugat acum.
+      this.state.load();
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

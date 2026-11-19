@@ -1186,7 +1186,6 @@
   "titlu.concurs": "Egy verseny eredményei · Porumbar",
   "panou.rezultate_concurs": "Versenyeredmények",
   "rezultate.mai_multi_deodata": "Több galamb eredménye egyszerre",
-  "concurs.titlu": "Egy verseny eredményei",
   "concurs.intro": "Az összes galambod ugyanazon a versenyen, egyszerre: kiválasztod a versenyt, egyszer beírod a távolságot, és minden galambnál a helyezést.",
   "concurs.lipeste_titlu": "Eredménylista beillesztése",
   "concurs.lipeste_cum": "Ha az eredményeid máshol le vannak írva, onnan kimásolhatod és ide illesztheted. A szöveget csak a telefonod olvassa: csak a saját soraidat őrizzük meg, a tenyésztői kódod vagy a galambjaid gyűrűszáma alapján.",
@@ -1230,8 +1229,7 @@
   },
   "concurs.cauta": "Keresés",
   "concurs.salveaza_gol": "Eredmények mentése",
-  "vedere.rezultate": "Eredmények",
-  "titlu.rezultate": "Eredmények · Porumbar",
+  "titlu.rezultate": "Versenyeredmények · Porumbar",
   "toate.numar": {
     "one": "{count} versenyeredmény",
     "other": "{count} versenyeredmény"
@@ -1250,5 +1248,7 @@
   "toate.col_coef": "Koef.",
   "toate.col_viteza": "m/perc",
   "toate.col_km": "Km",
-  "toate.ordoneaza_dupa": "Rendezés: {coloana}"
+  "toate.ordoneaza_dupa": "Rendezés: {coloana}",
+  "concurs.sub_lista": "Eredmények listája",
+  "concurs.sub_nou": "Új eredmény"
 }

@@ -48,7 +48,7 @@ const plain = (n: number) => String(n).replace('.', ',');
   selector: 'app-rezultate',
   imports: [FormsModule, RouterLink, Icon, TPipe],
   template: `
-    <p class="many"><a routerLink="/concursuri/rezultate"><app-icon name="cupa" />{{ 'rezultate.mai_multi_deodata' | t }}</a></p>
+    <p class="many"><a routerLink="/concursuri/nou"><app-icon name="cupa" />{{ 'rezultate.mai_multi_deodata' | t }}</a></p>
     <form class="card stack" (ngSubmit)="save()">
       <h3>{{ (editing() ? 'rezultate.schimba_titlu' : 'rezultate.adauga_titlu') | t }}</h3>
       @if (races().length) {

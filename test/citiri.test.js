@@ -125,3 +125,27 @@ test('plafonul de bani pe an: peste el citirea se oprește', async () => {
     else process.env.PEDIGREE_BUDGET_USD = prev;
   }
 });
+
+test('fișă maghiară (model fals, fără credite): inelele cu asociație, ♂ / ♀, „HUN” și asociația fără zero se înțeleg', async () => {
+  const c = await newAccount(call, 'Magyar');
+  reader.setPedigreeModel(async () => ({
+    slots: [
+      { slot: 1, ring: 'HU-2023-23-46255 H', color: 'Kk' },
+      { slot: 2, ring: 'HU24-04-41013 ♂', color: 'k.kov.' },
+      { slot: 3, ring: 'HU-23-D-1234 T' },
+      { slot: 4, ring: 'HUN-19-04-12345' },
+      { slot: 5, ring: 'HU-2020-4-555 ♀' },
+      { slot: 6, ring: 'NL-18-1234567 ♂' },
+      { slot: 7, ring: 'HU24-04-41013 / Kk' }, // culoarea rămasă în inel: nu se acceptă, omul o vede
+    ],
+    rootSex: 'M',
+    notes: '',
+    usage: { input_tokens: 1000, output_tokens: 1000 },
+  }));
+  const r = await read(c);
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.filled, 7);
+  assert.equal(r.data.unclear, 1, 'doar inelul cu „/ Kk” e neclar');
+  assert.equal(r.data.root.father.ring, 'HU24-04-41013 ♂');
+  assert.equal(r.data.root.color, 'Kk');
+});

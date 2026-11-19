@@ -31,7 +31,9 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   i18n.js         dicționarele, t(), limba cererii (vezi „Limbi”)
   http.js         HttpError(status, cheie, valori), validări (text, realDate, oneOf), rateLimit, errorHandler
   rings.js        citirea inelelor scrise în orice formă (RO-26-800546 L, 412084/15 RO, HU-2023-29-14530 H, …); inelele
-                  maghiare cer numărul organizatorului (2 cifre sau litera seriei); H / T = sexul (hím / tojó)
+                  maghiare cer numărul organizatorului (2 cifre sau litera seriei; o cifră scrisă de mână = 04); H / T
+                  sau ♂ / ♀ = sexul; spaniole și „159989 019-ESP” (Serie + Año). Aceleași reguli, simplificate, în
+                  web/src/app/shared/ring-input.ts (previewRing): se schimbă amândouă deodată
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js

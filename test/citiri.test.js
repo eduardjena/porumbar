@@ -149,3 +149,17 @@ test('fișă maghiară (model fals, fără credite): inelele cu asociație, ♂ 
   assert.equal(r.data.root.father.ring, 'HU24-04-41013 ♂');
   assert.equal(r.data.root.color, 'Kk');
 });
+
+test('un cont neactivat (încă neplătit) nu citește din poze: se oprește înainte de Claude, deci nu costă nimic', async () => {
+  const c = await newAccount(call, 'Neplatit', { active: false });
+  let called = 0;
+  reader.setPedigreeModel(async () => {
+    called++;
+    return { slots: [{ slot: 1, ring: 'RO-20-1' }], rootSex: null, notes: '', usage: { input_tokens: 1, output_tokens: 1 } };
+  });
+  const r = await read(c);
+  assert.equal(r.status, 402, JSON.stringify(r.data));
+  assert.match(r.data.error, /nu este activ/);
+  assert.equal(called, 0, 'cererea n-a ajuns la Claude');
+  assert.equal((await me(c)).reads.used, 0);
+});

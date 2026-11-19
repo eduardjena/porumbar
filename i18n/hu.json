@@ -1237,17 +1237,18 @@
     "other": "{count} versenyeredmény"
   },
   "toate.adauga": "Eredmények hozzáadása",
-  "toate.cauta": "Galamb vagy verseny keresése",
-  "toate.ordoneaza": "Rendezés:",
-  "toate.ordine_noi": "Legújabbak",
-  "toate.ordine_vechi": "Legrégebbiek",
-  "toate.ordine_bune": "Legjobb eredmények",
-  "toate.ordine_viteza": "Legnagyobb sebesség",
-  "toate.doar_premiate": "Csak díjazottak",
   "toate.niciunul": "Még nincs versenyeredményed.",
   "toate.nimic_gasit": "Egy eredmény sem felel meg a választásnak.",
   "toate.numar_afisate": {
     "one": "{count} látható",
     "other": "{count} látható"
-  }
+  },
+  "toate.col_data": "Dátum",
+  "toate.col_concurs": "Verseny",
+  "toate.col_porumbel": "Galamb",
+  "toate.col_loc": "Helyezés",
+  "toate.col_coef": "Koef.",
+  "toate.col_viteza": "m/perc",
+  "toate.col_km": "Km",
+  "toate.ordoneaza_dupa": "Rendezés: {coloana}"
 }

@@ -1869,16 +1869,6 @@
     "sens": "Sub titlu, pe fila Rezultate."
   },
   "toate.adauga": "Adaugă rezultate",
-  "toate.cauta": "Caută porumbelul sau concursul",
-  "toate.ordoneaza": "Ordonează:",
-  "toate.ordine_noi": "Cele mai noi",
-  "toate.ordine_vechi": "Cele mai vechi",
-  "toate.ordine_bune": {
-    "text": "Cele mai bune rezultate",
-    "sens": "După coeficient: locul raportat la câți porumbei au zburat."
-  },
-  "toate.ordine_viteza": "Cea mai mare viteză",
-  "toate.doar_premiate": "Doar premiate",
   "toate.niciunul": "Încă nu ai rezultate la concursuri.",
   "toate.nimic_gasit": "Niciun rezultat nu se potrivește cu ce ai ales.",
   "toate.numar_afisate": {
@@ -1886,5 +1876,19 @@
     "few": "{count} afișate",
     "other": "{count} de afișate",
     "sens": "Câte rezultate se văd după filtre, pe fila Rezultate."
+  },
+  "toate.col_data": "Data",
+  "toate.col_concurs": "Concursul",
+  "toate.col_porumbel": "Porumbelul",
+  "toate.col_loc": "Locul",
+  "toate.col_coef": {
+    "text": "Coef.",
+    "sens": "Coeficientul: locul × 1000 / porumbeii angajați (mai mic e mai bine)."
+  },
+  "toate.col_viteza": "m/min",
+  "toate.col_km": "Km",
+  "toate.ordoneaza_dupa": {
+    "text": "Ordonează după {coloana}",
+    "sens": "Capul unei coloane din tabelul de rezultate."
   }
 }

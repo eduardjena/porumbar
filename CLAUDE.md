@@ -43,6 +43,9 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   național); cercetarea: docs/cercetare/reports/Concursuri columbofile în Porumbar.md (branch docs)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
+  src/app/app.ts  meniul mare (sus pe calculator, jos pe telefon) și, sub el, banda de submeniuri (macheta A, 2026-11-19):
+                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează; fișa porumbelului → Înapoi și
+                  filele ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=). Fiecare submeniu are adresa lui.
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
                   (Grilă /panou, Listă /porumbar, Importă pedigree /porumbei/pedigree, Rezultate concurs /concursuri și Scanează
                   /scaneaza stau într-un cadru comun,

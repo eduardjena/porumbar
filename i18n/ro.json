@@ -613,10 +613,6 @@
   },
   "parola_camp.arata": "Arată parola",
   "parola_camp.ascunde": "Ascunde parola",
-  "vedere.cum_arati": {
-    "text": "Cum arăți porumbeii",
-    "sens": "Comutatorul Grilă / Listă (pentru cititorul de ecran)."
-  },
   "vedere.grila": "Grilă",
   "vedere.lista": "Listă",
   "trimite.trimite": {
@@ -1907,5 +1903,7 @@
   "porumbel.fila_introdu": {
     "text": "Rezultat nou",
     "sens": "Fila de pe fișa porumbelului: același ecran ca Rezultate concurs → Rezultat nou."
-  }
+  },
+  "meniu.submeniu": "Submeniu",
+  "meniu.inapoi": "Înapoi"
 }

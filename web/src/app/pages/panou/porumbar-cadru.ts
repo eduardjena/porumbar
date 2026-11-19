@@ -3,7 +3,6 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { TPipe, t } from '../../core/i18n';
 import { CatalogService } from '../../core/catalog';
 import { Icon } from '../../shared/icon';
-import { ViewToggle } from '../../shared/view-toggle';
 import { PanouBar } from './panou-bar';
 import { PorumbarState } from './porumbar-state';
 
@@ -21,27 +20,17 @@ const tabOf = (url: string): Tab => {
 
 /*
  * Cadrul comun al Panoului: Grilă, Listă, Importă pedigree, Rezultate concurs (cu submeniurile Listare rezultate /
- * Rezultat nou) și Scanează cod QR. Titlul, comutatorul, butoanele și bara de filtre stau pe loc; la schimbare se schimbă doar ce e dedesubt
- * (<router-outlet>). Datele și alegerea din bară: PorumbarState.
+ * Rezultat nou) și Scanează cod QR. Submeniurile lor stau în banda de sub meniul mare (app.ts); aici stau titlul,
+ * pastilele Rezultate concurs și bara de filtre, pe loc; la schimbare se schimbă doar ce e dedesubt (<router-outlet>). Datele și alegerea din bară: PorumbarState.
  */
 @Component({
   selector: 'app-porumbar-cadru',
-  imports: [RouterOutlet, RouterLink, Icon, ViewToggle, PanouBar, TPipe],
+  imports: [RouterOutlet, RouterLink, Icon, PanouBar, TPipe],
   template: `
     <div class="head">
       <div>
         <h1>{{ 'panou.titlu' | t }}</h1>
         @if (s.loaded()) { <p class="muted count">{{ subtitle() }}</p> }
-      </div>
-      <div class="row actions">
-        <app-view-toggle [current]="toggle()" />
-        <a routerLink="/porumbei/pedigree" class="btn" [class.on]="tab() === 'import'" [attr.aria-current]="tab() === 'import' ? 'page' : null"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
-        <a routerLink="/concursuri" class="btn" [class.on]="results()" [attr.aria-current]="results() ? 'page' : null"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
-        <a routerLink="/scaneaza" class="btn" [class.on]="tab() === 'scan'" [attr.aria-current]="tab() === 'scan' ? 'page' : null"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
-        <!-- Doar iconițe: „+” și porumbelul (ca pe fișa cu detalii); textul apare la hover și îl citesc cititoarele de ecran. -->
-        <a routerLink="/porumbei/nou" class="btn primary add icon-only" [title]="'panou.adauga_porumbel_nou' | t" [attr.aria-label]="'panou.adauga_porumbel_nou' | t">
-          <app-icon name="plus" [size]="18" class="plus" /><app-icon name="porumbel" [size]="26" />
-        </a>
       </div>
     </div>
 
@@ -69,7 +58,6 @@ const tabOf = (url: string): Tab => {
     .count { margin: 0; }
     .icon-only { gap: 0; padding: 0 14px 0 10px; min-width: 64px; justify-content: center; }
     .icon-only .plus { margin-right: -1px; }
-    .actions .btn.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
     /* Submeniurile „Rezultate concurs”: pastile ca în bara de filtre. */
     .sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
     .pill {
@@ -79,7 +67,6 @@ const tabOf = (url: string): Tab => {
     .pill:hover { border-color: var(--accent); }
     .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
     @media (max-width: 767px) {
-      .actions .add { display: none; }
       .sub { flex-wrap: nowrap; }
       .pill { flex: 1 1 0; min-width: 0; justify-content: center; gap: 4px; padding: 0 6px; font-size: 0.82rem; }
     }
@@ -91,8 +78,6 @@ export default class PorumbarCadru {
   private readonly router = inject(Router);
   protected readonly tab = signal<Tab>(tabOf(this.router.url));
   protected readonly results = computed(() => this.tab() === 'rez-lista' || this.tab() === 'rez-nou');
-  /** Comutatorul Grilă / Listă: niciunul aprins pe „Rezultate concurs”. */
-  protected readonly toggle = computed(() => (this.tab() === 'grila' ? 'grila' : this.tab() === 'lista' ? 'lista' : null));
   protected readonly subtitle = computed(() => {
     switch (this.tab()) {
       case 'rez-lista': return this.s.resultsLine();

@@ -79,13 +79,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
       <div class="tree-bar" role="toolbar" [attr.aria-label]="'arbore.aria_comenzi' | t">
           <div class="bar-left"><ng-container [ngTemplateOutlet]="titleTpl" /></div>
           <div class="tree-bar-right">
-            <div class="seg" role="tablist" [attr.aria-label]="'arbore.aria_vederi' | t">
-              @for (v of views; track v.id) {
-                <button type="button" role="tab" [attr.aria-selected]="view() === v.id" [class.on]="view() === v.id" (click)="go(v.id)">
-                  <app-icon [name]="v.icon" [size]="20" />{{ v.label | t }}
-                </button>
-              }
-            </div>
+            <!-- Vederile (Carduri, Evantai, Linii de sânge, Rețea) stau în banda de submeniuri de sus (app.ts). -->
             @if (view() !== defaultView()) {
               <button type="button" class="link" (click)="makeDefault()">{{ 'arbore.fa_pornire' | t }}</button>
             }
@@ -251,10 +245,6 @@ export default class Arbore {
     if (this.picking() && !this.board().length) {
       this.api.get<{ pigeons: BoardPigeon[] }>('/board').then((b) => this.board.set(b.pigeons)).catch(() => {});
     }
-  }
-
-  go(v: View) {
-    this.router.navigate(['/arbore'], { queryParams: { porumbel: this.rootId() ?? undefined, tot: this.tot() || undefined, vedere: v } });
   }
 
   async makeDefault() {

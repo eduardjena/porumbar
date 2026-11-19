@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Location } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { IncomingService } from './core/incoming';
@@ -16,6 +17,31 @@ interface NavItem {
   /** Alte pagini din aceeași parte a aplicației: butonul rămâne aprins și pe ele. */
   also?: RegExp;
 }
+
+/** Un submeniu din bandă: unde duce și dacă e aprins. */
+interface BandItem {
+  label: string;
+  icon: IconName;
+  link: string[];
+  query?: Record<string, string | undefined>;
+  on: boolean;
+}
+
+const TREE_VIEWS: { id: string; label: string; icon: IconName }[] = [
+  { id: 'carduri', label: 'arbore.vedere_carduri', icon: 'panou' },
+  { id: 'evantai', label: 'arbore.vedere_evantai', icon: 'rotire' },
+  { id: 'sange', label: 'arbore.vedere_sange', icon: 'ramificare' },
+  { id: 'retea', label: 'arbore.vedere_retea', icon: 'retea' },
+];
+const PIGEON_TABS: { id: string; label: string; icon: IconName }[] = [
+  { id: 'fisa', label: 'porumbel.fila_fisa', icon: 'porumbel' },
+  { id: 'rezultate', label: 'porumbel.fila_rezultate', icon: 'cupa' },
+  { id: 'introdu', label: 'porumbel.fila_introdu', icon: 'plus' },
+  { id: 'rude', label: 'porumbel.fila_rude', icon: 'rude' },
+  { id: 'arbore', label: 'porumbel.fila_arbore', icon: 'fisa' },
+  { id: 'jurnal', label: 'porumbel.fila_jurnal', icon: 'jurnal' },
+  { id: 'qr', label: 'porumbel.fila_qr', icon: 'qr' },
+];
 
 const NAV: NavItem[] = [
   // Panoul: Grilă / Listă / Rezultate, fișa unui porumbel și ce se deschide din panou (rezultate concurs, scanare).
@@ -49,6 +75,21 @@ const NAV: NavItem[] = [
           <button type="button" class="ghost" (click)="logout()"><app-icon name="iesire" [size]="22" />{{ 'meniu.iesi' | t }}</button>
         </nav>
         </div>
+        <!-- Banda de submeniuri (macheta A): ce are partea în care ești; stă lipită sus, cu meniul mare. -->
+        @if (band(); as b) {
+          <nav class="band" [attr.aria-label]="'meniu.submeniu' | t">
+            <div class="band-inner">
+              @if (b.back) {
+                <button type="button" class="pill back" (click)="back()"><app-icon name="inapoi" [size]="18" />{{ 'meniu.inapoi' | t }}</button>
+              }
+              @for (i of b.items; track i.label) {
+                <a class="pill" [routerLink]="i.link" [queryParams]="i.query ?? null" [class.on]="i.on" [attr.aria-current]="i.on ? 'page' : null">
+                  <app-icon [name]="i.icon" [size]="18" />{{ i.label | t }}
+                </a>
+              }
+            </div>
+          </nav>
+        }
       </header>
     }
     <app-confirm-dialog />
@@ -91,6 +132,19 @@ const NAV: NavItem[] = [
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
     .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
+    /* Banda de submeniuri: pastile ca în bara de filtre; pe telefon se derulează cu degetul. */
+    .band { border-top: 1px solid var(--border); }
+    .band-inner {
+      max-width: 1120px; margin: 0 auto; padding: 8px 24px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+    }
+    .band-inner::-webkit-scrollbar { display: none; }
+    .pill {
+      flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; white-space: nowrap;
+      background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-weight: 700; font-size: 0.9rem; text-decoration: none; box-shadow: none;
+    }
+    .pill:hover { border-color: var(--accent); }
+    .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .pill.back { color: var(--accent-strong); }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
     .top-nav { display: flex; gap: 4px; align-items: center; }
@@ -118,6 +172,8 @@ const NAV: NavItem[] = [
     @media (max-width: 767px) {
       .made-by { position: static; display: block; width: fit-content; margin: 28px 0 0 auto; background: none; }
       .top-inner { padding: 8px 16px; }
+      .band-inner { padding: 6px 16px 8px; }
+      .pill { font-size: 0.85rem; padding: 0 12px; }
       .top-nav { display: none; }
       main { padding: 16px 16px 24px; }
       main.with-bottom { padding-bottom: calc(108px + env(safe-area-inset-bottom)); }
@@ -157,6 +213,52 @@ export class App {
 
   /** Adresa curentă, ca butonul din meniu să știe când e aprins. */
   private readonly url = signal(this.router.url);
+  private readonly location = inject(Location);
+  /** Câte pagini s-au deschis în aplicație (pentru „Înapoi”: fără istoric, duce la Panou). */
+  private navigations = 0;
+
+  /** Submeniurile părții în care ești (Panou, fișa unui porumbel, Arbore); altundeva banda nu apare. */
+  protected readonly band = computed<{ items: BandItem[]; back?: boolean } | null>(() => {
+    const tree = this.router.parseUrl(this.url());
+    const path = this.url().split(/[?#]/)[0];
+    const q = tree.queryParams as Record<string, string | undefined>;
+    const panou: [string, string, IconName, boolean][] = [
+      ['/panou', 'vedere.grila', 'panou', path === '/panou'],
+      ['/porumbar', 'vedere.lista', 'lista', path === '/porumbar'],
+      ['/concursuri', 'panou.rezultate_concurs', 'cupa', path.startsWith('/concursuri')],
+      ['/porumbei/pedigree', 'panou.importa_pedigree', 'fisa', path === '/porumbei/pedigree'],
+      ['/scaneaza', 'panou.scaneaza_qr', 'qr', path === '/scaneaza'],
+    ];
+    if (panou.some(([, , , on]) => on)) return { items: panou.map(([link, label, icon, on]) => ({ link: [link], label, icon, on })) };
+    const pigeon = /^\/porumbei\/(\d+)$/.exec(path);
+    if (pigeon) {
+      const id = pigeon[1];
+      const fila = PIGEON_TABS.some((x) => x.id === q['fila']) ? q['fila'] : 'fisa';
+      // De unde a venit omul (din=, radacina=…) rămâne în adresă, ca firimiturile să-l ducă înapoi acolo.
+      const keep = { din: q['din'], radacina: q['radacina'], tot: q['tot'], vedere: q['vedere'] };
+      return {
+        back: true,
+        items: [
+          ...PIGEON_TABS.map((x) => ({ link: ['/porumbei', id], query: { ...keep, fila: x.id === 'fisa' ? undefined : x.id }, label: x.label, icon: x.icon, on: fila === x.id })),
+          { link: ['/arbore'], query: { porumbel: id }, label: 'porumbel.vezi_in_arbore', icon: 'copac' as IconName, on: false },
+        ],
+      };
+    }
+    if (path === '/arbore') {
+      const fallback = this.auth.account()?.treeView;
+      const current = TREE_VIEWS.some((v) => v.id === q['vedere']) ? q['vedere'] : TREE_VIEWS.some((v) => v.id === fallback) ? fallback : 'carduri';
+      return {
+        items: TREE_VIEWS.map((v) => ({ link: ['/arbore'], query: { porumbel: q['porumbel'], tot: q['tot'], vedere: v.id }, label: v.label, icon: v.icon, on: current === v.id })),
+      };
+    }
+    return null;
+  });
+
+  /** „Înapoi” din bandă: pagina dinainte; dacă nu e una în aplicație, Panoul. */
+  back() {
+    if (this.navigations > 1) this.location.back();
+    else this.router.navigateByUrl('/panou');
+  }
   protected isOn(n: NavItem): boolean {
     const url = this.url();
     const path = url.split(/[?#]/)[0];
@@ -167,6 +269,7 @@ export class App {
   constructor() {
     this.router.events.subscribe((e) => {
       if (!(e instanceof NavigationEnd)) return;
+      this.navigations++;
       this.url.set(e.urlAfterRedirects);
       const a = this.auth.account();
       if (a && !a.isAdmin) this.incoming.refresh();

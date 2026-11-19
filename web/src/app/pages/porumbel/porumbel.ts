@@ -1,6 +1,6 @@
-import { Component, computed, inject, input, signal, effect } from '@angular/core';
+import { Component, computed, inject, input, signal, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexLabel } from '../../core/catalog';
 import { TPipe, formatDay, t } from '../../core/i18n';
@@ -14,7 +14,7 @@ import ConcursRezultate from '../concurs/concurs-rezultate';
 import { FisaEditabila } from './fisa-editabila';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
-import { Icon, IconName } from '../../shared/icon';
+import { IconName } from '../../shared/icon';
 
 type Tab = 'fisa' | 'rezultate' | 'introdu' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
@@ -29,7 +29,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
+  imports: [FormsModule, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -45,15 +45,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         </div>
       </div>
 
-      <nav class="tabs" role="tablist">
-        @for (tb of tabs; track tb.id) {
-          <button type="button" role="tab" [attr.aria-selected]="tab() === tb.id" [class.on]="tab() === tb.id" (click)="tab.set(tb.id)">
-            <app-icon [name]="tb.icon" [size]="26" /><span>{{ tb.label | t }}</span>
-          </button>
-        }
-        <!-- La capătul barei: duce în arborele tuturor porumbeilor, cu acesta în centru. -->
-        <a class="tab-link" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" [size]="26" /><span>{{ 'porumbel.vezi_in_arbore' | t }}</span></a>
-      </nav>
+      <!-- Filele fișei (și „Vezi în arbore”, „Înapoi”) stau în banda de submeniuri de sus (app.ts), după ?fila=. -->
 
       @switch (tab()) {
         @case ('fisa') {
@@ -94,7 +86,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         }
         @case ('introdu') {
           <!-- Același ecran ca la Rezultate concurs → Introdu rezultat nou; porumbelul acesta e primul în listă. -->
-          <app-concurs-rezultate [focusPigeon]="p.id" (saved)="tab.set('rezultate')" />
+          <app-concurs-rezultate [focusPigeon]="p.id" (saved)="showTab('rezultate')" />
         }
         @case ('qr') {
           <app-partajare [pigeon]="p" />
@@ -134,16 +126,6 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
-    .tabs button, .tabs .tab-link {
-      border: 0; border-radius: 14px; background: none; color: var(--muted); display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 2px; min-height: 64px; padding: 6px 4px; font-size: 0.85rem; font-weight: 700; text-align: center;
-      text-decoration: none; box-shadow: none;
-    }
-    .tabs .tab-link:hover { background: var(--surface); color: var(--text); }
-    /* Pe telefon, cele 8 pe două rânduri, ca etichetele să rămână întregi și mari. */
-    @media (max-width: 600px) { .tabs { grid-template-columns: repeat(4, 1fr); } .tabs button, .tabs .tab-link { font-size: 0.78rem; padding: 6px 2px; } }
-    .tabs button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
     .facts dt { font-weight: 600; color: var(--muted); }
     .facts dd { margin: 0; }
@@ -192,12 +174,20 @@ export default class Porumbel {
   jText = '';
 
   constructor() {
+    // Fila vine din adresă (?fila=, din banda de submeniuri); porumbelul se încarcă doar când se schimbă el.
     effect(() => {
-      const id = this.id();
       const fila = this.fila();
       this.tab.set(TABS.some((t) => t.id === fila) ? (fila as Tab) : 'fisa');
-      this.load(id);
     });
+    effect(() => {
+      const id = this.id();
+      untracked(() => this.load(id));
+    });
+  }
+
+  /** Trece la altă filă (prin adresă, ca banda de sus să se aprindă la fel). */
+  showTab(tab: Tab) {
+    this.router.navigate([], { queryParams: { fila: tab === 'fisa' ? undefined : tab }, queryParamsHandling: 'merge' });
   }
 
   /** După „Salvează” într-o secțiune a fișei: porumbelul nou peste cel vechi (și arborele din fila Pedigree). */

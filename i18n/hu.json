@@ -446,7 +446,6 @@
   "parola_camp.parola": "Jelszó",
   "parola_camp.arata": "Jelszó megjelenítése",
   "parola_camp.ascunde": "Jelszó elrejtése",
-  "vedere.cum_arati": "Hogyan mutassa a galambokat",
   "vedere.grila": "Rács",
   "vedere.lista": "Lista",
   "trimite.trimite": "Küldés",
@@ -1258,5 +1257,7 @@
   "rezultate.schimba_aria": "Eredmény módosítása: {loc}. hely, {concurs}",
   "rezultate.salvat": "Az eredményt elmentettem.",
   "rezultate.sters": "Az eredményt töröltem.",
-  "porumbel.fila_introdu": "Új eredmény"
+  "porumbel.fila_introdu": "Új eredmény",
+  "meniu.submeniu": "Almenü",
+  "meniu.inapoi": "Vissza"
 }

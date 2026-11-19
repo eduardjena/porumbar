@@ -1177,5 +1177,16 @@
   "cont.citiri_inceput": "Az előfizetés első 14 napjában 3 beolvasásod van; mind a(z) {total} {data} naptól elérhető.",
   "cititor.fara_citiri_inceput": "Az előfizetés első 14 napjában {numar} fényképet olvashatsz be; {data} naptól az összes beolvasásod elérhető. Addig töltsd ki kézzel a mezőket (a már meglévő gyűrűszámok maguktól kitöltődnek).",
   "cititor.cere_contact": "Ha most többre van szükséged: {contact}.",
-  "cititor.atentie": "Ha a fénykép rossz minőségű, a kézírás nehezen olvasható vagy a lapon hibák vannak, a beolvasás hibás lehet, és az eredmény eltérhet a várttól. Ez normális. Ilyenkor használd a QR-kód beolvasását vagy a kézi kitöltést."
+  "cititor.atentie": "Ha a fénykép rossz minőségű, a kézírás nehezen olvasható vagy a lapon hibák vannak, a beolvasás hibás lehet, és az eredmény eltérhet a várttól. Ez normális. Ilyenkor használd a QR-kód beolvasását vagy a kézi kitöltést.",
+  "camp.clasamentul": "Eredménylista",
+  "catalog.clasament.club": "Egyesület",
+  "catalog.clasament.filiala": "Megyei (fiók)",
+  "catalog.clasament.zona": "Körzet",
+  "catalog.clasament.national": "Országos",
+  "catalog.clasament.altul": "Egyéb",
+  "rezultate.clasament_nespus": "— nem adom meg —",
+  "rezultate.clasament_ajutor": "Ugyanaz a galamb más helyezést ér el az egyesületi, megyei és országos listán: mindegyiket külön írd be.",
+  "rezultate.viteza_din_clasament": "A 2. naptól az éjszaka nem számít: írd be a sebességet az eredménylistáról.",
+  "rezultate.viteza_lipsa": "sebesség: írd be az eredménylistáról",
+  "rezultate.premiat": "Díjazott"
 }

@@ -45,6 +45,7 @@ export interface Catalog {
   evalCriteria: CodeLabel[];
   journalTypes: CodeLabel[];
   raceCategories: CodeLabel[];
+  raceLevels: CodeLabel[];
 }
 
 export interface Ring {
@@ -228,6 +229,8 @@ export interface Race {
   releasePlace: string;
   releaseTime: string | null;
   entered: number | null;
+  /** Clasamentul: club, filiala, zona, national, altul (null la rezultatele vechi). */
+  level: string | null;
 }
 
 /** Rezultatul unui porumbel la un concurs; viteza, penalizarea și rândul scurt sunt calculate de server. */
@@ -242,8 +245,14 @@ export interface RaceResult {
   /** Viteza scrisă de om (null = calculată de program). */
   speedEntered: number | null;
   speed: number | null;
+  /** Din ziua a 2-a viteza nu se calculează: se scrie din clasament. */
+  speedFromSheet: boolean;
   penalty: number | null;
+  /** Coeficientul FCI: cel scris de om (fciEntered) sau calculat de program. */
   fci: number | null;
+  fciEntered: number | null;
+  /** În primii 20% din porumbeii angajați (null dacă nu se știu angajații). */
+  prized: boolean | null;
   onPedigree: boolean;
   short: string;
 }

@@ -14,6 +14,7 @@ interface Form {
   releasePlace: string;
   category: string;
   organizer: string;
+  level: string;
   number: string;
   releaseTime: string;
   entered: string;
@@ -28,11 +29,13 @@ interface Form {
 
 const today = () => new Date().toISOString().slice(0, 10);
 const empty = (): Form => ({
-  raceId: '', date: today(), releasePlace: '', category: 'viteza', organizer: '', number: '', releaseTime: '', entered: '',
+  raceId: '', date: today(), releasePlace: '', category: 'viteza', organizer: '', level: '', number: '', releaseTime: '', entered: '',
   place: '', distanceKm: '', arrivalDay: '1', arrivalTime: '', speed: '', fci: '', onPedigree: true,
 });
 const str = (v: number | string | null | undefined) => (v == null ? '' : String(v));
 const num = (n: number, digits = 2) => formatNumber(n, { maximumFractionDigits: digits });
+/** Penalizarea și coeficientul FCI: calculate cu 4 zecimale, arătate cu 2, ca pe foaia Columba („0,10”). */
+const dec2 = (n: number) => formatNumber(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** Un număr de pus înapoi în câmp: fără puncte de mii, cu virgulă („196,608”). */
 const plain = (n: number) => String(n).replace('.', ',');
 
@@ -69,6 +72,13 @@ const plain = (n: number) => String(n).replace('.', ',');
           <label class="field grow">{{ 'camp.locul_lansarii' | t }} <input name="releasePlace" [(ngModel)]="f.releasePlace" [placeholder]="'rezultate.ex_lansare' | t" required /></label>
           <label class="field grow">{{ 'rezultate.organizator' | t }} <input name="organizer" [(ngModel)]="f.organizer" [placeholder]="'rezultate.ex_organizator' | t" required /></label>
         </div>
+        <label class="field">{{ 'camp.clasamentul' | t }}
+          <select name="level" [(ngModel)]="f.level">
+            <option value="">{{ 'rezultate.clasament_nespus' | t }}</option>
+            @for (l of catalog.catalog()?.raceLevels ?? []; track l.code) { <option [value]="l.code">{{ l.label }}</option> }
+          </select>
+          <span class="hint">{{ 'rezultate.clasament_ajutor' | t }}</span>
+        </label>
         <label class="field">{{ 'rezultate.angajati' | t }}
           <input name="entered" [(ngModel)]="f.entered" inputmode="numeric" [placeholder]="'text.de_exemplu' | t: { exemplu: '10023' }" />
           <span class="hint">{{ 'rezultate.angajati_ajutor' | t }}</span>
@@ -93,14 +103,15 @@ const plain = (n: number) => String(n).replace('.', ',');
             <label class="field grow">{{ 'camp.ora_sosirii' | t }} <input type="time" step="1" name="arrivalTime" [(ngModel)]="f.arrivalTime" /></label>
             <label class="field grow">{{ 'camp.ziua_sosirii' | t }}
               <select name="arrivalDay" [(ngModel)]="f.arrivalDay">
-                <option value="1">{{ 'rezultate.ziua_1' | t }}</option><option value="2">{{ 'rezultate.ziua' | t: { zi: 2 } }}</option><option value="3">{{ 'rezultate.ziua' | t: { zi: 3 } }}</option>
+                <option value="1">{{ 'rezultate.ziua_1' | t }}</option>
+                @for (z of laterDays; track z) { <option [value]="z">{{ 'rezultate.ziua' | t: { zi: z } }}</option> }
               </select>
             </label>
           </div>
           <div class="row">
             <label class="field grow">{{ 'camp.viteza' | t }}
               <input name="speed" [(ngModel)]="f.speed" inputmode="decimal" />
-              <span class="hint">{{ 'rezultate.viteza_ajutor' | t }}</span>
+              <span class="hint">{{ (f.arrivalTime && +f.arrivalDay >= 2 ? 'rezultate.viteza_din_clasament' : 'rezultate.viteza_ajutor') | t }}</span>
             </label>
             <label class="field grow">{{ 'camp.coeficient' | t }} <input name="fci" [(ngModel)]="f.fci" inputmode="decimal" /></label>
           </div>
@@ -117,12 +128,13 @@ const plain = (n: number) => String(n).replace('.', ',');
     <ul class="results">
       @for (r of results(); track r.id) {
         <li class="card">
-          <p class="big"><strong>{{ 'rezultate.locul' | t: { loc: r.place } }}</strong>@if (r.race.entered) { {{ 'rezultate.din' | t: { numar: num(r.race.entered, 0) } }} } · {{ r.race.releasePlace }} · {{ num(r.distanceM / 1000, 1) }} km</p>
+          <p class="big"><strong>{{ 'rezultate.locul' | t: { loc: r.place } }}</strong>@if (r.race.entered) { {{ 'rezultate.din' | t: { numar: num(r.race.entered, 0) } }} } · {{ r.race.releasePlace }} · {{ num(r.distanceM / 1000, 1) }} km
+            @if (r.prized) { <span class="prized">{{ 'rezultate.premiat' | t }}</span> }</p>
           <p class="muted">
-            {{ day(r.race.date) }} · {{ catalog.label('raceCategories', r.race.category) }} · {{ r.race.organizer }}@if (r.race.number) { · {{ 'rezultate.concursul_nr' | t: { nr: r.race.number } }}}
+            {{ day(r.race.date) }} · {{ catalog.label('raceCategories', r.race.category) }} · {{ r.race.organizer }}@if (r.race.level) { · {{ catalog.label('raceLevels', r.race.level) }} }@if (r.race.number) { · {{ 'rezultate.concursul_nr' | t: { nr: r.race.number } }}}
           </p>
           <p class="muted">
-            @if (r.speed) { {{ 'rezultate.viteza' | t: { viteza: num(r.speed) } }} · }@if (r.penalty != null) { {{ 'rezultate.coeficient' | t: { coef: num(r.penalty) } }} · }@if (r.fci != null) { FCI {{ num(r.fci) }} · }
+            @if (r.speed) { {{ 'rezultate.viteza' | t: { viteza: num(r.speed) } }} · } @else if (r.speedFromSheet) { {{ 'rezultate.viteza_lipsa' | t }} · }@if (r.penalty != null) { {{ 'rezultate.coeficient' | t: { coef: dec2(r.penalty) } }} · }@if (r.fci != null) { FCI {{ dec2(r.fci) }} · }
             @if (r.onPedigree) { {{ 'rezultate.pe_pedigree' | t }} <span class="mono">{{ r.short }}</span> } @else { {{ 'rezultate.nu_pe_pedigree' | t }} }
           </p>
           <div class="row">
@@ -147,6 +159,7 @@ const plain = (n: number) => String(n).replace('.', ',');
     .results { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
     .results p { margin: 0 0 4px; }
     .big { font-size: 1.15rem; }
+    .prized { display: inline-block; margin-left: 6px; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 800; background: var(--ok-soft); color: var(--ok); }
   `,
 })
 export class Rezultate {
@@ -161,9 +174,11 @@ export class Rezultate {
   readonly formError = signal('');
   readonly busy = signal(false);
   readonly editing = signal<RaceResult | null>(null);
-  readonly moreOpen = computed(() => !!this.editing() && !!(this.editing()!.arrival || this.editing()!.race.releaseTime || this.editing()!.fci != null));
+  readonly moreOpen = computed(() => !!this.editing() && !!(this.editing()!.arrival || this.editing()!.race.releaseTime || this.editing()!.fciEntered != null));
   f: Form = empty();
   protected readonly num = num;
+  protected readonly dec2 = dec2;
+  protected readonly laterDays = [2, 3, 4, 5, 6, 7];
   protected readonly day = formatDay;
 
   constructor() {
@@ -191,7 +206,9 @@ export class Rezultate {
   }
 
   protected raceLabel(r: Race) {
-    return [formatDay(r.date), r.releasePlace, this.catalog.label('raceCategories', r.category), r.organizer].join(' · ');
+    return [formatDay(r.date), r.releasePlace, this.catalog.label('raceCategories', r.category), r.organizer, r.level ? this.catalog.label('raceLevels', r.level) : null]
+      .filter(Boolean)
+      .join(' · ');
   }
 
   /** Concursul ales din listă completează câmpurile concursului (rămân de scris doar locul și distanța). */
@@ -200,7 +217,7 @@ export class Rezultate {
     const r = this.races().find((x) => String(x.id) === id);
     if (!r) return;
     Object.assign(this.f, {
-      date: r.date, releasePlace: r.releasePlace, category: r.category, organizer: r.organizer,
+      date: r.date, releasePlace: r.releasePlace, category: r.category, organizer: r.organizer, level: r.level ?? '',
       number: str(r.number), releaseTime: str(r.releaseTime), entered: str(r.entered),
     });
   }
@@ -209,10 +226,10 @@ export class Rezultate {
     this.editing.set(r);
     this.formError.set('');
     this.f = {
-      raceId: String(r.race.id), date: r.race.date, releasePlace: r.race.releasePlace, category: r.race.category, organizer: r.race.organizer,
+      raceId: String(r.race.id), date: r.race.date, releasePlace: r.race.releasePlace, category: r.race.category, organizer: r.race.organizer, level: r.race.level ?? '',
       number: str(r.race.number), releaseTime: str(r.race.releaseTime), entered: str(r.race.entered),
       place: String(r.place), distanceKm: plain(r.distanceM / 1000), arrivalDay: str(r.arrival?.day ?? 1),
-      arrivalTime: str(r.arrival?.time), speed: r.speedEntered == null ? '' : plain(r.speedEntered), fci: str(r.fci), onPedigree: r.onPedigree,
+      arrivalTime: str(r.arrival?.time), speed: r.speedEntered == null ? '' : plain(r.speedEntered), fci: r.fciEntered == null ? '' : plain(r.fciEntered), onPedigree: r.onPedigree,
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -229,7 +246,7 @@ export class Rezultate {
     const opt = (v: string) => (v.trim() === '' ? null : v.trim());
     const body = {
       race: {
-        date: f.date, releasePlace: f.releasePlace, category: f.category, organizer: f.organizer,
+        date: f.date, releasePlace: f.releasePlace, category: f.category, organizer: f.organizer, level: opt(f.level),
         number: opt(f.number), releaseTime: opt(f.releaseTime), entered: opt(f.entered),
       },
       place: opt(f.place),

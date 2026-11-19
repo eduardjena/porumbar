@@ -327,11 +327,14 @@
     "text": "Viteză",
     "sens": "Categoria de concurs. Limitele în km rămân cele românești."
   },
-  "catalog.concurs.semifond": "Semifond",
+  "catalog.concurs.semifond": {
+    "text": "Demifond (semifond)",
+    "sens": "Columba scrie „Demifond”; la FCI se numește semifond (300–600 km)."
+  },
   "catalog.concurs.fond": "Fond",
   "catalog.concurs.mare-fond": {
-    "text": "Mare fond",
-    "sens": "În maghiară: presupunere, de verificat."
+    "text": "Extrem (mare fond)",
+    "sens": "Columba: Extrem, peste 900 km. În maghiară: presupunere, de verificat."
   },
   "catalog.concurs.maraton": "Maraton",
   "catalog.concurs.pui": "Pui",
@@ -1065,7 +1068,7 @@
   "rezultate.ziua_1": "Ziua 1 (în ziua lansării)",
   "rezultate.ziua": {
     "text": "Ziua {zi}",
-    "sens": "Ziua sosirii după lansare (2, 3)."
+    "sens": "Ziua sosirii după lansare (2–7)."
   },
   "rezultate.viteza_ajutor": "Se calculează singură din ora lansării, ora sosirii (ziua 1) și distanță.",
   "rezultate.salveaza_schimbarea": "Salvează schimbarea",
@@ -1773,5 +1776,25 @@
   "cititor.atentie": {
     "text": "Dacă poza e de calitate slabă, scrisul de mână e greu de citit sau fișa are greșeli, citirea poate da erori și rezultatul poate să nu fie cel dorit. E normal. În acest caz folosește scanarea codului QR sau completează de mână.",
     "sens": "Avertisment scris mărunt sub butonul „Citește din poză sau PDF”."
+  },
+  "camp.clasamentul": "Clasamentul",
+  "catalog.clasament.club": "Club",
+  "catalog.clasament.filiala": {
+    "text": "Filială (județ)",
+    "sens": "Clasamentul pe filiala județeană (la Columba)."
+  },
+  "catalog.clasament.zona": "Zonă",
+  "catalog.clasament.national": "Național",
+  "catalog.clasament.altul": "Altul",
+  "rezultate.clasament_nespus": "— nu spun —",
+  "rezultate.clasament_ajutor": "Același porumbel are alt loc pe club, pe filială și pe național: fiecare se trece separat.",
+  "rezultate.viteza_din_clasament": "Din ziua a 2-a noaptea nu se socotește: scrie viteza din clasament.",
+  "rezultate.viteza_lipsa": {
+    "text": "viteza: scrie-o din clasament",
+    "sens": "Rezultat sosit din ziua a 2-a, fără viteză scrisă."
+  },
+  "rezultate.premiat": {
+    "text": "Premiat",
+    "sens": "Locul e în primii 20% din porumbeii angajați (1 din 5)."
   }
 }

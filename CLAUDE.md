@@ -38,6 +38,9 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js
+  results.js      concursurile: aceleași cifre ca foaia Columba (penalizarea și FCI cu 4 zecimale, FCI cu plafon 5.000
+                  fără Maraton / Extrem, premiat = primii 20%, ziua sosirii 1–7, clasamentul club / filială / zonă /
+                  național); cercetarea: docs/cercetare/reports/Concursuri columbofile în Porumbar.md (branch docs)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,

@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { ConfirmService } from '../../core/confirm';
@@ -45,8 +46,9 @@ const plain = (n: number) => String(n).replace('.', ',');
  */
 @Component({
   selector: 'app-rezultate',
-  imports: [FormsModule, Icon, TPipe],
+  imports: [FormsModule, RouterLink, Icon, TPipe],
   template: `
+    <p class="many"><a routerLink="/concursuri/rezultate"><app-icon name="cupa" />{{ 'rezultate.mai_multi_deodata' | t }}</a></p>
     <form class="card stack" (ngSubmit)="save()">
       <h3>{{ (editing() ? 'rezultate.schimba_titlu' : 'rezultate.adauga_titlu') | t }}</h3>
       @if (races().length) {
@@ -149,6 +151,8 @@ const plain = (n: number) => String(n).replace('.', ',');
   `,
   styles: `
     h3 { margin: 0; }
+    .many { margin: 0 0 12px; font-weight: 700; }
+    .many a { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; }
     fieldset { border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px 14px; margin: 0; }
     legend { font-weight: 800; padding: 0 6px; }
     .grow { flex: 1 1 200px; }

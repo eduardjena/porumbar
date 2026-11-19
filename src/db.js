@@ -320,6 +320,9 @@ const MIGRATIONS = [
   // 20: clasamentul unui rezultat (club / filială / zonă / național / altul): același porumbel are alt loc în fiecare.
   // Gol la rezultatele vechi; intră în cheia concursului doar când e ales.
   "ALTER TABLE races ADD COLUMN level TEXT CHECK (level IN ('club', 'filiala', 'zona', 'national', 'altul'))",
+
+  // 21: codul de crescător de pe clasamente (de ex. VL9001): după el lipirea clasamentului îi găsește rândurile.
+  'ALTER TABLE accounts ADD COLUMN breeder_code TEXT',
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

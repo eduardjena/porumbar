@@ -1796,5 +1796,76 @@
   "rezultate.premiat": {
     "text": "Premiat",
     "sens": "Locul e în primii 20% din porumbeii angajați (1 din 5)."
-  }
+  },
+  "eroare.cod_crescator": {
+    "text": "Codul de crescător are doar litere și cifre, ca pe clasament (de exemplu VL9001).",
+    "sens": "Codul crescătorului de pe clasamentele Columba."
+  },
+  "eroare.lipsa_rezultate": "Scrie locul la cel puțin un porumbel (cel mult {max} deodată).",
+  "titlu.concurs": "Rezultatele unui concurs · Porumbar",
+  "panou.rezultate_concurs": {
+    "text": "Rezultate concurs",
+    "sens": "Butonul de pe Panou spre ecranul cu rezultatele mai multor porumbei la același concurs."
+  },
+  "rezultate.mai_multi_deodata": "Pune rezultatele mai multor porumbei deodată",
+  "concurs.titlu": "Rezultatele unui concurs",
+  "concurs.intro": "Toți porumbeii tăi la același concurs, deodată: alegi concursul, scrii distanța o dată și locul la fiecare porumbel.",
+  "concurs.lipeste_titlu": "Lipește clasamentul",
+  "concurs.lipeste_cum": {
+    "text": "Deschide clasamentul pe columba.ro, selectează tot (sau doar rândurile tale), copiază și lipește aici. Textul se citește doar în telefonul tău: păstrăm numai rândurile tale, după codul de crescător sau după inelele porumbeilor tăi.",
+    "sens": "Explicația lipirii; textul lipit nu pleacă la server, doar rândurile omului."
+  },
+  "concurs.codul_tau": "Codul tău de crescător (de pe clasament)",
+  "concurs.codul_ajutor": "Așa cum apare în coloana COD a clasamentului, de exemplu VL9001. Îl scrii o singură dată.",
+  "concurs.textul": "Clasamentul copiat",
+  "concurs.lipeste_aici": "Lipește aici textul copiat",
+  "concurs.citeste": "Caută rezultatele mele",
+  "concurs.renunta_lipire": "Renunță la lipire",
+  "concurs.lipire_nimic": "Nu am găsit rânduri de clasament în textul lipit. Copiază pagina clasamentului de pe columba.ro și încearcă din nou.",
+  "concurs.lipire_niciunul": "În clasamentul lipit nu am găsit codul tău de crescător și nici inelele porumbeilor tăi.",
+  "concurs.lipire_fara_cod": "Nu am găsit inelele porumbeilor tăi. Scrie și codul tău de crescător, ca să găsim toate rândurile tale.",
+  "concurs.lipire_fara_antet": "N-am găsit antetul clasamentului (data, locul lansării, organizatorul): completează-le mai jos.",
+  "concurs.concursul": "Concursul",
+  "concurs.distanta": "Distanța până la porumbarul tău (km)",
+  "concurs.distanta_ajutor": "O singură dată pentru toți porumbeii. La același loc de lansare se completează singură data viitoare.",
+  "concurs.porumbeii_tai": "Porumbeii tăi: scrie doar locul",
+  "concurs.cauta_ajutor": "Cifrele inelului sau numele",
+  "concurs.locul": "Locul",
+  "concurs.niciun_porumbel": "Nu ai încă porumbei care zboară (concurenți sau tineri).",
+  "concurs.gasite": {
+    "one": "Am găsit {count} porumbel de-al tău",
+    "few": "Am găsit {count} porumbei de-ai tăi",
+    "other": "Am găsit {count} de porumbei de-ai tăi",
+    "sens": "După lipirea clasamentului."
+  },
+  "concurs.porumbel_nou": {
+    "text": "Porumbel nou? Îl adaug",
+    "sens": "Rând cu codul omului, dar cu un inel care nu e în program: bifat, îl adaugă ca porumbel al lui."
+  },
+  "concurs.salveaza": {
+    "one": "Salvează {count} rezultat",
+    "few": "Salvează {count} rezultate",
+    "other": "Salvează {count} de rezultate",
+    "sens": "Butonul de jos la scrierea de mână."
+  },
+  "concurs.adauga_toate": {
+    "one": "Adaugă {count} rezultat",
+    "few": "Adaugă toate ({count})",
+    "other": "Adaugă toate ({count})",
+    "sens": "Butonul de jos după lipire."
+  },
+  "concurs.salvate": {
+    "one": "Am adăugat {count} rezultat.",
+    "few": "Am adăugat {count} rezultate.",
+    "other": "Am adăugat {count} de rezultate.",
+    "sens": "După salvare."
+  },
+  "concurs.deja": {
+    "one": "{count} era deja trecut.",
+    "few": "{count} erau deja trecute.",
+    "other": "{count} erau deja trecute.",
+    "sens": "Rezultatele care existau deja nu se dublează."
+  },
+  "concurs.cauta": "Caută",
+  "concurs.salveaza_gol": "Salvează rezultatele"
 }

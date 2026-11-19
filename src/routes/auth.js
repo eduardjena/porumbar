@@ -116,6 +116,13 @@ export function authRouter() {
       }
       lang = b.lang;
     }
+    // Codul de crescător de pe clasament: litere mari, fără spații; gol = fără cod.
+    let breederCode = req.account.breederCode;
+    if (b.breederCode !== undefined) {
+      const code = String(b.breederCode ?? '').toUpperCase().replace(/\s+/g, '');
+      if (code && !/^[A-Z0-9.-]{2,20}$/.test(code)) throw badRequest('eroare.cod_crescator');
+      breederCode = code || null;
+    }
     const treeView = b.treeView === undefined ? req.account.treeView : oneOf(b.treeView, TREE_VIEWS, 'camp.vedere_arbore');
     const flag = (key) => {
       if (b[key] === undefined) return req.account[key];
@@ -124,9 +131,9 @@ export function authRouter() {
     };
     await run(
       `UPDATE accounts SET name = ?, pedigree_name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ?,
-              print_phone = ?, print_address = ?, print_email = ?, lang = ? WHERE id = ?`,
+              print_phone = ?, print_address = ?, print_email = ?, lang = ?, breeder_code = ? WHERE id = ?`,
       name, pedigreeName, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'),
-      flag('printPhone'), flag('printAddress'), flag('printEmail'), lang, req.account.id,
+      flag('printPhone'), flag('printAddress'), flag('printEmail'), lang, breederCode, req.account.id,
     );
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });

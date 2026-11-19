@@ -2,6 +2,8 @@ import { one, all, insert, run, tx, nowIso } from './db.js';
 import { ref } from './i18n.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { RACE_CATEGORIES, RACE_LEVELS, codes, fold } from './catalog.js';
+import { createPigeon, getPigeonRow } from './pigeons.js';
+import { parseRing, ringKey } from './rings.js';
 
 /*
  * Rezultatele la concursuri introduse de mână (design: docs/superpowers/specs/2026-11-16-rezultate-manual-design.md).
@@ -212,7 +214,65 @@ export async function deleteResult(accountId, id) {
   await pruneRaces(accountId);
 }
 
-/** Concursurile contului (cele mai noi întâi), ca al doilea porumbel să aleagă concursul în loc să-l retasteze. */
+/**
+ * Concursurile contului (cele mai noi întâi), ca al doilea porumbel să aleagă concursul în loc să-l retasteze.
+ * `distanceM` = distanța ultimului rezultat (același porumbar, același loc de lansare: aceeași distanță data viitoare).
+ */
 export async function listRaces(accountId) {
-  return (await all('SELECT * FROM races WHERE account_id = ? ORDER BY race_date DESC, id DESC LIMIT 200', accountId)).map(toRace);
+  const rows = await all(
+    `SELECT r.*, (SELECT rr.distance_m FROM race_results rr WHERE rr.race_id = r.id ORDER BY rr.id DESC LIMIT 1) AS last_distance
+       FROM races r WHERE r.account_id = ? ORDER BY r.race_date DESC, r.id DESC LIMIT 200`,
+    accountId,
+  );
+  return rows.map((r) => ({ ...toRace(r), distanceM: r.last_distance ?? null }));
+}
+
+const MAX_ROWS = 300;
+
+/**
+ * Mai mulți porumbei la același concurs, deodată (scrierea de mână cu un singur număr și lipirea clasamentului).
+ * Rândul: { pigeonId } sau { newPigeon: { ring, sex? } } (lipirea: inelul omului care nu e încă în program), plus locul
+ * și, opțional, distanța, sosirea, viteza și coeficientul din clasament. Distanța comună vine din `distanceKm`.
+ * Totul într-o tranzacție (o greșeală nu lasă jumătăți); rezultatele deja trecute se sar („dublu”).
+ */
+export async function saveMany(accountId, body) {
+  const race = parseRace(body?.race);
+  const rows = Array.isArray(body?.rows) ? body.rows : [];
+  if (!rows.length || rows.length > MAX_ROWS) throw badRequest('eroare.lipsa_rezultate', { max: MAX_ROWS });
+  const source = body?.source === 'lipit' ? 'lipit' : 'manual';
+  const parsed = rows.map((row) => ({ row, res: parseResult({ ...row, distanceKm: row?.distanceKm ?? body?.distanceKm }) }));
+  return tx(async () => {
+    const r = await upsertRace(accountId, race);
+    const ids = [];
+    const skipped = [];
+    for (const [index, { row, res }] of parsed.entries()) {
+      const pigeonId = await pigeonOf(accountId, row);
+      if (r.entered && res.place > r.entered) throw badRequest('eroare.loc_prea_mare', { loc: res.place, angajati: r.entered });
+      if (await one('SELECT 1 FROM race_results WHERE race_id = ? AND pigeon_id = ?', r.id, pigeonId)) {
+        skipped.push({ index, reason: 'dublu' });
+        continue;
+      }
+      ids.push(
+        await insert(
+          `INSERT INTO race_results (race_id, place, distance_m, arrival_day, arrival_time, speed, fci, on_pedigree, account_id, pigeon_id, source, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          r.id, res.place, res.distanceM, res.arrivalDay, res.arrivalTime, res.speed, res.fci, res.onPedigree, accountId, pigeonId, source, nowIso(),
+        ),
+      );
+    }
+    const results = ids.length ? (await all(`${SELECT} WHERE rr.id = ANY(?::bigint[]) ORDER BY rr.id`, ids)).map(toResult) : [];
+    return { added: ids.length, skipped, results };
+  });
+}
+
+/** Porumbelul rândului: al contului, după id, sau după inel (cel existent ori unul nou, al omului). */
+async function pigeonOf(accountId, row) {
+  if (row?.pigeonId != null) return (await getPigeonRow(accountId, row.pigeonId)).id;
+  const ring = typeof row?.newPigeon?.ring === 'string' ? row.newPigeon.ring : '';
+  const key = ringKey(parseRing(ring));
+  if (!key) throw badRequest('eroare.scrie_inelul');
+  const found = await one(`SELECT id FROM pigeons WHERE account_id = ? AND ring_key = ? ORDER BY (kind = 'own') DESC, id LIMIT 1`, accountId, key);
+  if (found) return found.id;
+  const sex = row.newPigeon.sex === 'M' || row.newPigeon.sex === 'F' ? row.newPigeon.sex : undefined;
+  return (await createPigeon(accountId, { kind: 'own', ring, ...(sex ? { sex } : {}) })).id;
 }

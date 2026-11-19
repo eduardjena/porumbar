@@ -1188,5 +1188,54 @@
   "rezultate.clasament_ajutor": "Ugyanaz a galamb más helyezést ér el az egyesületi, megyei és országos listán: mindegyiket külön írd be.",
   "rezultate.viteza_din_clasament": "A 2. naptól az éjszaka nem számít: írd be a sebességet az eredménylistáról.",
   "rezultate.viteza_lipsa": "sebesség: írd be az eredménylistáról",
-  "rezultate.premiat": "Díjazott"
+  "rezultate.premiat": "Díjazott",
+  "eroare.cod_crescator": "A tenyésztői kód csak betűket és számokat tartalmaz, ahogy az eredménylistán (például VL9001).",
+  "eroare.lipsa_rezultate": "Írd be legalább egy galamb helyezését (egyszerre legfeljebb {max}).",
+  "titlu.concurs": "Egy verseny eredményei · Porumbar",
+  "panou.rezultate_concurs": "Versenyeredmények",
+  "rezultate.mai_multi_deodata": "Több galamb eredménye egyszerre",
+  "concurs.titlu": "Egy verseny eredményei",
+  "concurs.intro": "Az összes galambod ugyanazon a versenyen, egyszerre: kiválasztod a versenyt, egyszer beírod a távolságot, és minden galambnál a helyezést.",
+  "concurs.lipeste_titlu": "Eredménylista beillesztése",
+  "concurs.lipeste_cum": "Nyisd meg az eredménylistát, jelöld ki az egészet (vagy csak a saját soraidat), másold ki, és illeszd be ide. A szöveget csak a telefonod olvassa: csak a saját soraidat őrizzük meg, a tenyésztői kódod vagy a galambjaid gyűrűszáma alapján.",
+  "concurs.codul_tau": "A tenyésztői kódod (az eredménylistáról)",
+  "concurs.codul_ajutor": "Ahogy az eredménylista KÓD oszlopában áll, például VL9001. Csak egyszer kell beírni.",
+  "concurs.textul": "A kimásolt eredménylista",
+  "concurs.lipeste_aici": "Illeszd be ide a kimásolt szöveget",
+  "concurs.citeste": "Keresd meg az eredményeimet",
+  "concurs.renunta_lipire": "Beillesztés elvetése",
+  "concurs.lipire_nimic": "A beillesztett szövegben nem találtam eredménylista-sorokat. Másold ki az eredménylista oldalát, és próbáld újra.",
+  "concurs.lipire_niciunul": "A beillesztett listában nem találtam sem a tenyésztői kódodat, sem a galambjaid gyűrűszámát.",
+  "concurs.lipire_fara_cod": "Nem találtam a galambjaid gyűrűszámát. Írd be a tenyésztői kódodat is, hogy minden sorodat megtaláljuk.",
+  "concurs.lipire_fara_antet": "Nem találtam az eredménylista fejlécét (dátum, feleresztés helye, rendező): add meg lent.",
+  "concurs.concursul": "A verseny",
+  "concurs.distanta": "Távolság a dúcodig (km)",
+  "concurs.distanta_ajutor": "Egyszer, az összes galambra. Ugyanarról a feleresztési helyről legközelebb magától kitöltődik.",
+  "concurs.porumbeii_tai": "A galambjaid: csak a helyezést írd be",
+  "concurs.cauta_ajutor": "Gyűrűszám vagy név",
+  "concurs.locul": "Helyezés",
+  "concurs.niciun_porumbel": "Még nincs versenyző galambod (versenyző vagy fiatal).",
+  "concurs.gasite": {
+    "one": "{count} galambodat találtam",
+    "other": "{count} galambodat találtam"
+  },
+  "concurs.porumbel_nou": "Új galamb? Hozzáadom",
+  "concurs.salveaza": {
+    "one": "{count} eredmény mentése",
+    "other": "{count} eredmény mentése"
+  },
+  "concurs.adauga_toate": {
+    "one": "{count} eredmény hozzáadása",
+    "other": "Mind hozzáadása ({count})"
+  },
+  "concurs.salvate": {
+    "one": "{count} eredményt hozzáadtam.",
+    "other": "{count} eredményt hozzáadtam."
+  },
+  "concurs.deja": {
+    "one": "{count} már szerepelt.",
+    "other": "{count} már szerepelt."
+  },
+  "concurs.cauta": "Keresés",
+  "concurs.salveaza_gol": "Eredmények mentése"
 }

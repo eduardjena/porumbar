@@ -40,6 +40,7 @@ function reasons(p: BoardPigeon): string {
       <div class="row actions">
         <app-view-toggle current="grila" />
         <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
+        <a routerLink="/concursuri/rezultate" class="btn"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
         <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
         <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
       </div>

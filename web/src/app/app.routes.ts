@@ -20,6 +20,7 @@ export const routes: Routes = [
   { path: 'perechi', canActivate: [authGuard], title: title('titlu.perechi'), loadComponent: () => import('./pages/perechi/perechi') },
   { path: 'perechi/:id', canActivate: [authGuard], title: title('titlu.pereche'), loadComponent: () => import('./pages/perechi/pereche') },
   { path: 'scaneaza', canActivate: [authGuard], title: title('titlu.scaneaza'), loadComponent: () => import('./pages/scaneaza/scaneaza') },
+  { path: 'concursuri/rezultate', canActivate: [authGuard], title: title('titlu.concurs'), loadComponent: () => import('./pages/concurs/concurs-rezultate') },
   { path: 'porumbei/pedigree', canActivate: [authGuard], title: title('titlu.pedigree_hartie'), loadComponent: () => import('./pages/pedigree-hartie/pedigree-hartie') },
   { path: 'porumbei/nou', canActivate: [authGuard], title: title('titlu.porumbel_nou'), loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: title('titlu.editeaza'), loadComponent: () => import('./pages/porumbel-form/porumbel-form') },

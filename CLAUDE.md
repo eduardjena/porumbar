@@ -44,8 +44,13 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
-                  scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator)
+                  scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
+                  concurs (/concursuri/rezultate: toți porumbeii la un concurs, de mână sau lipind clasamentul)
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
+                  clasament.ts: citește clasamentul Columba lipit DOAR în telefon; la server pleacă numai rândurile omului
+                  (după codul de crescător din Cont sau după inelele lui). Fără importuri, testat cu Node
+                  (test/clasament.test.js). Nu se descarcă nimic de pe columba.ro și nu se citește din poză (decizia
+                  vânzătorului, 2026-11-19)
 i18n/           dicționarele de limbi, citite de server și de interfață (vezi „Limbi”)
 test/           testele (node:test) pe un PostgreSQL temporar: `npm test`; un fișier: `node scripts/test.mjs test/x.test.js`
 scripts/        dev-db (Postgres de dezvoltare în data/pg, port 5433), db-setup, seed-exemplu (cont demo, doar local), test

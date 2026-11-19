@@ -1,7 +1,7 @@
 import express from 'express';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
-import { addResult, deleteResult, listRaces, listResults, updateResult } from '../results.js';
+import { addResult, deleteResult, listRaces, listResults, saveMany, updateResult } from '../results.js';
 
 /** Rezultatele la concursuri ale porumbeilor contului, introduse de mână. */
 export function resultsRouter() {
@@ -23,6 +23,9 @@ export function resultsRouter() {
     await deleteResult(req.account.id, req.params.id);
     res.status(204).end();
   });
+
+  // Mai mulți porumbei la același concurs (scrierea de mână cu un singur număr, lipirea clasamentului).
+  r.post('/races/results', requireAccount, async (req, res) => res.status(201).json(await saveMany(req.account.id, req.body)));
 
   r.get('/races', requireAccount, async (req, res) => res.json({ races: await listRaces(req.account.id) }));
 

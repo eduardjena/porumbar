@@ -20,6 +20,8 @@ export interface Account {
   /** Creditul pentru citirea pozelor, în dolari. */
   /** Citirile din poze în anul de abonament (doar la /auth/me). */
   reads?: { used: number; allowed: number; perYear: number; fullFrom: string | null };
+  /** Codul de crescător de pe clasamente (de ex. VL9001), pentru lipirea clasamentului. */
+  breederCode?: string | null;
   /** Limba contului (o pune vânzătorul). */
   lang: string;
 }
@@ -231,6 +233,8 @@ export interface Race {
   entered: number | null;
   /** Clasamentul: club, filiala, zona, national, altul (null la rezultatele vechi). */
   level: string | null;
+  /** Doar în lista de concursuri: distanța ultimului rezultat (același loc de lansare, aceeași distanță). */
+  distanceM?: number | null;
 }
 
 /** Rezultatul unui porumbel la un concurs; viteza, penalizarea și rândul scurt sunt calculate de server. */

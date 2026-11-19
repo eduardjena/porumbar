@@ -175,3 +175,59 @@ test('„premiat” = în primii 20% din porumbeii angajați (1 din 5)', async (
   assert.equal(await at(2006), false);
   assert.equal(await at(3, { entered: null }), null, 'fără porumbeii angajați nu se știe');
 });
+
+// Scrierea de mână cu un singur număr și lipirea clasamentului: mai multe rezultate deodată, la același concurs.
+const many = (body, cookie = a) => call('/api/races/results', { method: 'POST', cookie, body });
+
+test('codul de crescător (de pe clasament) îl scrie omul în Cont: litere mari, fără spații', async () => {
+  const c = await newAccount(call, 'Cod');
+  const r = await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { breederCode: ' vl 9001 ' } });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.account.breederCode, 'VL9001');
+  assert.equal((await call('/api/auth/me', { cookie: c })).data.account.breederCode, 'VL9001');
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { breederCode: '' } })).data.account.breederCode, null);
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { breederCode: 'VL9001; DROP' } })).status, 400);
+});
+
+test('mai mulți porumbei la același concurs: distanța o dată, locul la fiecare; dublurile se sar', async () => {
+  const q1 = await own('RO-24-0101774');
+  const q2 = await own('RO-24-0045658');
+  const race = { ...yablanita, releasePlace: 'Ruse', date: '2026-05-11' };
+  const r = await many({ race, distanceKm: '210,5', source: 'manual', rows: [{ pigeonId: q1.id, place: 12 }, { pigeonId: q2.id, place: 340 }] });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.added, 2);
+  assert.deepEqual(r.data.results.map((x) => [x.place, x.distanceM]), [[12, 210500], [340, 210500]]);
+  const again = await many({ race, distanceKm: 210.5, rows: [{ pigeonId: q1.id, place: 12 }, { pigeonId: q2.id, place: 5, distanceKm: 211 }] });
+  assert.equal(again.status, 201);
+  assert.equal(again.data.added, 0, 'deja adăugate: nu se dublează');
+  assert.deepEqual(again.data.skipped, [{ index: 0, reason: 'dublu' }, { index: 1, reason: 'dublu' }]);
+  const races = (await call('/api/races', { cookie: a })).data.races;
+  assert.equal(races.find((x) => x.releasePlace === 'Ruse').distanceM, 210500, 'distanța ținută minte pentru data viitoare');
+});
+
+test('lipirea: rândul din clasament (viteză, FCI, ziua) intră ca atare; un inel nou devine porumbelul omului', async () => {
+  const race = { ...yablanita, releasePlace: 'Lipit', date: '2026-05-18' };
+  const r = await many({
+    race, source: 'lipit',
+    rows: [{ newPigeon: { ring: 'RO-25-2014443', sex: 'F' }, place: 7, distanceKm: 180.466, arrival: { day: 1, time: '10:05:55' }, speed: 1444.69, fci: 1.4 }],
+  });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const res = r.data.results[0];
+  assert.equal(res.speed, 1444.69);
+  assert.equal(res.fci, 1.4);
+  const p = (await call(`/api/pigeons/${res.pigeonId}`, { cookie: a })).data.pigeon;
+  assert.equal(p.kind, 'own');
+  const same = await many({ race: { ...race, releasePlace: 'Lipit 2' }, source: 'lipit', rows: [{ newPigeon: { ring: '2014443/25 RO' }, place: 1, distanceKm: 100 }] });
+  assert.equal(same.data.results[0].pigeonId, res.pigeonId, 'același inel: același porumbel, nu unul nou');
+});
+
+test('lipirea / scrierea de mână: porumbelul altui cont și datele greșite sunt refuzate, fără jumătăți', async () => {
+  const theirs = (await call('/api/pigeons', { method: 'POST', cookie: b, body: { kind: 'own', ring: 'RO-25-9999' } })).data.pigeon;
+  const race = { ...yablanita, releasePlace: 'Refuz', date: '2026-05-25' };
+  const mine = await own('RO-25-8888');
+  assert.equal((await many({ race, distanceKm: 100, rows: [{ pigeonId: mine.id, place: 1 }, { pigeonId: theirs.id, place: 2 }] })).status, 404);
+  assert.equal((await many({ race, distanceKm: 100, rows: [{ pigeonId: mine.id, place: 0 }] })).status, 400);
+  assert.equal((await many({ race, distanceKm: 100, rows: [] })).status, 400);
+  assert.equal((await many({ race, rows: [{ pigeonId: mine.id, place: 1 }] })).status, 400, 'fără distanță');
+  assert.equal((await call(`/api/pigeons/${mine.id}/results`, { cookie: a })).data.results.length, 0, 'nimic pe jumătate');
+});

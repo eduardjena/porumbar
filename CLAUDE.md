@@ -44,6 +44,9 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
+                  (Grilă /panou, Listă /porumbar și Rezultate /rezultate stau într-un cadru comun, panou/porumbar-cadru.ts:
+                  antetul, butoanele și bara de filtre nu se redesenează la schimbarea filei; datele și filtrele în
+                  panou/porumbar-state.ts)
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
                   concurs (/concursuri/rezultate: toți porumbeii la un concurs, de mână sau lipind clasamentul)
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …

@@ -1880,5 +1880,11 @@
   "toate.ordine_viteza": "Cea mai mare viteză",
   "toate.doar_premiate": "Doar premiate",
   "toate.niciunul": "Încă nu ai rezultate la concursuri.",
-  "toate.nimic_gasit": "Niciun rezultat nu se potrivește cu ce ai ales."
+  "toate.nimic_gasit": "Niciun rezultat nu se potrivește cu ce ai ales.",
+  "toate.numar_afisate": {
+    "one": "{count} afișat",
+    "few": "{count} afișate",
+    "other": "{count} de afișate",
+    "sens": "Câte rezultate se văd după filtre, pe fila Rezultate."
+  }
 }

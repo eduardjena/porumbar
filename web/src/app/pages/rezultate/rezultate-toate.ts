@@ -1,59 +1,35 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { TPipe, formatDay, formatNumber } from '../../core/i18n';
-import { RaceResult, Ring } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { ViewToggle } from '../../shared/view-toggle';
+import { fold, matches } from '../panou/panou-view';
+import { PorumbarState, ResultRow } from '../panou/porumbar-state';
 
-/** Un rezultat din lista tuturor, cu porumbelul lui. */
-type Row = RaceResult & { pigeon: { id: number; name: string | null; sex: 'M' | 'F' | null; ring: Ring | null } };
 type Sort = 'noi' | 'vechi' | 'bune' | 'viteza';
-
 const SORTS: Sort[] = ['noi', 'vechi', 'bune', 'viteza'];
 const SORT_KEY = 'porumbar.rezultate.ordine';
-const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 /** „Cel mai bun rezultat” = coeficientul cel mai mic (locul raportat la câți porumbei au zburat); fără angajați, după loc. */
-const score = (r: Row) => r.penalty ?? r.place * 1000;
+const score = (r: ResultRow) => r.penalty ?? r.place * 1000;
 const dec2 = (n: number) => formatNumber(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /*
- * Fila „Rezultate” de lângă Grilă și Listă: rezultatele tuturor porumbeilor, de ordonat după cele mai noi / mai vechi,
- * cel mai bun rezultat (coeficientul) sau viteză; căutare după porumbel sau concurs și „doar premiate”.
+ * Fila „Rezultate” din cadrul comun (lângă Grilă și Listă): rezultatele tuturor porumbeilor. Bara de sus e aceeași:
+ * căutarea și filtrele aleg porumbeii (căutarea găsește și locul lansării), iar „Premiați” arată doar rezultatele
+ * premiate. Ordonarea e a rezultatelor: cele mai noi / vechi, cel mai bun rezultat (coeficientul), viteză.
  */
 @Component({
   selector: 'app-rezultate-toate',
-  imports: [FormsModule, RouterLink, Icon, ViewToggle, TPipe],
+  imports: [FormsModule, RouterLink, Icon, TPipe],
   template: `
-    <div class="head">
-      <div>
-        <h1>{{ 'panou.titlu' | t }}</h1>
-        @if (loaded()) { <p class="muted count">{{ 'toate.numar' | t: { count: all().length } }}</p> }
-      </div>
-      <div class="row actions">
-        <app-view-toggle current="rezultate" />
-        <a routerLink="/concursuri/rezultate" class="btn primary"><app-icon name="plus" />{{ 'toate.adauga' | t }}</a>
-      </div>
-    </div>
-
-    @if (all().length) {
-      <div class="filters">
-        <label class="search">
-          <app-icon name="cautare" />
-          <input type="search" [placeholder]="'toate.cauta' | t" [attr.aria-label]="'toate.cauta' | t" [ngModel]="q()" (ngModelChange)="q.set($event)" />
-        </label>
-        <label class="sort">{{ 'toate.ordoneaza' | t }}
-          <select [ngModel]="sort()" (ngModelChange)="setSort($event)">
-            @for (s of sorts; track s) { <option [value]="s">{{ 'toate.ordine_' + s | t }}</option> }
-          </select>
-        </label>
-        <label class="check"><input type="checkbox" [ngModel]="prizedOnly()" (ngModelChange)="prizedOnly.set($event)" />{{ 'toate.doar_premiate' | t }}</label>
-      </div>
+    @if (s.results().length) {
+      <label class="sort">{{ 'toate.ordoneaza' | t }}
+        <select [ngModel]="sort()" (ngModelChange)="setSort($event)">
+          @for (o of sorts; track o) { <option [value]="o">{{ 'toate.ordine_' + o | t }}</option> }
+        </select>
+      </label>
     }
-
-    @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
 
     <ul class="rows card">
       @for (r of shown(); track r.id) {
@@ -79,27 +55,18 @@ const dec2 = (n: number) => formatNumber(n, { minimumFractionDigits: 2, maximumF
           </a>
         </li>
       } @empty {
-        @if (loaded()) {
+        @if (s.resultsLoaded()) {
           <li class="empty">
-            <p>{{ (all().length ? 'toate.nimic_gasit' : 'toate.niciunul') | t }}</p>
-            @if (!all().length) { <a routerLink="/concursuri/rezultate" class="btn primary"><app-icon name="cupa" />{{ 'toate.adauga' | t }}</a> }
+            <p>{{ (s.results().length ? 'toate.nimic_gasit' : 'toate.niciunul') | t }}</p>
+            @if (!s.results().length) { <a routerLink="/concursuri/rezultate" class="btn primary"><app-icon name="cupa" />{{ 'toate.adauga' | t }}</a> }
           </li>
         }
       }
     </ul>
   `,
   styles: `
-    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-    .head h1 { margin-bottom: 2px; }
-    .count { margin: 0; }
-    .filters { display: grid; grid-template-columns: 1fr auto auto; gap: 10px 16px; align-items: center; margin-bottom: 16px; }
-    .search { position: relative; display: block; }
-    .search app-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
-    .search input { padding-left: 50px; border-radius: 999px; }
-    .sort { display: flex; align-items: center; gap: 8px; font-weight: 700; white-space: nowrap; }
+    .sort { display: flex; align-items: center; gap: 8px; font-weight: 700; margin: 0 0 12px; }
     .sort select { width: auto; }
-    .check { display: flex; align-items: center; gap: 10px; font-weight: 600; min-height: 48px; white-space: nowrap; }
-    .check input { width: 24px; height: 24px; }
     .rows { list-style: none; margin: 0; padding: 4px 0; }
     .rows li + li { border-top: 1px solid var(--border); }
     .rows a {
@@ -116,8 +83,6 @@ const dec2 = (n: number) => formatNumber(n, { minimumFractionDigits: 2, maximumF
     .empty { padding: 20px 16px; }
     .empty p { margin: 0 0 12px; }
     @media (max-width: 767px) {
-      .actions .btn { display: none; }
-      .filters { grid-template-columns: 1fr; }
       .rows a { grid-template-columns: minmax(0, 1fr) auto; padding: 10px 12px; }
       .race { grid-column: 1 / -1; grid-row: 2; }
       .who { grid-column: 1 / -1; grid-row: 3; }
@@ -127,53 +92,44 @@ const dec2 = (n: number) => formatNumber(n, { minimumFractionDigits: 2, maximumF
   `,
 })
 export default class RezultateToate {
-  private readonly api = inject(Api);
+  protected readonly s = inject(PorumbarState);
   protected readonly catalog = inject(CatalogService);
   protected readonly sorts = SORTS;
   protected readonly day = formatDay;
   protected readonly dec2 = dec2;
   protected readonly num = (n: number, digits = 2) => formatNumber(n, { maximumFractionDigits: digits });
-
-  readonly all = signal<Row[]>([]);
-  readonly loaded = signal(false);
-  readonly error = signal('');
-  readonly q = signal('');
-  readonly prizedOnly = signal(false);
   readonly sort = signal<Sort>(this.savedSort());
 
-  /** Lista după căutare, „doar premiate” și ordinea aleasă. */
+  /** Rezultatele după bara comună (porumbeii aleși, căutarea, „Premiați”) și ordinea aleasă. */
   protected readonly shown = computed(() => {
-    const q = fold(this.q().trim());
-    let list = this.all();
-    if (this.prizedOnly()) list = list.filter((r) => r.prized);
-    if (q) {
-      list = list.filter((r) =>
-        fold(`${r.pigeon.ring?.display ?? ''} ${r.pigeon.ring?.number ?? ''} ${r.pigeon.name ?? ''} ${r.race.releasePlace} ${r.race.organizer}`).includes(q),
-      );
-    }
-    const byDate = (a: Row, b: Row) => a.race.date.localeCompare(b.race.date) || b.place - a.place;
-    const sorted = [...list];
+    const v = this.s.view();
+    const byId = this.s.byId();
+    const q = fold(v.q.trim());
+    // Filtrele pe porumbel, fără căutare și fără „Premiați” (acela alege rezultatele premiate, mai jos).
+    const pigeonOnly = { ...v, q: '', prizes: false };
+    const withQ = { ...v, prizes: false };
+    const list = this.s.results().filter((r) => {
+      const p = byId.get(r.pigeon.id);
+      if (p && !matches(p, pigeonOnly)) return false;
+      if (v.prizes && !r.prized) return false;
+      if (!q) return true;
+      return (p && matches(p, withQ)) || fold(`${r.race.releasePlace} ${r.race.organizer}`).includes(q);
+    });
+    const byDate = (a: ResultRow, b: ResultRow) => a.race.date.localeCompare(b.race.date) || b.place - a.place;
     switch (this.sort()) {
-      case 'noi': return sorted.sort((a, b) => byDate(b, a));
-      case 'vechi': return sorted.sort(byDate);
-      case 'bune': return sorted.sort((a, b) => score(a) - score(b) || byDate(b, a));
-      case 'viteza': return sorted.sort((a, b) => (b.speed ?? -1) - (a.speed ?? -1) || byDate(b, a));
+      case 'noi': return list.sort((a, b) => byDate(b, a));
+      case 'vechi': return list.sort(byDate);
+      case 'bune': return list.sort((a, b) => score(a) - score(b) || byDate(b, a));
+      case 'viteza': return list.sort((a, b) => (b.speed ?? -1) - (a.speed ?? -1) || byDate(b, a));
     }
   });
 
   constructor() {
-    this.catalog.load();
-    this.load();
-  }
-
-  private async load() {
-    try {
-      this.all.set((await this.api.get<{ results: Row[] }>('/results')).results);
-    } catch (e) {
-      this.error.set(errorMessage(e));
-    } finally {
-      this.loaded.set(true);
-    }
+    this.s.loadResults();
+    effect(() => {
+      const n = this.shown().length;
+      untracked(() => this.s.resultsShown.set(n));
+    });
   }
 
   /** Ordinea aleasă se ține minte pe telefon. */

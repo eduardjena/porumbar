@@ -1245,5 +1245,9 @@
   "toate.ordine_viteza": "Legnagyobb sebesség",
   "toate.doar_premiate": "Csak díjazottak",
   "toate.niciunul": "Még nincs versenyeredményed.",
-  "toate.nimic_gasit": "Egy eredmény sem felel meg a választásnak."
+  "toate.nimic_gasit": "Egy eredmény sem felel meg a választásnak.",
+  "toate.numar_afisate": {
+    "one": "{count} látható",
+    "other": "{count} látható"
+  }
 }

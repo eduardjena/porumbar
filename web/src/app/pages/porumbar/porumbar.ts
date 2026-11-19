@@ -1,53 +1,35 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Api, errorMessage } from '../../core/api';
+import { errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexShort } from '../../core/catalog';
 import { TPipe, t } from '../../core/i18n';
-import { BoardPigeon } from '../../core/models';
 import { SharePdfService } from '../../core/share-pdf';
 import { Icon } from '../../shared/icon';
-import { ViewToggle } from '../../shared/view-toggle';
-import { PanouBar } from '../panou/panou-bar';
-import { ViewState, buildGroups, countLine, loadView, resultsLine, saveView, showsResults } from '../panou/panou-view';
+import { resultsLine } from '../panou/panou-view';
+import { PorumbarState } from '../panou/porumbar-state';
 
 /*
- * Lista porumbeilor: aceiași porumbei, aceleași butoane și aceeași bară ca Grila (căutare, ordonare, grupare, filtre,
- * ținute minte împreună: ce alegi într-una rămâne și în cealaltă), doar că pe rânduri compacte.
+ * Lista porumbeilor: aceiași porumbei și aceeași bară ca Grila (antetul și bara le ține cadrul comun, porumbar-cadru.ts),
+ * doar că pe rânduri compacte.
  */
 @Component({
   selector: 'app-porumbar',
-  imports: [RouterLink, Icon, ViewToggle, PanouBar, TPipe],
+  imports: [RouterLink, Icon, TPipe],
   template: `
-    <div class="head">
-      <div>
-        <h1>{{ 'panou.titlu' | t }}</h1>
-        @if (loaded()) { <p class="muted count">{{ countLine() }}</p> }
-      </div>
-      <div class="row actions">
-        <app-view-toggle current="lista" />
-        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
-        <a routerLink="/concursuri/rezultate" class="btn"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
-        <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
-        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
-      </div>
-    </div>
-
-    @if (all().length) { <app-panou-bar [(state)]="view" [statuses]="catalog.catalog()?.statuses ?? []" [years]="years()" /> }
-
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (shareNote(); as n) { <div class="notice" role="status">{{ n }}</div> }
 
-    @if (loaded() && !all().length) {
+    @if (s.loaded() && !s.all().length) {
       <div class="empty card">
         <h2>{{ 'panou.gol_titlu' | t }}</h2>
         <p class="muted">{{ 'panou.gol_text' | t }}</p>
         <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />{{ 'panou.adauga_primul' | t }}</a>
       </div>
-    } @else if (loaded() && !shownCount()) {
+    } @else if (s.loaded() && !s.shownCount()) {
       <p class="muted">{{ 'panou.nimic_gasit' | t }}</p>
     }
 
-    @for (g of groups(); track g.key) {
+    @for (g of s.groups(); track g.key) {
       @if (g.label) {
         <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has(g.key)" (click)="toggleGroup(g.key)">
           <app-icon name="jos" [size]="22" [class.shut]="collapsed().has(g.key)" />
@@ -66,7 +48,7 @@ import { ViewState, buildGroups, countLine, loadView, resultsLine, saveView, sho
                 <span [class]="'sex sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
                 <span class="name">{{ p.name ?? '' }}</span>
                 <span class="muted meta">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
-                @if (resultsMode()) { <span class="muted res">{{ resultsLine(p) }}</span> }
+                @if (s.resultsMode()) { <span class="muted res">{{ resultsLine(p) }}</span> }
               </a>
               <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="act" [title]="'porumbel.tipareste_pedigree' | t" [attr.aria-label]="'panou.tipareste_aria' | t: { cine: p.ring?.display ?? p.name ?? ('panou.porumbel_mic' | t) }">
                 <app-icon name="tipar" [size]="22" />
@@ -82,9 +64,6 @@ import { ViewState, buildGroups, countLine, loadView, resultsLine, saveView, sho
     }
   `,
   styles: `
-    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-    .head h1 { margin-bottom: 2px; }
-    .count { margin: 0; }
     .group-head {
       display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; margin: 18px 0 8px; padding: 6px 4px; border: 0;
       border-bottom: 2px solid var(--border); border-radius: 0; background: none; box-shadow: none; color: var(--text); font-size: 1.1rem; font-weight: 800; text-align: left;
@@ -115,7 +94,6 @@ import { ViewState, buildGroups, countLine, loadView, resultsLine, saveView, sho
     @keyframes pulse { 50% { opacity: 0.35; } }
     .empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 20px; gap: 6px; }
     @media (max-width: 767px) {
-      .actions .add { display: none; }
       .row-link { grid-template-columns: 40px minmax(0, 1fr) 24px; padding: 6px 4px 6px 10px; }
       .score { grid-row: span 2; }
       .name { grid-column: 2; grid-row: 2; font-size: 0.95rem; }
@@ -126,34 +104,22 @@ import { ViewState, buildGroups, countLine, loadView, resultsLine, saveView, sho
   `,
 })
 export default class Porumbar {
-  private readonly api = inject(Api);
+  protected readonly s = inject(PorumbarState);
   protected readonly catalog = inject(CatalogService);
   protected readonly share = inject(SharePdfService);
   protected readonly sex = sexShort;
   protected readonly ring = ringText;
   protected readonly resultsLine = resultsLine;
-  readonly all = signal<BoardPigeon[]>([]);
-  readonly loaded = signal(false);
   readonly error = signal('');
   readonly shareNote = signal('');
-  /** Aceeași alegere ca la Grilă (aceeași memorie pe telefon). */
-  readonly view = signal<ViewState>(loadView());
   readonly collapsed = signal<Set<string>>(new Set());
-  protected readonly groups = computed(() => buildGroups(this.all(), this.view(), this.catalog.catalog()));
-  protected readonly shownCount = computed(() => this.groups().reduce((n, g) => n + g.items.length, 0));
-  protected readonly years = computed(() => [...new Set(this.all().map((p) => p.year).filter((y): y is number => !!y))].sort((a, b) => b - a));
-  protected readonly resultsMode = computed(() => showsResults(this.view()));
-  protected readonly countLine = computed(() => countLine(this.all().length, this.shownCount(), this.view()));
 
   constructor() {
-    this.catalog.load();
-    this.load();
-    let group = this.view().group;
+    let group = this.s.view().group;
     effect(() => {
-      const v = this.view();
-      saveView(v);
-      if (v.group !== group) {
-        group = v.group;
+      const g = this.s.view().group;
+      if (g !== group) {
+        group = g;
         this.collapsed.set(new Set());
       }
     });
@@ -172,17 +138,6 @@ export default class Porumbar {
       if ((await this.share.sharePigeon(id)) === 'downloaded') this.shareNote.set(t('panou.fisa_descarcata'));
     } catch (e) {
       this.error.set(t('panou.fisa_nepregatita', { eroare: errorMessage(e) }));
-    }
-  }
-
-  private async load() {
-    try {
-      this.all.set((await this.api.get<{ pigeons: BoardPigeon[] }>('/board')).pigeons);
-      this.error.set('');
-    } catch (e) {
-      this.error.set(errorMessage(e));
-    } finally {
-      this.loaded.set(true);
     }
   }
 }

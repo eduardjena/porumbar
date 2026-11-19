@@ -25,6 +25,7 @@ type Panel = 'sort' | 'group' | 'filter' | null;
 
       <!-- Pastile scurte (iconiță + un cuvânt), cu lățime mărginită: bara rămâne pe un rând orice s-ar alege. -->
       <div class="tools">
+        @if (orderTools()) {
         <button type="button" class="tool" [class.on]="open() === 'sort'" [attr.aria-expanded]="open() === 'sort'" (click)="toggle('sort')"
                 [title]="'panou.ordoneaza_val' | t: { ordonare: sortLabel() }" [attr.aria-label]="'panou.ordoneaza_val' | t: { ordonare: sortLabel() }">
           <app-icon name="ordonare" [size]="18" /><span class="lbl">{{ sortShort() }}</span>
@@ -33,6 +34,7 @@ type Panel = 'sort' | 'group' | 'filter' | null;
                 [title]="'panou.grupeaza_val' | t: { grupare: groupLabel() }" [attr.aria-label]="'panou.grupeaza_val' | t: { grupare: groupLabel() }">
           <app-icon name="grupare" [size]="18" /><span class="lbl">{{ groupShort() }}</span>
         </button>
+        }
         <button type="button" class="tool" [class.on]="open() === 'filter' || count() > 0" [attr.aria-expanded]="open() === 'filter'" (click)="toggle('filter')"
                 [title]="'panou.filtre_val' | t: { numar: count() || ('panou.niciunul' | t) }" [attr.aria-label]="'panou.filtre_val' | t: { numar: count() || ('panou.niciunul' | t) }">
           <app-icon name="filtru" [size]="18" /><span class="lbl">{{ 'panou.filtre' | t }}</span>@if (count()) { <span class="count">{{ count() }}</span> }
@@ -168,6 +170,8 @@ export class PanouBar {
   readonly state = model.required<ViewState>();
   readonly statuses = input<CodeLabel[]>([]);
   readonly years = input<number[]>([]);
+  /** „Ordonează” și „Grupează” (pe fila Rezultate nu: rezultatele au ordonarea lor). */
+  readonly orderTools = input(true);
   readonly open = signal<Panel>(null);
   protected readonly sorts = SORTS;
   protected readonly groups = GROUPS;

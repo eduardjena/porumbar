@@ -1,6 +1,6 @@
-import { Component, computed, effect, inject, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { IncomingService } from './core/incoming';
 import { AuthService } from './core/auth';
 import { Icon, IconName } from './shared/icon';
@@ -13,13 +13,16 @@ interface NavItem {
   label: string;
   icon: IconName;
   exact?: boolean;
+  /** Alte pagini din aceeași parte a aplicației: butonul rămâne aprins și pe ele. */
+  also?: RegExp;
 }
 
 const NAV: NavItem[] = [
-  { path: '/panou', label: 'meniu.panou', icon: 'panou' },
+  // Panoul: Grilă / Listă / Rezultate, fișa unui porumbel și ce se deschide din panou (rezultate concurs, scanare).
+  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|rezultate|concursuri|scaneaza|porumbei\/\d+)(\/|\?|$)/ },
   { path: '/arbore', label: 'meniu.arbore', icon: 'copac' },
   { path: '/perechi', label: 'meniu.perechi', icon: 'ou' },
-  { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true },
+  { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true, also: /^\/porumbei\/pedigree(\?|$)/ },
   // Vânzări: porumbeii trimiși de alți crescători (cu numărul lor deasupra) și cei vânduți de om.
   { path: '/vanzari', label: 'meniu.vanzari', icon: 'vinde' },
   { path: '/cont', label: 'meniu.cont', icon: 'cont' },
@@ -27,7 +30,7 @@ const NAV: NavItem[] = [
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, ConfirmDialog, TPipe],
+  imports: [RouterOutlet, RouterLink, Icon, ConfirmDialog, TPipe],
   template: `
     @if (auth.account()) {
       <header class="top">
@@ -39,7 +42,7 @@ const NAV: NavItem[] = [
         </a>
         <nav class="top-nav" [attr.aria-label]="'meniu.meniu' | t">
           @for (n of nav(); track n.path) {
-            <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [attr.aria-label]="ariaOf(n)">
+            <a [routerLink]="n.path" [class.on]="isOn(n)" [attr.aria-current]="isOn(n) ? 'page' : null" [attr.aria-label]="ariaOf(n)">
               <span class="ico"><app-icon [name]="n.icon" [size]="22" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>{{ n.label | t }}
             </a>
           }
@@ -59,7 +62,7 @@ const NAV: NavItem[] = [
       <!-- Pe telefon, meniul stă jos, la îndemâna degetului mare. -->
       <nav class="bottom-nav" [attr.aria-label]="'meniu.meniu' | t">
         @for (n of nav(); track n.path) {
-          <a [routerLink]="n.path" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: !!n.exact }" [class.add]="n.icon === 'plus'" [attr.aria-label]="ariaOf(n)">
+          <a [routerLink]="n.path" [class.on]="isOn(n)" [attr.aria-current]="isOn(n) ? 'page' : null" [class.add]="n.icon === 'plus'" [attr.aria-label]="ariaOf(n)">
             <span class="ico"><app-icon [name]="n.icon" [size]="n.icon === 'plus' ? 30 : 28" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>
             <span class="lbl">{{ n.label | t }}</span>
           </a>
@@ -152,9 +155,19 @@ export class App {
     return c > 0 ? t('meniu.de_primit', { eticheta: t(n.label), count: c }) : null;
   }
 
+  /** Adresa curentă, ca butonul din meniu să știe când e aprins. */
+  private readonly url = signal(this.router.url);
+  protected isOn(n: NavItem): boolean {
+    const url = this.url();
+    const path = url.split(/[?#]/)[0];
+    const own = n.exact ? path === n.path : path === n.path || path.startsWith(`${n.path}/`);
+    return own || !!n.also?.test(url);
+  }
+
   constructor() {
     this.router.events.subscribe((e) => {
       if (!(e instanceof NavigationEnd)) return;
+      this.url.set(e.urlAfterRedirects);
       const a = this.auth.account();
       if (a && !a.isAdmin) this.incoming.refresh();
     });

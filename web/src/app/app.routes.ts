@@ -7,7 +7,17 @@ const title = (key: string) => () => t(key);
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'panou' },
-  { path: 'panou', canActivate: [authGuard, sellerHomeGuard], title: title('titlu.panou'), loadComponent: () => import('./pages/panou/panou') },
+  // Grilă / Listă / Rezultate: un cadru comun (antetul și bara stau pe loc), se schimbă doar ce e sub bară.
+  {
+    path: '',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/panou/porumbar-cadru'),
+    children: [
+      { path: 'panou', canActivate: [sellerHomeGuard], title: title('titlu.panou'), loadComponent: () => import('./pages/panou/panou') },
+      { path: 'porumbar', title: title('titlu.porumbar'), loadComponent: () => import('./pages/porumbar/porumbar') },
+      { path: 'rezultate', title: title('titlu.rezultate'), loadComponent: () => import('./pages/rezultate/rezultate-toate') },
+    ],
+  },
   // Adresa veche a vederii 3D (scoasă): duce la Arbore, la același porumbel.
   { path: 'arbore/3d', redirectTo: ({ queryParams }) => `/arbore?${new URLSearchParams({ ...queryParams, vedere: 'carduri' })}` },
   { path: 'arbore', canActivate: [authGuard], title: title('titlu.arbore'), loadComponent: () => import('./pages/retea/arbore') },
@@ -16,8 +26,6 @@ export const routes: Routes = [
   { path: 'cont-nou', canActivate: [guestGuard], title: title('titlu.cont_nou'), loadComponent: () => import('./pages/auth/cont-nou') },
   { path: 'parola-uitata', title: title('titlu.parola_uitata'), loadComponent: () => import('./pages/auth/parola-uitata') },
   { path: 'parola-noua/:token', title: title('titlu.parola_noua'), loadComponent: () => import('./pages/auth/parola-noua') },
-  { path: 'porumbar', canActivate: [authGuard], title: title('titlu.porumbar'), loadComponent: () => import('./pages/porumbar/porumbar') },
-  { path: 'rezultate', canActivate: [authGuard], title: title('titlu.rezultate'), loadComponent: () => import('./pages/rezultate/rezultate-toate') },
   { path: 'perechi', canActivate: [authGuard], title: title('titlu.perechi'), loadComponent: () => import('./pages/perechi/perechi') },
   { path: 'perechi/:id', canActivate: [authGuard], title: title('titlu.pereche'), loadComponent: () => import('./pages/perechi/pereche') },
   { path: 'scaneaza', canActivate: [authGuard], title: title('titlu.scaneaza'), loadComponent: () => import('./pages/scaneaza/scaneaza') },

@@ -73,7 +73,7 @@ export function filterCount(v: ViewState): number {
   return (v.sex ? 1 : 0) + [v.young, v.prizes, v.breeding, v.todo].filter(Boolean).length + v.statuses.length + v.years.length;
 }
 
-function matches(p: BoardPigeon, v: ViewState): boolean {
+export function matches(p: BoardPigeon, v: ViewState): boolean {
   if (v.sex && p.sex !== v.sex) return false;
   if (v.young && p.year !== currentYear()) return false;
   if (v.prizes && !p.facts.results?.prizes) return false;

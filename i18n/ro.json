@@ -1812,7 +1812,7 @@
   "concurs.intro": "Toți porumbeii tăi la același concurs, deodată: alegi concursul, scrii distanța o dată și locul la fiecare porumbel.",
   "concurs.lipeste_titlu": "Lipește clasamentul",
   "concurs.lipeste_cum": {
-    "text": "Deschide clasamentul pe columba.ro, selectează tot (sau doar rândurile tale), copiază și lipește aici. Textul se citește doar în telefonul tău: păstrăm numai rândurile tale, după codul de crescător sau după inelele porumbeilor tăi.",
+    "text": "Dacă ai rezultatele scrise în altă parte, le poți copia de acolo și lipi aici. Textul se citește doar în telefonul tău: păstrăm numai rândurile tale, după codul de crescător sau după inelele porumbeilor tăi.",
     "sens": "Explicația lipirii; textul lipit nu pleacă la server, doar rândurile omului."
   },
   "concurs.codul_tau": "Codul tău de crescător (de pe clasament)",
@@ -1821,7 +1821,7 @@
   "concurs.lipeste_aici": "Lipește aici textul copiat",
   "concurs.citeste": "Caută rezultatele mele",
   "concurs.renunta_lipire": "Renunță la lipire",
-  "concurs.lipire_nimic": "Nu am găsit rânduri de clasament în textul lipit. Copiază pagina clasamentului de pe columba.ro și încearcă din nou.",
+  "concurs.lipire_nimic": "Nu am găsit rânduri de clasament în textul lipit. Copiază din nou rândurile cu rezultatele și încearcă iar.",
   "concurs.lipire_niciunul": "În clasamentul lipit nu am găsit codul tău de crescător și nici inelele porumbeilor tăi.",
   "concurs.lipire_fara_cod": "Nu am găsit inelele porumbeilor tăi. Scrie și codul tău de crescător, ca să găsim toate rândurile tale.",
   "concurs.lipire_fara_antet": "N-am găsit antetul clasamentului (data, locul lansării, organizatorul): completează-le mai jos.",

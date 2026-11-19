@@ -55,7 +55,7 @@ export function identityBody(f: IdentityForm) {
           <input [(ngModel)]="f.cnp" [attr.name]="id() + 'cnp'" inputmode="numeric" maxlength="13" autocomplete="off" class="mono" />
         </label>
       } @else {
-        <label class="field">Denumirea firmei <input [(ngModel)]="f.companyName" [attr.name]="id() + 'co'" autocomplete="off" placeholder="de ex. Columba Prod SRL" /></label>
+        <label class="field">Denumirea firmei <input [(ngModel)]="f.companyName" [attr.name]="id() + 'co'" autocomplete="off" placeholder="de ex. Exemplu Prod SRL" /></label>
         <label class="field">CUI <input [(ngModel)]="f.cui" [attr.name]="id() + 'cui'" autocomplete="off" class="mono" placeholder="RO12345678" /></label>
         <label class="field">Nr. Reg. Com. <input [(ngModel)]="f.regCom" [attr.name]="id() + 'reg'" autocomplete="off" class="mono" placeholder="J04/123/2020" /></label>
       }

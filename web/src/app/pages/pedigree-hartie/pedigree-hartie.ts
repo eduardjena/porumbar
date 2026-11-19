@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
@@ -41,7 +41,7 @@ interface Draft {
 }
 
 const SLOTS = 31;
-const DRAFT_KEY = 'porumbar.ciorna.pedigree-hartie';
+const DRAFT_KEY = 'porumbar.ciorna.pedigree-hartie'; // doar ca să ștergem ciornele vechi
 const blank = (): Slot => ({ ring: '', name: '', color: '', text: '' });
 const emptyDraft = (): Draft => ({ kind: 'own', sex: '', slots: Array.from({ length: SLOTS + 1 }, blank) });
 const genOf = (i: number) => Math.floor(Math.log2(i));
@@ -52,20 +52,12 @@ const pathOf = (i: number): ('F' | 'M')[] => {
 };
 const filled = (s: Slot) => !!(s.ring.trim() || s.name.trim() || s.color.trim() || s.text.trim());
 
-function readDraft(): Draft | null {
+/** Pagina pornește mereu goală (vânzătorul a cerut-o): ciorna păstrată de versiunile vechi se șterge. */
+function forgetOldDraft() {
   try {
-    const d = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? 'null') as Draft | null;
-    return d && Array.isArray(d.slots) && d.slots.length === SLOTS + 1 ? d : null;
+    localStorage.removeItem(DRAFT_KEY);
   } catch {
-    return null;
-  }
-}
-function writeDraft(d: Draft | null) {
-  try {
-    if (d && d.slots.some(filled)) localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
-    else localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    /* fără memorie locală: ciorna nu se păstrează */
+    /* fără memorie locală: nu e nimic de șters */
   }
 }
 
@@ -99,13 +91,6 @@ function writeDraft(d: Draft | null) {
           </div>
         </section>
       } @else {
-        @if (restored()) {
-          <div class="notice row" role="status">
-            {{ 'hartie.am_pastrat' | t }}
-            <button type="button" class="link" (click)="clearAll()">{{ 'hartie.de_la_zero' | t }}</button>
-          </div>
-        }
-
         <app-cititor-poza (read)="fillFromReading($event)" />
 
         <section class="card top-fields">
@@ -223,8 +208,7 @@ export default class PedigreeHartie {
   protected readonly genName = generationName;
   protected readonly role = (i: number) => roleName(pathOf(i));
 
-  readonly d = signal<Draft>(readDraft() ?? emptyDraft());
-  readonly restored = signal(!!readDraft());
+  readonly d = signal<Draft>(emptyDraft());
   readonly hints = signal<Record<number, Hint>>({});
   readonly openGen = signal<Record<number, boolean>>({});
   readonly error = signal('');
@@ -234,10 +218,7 @@ export default class PedigreeHartie {
   protected readonly crumbs = computed(() => [{ label: t('hartie.porumbel_nou'), link: ['/porumbei/nou'] }, { label: t('hartie.titlu') }]);
 
   constructor() {
-    effect(() => {
-      const d = this.d();
-      untracked(() => writeDraft(this.result() ? null : d));
-    });
+    forgetOldDraft();
   }
 
   /** Rândul din grilă: porumbelul ocupă 16 rânduri, părinții câte 8 … răstrăbunicii câte unul. */
@@ -380,7 +361,6 @@ export default class PedigreeHartie {
     try {
       const r = await this.api.post<ImportResult>('/pedigrees/import', { root: this.tree(1), rootKind: this.d().kind });
       this.result.set(r);
-      writeDraft(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
       this.error.set(errorMessage(e));
@@ -396,9 +376,7 @@ export default class PedigreeHartie {
 
   startOver() {
     this.result.set(null);
-    this.restored.set(false);
     this.hints.set({});
     this.d.set(emptyDraft());
-    writeDraft(null);
   }
 }

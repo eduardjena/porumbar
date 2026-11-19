@@ -7,12 +7,13 @@
 /** Codurile de țară acceptate și variantele lor. Germania are inele cu număr de club (DV-08778-24-271). */
 const COUNTRIES = {
   RO: 'RO', NL: 'NL', BE: 'BE', BELG: 'BE', B: 'BE', DV: 'DV', D: 'DV', DE: 'DV',
-  GB: 'GB', GBR: 'GB', PL: 'PL', HU: 'HU', H: 'HU', BG: 'BG', MD: 'MD', FR: 'FR', F: 'FR',
+  GB: 'GB', GBR: 'GB', PL: 'PL', HU: 'HU', HUN: 'HU', H: 'HU', BG: 'BG', MD: 'MD', FR: 'FR', F: 'FR',
   CZ: 'CZ', SK: 'SK', RS: 'RS', SRB: 'RS', UA: 'UA', IT: 'IT', I: 'IT', ES: 'ES', E: 'ES',
   PT: 'PT', P: 'PT', ESP: 'ES', TW: 'TW', CN: 'CN', CHN: 'CN', US: 'US', USA: 'US', AT: 'AT', A: 'AT', AUS: 'AT', AUT: 'AT', CH: 'CH', DK: 'DK', DAN: 'DK',
 };
-// Litera de sex de la final: L/M = mascul, T/F = femelă (Compuclub folosește L/T); maghiarii scriu H (hím) / T (tojó).
-const SEX = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F' };
+// Litera de sex de la final: L/M = mascul, T/F = femelă (Compuclub folosește L/T); maghiarii scriu H (hím) / T (tojó);
+// pe pedigree-urile tipărite (mai ales maghiare) și ♂ / ♀.
+const SEX = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F', '♂': 'M', '♀': 'F' };
 
 const stripZeros = (s) => s.replace(/^0+(?=\d)/, '');
 const country = (code) => (code ? COUNTRIES[code] ?? null : 'RO');
@@ -33,8 +34,8 @@ export function parseRing(text, { now = new Date() } = {}) {
   let s = raw.toUpperCase().replace(/\s+/g, ' ');
   if (!s) return result;
 
-  // Sexul: cuvânt separat la final („RO-26-800546 L”) sau lipit de cifre („738256/09F”).
-  let m = s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/);
+  // Sexul: cuvânt separat la final („RO-26-800546 L”), lipit de cifre („738256/09F”) sau semnul ♂ / ♀.
+  let m = s.match(/^(.*?)\s*([♂♀])$/) ?? s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/);
   if (m && m[1]) {
     result.sex = SEX[m[2]];
     s = m[1].trim();
@@ -45,8 +46,9 @@ export function parseRing(text, { now = new Date() } = {}) {
 
   let parts = null;
   // Ungaria: HU-2023-29-14530 (anul, numărul organizatorului regional din două cifre sau o literă de serie, numărul).
-  if ((m = s.match(/^(HU|H)[\s-]*(\d{2}|\d{4})[\s-]+(\d{2}|[A-Z])[\s-]+(\d{3,6})$/))) {
-    parts = { country: 'HU', club: m[3], year: m[2], number: m[4] };
+  // Scris de mână, organizatorul apare și fără zero („HU-2024-4-41013” = 04).
+  if ((m = s.match(/^(HUN|HU|H)[\s-]*(\d{2}|\d{4})[\s-]+(\d{1,2}|[A-Z])[\s-]+(\d{3,6})$/))) {
+    parts = { country: 'HU', club: /^\d$/.test(m[3]) ? `0${m[3]}` : m[3], year: m[2], number: m[4] };
   } else
   // Țara la început: RO-26-800546, RO 25 1326835, DV-08778-24-271 (cu club).
   if ((m = s.match(/^([A-Z]{1,4})[\s-]+(\d{1,5})[\s-]+(\d{2})[\s-]+(\d+)$/)) && COUNTRIES[m[1]] === 'DV' && m[2].length > 2) {

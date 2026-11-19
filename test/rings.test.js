@@ -119,6 +119,11 @@ const huCases = [
   ['HU-2024-M-12345 T', { country: 'HU', year: 2024, club: 'M', number: '12345', sex: 'F' }, 'HU-2024-M-12345'],
   ['HU-2023-04-41013 H', { country: 'HU', year: 2023, club: '04', number: '41013', sex: 'M' }, 'HU-2023-04-41013'],
   ['HU24-04-41013', { country: 'HU', year: 2024, club: '04', number: '41013' }, 'HU-2024-04-41013'],
+  // Pe pedigree-urile maghiare tipărite sexul e des ♂ / ♀; „HUN” apare ca țară; asociația scrisă de mână fără zero.
+  ['HU-24-04-41013 ♂', { country: 'HU', year: 2024, club: '04', number: '41013', sex: 'M' }, 'HU-2024-04-41013'],
+  ['HU24-04-41013♀', { country: 'HU', year: 2024, club: '04', number: '41013', sex: 'F' }, 'HU-2024-04-41013'],
+  ['HUN-24-04-41013', { country: 'HU', year: 2024, club: '04', number: '41013' }, 'HU-2024-04-41013'],
+  ['HU-2024-4-41013', { country: 'HU', year: 2024, club: '04', number: '41013' }, 'HU-2024-04-41013'],
 ];
 
 test('inelele maghiare: numărul organizatorului (sau litera de serie) rămâne în inel, H / T e sexul', () => {
@@ -143,6 +148,12 @@ test('un inel maghiar fără numărul asociației nu se acceptă (s-ar încurca 
     assert.equal(r.ok, false, text);
     assert.equal(r.needsClub, true, text);
   }
+});
+
+test('♂ / ♀ după inel înseamnă sexul și la celelalte inele', () => {
+  assert.equal(parseRing('412084/15 RO ♂', { now }).sex, 'M');
+  assert.equal(parseRing('RO-26-800546 ♀', { now }).sex, 'F');
+  assert.equal(ringKey(parseRing('412084/15 RO ♂', { now })), ringKey(parseRing('412084/15 RO', { now })));
 });
 
 test('inelele românești rămân neatinse de regulile maghiare', () => {

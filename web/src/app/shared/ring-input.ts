@@ -6,13 +6,13 @@ import { TPipe, t } from '../core/i18n';
  * Câmpul de inel: arată sub el ce a înțeles programul, ca omul să vadă imediat dacă a scris bine.
  * Aceleași reguli ca pe server (src/rings.js), simplificate: doar pentru mesajul de sub câmp.
  */
-const COUNTRIES: Record<string, string> = { RO: 'RO', NL: 'NL', BE: 'BE', BELG: 'BE', B: 'BE', DV: 'DV', D: 'DV', DE: 'DV', GB: 'GB', PL: 'PL', HU: 'HU', BG: 'BG', MD: 'MD', FR: 'FR', AT: 'AT', AUS: 'AT', AUT: 'AT', ES: 'ES', ESP: 'ES', E: 'ES' };
-const SEX: Record<string, 'M' | 'F'> = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F' };
+const COUNTRIES: Record<string, string> = { RO: 'RO', NL: 'NL', BE: 'BE', BELG: 'BE', B: 'BE', DV: 'DV', D: 'DV', DE: 'DV', GB: 'GB', PL: 'PL', HU: 'HU', HUN: 'HU', BG: 'BG', MD: 'MD', FR: 'FR', AT: 'AT', AUS: 'AT', AUT: 'AT', ES: 'ES', ESP: 'ES', E: 'ES' };
+const SEX: Record<string, 'M' | 'F'> = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F', '♂': 'M', '♀': 'F' };
 
 export function previewRing(text: string): { ok: boolean; display: string; sex: 'M' | 'F' | null; unringed: boolean } {
   let s = text.trim().toUpperCase().replace(/\s+/g, ' ');
   let sex: 'M' | 'F' | null = null;
-  const m0 = s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/);
+  const m0 = s.match(/^(.*?)\s*([♂♀])$/) ?? s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/);
   if (m0 && m0[1]) {
     sex = SEX[m0[2]];
     s = m0[1].trim();
@@ -21,8 +21,8 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
   const yy = (y: string) => (y.length === 4 ? y.slice(2) : y);
   const strip = (n: string) => n.replace(/^0+(?=\d)/, '');
   // Ungaria: HU-2023-29-14530 (anul, organizatorul din două cifre sau litera de serie, numărul).
-  let m = s.match(/^(HU|H)[\s-]*(\d{2}|\d{4})[\s-]+(\d{2}|[A-Z])[\s-]+(\d{3,6})$/);
-  if (m) return { ok: true, display: `HU-${m[2].length === 2 ? `20${m[2]}` : m[2]}-${m[3]}-${strip(m[4])}`, sex, unringed: false };
+  let m = s.match(/^(HUN|HU|H)[\s-]*(\d{2}|\d{4})[\s-]+(\d{1,2}|[A-Z])[\s-]+(\d{3,6})$/);
+  if (m) return { ok: true, display: `HU-${m[2].length === 2 ? `20${m[2]}` : m[2]}-${/^\d$/.test(m[3]) ? `0${m[3]}` : m[3]}-${strip(m[4])}`, sex, unringed: false };
   m = s.match(/^([A-Z]{1,4})[\s-]+(\d{1,5})[\s-]+(\d{2})[\s-]+(\d+)$/);
   if (m && COUNTRIES[m[1]] === 'DV' && m[2].length > 2) return { ok: true, display: `DV-${strip(m[2]).padStart(5, '0')}-${m[3]}-${strip(m[4])}`, sex, unringed: false };
   // Anul în față, apoi clubul (myloft): DV 17-01063-813, AUS 18-301-1405.

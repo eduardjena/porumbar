@@ -103,7 +103,7 @@ Pentru fiecare căsuță în care scrie ceva:
 - color: culoarea, cum e scrisă (de ex. „Pestriț”, „Vânăt”, „Solzat p.a.”, „BB”); null dacă nu e.
 - breeder: crescătorul de origine, dacă e scris separat (de ex. „Van Heteren”, „Comb. Den Haan”); altfel null.
 - text: restul textului din căsuță (rezultate, observații), fără inel, nume, culoare și crescător; null dacă nu rămâne nimic.
-Căsuțele goale sau tăiate nu apar în listă. Diacriticele lipsă le lași cum sunt. Fișa poate fi scrisă și în maghiară („SZÁRMAZÁSI LAP”, apa / anya, culori ca „kék kovácsolt”, sexul H / T după inel): transcrii la fel, exact cum e scris.
+Căsuțele goale sau tăiate nu apar în listă. Diacriticele lipsă le lași cum sunt. Fișa poate fi scrisă și în maghiară („SZÁRMAZÁSI LAP”, apa / anya, culori ca „kék kovácsolt”, sexul H / T după inel): transcrii la fel, exact cum e scris. Pe fișele maghiare culoarea și sexul vin des după inel („HU24-04-41013 / Kk ♂”): în ring pui doar inelul cu sexul („HU24-04-41013 ♂”), iar culoarea („Kk”) în color; numărul asociației (cele două cifre sau litera dintre an și număr) face parte din inel. Dacă un card de inel (licența spaniolă, „IGAZOLÓKÁRTYA” maghiar) e lipit peste căsuța porumbelului principal, inelul îl iei de pe card.
 
 rootSex: sexul porumbelului principal dacă e scris, altfel null.
 notes: o frază scurtă, {LIMBA_NOTEI}, despre ce nu s-a putut citi (părți tăiate, scris neclar); șir gol dacă totul e clar. Dacă fișierul nu e un pedigree de porumbel, lași slots gol și spui asta în notes.`;

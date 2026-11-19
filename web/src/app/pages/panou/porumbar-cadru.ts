@@ -36,7 +36,10 @@ const tabOf = (url: string): Tab => {
         <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
         <a routerLink="/concursuri" class="btn" [class.on]="results()" [attr.aria-current]="results() ? 'page' : null"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
         <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
-        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
+        <!-- Doar iconițe: „+” și porumbelul (ca pe fișa cu detalii); textul apare la hover și îl citesc cititoarele de ecran. -->
+        <a routerLink="/porumbei/nou" class="btn primary add icon-only" [title]="'panou.adauga_porumbel_nou' | t" [attr.aria-label]="'panou.adauga_porumbel_nou' | t">
+          <app-icon name="plus" [size]="18" class="plus" /><app-icon name="porumbel" [size]="26" />
+        </a>
       </div>
     </div>
 
@@ -62,6 +65,8 @@ const tabOf = (url: string): Tab => {
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .head h1 { margin-bottom: 2px; }
     .count { margin: 0; }
+    .icon-only { gap: 0; padding: 0 14px 0 10px; min-width: 64px; justify-content: center; }
+    .icon-only .plus { margin-right: -1px; }
     .actions .btn.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
     /* Submeniurile „Rezultate concurs”: pastile ca în bara de filtre. */
     .sub { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }

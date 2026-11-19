@@ -1890,5 +1890,9 @@
     "sens": "Capul unei coloane din tabelul de rezultate."
   },
   "concurs.sub_lista": "Listare rezultate",
-  "concurs.sub_nou": "Introdu rezultat nou"
+  "concurs.sub_nou": "Introdu rezultat nou",
+  "panou.adauga_porumbel_nou": {
+    "text": "Adaugă un porumbel nou",
+    "sens": "Textul de la hover al butonului cu iconițe „+ porumbel” din Panou."
+  }
 }

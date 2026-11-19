@@ -47,7 +47,8 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
   porumbel”; pe telefon generațiile se glisează. (Vederea 3D a existat și a fost scoasă: frumoasă, dar fără folos.)
 - **Importă pedigree** (`/porumbei/pedigree`): 31 de căsuțe ca pe foaie; inelele știute se recunosc și părinții lor se
   completează singuri; **citirea din poză sau PDF** cu Claude (doar cu `ANTHROPIC_API_KEY`; 100 de citiri pe an de
-  abonament, `PEDIGREE_READS_PER_YEAR`, cel mult 20 pe zi, `PEDIGREE_READS_PER_DAY`; poza nu se păstrează). Citirea
+  abonament, `PEDIGREE_READS_PER_YEAR`, cel mult 20 pe zi, `PEDIGREE_READS_PER_DAY`, doar 3 în primele 14 zile de abonament,
+  `PEDIGREE_READS_FIRST_DAYS`; poza nu se păstrează). Citirea
   merge pe Claude Sonnet 5.5 (`PEDIGREE_MODEL`, ~2,5–3 cenți pe citire); costul are un plafon pe an pe crescător
   (`PEDIGREE_BUDGET_USD`, implicit 3 $).
 - **Separare totală între conturi**: același inel poate exista în mai multe conturi și nimeni nu vede nimic din alt cont.

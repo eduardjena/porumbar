@@ -14,7 +14,8 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   confirmare la orice schimbare sau ștergere.
 - **Vânzătorul** = un singur admin, contul cu `ADMIN_EMAIL` (se face la pornire din `ADMIN_EMAIL` + `ADMIN_PASSWORD`).
   Activează abonamentele (150 lei/an, plătite în afara aplicației) și pune datele de pe fișă. Citirile pedigree-urilor
-  din poze sunt incluse în abonament: 100 pe an de abonament, cel mult 20 pe zi (`src/reads.js`); vânzătorul poate da
+  din poze sunt incluse în abonament: 100 pe an de abonament, cel mult 20 pe zi, dar în primele 14 zile ale fiecărui
+  abonament (cât ține dreptul de retragere) doar 3, `PEDIGREE_READS_FIRST_DAYS` (`src/reads.js`); vânzătorul poate da
   citiri în plus și vede în consolă, la fiecare crescător, câte a folosit și cât au costat (în dolari). Fără credit. Fără abonament contul e doar citire; datele nu se pierd.
 - **Local = dezvoltare și test** (date de probă, conturi de test). **Railway = producție, cu date reale.**
 

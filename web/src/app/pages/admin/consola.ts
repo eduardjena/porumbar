@@ -29,7 +29,7 @@ interface Row {
   daysLeft: number | null;
   pigeons: number;
   /** Citirile din poze în anul curent de abonament: folosite / limită, costul lor în dolari. */
-  reads: { used: number; allowed: number; perYear: number; costUsd: number };
+  reads: { used: number; allowed: number; perYear: number; costUsd: number; fullFrom: string | null };
   readsTotal: number;
   reminderSentAt: string | null;
   invited: boolean;
@@ -198,7 +198,7 @@ function plusOneYear(start: string) {
 
             <section class="stack box">
               <h3>Citiri din poze: {{ d.reads.used }} din {{ d.reads.allowed }} <span class="muted">· cost {{ money(d.reads.costUsd) }}</span></h3>
-              <p class="muted">Incluse în abonament: {{ d.reads.perYear }} pe an (cel mult 20 pe zi). La prelungire contorul pornește iar de la zero.</p>
+              <p class="muted">Incluse în abonament: {{ d.reads.perYear }} pe an (cel mult 20 pe zi). La prelungire contorul pornește iar de la zero.@if (d.reads.fullFrom) { <br />Acum e în primele 14 zile de abonament (cât ține dreptul de retragere): are {{ d.reads.allowed }} citiri până pe {{ date(d.reads.fullFrom) }}, apoi toate. Citirile în plus se adaugă și acum. }</p>
               <div class="row">
                 <label class="field">Citiri în plus <input type="number" step="1" [(ngModel)]="extraReads" name="extraReads" /></label>
                 <label class="field grow">Notă <input [(ngModel)]="readsNote" name="readsNote" placeholder="de ex. a cerut mai multe" /></label>

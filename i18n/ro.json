@@ -1755,5 +1755,25 @@
     "few": "{count} inele n-au ieșit clar: verifică-le în căsuțe înainte să salvezi.",
     "other": "{count} de inele n-au ieșit clar: verifică-le în căsuțe înainte să salvezi.",
     "sens": "După citirea din poză: câte inele scrise nu se înțeleg; omul trebuie să le corecteze de mână."
+  },
+  "eroare.citire_primele_zile": {
+    "text": "În primele {zile} zile de abonament poți face {numar} citiri din poze; de pe {data} le ai pe toate. Până atunci completează căsuțele de mână (inelele pe care le ai deja se completează singure) sau cere citiri în plus de la cel de la care ai primit programul.",
+    "sens": "Limita din primele 14 zile de abonament (cât ține dreptul de retragere) e atinsă; {data} = ziua de la care are toate citirile pe an."
+  },
+  "cont.citiri_inceput": {
+    "text": "În primele 14 zile de abonament ai 3 citiri; pe toate cele {total} le ai de pe {data}.",
+    "sens": "Sub contorul de citiri, cât ține dreptul de retragere (primele 14 zile)."
+  },
+  "cititor.fara_citiri_inceput": {
+    "text": "În primele 14 zile de abonament poți face {numar} citiri din poze; de pe {data} le ai pe toate. Până atunci completează căsuțele de mână (inelele pe care le ai deja se completează singure).",
+    "sens": "La Importă pedigree, când s-au terminat citirile din primele 14 zile."
+  },
+  "cititor.cere_contact": {
+    "text": "Dacă îți trebuie mai multe acum: {contact}.",
+    "sens": "După mesajul de mai sus, contactul vânzătorului."
+  },
+  "cititor.atentie": {
+    "text": "Dacă poza e de calitate slabă, scrisul de mână e greu de citit sau fișa are greșeli, citirea poate da erori și rezultatul poate să nu fie cel dorit. E normal. În acest caz folosește scanarea codului QR sau completează de mână.",
+    "sens": "Avertisment scris mărunt sub butonul „Citește din poză sau PDF”."
   }
 }

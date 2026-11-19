@@ -78,10 +78,16 @@ test('nimic citit: 422, ca omul să încerce altă poză', async () => {
 });
 
 test('limita pe zi: după 3 citiri, a patra e refuzată (429)', async () => {
-  const b = await newAccount(call, 'B');
-  reader.setPedigreeModel(async () => ({ slots: [{ slot: 1, ring: 'RO-20-1', name: null, color: null, text: null, breeder: null }], rootSex: null, notes: '' }));
-  for (let i = 0; i < 3; i++) assert.equal((await send(b, photo)).status, 200);
-  const r = await send(b, photo);
-  assert.equal(r.status, 429);
-  assert.match(r.data.error, /mâine/);
+  // Aici contează doar limita pe zi, nu cea din primele 14 zile de abonament (test/citiri-inceput.test.js).
+  process.env.PEDIGREE_READS_FIRST_DAYS = '100';
+  try {
+    const b = await newAccount(call, 'B');
+    reader.setPedigreeModel(async () => ({ slots: [{ slot: 1, ring: 'RO-20-1', name: null, color: null, text: null, breeder: null }], rootSex: null, notes: '' }));
+    for (let i = 0; i < 3; i++) assert.equal((await send(b, photo)).status, 200);
+    const r = await send(b, photo);
+    assert.equal(r.status, 429);
+    assert.match(r.data.error, /mâine/);
+  } finally {
+    delete process.env.PEDIGREE_READS_FIRST_DAYS;
+  }
 });

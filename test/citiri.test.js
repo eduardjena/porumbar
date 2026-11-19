@@ -5,7 +5,8 @@ import { startTestApp } from './helpers/db.js';
 import { adminCookie, newAccount, today } from './helpers/accounts.js';
 
 // Citirile din poze sunt incluse în abonament (docs/superpowers/specs/2026-11-18-citiri-incluse-design.md).
-// Aici limita pe an e 3, ca testele să fie scurte (implicit 100).
+// Aici limita pe an e 3, ca testele să fie scurte (implicit 100); cu 3 pe an, limita din primele 14 zile (tot 3) nu
+// mai schimbă nimic (test/citiri-inceput.test.js).
 let server;
 let base;
 let admin;
@@ -36,9 +37,9 @@ after(() => {
 
 test('un cont activat citește fără credit; la limita pe an se oprește cu mesaj clar', async () => {
   const c = await newAccount(call, 'Cititor');
-  assert.deepEqual((await me(c)).reads, { used: 0, allowed: 3, perYear: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 0, allowed: 3, perYear: 3, fullFrom: null });
   for (let i = 0; i < 3; i++) assert.equal((await read(c)).status, 200, `citirea ${i + 1}`);
-  assert.deepEqual((await me(c)).reads, { used: 3, allowed: 3, perYear: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 3, allowed: 3, perYear: 3, fullFrom: null });
   const over = await read(c);
   assert.equal(over.status, 402);
   assert.match(over.data.error, /3 citiri/);
@@ -53,7 +54,7 @@ test('vânzătorul dă citiri în plus; la prelungirea abonamentului ele se pun 
   assert.equal(plus.status, 200, JSON.stringify(plus.data));
   assert.equal(plus.data.account.reads.allowed, 5);
   assert.equal((await read(c)).status, 200);
-  assert.deepEqual((await me(c)).reads, { used: 4, allowed: 5, perYear: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 4, allowed: 5, perYear: 3, fullFrom: null });
   const detail = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data;
   assert.ok(detail.events.some((e) => e.kind === 'reads' && e.note?.includes('a cerut')));
   await call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body: { start: today() } });
@@ -70,7 +71,7 @@ test('lista din consolă: câte citiri a făcut fiecare din câte are și cât a
   await read(c);
   const list = (await call('/api/admin/accounts', { cookie: admin })).data.accounts;
   const row = list.find((r) => r.id === id);
-  assert.deepEqual(row.reads, { used: 2, allowed: 3, perYear: 3, costUsd: 0.14 }); // 2 × (10.000 × 2 + 5.000 × 10) µ$ pe Sonnet
+  assert.deepEqual(row.reads, { used: 2, allowed: 3, perYear: 3, costUsd: 0.14, fullFrom: null }); // 2 × (10.000 × 2 + 5.000 × 10) µ$ pe Sonnet
   assert.equal(row.aiCredit, undefined, 'creditul nu mai există');
 });
 

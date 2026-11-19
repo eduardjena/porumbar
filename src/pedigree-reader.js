@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { budgetUsd, readsOf } from './reads.js';
+import { FIRST_DAYS, budgetUsd, readsOf } from './reads.js';
 import { parseRing } from './rings.js';
-import { currentLang } from './i18n.js';
+import { currentLang, localeOf } from './i18n.js';
 import { HttpError, badRequest } from './http.js';
 import { insert, one, run as runSql } from './db.js';
 import { isAdminEmail } from './subscriptions.js';
@@ -211,6 +211,10 @@ async function readLocked(accountId, mime, data, run) {
   const admin = isAdminEmail(acc.email);
   if (!admin) {
     const reads = await readsOf(accountId);
+    if (reads.used >= reads.allowed && reads.fullFrom) {
+      const data = new Date(`${reads.fullFrom}T12:00:00Z`).toLocaleDateString(localeOf(currentLang()), { timeZone: 'UTC' });
+      throw new HttpError(402, 'eroare.citire_primele_zile', { numar: reads.allowed, data, zile: FIRST_DAYS });
+    }
     if (reads.used >= reads.allowed) throw new HttpError(402, 'eroare.citire_epuizate', { numar: reads.allowed });
     if (reads.costUsd >= budgetUsd()) throw new HttpError(402, 'eroare.citire_plafon');
   }

@@ -1,7 +1,7 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
-import { t, TPipe } from '../../core/i18n';
+import { formatDay, t, TPipe } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 
 /** Un porumbel citit din poză (aceeași formă ca la import). */
@@ -55,7 +55,9 @@ function toBase64(blob: Blob): Promise<string> {
         <p class="muted">{{ 'cititor.intro' | t }}
           @if (!isAdmin() && reads(); as r) { {{ 'cititor.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>. }</p>
       </div>
-      @if (noReads()) {
+      @if (noReads() && reads()!.fullFrom) {
+        <p class="warning">{{ 'cititor.fara_citiri_inceput' | t: { numar: reads()!.allowed, data: day(reads()!.fullFrom) } }}@if (contact()) { {{ 'cititor.cere_contact' | t: { contact: contact() } }} }</p>
+      } @else if (noReads()) {
         <p class="warning">{{ contact() ? ('cititor.fara_citiri_contact' | t: { numar: reads()!.allowed, contact: contact() }) : ('cititor.fara_citiri' | t: { numar: reads()!.allowed }) }}</p>
       } @else {
         <label class="btn primary pick" [class.busy]="busy()">
@@ -64,6 +66,7 @@ function toBase64(blob: Blob): Promise<string> {
         </label>
       }
       @if (message(); as m) { <div [class]="m.kind" role="status">{{ m.text }}</div> }
+      <p class="fine">{{ 'cititor.atentie' | t }}</p>
       @if (unclear()) { <p class="warning unclear">{{ 'cititor.neclar' | t: { count: unclear() } }}</p> }
     </section>
   `,
@@ -77,6 +80,8 @@ function toBase64(blob: Blob): Promise<string> {
     .pick.busy { opacity: 0.7; cursor: progress; }
     .reader > div[role='status'] { flex-basis: 100%; }
     .unclear { flex-basis: 100%; margin: 0; font-weight: 600; }
+    /* Avertismentul despre poze slabe: mic, dar lizibil (contrast bun), ca să ocupe puțin loc. */
+    .fine { flex-basis: 100%; margin: 0; font-size: 0.8rem; line-height: 1.35; color: var(--muted); }
   `,
 })
 export class CititorPoza {
@@ -92,6 +97,7 @@ export class CititorPoza {
   readonly message = signal<{ kind: 'notice' | 'warning' | 'error'; text: string } | null>(null);
   /** Câte inele n-au ieșit clar la ultima citire (omul trebuie să le verifice). */
   protected readonly unclear = signal(0);
+  protected readonly day = formatDay;
 
   async pick(ev: Event) {
     const input = ev.target as HTMLInputElement;

@@ -1890,7 +1890,7 @@
     "sens": "Capul unei coloane din tabelul de rezultate."
   },
   "concurs.sub_lista": "Listare rezultate",
-  "concurs.sub_nou": "Introdu rezultat nou",
+  "concurs.sub_nou": "Rezultat nou",
   "panou.adauga_porumbel_nou": {
     "text": "Adaugă un porumbel nou",
     "sens": "Textul de la hover al butonului cu iconițe „+ porumbel” din Panou."
@@ -1905,7 +1905,7 @@
   "rezultate.salvat": "Am salvat rezultatul.",
   "rezultate.sters": "Am șters rezultatul.",
   "porumbel.fila_introdu": {
-    "text": "Introdu rezultat nou",
-    "sens": "Fila de pe fișa porumbelului: același ecran ca Rezultate concurs → Introdu rezultat nou."
+    "text": "Rezultat nou",
+    "sens": "Fila de pe fișa porumbelului: același ecran ca Rezultate concurs → Rezultat nou."
   }
 }

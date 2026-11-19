@@ -8,18 +8,20 @@ import { PanouBar } from './panou-bar';
 import { PorumbarState } from './porumbar-state';
 
 /** Unde e omul în cadru: Grilă, Listă sau pagina „Rezultate concurs” (listarea ori introducerea). */
-type Tab = 'grila' | 'lista' | 'rez-lista' | 'rez-nou';
+type Tab = 'grila' | 'lista' | 'rez-lista' | 'rez-nou' | 'import' | 'scan';
 const tabOf = (url: string): Tab => {
   const path = url.split(/[?#]/)[0];
   if (path.startsWith('/porumbar')) return 'lista';
+  if (path.startsWith('/porumbei/pedigree')) return 'import';
+  if (path.startsWith('/scaneaza')) return 'scan';
   if (path.startsWith('/concursuri/nou')) return 'rez-nou';
   if (path.startsWith('/concursuri')) return 'rez-lista';
   return 'grila';
 };
 
 /*
- * Cadrul comun al Panoului: Grilă, Listă și „Rezultate concurs” (cu submeniurile Listare rezultate / Introdu rezultat
- * nou). Titlul, comutatorul, butoanele și bara de filtre stau pe loc; la schimbare se schimbă doar ce e dedesubt
+ * Cadrul comun al Panoului: Grilă, Listă, Importă pedigree, Rezultate concurs (cu submeniurile Listare rezultate /
+ * Rezultat nou) și Scanează cod QR. Titlul, comutatorul, butoanele și bara de filtre stau pe loc; la schimbare se schimbă doar ce e dedesubt
  * (<router-outlet>). Datele și alegerea din bară: PorumbarState.
  */
 @Component({
@@ -33,9 +35,9 @@ const tabOf = (url: string): Tab => {
       </div>
       <div class="row actions">
         <app-view-toggle [current]="toggle()" />
-        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
+        <a routerLink="/porumbei/pedigree" class="btn" [class.on]="tab() === 'import'" [attr.aria-current]="tab() === 'import' ? 'page' : null"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
         <a routerLink="/concursuri" class="btn" [class.on]="results()" [attr.aria-current]="results() ? 'page' : null"><app-icon name="cupa" />{{ 'panou.rezultate_concurs' | t }}</a>
-        <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
+        <a routerLink="/scaneaza" class="btn" [class.on]="tab() === 'scan'" [attr.aria-current]="tab() === 'scan' ? 'page' : null"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
         <!-- Doar iconițe: „+” și porumbelul (ca pe fișa cu detalii); textul apare la hover și îl citesc cititoarele de ecran. -->
         <a routerLink="/porumbei/nou" class="btn primary add icon-only" [title]="'panou.adauga_porumbel_nou' | t" [attr.aria-label]="'panou.adauga_porumbel_nou' | t">
           <app-icon name="plus" [size]="18" class="plus" /><app-icon name="porumbel" [size]="26" />
@@ -54,7 +56,7 @@ const tabOf = (url: string): Tab => {
       </nav>
     }
 
-    @if (s.all().length && tab() !== 'rez-nou') {
+    @if (s.all().length && (tab() === 'grila' || tab() === 'lista' || tab() === 'rez-lista')) {
       <app-panou-bar [(state)]="s.view" [statuses]="catalog.catalog()?.statuses ?? []" [years]="s.years()" [orderTools]="!results()" />
     }
     @if (s.error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ s.error() }}</div> }
@@ -95,6 +97,8 @@ export default class PorumbarCadru {
     switch (this.tab()) {
       case 'rez-lista': return this.s.resultsLine();
       case 'rez-nou': return t('concurs.intro');
+      case 'import': return t('hartie.intro');
+      case 'scan': return t('scan.intro');
       default: return this.s.countLine();
     }
   });

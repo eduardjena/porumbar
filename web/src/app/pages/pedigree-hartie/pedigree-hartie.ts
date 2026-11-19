@@ -6,7 +6,6 @@ import { ConfirmService } from '../../core/confirm';
 import { t, TPipe } from '../../core/i18n';
 import { Kind, LookupResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { Breadcrumbs } from '../../shared/breadcrumbs';
 import { previewRing } from '../../shared/ring-input';
 import { generationName, roleName } from '../retea/arbore-data';
 import { CititorPoza, PedigreeNode } from './cititor-poza';
@@ -63,16 +62,10 @@ function forgetOldDraft() {
 
 @Component({
   selector: 'app-pedigree-hartie',
-  imports: [FormsModule, RouterLink, Icon, TPipe, Breadcrumbs, CititorPoza],
+  imports: [FormsModule, RouterLink, Icon, TPipe, CititorPoza],
   template: `
+    <!-- În cadrul Panoului: titlul și explicația („hartie.intro”) le pune cadrul; totul stă în lățimea site-ului. -->
     <div class="wide">
-      <app-breadcrumbs [items]="crumbs()" />
-      <div class="head">
-        <div>
-          <h1>{{ 'hartie.titlu' | t }}</h1>
-          <p class="muted intro">{{ 'hartie.intro' | t }}</p>
-        </div>
-      </div>
 
       @if (result(); as r) {
         <section class="card done" role="status">
@@ -152,8 +145,7 @@ function forgetOldDraft() {
     </div>
   `,
   styles: `
-    .wide { width: min(1560px, calc(100vw - 48px)); margin-left: calc((100% - min(1560px, 100vw - 48px)) / 2); }
-    .intro { margin: 0 0 12px; max-width: 75ch; }
+    .wide { width: 100%; }
     .top-fields { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-end; margin: 12px 0; }
     .kind { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 24px; }
     .kind legend { font-weight: 700; margin-bottom: 6px; }
@@ -215,7 +207,6 @@ export default class PedigreeHartie {
   readonly saving = signal(false);
   readonly result = signal<ImportResult | null>(null);
   protected readonly count = computed(() => this.d().slots.filter(filled).length);
-  protected readonly crumbs = computed(() => [{ label: t('hartie.porumbel_nou'), link: ['/porumbei/nou'] }, { label: t('hartie.titlu') }]);
 
   constructor() {
     forgetOldDraft();

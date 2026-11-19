@@ -31,8 +31,7 @@ declare const BarcodeDetector: { new (o: { formats: string[] }): Detector } | un
   selector: 'app-scaneaza',
   imports: [RouterLink, Icon, TPipe],
   template: `
-    <h1>{{ 'scan.titlu' | t }}</h1>
-    <p class="lead">{{ 'scan.intro' | t }}</p>
+    <!-- În cadrul Panoului: titlul și explicația („scan.intro”) le pune cadrul. -->
 
     @if (live()) {
       <div class="cam">

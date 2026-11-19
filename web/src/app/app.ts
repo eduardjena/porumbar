@@ -19,10 +19,10 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   // Panoul: Grilă / Listă / Rezultate, fișa unui porumbel și ce se deschide din panou (rezultate concurs, scanare).
-  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|concursuri|scaneaza|porumbei\/\d+)(\/|\?|$)/ },
+  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|concursuri|scaneaza|porumbei\/(\d+|pedigree))(\/|\?|$)/ },
   { path: '/arbore', label: 'meniu.arbore', icon: 'copac' },
   { path: '/perechi', label: 'meniu.perechi', icon: 'ou' },
-  { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true, also: /^\/porumbei\/pedigree(\?|$)/ },
+  { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true },
   // Vânzări: porumbeii trimiși de alți crescători (cu numărul lor deasupra) și cei vânduți de om.
   { path: '/vanzari', label: 'meniu.vanzari', icon: 'vinde' },
   { path: '/cont', label: 'meniu.cont', icon: 'cont' },

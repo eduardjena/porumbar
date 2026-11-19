@@ -17,6 +17,7 @@ export const routes: Routes = [
   { path: 'parola-uitata', title: title('titlu.parola_uitata'), loadComponent: () => import('./pages/auth/parola-uitata') },
   { path: 'parola-noua/:token', title: title('titlu.parola_noua'), loadComponent: () => import('./pages/auth/parola-noua') },
   { path: 'porumbar', canActivate: [authGuard], title: title('titlu.porumbar'), loadComponent: () => import('./pages/porumbar/porumbar') },
+  { path: 'rezultate', canActivate: [authGuard], title: title('titlu.rezultate'), loadComponent: () => import('./pages/rezultate/rezultate-toate') },
   { path: 'perechi', canActivate: [authGuard], title: title('titlu.perechi'), loadComponent: () => import('./pages/perechi/perechi') },
   { path: 'perechi/:id', canActivate: [authGuard], title: title('titlu.pereche'), loadComponent: () => import('./pages/perechi/pereche') },
   { path: 'scaneaza', canActivate: [authGuard], title: title('titlu.scaneaza'), loadComponent: () => import('./pages/scaneaza/scaneaza') },

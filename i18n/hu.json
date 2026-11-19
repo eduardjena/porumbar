@@ -1237,5 +1237,21 @@
     "other": "{count} már szerepelt."
   },
   "concurs.cauta": "Keresés",
-  "concurs.salveaza_gol": "Eredmények mentése"
+  "concurs.salveaza_gol": "Eredmények mentése",
+  "vedere.rezultate": "Eredmények",
+  "titlu.rezultate": "Eredmények · Porumbar",
+  "toate.numar": {
+    "one": "{count} versenyeredmény",
+    "other": "{count} versenyeredmény"
+  },
+  "toate.adauga": "Eredmények hozzáadása",
+  "toate.cauta": "Galamb vagy verseny keresése",
+  "toate.ordoneaza": "Rendezés:",
+  "toate.ordine_noi": "Legújabbak",
+  "toate.ordine_vechi": "Legrégebbiek",
+  "toate.ordine_bune": "Legjobb eredmények",
+  "toate.ordine_viteza": "Legnagyobb sebesség",
+  "toate.doar_premiate": "Csak díjazottak",
+  "toate.niciunul": "Még nincs versenyeredményed.",
+  "toate.nimic_gasit": "Egy eredmény sem felel meg a választásnak."
 }

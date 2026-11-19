@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Icon } from './icon';
 import { TPipe } from '../core/i18n';
 
-/** Comutatorul Grilă / Listă al porumbarului: aceeași pereche de butoane pe ambele pagini. */
+/** Comutatorul Grilă / Listă / Rezultate al porumbarului: aceleași butoane pe toate cele trei pagini. */
 @Component({
   selector: 'app-view-toggle',
   imports: [RouterLink, Icon, TPipe],
@@ -15,6 +15,9 @@ import { TPipe } from '../core/i18n';
       <a routerLink="/porumbar" [class.on]="current() === 'lista'" [attr.aria-current]="current() === 'lista' ? 'page' : null">
         <app-icon name="lista" [size]="22" />{{ 'vedere.lista' | t }}
       </a>
+      <a routerLink="/rezultate" [class.on]="current() === 'rezultate'" [attr.aria-current]="current() === 'rezultate' ? 'page' : null">
+        <app-icon name="cupa" [size]="22" />{{ 'vedere.rezultate' | t }}
+      </a>
     </div>
   `,
   styles: `
@@ -24,8 +27,14 @@ import { TPipe } from '../core/i18n';
       color: var(--muted); font-weight: 700; text-decoration: none;
     }
     a.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
+    /* Pe telefon: pe toată lățimea, trei părți egale, ca să încapă pe un rând. */
+    @media (max-width: 767px) {
+      :host { display: block; width: 100%; }
+      .toggle { display: flex; width: 100%; }
+      a { flex: 1 1 0; justify-content: center; gap: 6px; padding: 0 6px; font-size: 0.95rem; }
+    }
   `,
 })
 export class ViewToggle {
-  readonly current = input.required<'grila' | 'lista'>();
+  readonly current = input.required<'grila' | 'lista' | 'rezultate'>();
 }

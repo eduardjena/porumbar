@@ -231,3 +231,17 @@ test('lipirea / scrierea de mână: porumbelul altui cont și datele greșite su
   assert.equal((await many({ race, rows: [{ pigeonId: mine.id, place: 1 }] })).status, 400, 'fără distanță');
   assert.equal((await call(`/api/pigeons/${mine.id}/results`, { cookie: a })).data.results.length, 0, 'nimic pe jumătate');
 });
+
+test('toate rezultatele contului (fila Rezultate de pe Panou), cu porumbelul fiecăruia; alt cont nu le vede', async () => {
+  const r = await call('/api/results', { cookie: a });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  const list = r.data.results;
+  assert.ok(list.length >= 5);
+  const one = list.find((x) => x.pigeonId === p2.id);
+  assert.equal(one.pigeon.ring.display, 'RO-25-276960');
+  assert.ok('prized' in one && 'penalty' in one && 'race' in one);
+  const dates = list.map((x) => x.race.date);
+  assert.deepEqual(dates, [...dates].sort().reverse(), 'cele mai noi întâi');
+  const theirs = (await call('/api/results', { cookie: b })).data.results;
+  assert.ok(theirs.every((x) => !list.some((y) => y.id === x.id)), 'fiecare cont își vede doar rezultatele lui');
+});

@@ -1867,5 +1867,26 @@
     "sens": "Rezultatele care existau deja nu se dublează."
   },
   "concurs.cauta": "Caută",
-  "concurs.salveaza_gol": "Salvează rezultatele"
+  "concurs.salveaza_gol": "Salvează rezultatele",
+  "vedere.rezultate": "Rezultate",
+  "titlu.rezultate": "Rezultate · Porumbar",
+  "toate.numar": {
+    "one": "{count} rezultat la concursuri",
+    "few": "{count} rezultate la concursuri",
+    "other": "{count} de rezultate la concursuri",
+    "sens": "Sub titlu, pe fila Rezultate."
+  },
+  "toate.adauga": "Adaugă rezultate",
+  "toate.cauta": "Caută porumbelul sau concursul",
+  "toate.ordoneaza": "Ordonează:",
+  "toate.ordine_noi": "Cele mai noi",
+  "toate.ordine_vechi": "Cele mai vechi",
+  "toate.ordine_bune": {
+    "text": "Cele mai bune rezultate",
+    "sens": "După coeficient: locul raportat la câți porumbei au zburat."
+  },
+  "toate.ordine_viteza": "Cea mai mare viteză",
+  "toate.doar_premiate": "Doar premiate",
+  "toate.niciunul": "Încă nu ai rezultate la concursuri.",
+  "toate.nimic_gasit": "Niciun rezultat nu se potrivește cu ce ai ales."
 }

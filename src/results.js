@@ -2,7 +2,7 @@ import { one, all, insert, run, tx, nowIso } from './db.js';
 import { ref } from './i18n.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { RACE_CATEGORIES, RACE_LEVELS, codes, fold } from './catalog.js';
-import { createPigeon, getPigeonRow } from './pigeons.js';
+import { createPigeon, getPigeonRow, ringOf } from './pigeons.js';
 import { parseRing, ringKey } from './rings.js';
 
 /*
@@ -149,6 +149,23 @@ const SELECT = `SELECT rr.*, r.number, r.organizer, r.category, r.race_date, r.r
 export async function listResults(accountId, pigeonId) {
   const rows = await all(`${SELECT} WHERE rr.pigeon_id = ? AND rr.account_id = ? ORDER BY r.race_date DESC, rr.id DESC`, pigeonId, accountId);
   return rows.map(toResult);
+}
+
+const MAX_ALL = 3000;
+
+/**
+ * Toate rezultatele contului, cu porumbelul fiecăruia (fila Rezultate de pe Panou), cele mai noi întâi.
+ * Ordonarea după rezultat / viteză o face interfața.
+ */
+export async function listAllResults(accountId) {
+  const rows = await all(
+    `SELECT rr.*, r.number, r.organizer, r.category, r.race_date, r.release_place, r.release_time, r.entered, r.level,
+            p.name AS p_name, p.sex AS p_sex, p.ring_raw, p.ring_key, p.ring_country, p.ring_year, p.ring_club, p.ring_number
+       FROM race_results rr JOIN races r ON r.id = rr.race_id JOIN pigeons p ON p.id = rr.pigeon_id
+      WHERE rr.account_id = ? ORDER BY r.race_date DESC, rr.place, rr.id DESC LIMIT ${MAX_ALL}`,
+    accountId,
+  );
+  return rows.map((row) => ({ ...toResult(row), pigeon: { id: row.pigeon_id, name: row.p_name, sex: row.p_sex, ring: ringOf(row) } }));
 }
 
 /** Rândurile scurte bifate „pe pedigree”, pentru toți porumbeii contului (id → [rânduri], cele mai noi întâi). */

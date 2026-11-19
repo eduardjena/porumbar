@@ -1,11 +1,13 @@
 import express from 'express';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
-import { addResult, deleteResult, listRaces, listResults, saveMany, updateResult } from '../results.js';
+import { addResult, deleteResult, listAllResults, listRaces, listResults, saveMany, updateResult } from '../results.js';
 
 /** Rezultatele la concursuri ale porumbeilor contului, introduse de mână. */
 export function resultsRouter() {
   const r = express.Router();
+
+  r.get('/results', requireAccount, async (req, res) => res.json({ results: await listAllResults(req.account.id) }));
 
   r.get('/pigeons/:id/results', requireAccount, async (req, res) => {
     const p = await getPigeonRow(req.account.id, req.params.id);

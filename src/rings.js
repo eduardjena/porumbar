@@ -1,6 +1,6 @@
 /*
  * Inelele porumbeilor, scrise în multe feluri pe pedigree-uri și în clasamente:
- *   RO-26-800546 L · 412084/15 RO · 738256/09F · RO 25 1326835 · 6008107/08 BELG M · DV-08778-24-271 · MATRICOL 0276971 + AN 2025
+ *   RO-26-800546 L · 412084/15 RO · 159989 019-ESP · 738256/09F · RO 25 1326835 · 6008107/08 BELG M · DV-08778-24-271 · MATRICOL 0276971 + AN 2025
  * Se păstrează mereu textul original (`raw`); forma normalizată servește la comparare și afișare.
  */
 
@@ -59,6 +59,9 @@ export function parseRing(text, { now = new Date() } = {}) {
   } else if ((m = s.match(/^(\d+)\s*[/-]\s*(\d{2}|\d{4})(?:[\s-]+([A-Z]{1,4}))?$/))) {
     // Numărul întâi: 412084/15 RO, 6008107/08 BELG, 2091850-25, 0561385-2017-RO.
     parts = { country: country(m[3]), year: m[2], number: m[1] };
+  } else if ((m = s.match(/^(\d{4,})\s*[\s/-]\s*0(\d{2})[\s-]+([A-Z]{1,4})$/)) && COUNTRIES[m[3]]) {
+    // Fișele spaniole: „Serie: 159989” + „Año: 019-ESP”: anul pe 3 cifre cu zero în față, doar cu țara scrisă.
+    parts = { country: COUNTRIES[m[3]], year: m[2], number: m[1] };
   } else if ((m = s.match(/^([A-Z]{1,4})\s+(\d{4,})\s*-\s*(\d{4})$/)) && COUNTRIES[m[1]]) {
     // Țara, numărul, anul întreg: Ro 439175 - 2020, B 6024428-2019.
     parts = { country: COUNTRIES[m[1]], year: m[3], number: m[2] };

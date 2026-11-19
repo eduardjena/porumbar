@@ -39,6 +39,9 @@ export function previewRing(text: string): { ok: boolean; display: string; sex: 
   if (m && COUNTRIES[m[1]] && COUNTRIES[m[1]] !== 'HU') return { ok: true, display: `${COUNTRIES[m[1]]}-${yy(m[3])}-${strip(m[2])}`, sex, unringed: false };
   m = s.match(/^(\d+)\s*[/-]\s*(\d{2}|\d{4})(?:[\s-]+([A-Z]{1,4}))?$/);
   if (m && (!m[3] || (COUNTRIES[m[3]] && COUNTRIES[m[3]] !== 'HU'))) return { ok: true, display: `${m[3] ? COUNTRIES[m[3]] : 'RO'}-${yy(m[2])}-${strip(m[1])}`, sex, unringed: false };
+  // Fișele spaniole: „159989 019-ESP” (anul pe 3 cifre cu zero în față, doar cu țara scrisă).
+  m = s.match(/^(\d{4,})\s*[\s/-]\s*0(\d{2})[\s-]+([A-Z]{1,4})$/);
+  if (m && COUNTRIES[m[3]] && COUNTRIES[m[3]] !== 'HU') return { ok: true, display: `${COUNTRIES[m[3]]}-${m[2]}-${strip(m[1])}`, sex, unringed: false };
   return { ok: false, display: '', sex, unringed: false };
 }
 

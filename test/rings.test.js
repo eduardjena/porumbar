@@ -28,6 +28,10 @@ const cases = [
   ['AUS-11-335-216 F', { country: 'AT', year: 2011, club: '335', number: '216', sex: 'F' }],
   // Spania (ESP), țara la final după cratimă, anul întreg la final după țară.
   ['159989/19 ESP', { country: 'ES', year: 2019, number: '159989' }],
+  // Fișele spaniole: „Serie: 159989” + „Año: 019-ESP” (anul pe 3 cifre, cu zero în față).
+  ['159989 019-ESP', { country: 'ES', year: 2019, number: '159989' }],
+  ['159989/019 ESP', { country: 'ES', year: 2019, number: '159989' }],
+  ['159989-019-ESP', { country: 'ES', year: 2019, number: '159989' }],
   ['0561385-2017-RO', { country: 'RO', year: 2017, number: '561385' }],
   ['1783831-2009-NL', { country: 'NL', year: 2009, number: '1783831' }],
   ['Ro 439175 - 2020', { country: 'RO', year: 2020, number: '439175' }],
@@ -61,6 +65,11 @@ test('neinterpretabil', () => {
   assert.equal(r.raw, 'Govaerts pedigreu distrus');
   assert.equal(ringKey(r), null);
   assert.equal(parseRing('', { now }).ok, false);
+});
+
+test('anul pe 3 cifre: doar cu zero în față și cu țara scrisă (altfel nu se ghicește)', () => {
+  for (const raw of ['159989 019', '159989/019', '159989 119-ESP']) assert.equal(parseRing(raw, { now }).ok, false, raw);
+  assert.equal(ringKey(parseRing('159989 019-ESP', { now })), ringKey(parseRing('159989/19 ESP', { now })));
 });
 
 test('aceeași cheie pentru forme diferite', () => {

@@ -64,6 +64,7 @@ function toBase64(blob: Blob): Promise<string> {
         </label>
       }
       @if (message(); as m) { <div [class]="m.kind" role="status">{{ m.text }}</div> }
+      @if (unclear()) { <p class="warning unclear">{{ 'cititor.neclar' | t: { count: unclear() } }}</p> }
     </section>
   `,
   styles: `
@@ -75,6 +76,7 @@ function toBase64(blob: Blob): Promise<string> {
     .pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .pick.busy { opacity: 0.7; cursor: progress; }
     .reader > div[role='status'] { flex-basis: 100%; }
+    .unclear { flex-basis: 100%; margin: 0; font-weight: 600; }
   `,
 })
 export class CititorPoza {
@@ -88,6 +90,8 @@ export class CititorPoza {
   protected readonly noReads = computed(() => !this.isAdmin() && !!this.reads() && this.reads()!.used >= this.reads()!.allowed);
   readonly busy = signal(false);
   readonly message = signal<{ kind: 'notice' | 'warning' | 'error'; text: string } | null>(null);
+  /** Câte inele n-au ieșit clar la ultima citire (omul trebuie să le verifice). */
+  protected readonly unclear = signal(0);
 
   async pick(ev: Event) {
     const input = ev.target as HTMLInputElement;
@@ -96,17 +100,22 @@ export class CititorPoza {
     if (!file) return;
     this.busy.set(true);
     this.message.set(null);
+    this.unclear.set(0);
     try {
-      const body = await prepare(file);
-      const r = await this.api.post<{ root: PedigreeNode; filled: number; notes: string }>('/pedigrees/read', body);
-      this.read.emit(r.root);
-      this.auth.refresh().catch(() => undefined); // contorul de citiri
-      const text = `${t('cititor.completat', { count: r.filled })}${r.notes ? ' ' + r.notes : ''}`;
-      this.message.set({ kind: r.notes ? 'warning' : 'notice', text });
+      await this.send(await prepare(file));
     } catch (e) {
       this.message.set({ kind: 'error', text: errorMessage(e) });
     } finally {
       this.busy.set(false);
     }
+  }
+
+  private async send(body: { mime: string; data: string }) {
+    const r = await this.api.post<{ root: PedigreeNode; filled: number; notes: string; unclear?: number }>('/pedigrees/read', body);
+    this.read.emit(r.root);
+    this.auth.refresh().catch(() => undefined); // contorul de citiri
+    this.unclear.set(r.unclear ?? 0);
+    const text = `${t('cititor.completat', { count: r.filled })}${r.notes ? ' ' + r.notes : ''}`;
+    this.message.set({ kind: r.notes ? 'warning' : 'notice', text });
   }
 }

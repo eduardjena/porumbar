@@ -1727,7 +1727,10 @@
     "text": "Citiri din poze incluse în abonament:",
     "sens": "Urmează „37 din 200” (îngroșat)."
   },
-  "cont.citiri_explicatie": "(200 pe an, cel mult 20 pe zi)",
+  "cont.citiri_explicatie": {
+    "text": "({numar} pe an, cel mult 20 pe zi)",
+    "sens": "Câte citiri din poze intră în abonament pe an (implicit 100)."
+  },
   "cititor.citiri": "Citiri din abonament:",
   "cititor.citiri_din": {
     "text": "{folosite} din {total}",
@@ -1742,5 +1745,15 @@
   "hartie.sau_de_mana": {
     "text": "Sau introdu toate datele de mână",
     "sens": "Titlul celei de-a doua variante de la „Importă pedigree” (după citirea din poză)."
+  },
+  "eroare.citire_plafon": {
+    "text": "Ai folosit toate citirile din poze incluse în abonament pentru anul acesta. Poți completa căsuțele de mână (inelele pe care le ai deja se completează singure) sau ceri citiri în plus de la cel de la care ai primit programul.",
+    "sens": "Plafonul de bani pe an (implicit 3 $) e atins; omului nu i se spune de bani, doar că s-au terminat citirile."
+  },
+  "cititor.neclar": {
+    "one": "{count} inel n-a ieșit clar: verifică-l în căsuțe înainte să salvezi.",
+    "few": "{count} inele n-au ieșit clar: verifică-le în căsuțe înainte să salvezi.",
+    "other": "{count} de inele n-au ieșit clar: verifică-le în căsuțe înainte să salvezi.",
+    "sens": "După citirea din poză: câte inele scrise nu se înțeleg; omul trebuie să le corecteze de mână."
   }
 }

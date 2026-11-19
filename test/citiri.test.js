@@ -5,7 +5,7 @@ import { startTestApp } from './helpers/db.js';
 import { adminCookie, newAccount, today } from './helpers/accounts.js';
 
 // Citirile din poze sunt incluse în abonament (docs/superpowers/specs/2026-11-18-citiri-incluse-design.md).
-// Aici limita pe an e 3, ca testele să fie scurte (implicit 200).
+// Aici limita pe an e 3, ca testele să fie scurte (implicit 100).
 let server;
 let base;
 let admin;
@@ -25,7 +25,7 @@ before(async () => {
     slots: [{ slot: 1, ring: 'RO-20-1', name: null, color: null, text: null, breeder: null }],
     rootSex: null,
     notes: '',
-    usage: { input_tokens: 10_000, output_tokens: 5_000 }, // 0,04 $ + 0,10 $ = 0,14 $
+    usage: { input_tokens: 10_000, output_tokens: 5_000 }, // pe Sonnet: 0,02 $ + 0,05 $ = 0,07 $
   }));
 });
 afterEach(() => undefined);
@@ -36,9 +36,9 @@ after(() => {
 
 test('un cont activat citește fără credit; la limita pe an se oprește cu mesaj clar', async () => {
   const c = await newAccount(call, 'Cititor');
-  assert.deepEqual((await me(c)).reads, { used: 0, allowed: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 0, allowed: 3, perYear: 3 });
   for (let i = 0; i < 3; i++) assert.equal((await read(c)).status, 200, `citirea ${i + 1}`);
-  assert.deepEqual((await me(c)).reads, { used: 3, allowed: 3 });
+  assert.deepEqual((await me(c)).reads, { used: 3, allowed: 3, perYear: 3 });
   const over = await read(c);
   assert.equal(over.status, 402);
   assert.match(over.data.error, /3 citiri/);
@@ -53,7 +53,7 @@ test('vânzătorul dă citiri în plus; la prelungirea abonamentului ele se pun 
   assert.equal(plus.status, 200, JSON.stringify(plus.data));
   assert.equal(plus.data.account.reads.allowed, 5);
   assert.equal((await read(c)).status, 200);
-  assert.deepEqual((await me(c)).reads, { used: 4, allowed: 5 });
+  assert.deepEqual((await me(c)).reads, { used: 4, allowed: 5, perYear: 3 });
   const detail = (await call(`/api/admin/accounts/${id}`, { cookie: admin })).data;
   assert.ok(detail.events.some((e) => e.kind === 'reads' && e.note?.includes('a cerut')));
   await call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body: { start: today() } });
@@ -70,10 +70,58 @@ test('lista din consolă: câte citiri a făcut fiecare din câte are și cât a
   await read(c);
   const list = (await call('/api/admin/accounts', { cookie: admin })).data.accounts;
   const row = list.find((r) => r.id === id);
-  assert.deepEqual(row.reads, { used: 2, allowed: 3, costUsd: 0.28 });
+  assert.deepEqual(row.reads, { used: 2, allowed: 3, perYear: 3, costUsd: 0.14 }); // 2 × (10.000 × 2 + 5.000 × 10) µ$ pe Sonnet
   assert.equal(row.aiCredit, undefined, 'creditul nu mai există');
 });
 
 test('adminul (vânzătorul) citește fără limită pe an', async () => {
   for (let i = 0; i < 4; i++) assert.equal((await read(admin)).status, 200, `citirea ${i + 1}`);
+});
+
+test('citirea merge pe Sonnet (cererea „precise” nu mai schimbă nimic); răspunsul spune câte inele n-au ieșit clar', async () => {
+  const c = await newAccount(call, 'Sonnet');
+  const seen = [];
+  reader.setPedigreeModel(async ({ model }) => {
+    seen.push(model);
+    return {
+      slots: [{ slot: 1, ring: 'RO-20-1' }, { slot: 2, ring: 'mâzgălit' }, { slot: 3, ring: 'RO-19-7' }],
+      rootSex: null,
+      notes: '',
+      usage: { input_tokens: 1000, output_tokens: 1000 },
+    };
+  });
+  const r1 = await read(c);
+  assert.equal(r1.status, 200, JSON.stringify(r1.data));
+  assert.equal(r1.data.unclear, 1);
+  assert.equal(r1.data.precise, undefined);
+  const r2 = await call('/api/pedigrees/read', { method: 'POST', cookie: c, body: { ...photo, precise: true } });
+  assert.equal(r2.status, 200, JSON.stringify(r2.data));
+  assert.deepEqual(seen, ['claude-sonnet-5-5', 'claude-sonnet-5-5']);
+  // 2 × 1000 × (2 + 10) microdolari = 0,024 $.
+  const id = (await me(c)).id;
+  const row = (await call('/api/admin/accounts', { cookie: admin })).data.accounts.find((x) => x.id === id);
+  assert.equal(row.reads.used, 2);
+  assert.equal(row.reads.costUsd, 0.02);
+});
+
+test('plafonul de bani pe an: peste el citirea se oprește', async () => {
+  const prev = process.env.PEDIGREE_BUDGET_USD;
+  process.env.PEDIGREE_BUDGET_USD = '0.15';
+  try {
+    const c = await newAccount(call, 'Plafon');
+    reader.setPedigreeModel(async () => ({
+      slots: [{ slot: 1, ring: 'RO-20-1' }],
+      rootSex: null,
+      notes: '',
+      usage: { input_tokens: 50_000, output_tokens: 0 }, // 0,10 $ pe Sonnet
+    }));
+    assert.equal((await read(c)).status, 200);
+    assert.equal((await read(c)).status, 200); // 0,10 $ < 0,15 $ la pornire
+    const over = await read(c);
+    assert.equal(over.status, 402);
+    assert.match(over.data.error, /citiri/i);
+  } finally {
+    if (prev === undefined) delete process.env.PEDIGREE_BUDGET_USD;
+    else process.env.PEDIGREE_BUDGET_USD = prev;
+  }
 });

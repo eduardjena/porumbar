@@ -91,8 +91,8 @@ export function authRouter() {
 
   r.get('/me', requireAccount, async (req, res) => {
     // Citirile din poze ale anului de abonament (fără cost: acela e pentru vânzător).
-    const { used, allowed } = await readsOf(req.account.id);
-    res.json({ account: { ...req.account, reads: { used, allowed } } });
+    const { used, allowed, perYear } = await readsOf(req.account.id);
+    res.json({ account: { ...req.account, reads: { used, allowed, perYear } } });
   });
 
   r.patch('/me', requireAccount, async (req, res) => {

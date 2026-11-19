@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
@@ -203,7 +203,15 @@ export default class ConcursRezultate {
   pasted = '';
   q = '';
 
-  protected readonly active = computed(() => this.pigeons().filter((p) => p.kind === 'own' && !GONE.has(p.status ?? '')));
+  /** Pe fișa unui porumbel (fila „Introdu rezultat nou”): el apare primul în listă. */
+  readonly focusPigeon = input<number | null>(null);
+  /** După salvare (fișa porumbelului trece atunci la fila Rezultate). */
+  readonly saved = output<void>();
+  protected readonly active = computed(() => {
+    const list = this.pigeons().filter((p) => p.kind === 'own' && !GONE.has(p.status ?? ''));
+    const first = this.focusPigeon();
+    return first ? [...list.filter((p) => p.id === first), ...list.filter((p) => p.id !== first)] : list;
+  });
   protected enteredNum() {
     return this.race.entered ? Number(this.race.entered) || null : null;
   }
@@ -356,6 +364,7 @@ export default class ConcursRezultate {
       await this.load();
       // Listarea rezultatelor și panoul (ordonarea după rezultate) văd și ce s-a adăugat acum.
       this.state.load();
+      this.saved.emit();
     } catch (e) {
       this.error.set(errorMessage(e));
     } finally {

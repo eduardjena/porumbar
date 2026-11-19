@@ -1899,5 +1899,13 @@
     "text": "Schimbă",
     "sens": "Butonul din colțul fiecărei secțiuni a fișei: o deschide pentru editare pe loc."
   },
-  "fisa.inapoi": "Înapoi la fișă"
+  "fisa.inapoi": "Înapoi la fișă",
+  "rezultate.sterge_rezultatul": "Șterge rezultatul",
+  "rezultate.schimba_aria": "Schimbă rezultatul: locul {loc}, {concurs}",
+  "rezultate.salvat": "Am salvat rezultatul.",
+  "rezultate.sters": "Am șters rezultatul.",
+  "porumbel.fila_introdu": {
+    "text": "Introdu rezultat nou",
+    "sens": "Fila de pe fișa porumbelului: același ecran ca Rezultate concurs → Introdu rezultat nou."
+  }
 }

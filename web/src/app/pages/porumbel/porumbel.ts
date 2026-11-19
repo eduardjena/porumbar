@@ -9,16 +9,18 @@ import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
 import { Partajare } from './partajare';
-import { Rezultate } from './rezultate';
+import RezultateToate from '../rezultate/rezultate-toate';
+import ConcursRezultate from '../concurs/concurs-rezultate';
 import { FisaEditabila } from './fisa-editabila';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { Icon, IconName } from '../../shared/icon';
 
-type Tab = 'fisa' | 'rezultate' | 'rude' | 'arbore' | 'jurnal' | 'qr';
+type Tab = 'fisa' | 'rezultate' | 'introdu' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'fisa', label: 'porumbel.fila_fisa', icon: 'porumbel' },
   { id: 'rezultate', label: 'porumbel.fila_rezultate', icon: 'cupa' },
+  { id: 'introdu', label: 'porumbel.fila_introdu', icon: 'plus' },
   { id: 'rude', label: 'porumbel.fila_rude', icon: 'rude' },
   { id: 'arbore', label: 'porumbel.fila_arbore', icon: 'fisa' },
   { id: 'jurnal', label: 'porumbel.fila_jurnal', icon: 'jurnal' },
@@ -27,7 +29,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, Rezultate, FisaEditabila, TPipe],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -87,7 +89,12 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           <app-arbore [pigeonId]="p.id" [version]="version()" (addParent)="openParent($event.id)" />
         }
         @case ('rezultate') {
-          <app-rezultate [pigeonId]="p.id" />
+          <!-- Același tabel ca la Rezultate concurs → Listare rezultate, doar cu rezultatele acestui porumbel. -->
+          <app-rezultate-toate [pigeonId]="p.id" />
+        }
+        @case ('introdu') {
+          <!-- Același ecran ca la Rezultate concurs → Introdu rezultat nou; porumbelul acesta e primul în listă. -->
+          <app-concurs-rezultate [focusPigeon]="p.id" (saved)="tab.set('rezultate')" />
         }
         @case ('qr') {
           <app-partajare [pigeon]="p" />
@@ -127,14 +134,14 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
+    .tabs { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
     .tabs button, .tabs .tab-link {
       border: 0; border-radius: 14px; background: none; color: var(--muted); display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 2px; min-height: 64px; padding: 6px 4px; font-size: 0.85rem; font-weight: 700; text-align: center;
       text-decoration: none; box-shadow: none;
     }
     .tabs .tab-link:hover { background: var(--surface); color: var(--text); }
-    /* Pe telefon, cele 7 pe două rânduri, ca etichetele să rămână întregi și mari. */
+    /* Pe telefon, cele 8 pe două rânduri, ca etichetele să rămână întregi și mari. */
     @media (max-width: 600px) { .tabs { grid-template-columns: repeat(4, 1fr); } .tabs button, .tabs .tab-link { font-size: 0.78rem; padding: 6px 2px; } }
     .tabs button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }

@@ -1,12 +1,11 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { ConfirmService } from '../../core/confirm';
 import { Race, RaceResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { TPipe, formatDay, formatNumber, t } from '../../core/i18n';
+import { TPipe, formatDay, t } from '../../core/i18n';
 
 /** Formularul, cu aceleași câmpuri ca clasamentul columba.ro (texte, ca să primească și „196,608”). */
 interface Form {
@@ -34,23 +33,20 @@ const empty = (): Form => ({
   place: '', distanceKm: '', arrivalDay: '1', arrivalTime: '', speed: '', fci: '', onPedigree: true,
 });
 const str = (v: number | string | null | undefined) => (v == null ? '' : String(v));
-const num = (n: number, digits = 2) => formatNumber(n, { maximumFractionDigits: digits });
-/** Penalizarea și coeficientul FCI: calculate cu 4 zecimale, arătate cu 2, ca pe foaia Columba („0,10”). */
-const dec2 = (n: number) => formatNumber(n, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** Un număr de pus înapoi în câmp: fără puncte de mii, cu virgulă („196,608”). */
 const plain = (n: number) => String(n).replace('.', ',');
 
 /*
- * Rezultatele la concursuri ale porumbelului, introduse de mână (design: docs/superpowers/specs/2026-11-16-rezultate-manual-design.md).
- * Al doilea porumbel din același concurs alege concursul din listă; viteza și coeficientul le calculează programul.
+ * Schimbarea unui rezultat la concurs (deschisă din tabelul de rezultate: fila Rezultate a porumbelului sau
+ * Rezultate concurs → Listare rezultate). Aceleași câmpuri ca clasamentul; viteza și coeficientul le calculează
+ * programul. Rezultatele noi se pun din „Introdu rezultat nou”. Gata = `done` ('salvat' | 'sters' | 'renuntat').
  */
 @Component({
-  selector: 'app-rezultate',
-  imports: [FormsModule, RouterLink, Icon, TPipe],
+  selector: 'app-rezultat-editor',
+  imports: [FormsModule, Icon, TPipe],
   template: `
-    <p class="many"><a routerLink="/concursuri/nou"><app-icon name="cupa" />{{ 'rezultate.mai_multi_deodata' | t }}</a></p>
-    <form class="card stack" (ngSubmit)="save()">
-      <h3>{{ (editing() ? 'rezultate.schimba_titlu' : 'rezultate.adauga_titlu') | t }}</h3>
+    <form class="card stack editor" (ngSubmit)="save()">
+      <h3>{{ 'rezultate.schimba_titlu' | t }}</h3>
       @if (races().length) {
         <label class="field">{{ 'rezultate.concursul' | t }}
           <select name="raceId" [ngModel]="f.raceId" (ngModelChange)="pickRace($event)">
@@ -120,39 +116,19 @@ const plain = (n: number) => String(n).replace('.', ',');
         </div>
       </details>
       @if (formError()) { <div class="error" role="alert"><app-icon name="alerta" />{{ formError() }}</div> }
-      <div class="row">
-        <button class="primary" type="submit" [disabled]="busy()"><app-icon name="bifa" />{{ (editing() ? 'rezultate.salveaza_schimbarea' : 'rezultate.adauga_rezultatul') | t }}</button>
-        @if (editing()) { <button type="button" (click)="cancel()">{{ 'actiune.renunta' | t }}</button> }
+      <div class="row buttons">
+        <button class="primary" type="submit" [disabled]="busy()"><app-icon name="bifa" />{{ 'rezultate.salveaza_schimbarea' | t }}</button>
+        <button type="button" (click)="cancel()" [disabled]="busy()">{{ 'actiune.renunta' | t }}</button>
+        <button type="button" class="danger" (click)="remove()" [disabled]="busy()"><app-icon name="sterge" />{{ 'rezultate.sterge_rezultatul' | t }}</button>
       </div>
     </form>
 
-    @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
-    <ul class="results">
-      @for (r of results(); track r.id) {
-        <li class="card">
-          <p class="big"><strong>{{ 'rezultate.locul' | t: { loc: r.place } }}</strong>@if (r.race.entered) { {{ 'rezultate.din' | t: { numar: num(r.race.entered, 0) } }} } · {{ r.race.releasePlace }} · {{ num(r.distanceM / 1000, 1) }} km
-            @if (r.prized) { <span class="prized">{{ 'rezultate.premiat' | t }}</span> }</p>
-          <p class="muted">
-            {{ day(r.race.date) }} · {{ catalog.label('raceCategories', r.race.category) }} · {{ r.race.organizer }}@if (r.race.level) { · {{ catalog.label('raceLevels', r.race.level) }} }@if (r.race.number) { · {{ 'rezultate.concursul_nr' | t: { nr: r.race.number } }}}
-          </p>
-          <p class="muted">
-            @if (r.speed) { {{ 'rezultate.viteza' | t: { viteza: num(r.speed) } }} · } @else if (r.speedFromSheet) { {{ 'rezultate.viteza_lipsa' | t }} · }@if (r.penalty != null) { {{ 'rezultate.coeficient' | t: { coef: dec2(r.penalty) } }} · }@if (r.fci != null) { FCI {{ dec2(r.fci) }} · }
-            @if (r.onPedigree) { {{ 'rezultate.pe_pedigree' | t }} <span class="mono">{{ r.short }}</span> } @else { {{ 'rezultate.nu_pe_pedigree' | t }} }
-          </p>
-          <div class="row">
-            <button type="button" (click)="edit(r)"><app-icon name="editeaza" />{{ 'actiune.schimba' | t }}</button>
-            <button type="button" class="link" (click)="remove(r)">{{ 'actiune.sterge' | t }}</button>
-          </div>
-        </li>
-      } @empty {
-        @if (loaded()) { <p class="muted">{{ 'rezultate.niciunul' | t }}</p> }
-      }
-    </ul>
   `,
   styles: `
     h3 { margin: 0; }
-    .many { margin: 0 0 12px; font-weight: 700; }
-    .many a { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; }
+    .editor { border: 1px solid var(--accent); background: var(--accent-soft); margin-bottom: 14px; }
+    .buttons { gap: 10px; }
+    .buttons > * { flex: 1 1 150px; }
     fieldset { border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px 14px; margin: 0; }
     legend { font-weight: 800; padding: 0 6px; }
     .grow { flex: 1 1 200px; }
@@ -160,53 +136,29 @@ const plain = (n: number) => String(n).replace('.', ',');
     .check input { width: 24px; height: 24px; }
     details summary { cursor: pointer; font-weight: 700; min-height: 48px; display: flex; align-items: center; color: var(--accent-strong); }
     .more { padding-top: 8px; }
-    .results { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-    .results p { margin: 0 0 4px; }
-    .big { font-size: 1.15rem; }
-    .prized { display: inline-block; margin-left: 6px; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 800; background: var(--ok-soft); color: var(--ok); }
   `,
 })
-export class Rezultate {
+export class RezultatEditor {
   private readonly api = inject(Api);
   private readonly confirm = inject(ConfirmService);
   protected readonly catalog = inject(CatalogService);
-  readonly pigeonId = input.required<number>();
-  readonly results = signal<RaceResult[]>([]);
+  /** Rezultatul de schimbat. */
+  readonly result = input.required<RaceResult>();
+  readonly done = output<'salvat' | 'sters' | 'renuntat'>();
   readonly races = signal<Race[]>([]);
-  readonly loaded = signal(false);
-  readonly error = signal('');
   readonly formError = signal('');
   readonly busy = signal(false);
-  readonly editing = signal<RaceResult | null>(null);
-  readonly moreOpen = computed(() => !!this.editing() && !!(this.editing()!.arrival || this.editing()!.race.releaseTime || this.editing()!.fciEntered != null));
+  readonly moreOpen = computed(() => !!(this.result().arrival || this.result().race.releaseTime || this.result().fciEntered != null));
   f: Form = empty();
-  protected readonly num = num;
-  protected readonly dec2 = dec2;
   protected readonly laterDays = [2, 3, 4, 5, 6, 7];
-  protected readonly day = formatDay;
 
   constructor() {
     this.catalog.load();
+    this.api.get<{ races: Race[] }>('/races').then((r) => this.races.set(r.races)).catch(() => undefined);
     effect(() => {
-      const id = this.pigeonId();
-      untracked(() => this.load(id));
+      const r = this.result();
+      untracked(() => this.fill(r));
     });
-  }
-
-  private async load(id: number) {
-    try {
-      const [res, races] = await Promise.all([
-        this.api.get<{ results: RaceResult[] }>(`/pigeons/${id}/results`),
-        this.api.get<{ races: Race[] }>('/races'),
-      ]);
-      this.results.set(res.results);
-      this.races.set(races.races);
-      this.error.set('');
-    } catch (e) {
-      this.error.set(errorMessage(e));
-    } finally {
-      this.loaded.set(true);
-    }
   }
 
   protected raceLabel(r: Race) {
@@ -215,7 +167,7 @@ export class Rezultate {
       .join(' · ');
   }
 
-  /** Concursul ales din listă completează câmpurile concursului (rămân de scris doar locul și distanța). */
+  /** Concursul ales din listă completează câmpurile concursului. */
   pickRace(id: string) {
     this.f.raceId = id;
     const r = this.races().find((x) => String(x.id) === id);
@@ -226,8 +178,7 @@ export class Rezultate {
     });
   }
 
-  edit(r: RaceResult) {
-    this.editing.set(r);
+  private fill(r: RaceResult) {
     this.formError.set('');
     this.f = {
       raceId: String(r.race.id), date: r.race.date, releasePlace: r.race.releasePlace, category: r.race.category, organizer: r.race.organizer, level: r.race.level ?? '',
@@ -235,13 +186,10 @@ export class Rezultate {
       place: String(r.place), distanceKm: plain(r.distanceM / 1000), arrivalDay: str(r.arrival?.day ?? 1),
       arrivalTime: str(r.arrival?.time), speed: r.speedEntered == null ? '' : plain(r.speedEntered), fci: r.fciEntered == null ? '' : plain(r.fciEntered), onPedigree: r.onPedigree,
     };
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancel() {
-    this.editing.set(null);
-    this.formError.set('');
-    this.f = empty();
+    this.done.emit('renuntat');
   }
 
   async save() {
@@ -262,12 +210,8 @@ export class Rezultate {
     };
     this.busy.set(true);
     try {
-      const editing = this.editing();
-      if (editing) await this.api.patch(`/results/${editing.id}`, body);
-      else await this.api.post(`/pigeons/${this.pigeonId()}/results`, body);
-      this.editing.set(null);
-      this.f = empty();
-      await this.load(this.pigeonId());
+      await this.api.patch(`/results/${this.result().id}`, body);
+      this.done.emit('salvat');
     } catch (e) {
       this.formError.set(errorMessage(e));
     } finally {
@@ -275,7 +219,8 @@ export class Rezultate {
     }
   }
 
-  async remove(r: RaceResult) {
+  async remove() {
+    const r = this.result();
     const ok = await this.confirm.ask({
       title: t('rezultate.sterge_titlu'),
       lines: [`${t('rezultate.locul', { loc: r.place })} · ${r.race.releasePlace} · ${formatDay(r.race.date)}`, t('text.nu_se_poate_da_inapoi')],
@@ -283,12 +228,14 @@ export class Rezultate {
       danger: true,
     });
     if (!ok) return;
+    this.busy.set(true);
     try {
       await this.api.delete(`/results/${r.id}`);
-      if (this.editing()?.id === r.id) this.cancel();
-      this.results.update((list) => list.filter((x) => x.id !== r.id));
+      this.done.emit('sters');
     } catch (e) {
-      this.error.set(errorMessage(e));
+      this.formError.set(errorMessage(e));
+    } finally {
+      this.busy.set(false);
     }
   }
 }

@@ -1253,5 +1253,10 @@
   "concurs.sub_nou": "Új eredmény",
   "panou.adauga_porumbel_nou": "Új galamb hozzáadása",
   "fisa.schimba": "Módosítás",
-  "fisa.inapoi": "Vissza az adatlaphoz"
+  "fisa.inapoi": "Vissza az adatlaphoz",
+  "rezultate.sterge_rezultatul": "Eredmény törlése",
+  "rezultate.schimba_aria": "Eredmény módosítása: {loc}. hely, {concurs}",
+  "rezultate.salvat": "Az eredményt elmentettem.",
+  "rezultate.sters": "Az eredményt töröltem.",
+  "porumbel.fila_introdu": "Új eredmény"
 }

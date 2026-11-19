@@ -1,10 +1,11 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CatalogService } from '../../core/catalog';
-import { TPipe, formatDay, formatNumber, localeOf } from '../../core/i18n';
+import { TPipe, formatDay, formatNumber, localeOf, t } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 import { fold, matches } from '../panou/panou-view';
 import { PorumbarState, ResultRow } from '../panou/porumbar-state';
+import { RezultatEditor } from '../porumbel/rezultat-editor';
 
 type Col = 'data' | 'concurs' | 'porumbel' | 'loc' | 'coef' | 'viteza' | 'km';
 type Dir = 'asc' | 'desc';
@@ -37,46 +38,53 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
 }
 
 /*
- * Fila „Rezultate” din cadrul comun (lângă Grilă și Listă): rezultatele tuturor porumbeilor, într-un tabel. Apeși pe
- * capul unei coloane: se ordonează după ea; încă o dată: invers (ordinea se ține minte pe telefon). Bara de sus e
- * aceeași ca la Grilă / Listă: căutarea și filtrele aleg porumbeii (căutarea găsește și locul lansării), iar
- * „Premiați” arată doar rezultatele premiate.
+ * Tabelul rezultatelor: în Rezultate concurs → Listare rezultate (toți porumbeii, după bara de filtre comună: căutarea
+ * găsește și locul lansării, „Premiați” = doar rezultatele premiate) și în fila Rezultate a unui porumbel (`pigeonId`:
+ * doar ale lui, fără coloana Porumbelul). Apeși pe capul unei coloane: se ordonează după ea; încă o dată: invers
+ * (ordinea se ține minte pe telefon). „Schimbă” deschide deasupra tabelului editorul rezultatului.
  */
 @Component({
   selector: 'app-rezultate-toate',
-  imports: [RouterLink, Icon, TPipe],
+  imports: [RouterLink, Icon, TPipe, RezultatEditor],
   template: `
+    @if (editing(); as e) {
+      <div id="editor-rezultat"><app-rezultat-editor [result]="e" (done)="edited($event)" /></div>
+    }
+    @if (note()) { <div class="notice" role="status">{{ note() }}</div> }
     @if (s.resultsLoaded() && !shown().length) {
       <div class="card empty">
-        <p>{{ (s.results().length ? 'toate.nimic_gasit' : 'toate.niciunul') | t }}</p>
-        @if (!s.results().length) { <a routerLink="/concursuri/nou" class="btn primary"><app-icon name="cupa" />{{ 'toate.adauga' | t }}</a> }
+        <p>{{ (pigeonId() ? 'rezultate.niciunul' : s.results().length ? 'toate.nimic_gasit' : 'toate.niciunul') | t }}</p>
+        @if (!pigeonId() && !s.results().length) { <a routerLink="/concursuri/nou" class="btn primary"><app-icon name="cupa" />{{ 'toate.adauga' | t }}</a> }
       </div>
     } @else if (shown().length) {
       <div class="card wrap">
         <table>
           <thead>
             <tr>
-              @for (c of cols; track c) {
+              @for (c of cols(); track c) {
                 <th scope="col" [class]="'c-' + c" [attr.aria-sort]="sort().col === c ? (sort().dir === 'asc' ? 'ascending' : 'descending') : 'none'">
                   <button type="button" (click)="sortBy(c)" [class.on]="sort().col === c" [title]="'toate.ordoneaza_dupa' | t: { coloana: ('toate.col_' + c | t) }">
                     {{ 'toate.col_' + c | t }}<span class="arrow" aria-hidden="true">{{ sort().col === c ? (sort().dir === 'asc' ? '↑' : '↓') : '↕' }}</span>
                   </button>
                 </th>
               }
+              <th scope="col" class="c-act"><span class="sr-only">{{ 'actiune.schimba' | t }}</span></th>
             </tr>
           </thead>
           <tbody>
             @for (r of shown(); track r.id) {
-              <tr (click)="open(r)">
+              <tr (click)="open(r)" [class.sel]="editing()?.id === r.id">
                 <td class="c-data">{{ day(r.race.date) }}</td>
                 <td class="c-loc">
                   <strong>{{ r.place }}</strong>@if (r.race.entered) { <span class="muted small"> / {{ num(r.race.entered) }}</span> }
                   @if (r.prized) { <span class="prized">{{ 'rezultate.premiat' | t }}</span> }
                 </td>
-                <td class="c-porumbel">
-                  <a [routerLink]="['/porumbei', r.pigeon.id]" [queryParams]="{ fila: 'rezultate' }" (click)="$event.stopPropagation()" class="mono">{{ r.pigeon.ring?.display ?? '—' }}</a>
-                  @if (r.pigeon.name) { <span class="small name">{{ r.pigeon.name }}</span> }
-                </td>
+                @if (!pigeonId()) {
+                  <td class="c-porumbel">
+                    <a [routerLink]="['/porumbei', r.pigeon.id]" [queryParams]="{ fila: 'rezultate' }" (click)="$event.stopPropagation()" class="mono">{{ r.pigeon.ring?.display ?? '—' }}</a>
+                    @if (r.pigeon.name) { <span class="small name">{{ r.pigeon.name }}</span> }
+                  </td>
+                }
                 <td class="c-concurs">
                   <strong>{{ r.race.releasePlace }}</strong>
                   <span class="muted small">{{ catalog.label('raceCategories', r.race.category) }}@if (r.race.level) { · {{ catalog.label('raceLevels', r.race.level) }} }</span>
@@ -84,6 +92,11 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
                 <td class="c-coef num">{{ r.penalty != null ? dec2(r.penalty) : '—' }}</td>
                 <td class="c-viteza num">{{ r.speed ? dec2(r.speed) : '—' }}</td>
                 <td class="c-km num">{{ num(r.distanceM / 1000, 1) }}</td>
+                <td class="c-act">
+                  <button type="button" class="edit" (click)="edit(r); $event.stopPropagation()" [title]="'actiune.schimba' | t" [attr.aria-label]="'rezultate.schimba_aria' | t: { loc: r.place, concurs: r.race.releasePlace }">
+                    <app-icon name="editeaza" [size]="20" />
+                  </button>
+                </td>
               </tr>
             }
           </tbody>
@@ -93,6 +106,11 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
   `,
   styles: `
     .empty { padding: 20px 16px; }
+    .c-act { width: 52px; padding: 4px 6px; text-align: right; }
+    .edit { width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 12px; display: inline-grid; place-items: center; background: transparent; border: 0; box-shadow: none; color: var(--muted); }
+    .edit:hover { color: var(--accent); background: var(--accent-soft); }
+    tr.sel td { background: var(--accent-soft); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .empty p { margin: 0 0 12px; }
     /* Pe telefon tabelul se derulează în lateral, în cartonașul lui (pagina nu); data rămâne lipită în stânga. */
     .wrap { padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -137,7 +155,11 @@ export default class RezultateToate {
   protected readonly s = inject(PorumbarState);
   protected readonly catalog = inject(CatalogService);
   private readonly router = inject(Router);
-  protected readonly cols = COLS;
+  /** Fila Rezultate a unui porumbel: doar rezultatele lui (fără bara de filtre și fără coloana Porumbelul). */
+  readonly pigeonId = input<number | null>(null);
+  protected readonly cols = computed(() => (this.pigeonId() ? COLS.filter((c) => c !== 'porumbel') : COLS));
+  readonly editing = signal<ResultRow | null>(null);
+  readonly note = signal('');
   protected readonly day = formatDay;
   protected readonly dec2 = dec2;
   protected readonly num = (n: number, digits = 2) => formatNumber(n, { maximumFractionDigits: digits });
@@ -151,7 +173,9 @@ export default class RezultateToate {
     // Filtrele pe porumbel, fără căutare și fără „Premiați” (acela alege rezultatele premiate, mai jos).
     const pigeonOnly = { ...v, q: '', prizes: false };
     const withQ = { ...v, prizes: false };
+    const only = this.pigeonId();
     const list = this.s.results().filter((r) => {
+      if (only) return r.pigeon.id === only;
       const p = byId.get(r.pigeon.id);
       if (p && !matches(p, pigeonOnly)) return false;
       if (v.prizes && !r.prized) return false;
@@ -172,7 +196,11 @@ export default class RezultateToate {
   });
 
   constructor() {
-    this.s.loadResults();
+    // Pe fișa porumbelului rezultatele se citesc proaspete (puteau fi schimbate între timp în altă parte).
+    effect(() => {
+      if (this.pigeonId()) untracked(() => this.s.resultsLoaded.set(false));
+      untracked(() => this.s.loadResults());
+    });
     effect(() => {
       const n = this.shown().length;
       untracked(() => this.s.resultsShown.set(n));
@@ -191,8 +219,25 @@ export default class RezultateToate {
     }
   }
 
+  /** Rândul: pe fișa porumbelului deschide editorul; în lista tuturor duce la fișa porumbelului. */
   open(r: ResultRow) {
-    this.router.navigate(['/porumbei', r.pigeon.id], { queryParams: { fila: 'rezultate' } });
+    if (this.pigeonId()) this.edit(r);
+    else this.router.navigate(['/porumbei', r.pigeon.id], { queryParams: { fila: 'rezultate' } });
+  }
+
+  edit(r: ResultRow) {
+    this.note.set('');
+    this.editing.set(r);
+    setTimeout(() => document.getElementById('editor-rezultat')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  /** După editor: rezultatele (și panoul) proaspete. */
+  async edited(how: 'salvat' | 'sters' | 'renuntat') {
+    this.editing.set(null);
+    if (how === 'renuntat') return;
+    this.note.set(t(how === 'salvat' ? 'rezultate.salvat' : 'rezultate.sters'));
+    await this.s.load();
+    await this.s.loadResults();
   }
 
   private savedSort(): Sort {

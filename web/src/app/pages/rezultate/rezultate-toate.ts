@@ -98,8 +98,9 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
     .wrap { padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.95rem; }
     th { position: sticky; top: 0; background: var(--surface-2); text-align: left; padding: 0; white-space: nowrap; }
+    /* Capul coloanei aliniat ca celulele de sub el: textele la stânga, cifrele la dreapta, cu aceeași margine. */
     th button {
-      display: inline-flex; align-items: center; gap: 6px; width: 100%; min-height: 48px; padding: 0 12px; border: 0; border-radius: 0;
+      display: flex; align-items: center; justify-content: flex-start; gap: 6px; width: 100%; min-height: 48px; padding: 0 12px; border: 0; border-radius: 0;
       background: none; box-shadow: none; color: var(--text); font-weight: 800; font-size: 0.9rem; text-align: left; cursor: pointer;
     }
     th button.on { color: var(--accent-strong); }
@@ -109,7 +110,8 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
     td { padding: 10px 12px; border-top: 1px solid var(--border); vertical-align: top; }
     tbody tr { cursor: pointer; }
     tbody tr:hover td { background: var(--accent-soft); }
-    .num, th.c-coef button, th.c-viteza button, th.c-km button { text-align: right; justify-content: flex-end; }
+    .num { text-align: right; }
+    th.c-coef button, th.c-viteza button, th.c-km button { justify-content: flex-end; text-align: right; }
     .num { white-space: nowrap; font-variant-numeric: tabular-nums; }
     .c-data { white-space: nowrap; }
     .c-concurs, .c-porumbel { min-width: 140px; }
@@ -126,6 +128,7 @@ function valueOf(r: ResultRow, col: Col): number | string | null {
       td.c-data { background: var(--surface); }
       th.c-data { z-index: 2; }
       td { padding: 8px 10px; }
+      th button { padding: 0 10px; }
       .c-concurs, .c-porumbel { min-width: 110px; }
     }
   `,

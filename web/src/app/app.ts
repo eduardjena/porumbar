@@ -1,5 +1,4 @@
 import { Component, ElementRef, HostListener, afterRenderEffect, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
-import { Location } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { IncomingService } from './core/incoming';
@@ -82,9 +81,6 @@ const NAV: NavItem[] = [
             <div class="band-inner">
               <!-- Rândul pornește sub butonul din meniul mare de care ține (alignBand). -->
               <div #bandRow class="band-row">
-              @if (b.back) {
-                <button type="button" class="pill back" (click)="back()"><app-icon name="inapoi" [size]="18" />{{ 'meniu.inapoi' | t }}</button>
-              }
               @for (i of b.items; track i.label) {
                 <a class="pill" [routerLink]="i.link" [queryParams]="i.query ?? null" [class.on]="i.on" [attr.aria-current]="i.on ? 'page' : null">
                   <app-icon [name]="i.icon" [size]="18" />{{ i.label | t }}@if (i.badge) { <span class="count">{{ i.badge > 9 ? '9+' : i.badge }}</span> }
@@ -154,7 +150,6 @@ const NAV: NavItem[] = [
     .pill:hover { background: none; color: var(--text); }
     /* Submeniul ales: doar litera (îngroșată, mai mare, neagră), ca la meniul mare. */
     .pill.on { color: var(--text); font-weight: 800; font-size: 1.02rem; }
-    .pill.back { color: var(--accent-strong); }
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
@@ -227,12 +222,10 @@ export class App {
 
   /** Adresa curentă, ca butonul din meniu să știe când e aprins. */
   private readonly url = signal(this.router.url);
-  private readonly location = inject(Location);
   /** Câte pagini s-au deschis în aplicație (pentru „Înapoi”: fără istoric, duce la Panou). */
-  private navigations = 0;
 
   /** Submeniurile părții în care ești (Panou, fișa unui porumbel, Arbore); altundeva banda nu apare. */
-  protected readonly band = computed<{ items: BandItem[]; back?: boolean } | null>(() => {
+  protected readonly band = computed<{ items: BandItem[] } | null>(() => {
     const tree = this.router.parseUrl(this.url());
     const path = this.url().split(/[?#]/)[0];
     const q = tree.queryParams as Record<string, string | undefined>;
@@ -264,7 +257,6 @@ export class App {
       const current = !list ? null : sec === 'noua' || sec === 'inele' ? sec : 'sezon';
       const keep = { sezon: q['sezon'] };
       return {
-        back: !list,
         items: [
           { link: ['/perechi'], query: { ...keep, sec: undefined }, label: 'perechi.sub_sezon', icon: 'ou' as IconName, on: current === 'sezon' },
           { link: ['/perechi'], query: { ...keep, sec: 'noua' }, label: 'perechi.pereche_noua', icon: 'plus' as IconName, on: current === 'noua' },
@@ -337,11 +329,6 @@ export class App {
     this.alignBand();
   }
 
-  /** „Înapoi” din bandă: pagina dinainte; dacă nu e una în aplicație, Panoul. */
-  back() {
-    if (this.navigations > 1) this.location.back();
-    else this.router.navigateByUrl('/panou');
-  }
   protected isOn(n: NavItem): boolean {
     const url = this.url();
     const path = url.split(/[?#]/)[0];
@@ -367,7 +354,6 @@ export class App {
     document.fonts?.ready.then(() => this.alignBand()).catch(() => undefined);
     this.router.events.subscribe((e) => {
       if (!(e instanceof NavigationEnd)) return;
-      this.navigations++;
       this.url.set(e.urlAfterRedirects);
       const a = this.auth.account();
       if (a && !a.isAdmin) this.incoming.refresh();

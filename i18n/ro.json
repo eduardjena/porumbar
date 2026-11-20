@@ -457,10 +457,6 @@
     "text": "Vânzător",
     "sens": "Meniul vânzătorului (adminul care dă programul crescătorilor)."
   },
-  "meniu.iesi": {
-    "text": "Ieși",
-    "sens": "Ieșirea din cont, în meniu."
-  },
   "meniu.brand": {
     "text": "Porumbar, panoul",
     "sens": "Eticheta pentru cititorul de ecran a siglei din colț."

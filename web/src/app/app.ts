@@ -74,7 +74,6 @@ const NAV: NavItem[] = [
               <span class="ico"><app-icon [name]="n.icon" [size]="22" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>{{ n.label | t }}
             </a>
           }
-          <button type="button" class="ghost" (click)="logout()"><app-icon name="iesire" [size]="22" />{{ 'meniu.iesi' | t }}</button>
         </nav>
         </div>
         <!-- Banda de submeniuri (macheta A): ce are partea în care ești; stă lipită sus, cu meniul mare. -->
@@ -160,19 +159,18 @@ const NAV: NavItem[] = [
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
-    /* Meniul mare lângă siglă (submeniurile au loc să pornească de sub butonul lor); „Ieși” singur, în dreapta. */
-    .top-nav { display: flex; gap: 0; align-items: stretch; flex: 1 1 auto; margin-left: 8px; }
-    .top-nav .ghost { margin-left: auto; }
+    /* Meniul mare în dreapta antetului („Ieși” stă în Cont → Ieșire și ștergere). */
+    .top-nav { display: flex; gap: 0; align-items: stretch; flex: 1 1 auto; justify-content: flex-end; margin-left: 8px; }
     /* Fără celule și fără linii: butonul ales se vede doar prin literă (îngroșată, mai mare, neagră); restul, gri. */
-    .top-nav a, .top-nav .ghost {
+    .top-nav a {
       padding: 0 16px; border-radius: 0; color: var(--muted); text-decoration: none; min-height: 48px; box-shadow: none;
       display: inline-flex; align-items: center; gap: 8px; font-weight: 500; font-size: 1rem; background: none; border: 0;
     }
-    .top-nav a:hover, .top-nav .ghost:hover { background: none; color: var(--text); }
+    .top-nav a:hover { background: none; color: var(--text); }
     .top-nav a.on { color: var(--text); font-weight: 800; font-size: 1.12rem; }
     /* Calculatoare mai înguste / tablete: meniul de sus mai strâns (iconița deasupra textului), ca să încapă tot. */
     @media (min-width: 768px) and (max-width: 1060px) {
-      .top-nav a, .top-nav .ghost { flex-direction: column; justify-content: center; gap: 2px; padding: 0 10px; font-size: 0.8rem; }
+      .top-nav a { flex-direction: column; justify-content: center; gap: 2px; padding: 0 10px; font-size: 0.8rem; }
       .top-nav a.on { font-size: 0.92rem; }
       .top-nav > :last-child { margin-right: -10px; }
     }
@@ -414,8 +412,4 @@ export class App {
     return null;
   });
 
-  async logout() {
-    await this.auth.logout();
-    this.router.navigateByUrl('/intra');
-  }
 }

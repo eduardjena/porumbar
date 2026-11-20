@@ -134,7 +134,7 @@ const NAV: NavItem[] = [
     }
     .top-inner {
       max-width: 1120px; margin: 0 auto; padding: 10px 24px;
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      display: flex; align-items: center; justify-content: flex-start; gap: 16px;
     }
     .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
     /* Banda de submeniuri: pastile ca în bara de filtre; pe telefon se derulează cu degetul. */
@@ -157,7 +157,9 @@ const NAV: NavItem[] = [
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
-    .top-nav { display: flex; gap: 4px; align-items: center; }
+    /* Meniul mare lângă siglă (submeniurile au loc să pornească de sub butonul lor); „Ieși” singur, în dreapta. */
+    .top-nav { display: flex; gap: 4px; align-items: center; flex: 1 1 auto; margin-left: 8px; }
+    .top-nav .ghost { margin-left: auto; }
     .top-nav a, .top-nav .ghost {
       padding: 8px 16px; border-radius: 999px; color: var(--muted); text-decoration: none; min-height: 48px;
       display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; background: none; border: 0;

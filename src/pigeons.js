@@ -1,6 +1,6 @@
 import { one, all, run, insert, tx, nowIso, lockAccount } from './db.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
-import { parseRing, formatRing, ringKey } from './rings.js';
+import { parseRing, formatRing, ringKey, fallbackKey, storedRingKey } from './rings.js';
 import { BREEDS, COLORS, EYE_COLORS, STATUSES, EVAL_CRITERIA, codes, fold } from './catalog.js';
 
 /*
@@ -16,7 +16,8 @@ export const ringOf = (row) =>
     ? null
     : {
         raw: row.ring_raw,
-        display: row.ring_key ? formatRing({ ok: true, country: row.ring_country, year: row.ring_year, club: row.ring_club, number: row.ring_number, raw: row.ring_raw }) : row.ring_raw,
+        // Un inel nerecunoscut (cheia de rezervă „?|…”, fără țară) se arată cum a fost scris.
+        display: row.ring_key && row.ring_country ? formatRing({ ok: true, country: row.ring_country, year: row.ring_year, club: row.ring_club, number: row.ring_number, raw: row.ring_raw }) : row.ring_raw,
         country: row.ring_country,
         year: row.ring_year,
         club: row.ring_club,
@@ -126,7 +127,10 @@ function validate(input, existing = null) {
   const ringText = pick('ring', existing?.ring?.raw ?? null);
   const raw = ringText == null || String(ringText).trim() === '' ? null : text(ringText, 'camp.inel', { max: 80 });
   const ring = raw ? parseRing(raw) : null;
-  if (kind === 'own' && (!ring?.ok || ring.unringed)) throw badRequest(ring?.needsClub ? 'eroare.inel_hu_asociatie' : 'eroare.inel_necitit');
+  // Un porumbel propriu are inel. Unul nerecunoscut se păstrează cum l-a scris omul (cheia de rezervă, ringKeyOf);
+  // doar „fără inel”, textul fără nicio literă sau cifră („??”) și inelul maghiar fără organizator (numerele se repetă
+  // între asociații) se refuză.
+  if (kind === 'own' && (!ring || ring.unringed || ring.needsClub || (!ring.ok && !fallbackKey(ring)))) throw badRequest(ring?.needsClub ? 'eroare.inel_hu_asociatie' : 'eroare.inel_necitit');
 
   let sex = pick('sex', existing?.sex ?? null);
   if (sex === '') sex = null;
@@ -153,11 +157,17 @@ function validate(input, existing = null) {
 }
 
 /**
+ * Cheia salvată: cea recunoscută; la un porumbel propriu și cea de rezervă a unui inel nerecunoscut („?|…”), ca dublurile
+ * să fie găsite și așa. Strămoșii cu inel nerecunoscut rămân fără cheie, ca înainte (nu se leagă singuri de alții).
+ */
+const ringKeyOf = (p) => (p.kind === 'own' ? storedRingKey(p.ring) : ringKey(p.ring));
+
+/**
  * Dublura după inel, doar în cont (separare totală: nimic nu spune unui crescător ce are altul): un inel e o singură
  * dată printre porumbeii proprii și o singură dată printre strămoșii „din alt porumbar”.
  */
 async function checkDuplicate(accountId, p, selfId = null) {
-  const key = ringKey(p.ring);
+  const key = ringKeyOf(p);
   if (!key) return;
   const display = formatRing(p.ring);
   if (p.kind === 'own') {
@@ -174,7 +184,7 @@ const searchText = (p) => fold([p.name, p.ring?.raw, p.ring?.ok && !p.ring.unrin
 const columns = (p) => [
   p.kind,
   p.ring?.raw ?? null,
-  ringKey(p.ring),
+  ringKeyOf(p),
   p.ring?.ok ? p.ring.country : null,
   p.ring?.ok ? p.ring.year : null,
   p.ring?.ok ? p.ring.club : null,
@@ -244,8 +254,7 @@ export async function listPigeons(accountId, { q, status, sex, year, kind } = {}
   const params = [accountId];
   const query = String(q ?? '').trim();
   if (query) {
-    const ring = parseRing(query);
-    const key = ringKey(ring);
+    const key = storedRingKey(parseRing(query));
     const digits = /^\d+$/.test(query) ? query.replace(/^0+(?=\d)/, '') : null;
     where.push(`(search_text LIKE ? OR ring_key = ? OR ring_number = ?)`);
     params.push(`%${fold(query).replace(/[%_\\]/g, (c) => `\\${c}`)}%`, key, digits);

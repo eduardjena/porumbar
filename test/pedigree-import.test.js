@@ -93,10 +93,27 @@ test('strămoș de împrumut: rădăcina poate fi „din alt porumbar”', async
 });
 
 test('date greșite: inelul porumbelului propriu, prea multe generații, fără cont', async () => {
-  assert.equal((await importPedigree(a, { ring: 'abc' })).status, 400);
+  assert.equal((await importPedigree(a, { ring: '000' })).status, 400, 'porumbelul propriu are inel');
+  assert.equal((await importPedigree(a, { ring: 'HU-23-14530' })).status, 400, 'maghiar fără organizator');
   let deep = { ring: 'RO-10-100000' };
   for (let i = 1; i <= 6; i++) deep = { ring: `RO-1${i % 10}-10000${i}`, father: deep };
   assert.equal((await importPedigree(a, deep)).status, 400);
   assert.equal((await importPedigree(null, PEDIGREE_FOTO)).status, 401);
   assert.equal((await importPedigree(a, { ring: 'RO-20-999999', father: { ring: 'RO-20-999999' } })).status, 400);
+});
+
+test('rădăcina proprie cu inel nerecunoscut se păstrează cum e scrisă; importul repetat nu o dublează', async () => {
+  const c = await newAccount(call, 'Plasa import');
+  const paper = { ring: 'Latebred BasVK 7', father: { ring: 'XYZ tata' }, mother: { ring: 'RO-20-123123' } };
+  const first = await importPedigree(c, paper);
+  assert.equal(first.status, 201, JSON.stringify(first.data));
+  assert.equal(first.data.rootWas, 'created');
+  const again = await importPedigree(c, { ...paper, ring: 'LATEBRED-BASVK-7' });
+  assert.equal(again.status, 201, JSON.stringify(again.data));
+  assert.equal(again.data.pigeonId, first.data.pigeonId);
+  assert.equal(again.data.rootWas, 'existing');
+  // Strămoșul cu inel nerecunoscut rămâne „ca înainte”: nu se leagă singur de alt porumbel, dar nici nu se dublează pe
+  // porumbelul deja legat (tatăl existent se completează).
+  const rings = (await treeRings(c, first.data.pigeonId)).map((x) => x.ring);
+  assert.deepEqual(rings, ['Latebred BasVK 7', 'XYZ tata', 'RO-20-123123']);
 });

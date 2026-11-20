@@ -31,10 +31,28 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   accounts.js     sesiuni (cookie `porumbar_session`), requireAccount / optionalAccount, publicAccount
   i18n.js         dicționarele, t(), limba cererii (vezi „Limbi”)
   http.js         HttpError(status, cheie, valori), validări (text, realDate, oneOf), rateLimit, errorHandler
-  rings.js        citirea inelelor scrise în orice formă (RO-26-800546 L, 412084/15 RO, HU-2023-29-14530 H, …); inelele
-                  maghiare cer numărul organizatorului (2 cifre sau litera seriei; o cifră scrisă de mână = 04); H / T
-                  sau ♂ / ♀ = sexul; spaniole și „159989 019-ESP” (Serie + Año). Aceleași reguli, simplificate, în
-                  web/src/app/shared/ring-input.ts (previewRing): se schimbă amândouă deodată
+  rings.js        citirea inelelor din toată lumea (modul pur, fără importuri; tipurile în rings.d.ts). Două trepte:
+                  regulile vechi (RO-26-800546 L, 412084/15 RO, HU-2023-29-14530 H, DV-08778-24-271, AUS 18-301-1405,
+                  „159989 019-ESP” …): aceleași chei și afișări ca înainte (cheile sunt în baza de date;
+                  test/rings-compat.test.js), cu o excepție: anul pe 2 cifre egal cu anul curent + 1 e acum 20AA (înainte
+                  19AA); apoi parserul pe bucăți, cu emitenții din docs/cercetare/reports/Formatele inelelor de porumbei.md:
+                  club (DV, AT, DK, PL, CZ, SK, SI, LT), literă de serie (GB, NEHU, NWHU, SU, WHU, IHU S/N = regiunea,
+                  JP, PHA), provincia CN, cod de club liber în orice ordine (AU = SUA, IF, CU = Canada, NPA, ZA, ZW, MX,
+                  NZ, KR, VN, TH, Golful), emitenți simpli (BE, NL, FR, PT, IT, CH, LU, HR, BG, TW + CTRPA…, NIPPON,
+                  HKPA, asociațiile australiene, AUST …). AUS = Austria; PL-DE = Derby; V / W după DV = sexul; H după un
+                  inel englezesc / american / australian = hen, la ceilalți = hím; anul pe 2 cifre ≤ anul curent + 1 →
+                  20AA. Partea din mijloc stă în `club`; DK se afișează cu anul primul (ca înainte), LT cu clubul primul.
+                  Numărul cu lățime fixă la familiile noi își păstrează la afișare zerourile (CN-26-15-0443185), cheia nu.
+                  Peste 120 de caractere nu se citește; formele late și caracterele invizibile se curăță înainte.
+                  Limită cunoscută: inelele poloneze vechi cu district (PL-01-96-123456) se citesc cu anul primul (anul
+                  2001, clubul 96): afișarea e cea scrisă, cheia e consecventă, doar `ring_year` e greșit.
+                  Maghiarul fără organizator se refuză (și cu „tojó” / HUNGARY). Un inel nerecunoscut rămâne `ok: false`,
+                  dar un porumbel PROPRIU se salvează așa, cu cheia de rezervă `?|` + textul curățat, fără sex
+                  (storedRingKey; dubluri, căutare, rezultate); fără nicio literă / cifră („??”) se refuză; strămoșii
+                  nerecunoscuți n-au cheie (nu se leagă singuri). Telefonul folosește aceleași reguli:
+                  web/src/app/shared/ring-preview.ts importă src/rings.js (Dockerfile îl copiază la build-ul interfeței)
+  ring-backfill.js la pornire (boot.js, după migrări; NU e o migrare numerotată): strămoșii salvați înainte cu un inel
+                  necitit atunci, dar recunoscut acum, primesc cheia; idempotent, sare peste ce ar dubla alt porumbel
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js
@@ -117,6 +135,9 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
 
 - Proiectul Railway „porumbar” (Soopra Projects, UE): serviciul `porumbar` (Dockerfile: construiește interfața, apoi
   pornește serverul) + `Postgres`. Adresa: https://porumbar-production.up.railway.app.
+- Înainte de publicarea „inelelor din toată lumea” (regula anului: `27` scris pe 2 cifre era 1927, acum 2027) se
+  verifică în producție: `SELECT count(*) FROM pigeons WHERE ring_year = 1927;` și
+  `SELECT count(*) FROM ring_series WHERE year = 1927;`. Dacă nu dau 0, rândurile acelea se lămuresc cu vânzătorul.
 - Push pe `main` **nu** publică singur. Publicarea: `git archive main | tar -x -C <folder temporar>`, apoi
   `railway up <folder> --path-as-root --service porumbar --detach`; urmărești `railway deployment list --service porumbar`;
   verifici că `main-*.js` de pe site e același cu cel din build-ul local și că `/api/health` răspunde 200.

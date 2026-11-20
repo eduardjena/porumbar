@@ -4,7 +4,7 @@ import { ancestorIds } from './genealogy.js';
 import { badRequest } from './http.js';
 import { COLORS, matchColor } from './catalog.js';
 import { createPigeon, getPigeonRow, loadNodes, updatePigeon } from './pigeons.js';
-import { formatRing, parseRing, ringKey } from './rings.js';
+import { fallbackKey, formatRing, parseRing, ringKey } from './rings.js';
 
 /*
  * Importul unui pedigree întreg dintr-un singur pas („Importă pedigree”, apoi citirea din poză / PDF): rădăcina
@@ -50,7 +50,10 @@ function readNode(raw, depth) {
   return empty ? null : node;
 }
 
-const keyOf = (node) => (node.parsed?.ok && !node.parsed.unringed ? ringKey(node.parsed) : null);
+// Strămoșii cu inel nerecunoscut nu se leagă singuri de alții (ca înainte); porumbelul propriu din rădăcină se regăsește
+// și după cheia de rezervă, ca importul repetat să nu dea o dublură.
+const keyOf = (node, own = false) =>
+  node.parsed?.ok && !node.parsed.unringed ? ringKey(node.parsed) : own && node.parsed ? fallbackKey(node.parsed) : null;
 const label = (node) => (node.parsed?.ok && !node.parsed.unringed ? formatRing(node.parsed) : node.ring || tr('text.fara_inel'));
 
 /** Câmpurile fișei din căsuță (pentru un porumbel nou). */
@@ -104,7 +107,7 @@ export async function importPedigree(accountId, rawRoot, rootKind = 'own') {
 
     /** Așază căsuța: găsește sau creează porumbelul, apoi părinții lui. `existingId` = părintele deja legat în program. */
     const place = async (node, kind, sex, existingId = null) => {
-      let row = existingId ? await getPigeonRow(accountId, existingId) : await byKey(keyOf(node));
+      let row = existingId ? await getPigeonRow(accountId, existingId) : await byKey(keyOf(node, kind === 'own'));
       const isRoot = !existingId && node === root;
       if (!row) {
         const p = await createPigeon(accountId, fields(node, kind, sex));

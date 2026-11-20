@@ -251,7 +251,6 @@ export class App {
       // De unde a venit omul (din=, radacina=…) rămâne în adresă, ca firimiturile să-l ducă înapoi acolo.
       const keep = { din: q['din'], radacina: q['radacina'], tot: q['tot'], vedere: q['vedere'] };
       return {
-        back: true,
         items: [
           ...PIGEON_TABS.map((x) => ({ link: ['/porumbei', id], query: { ...keep, fila: x.id === 'fisa' ? undefined : x.id }, label: x.label, icon: x.icon, on: fila === x.id })),
           { link: ['/arbore'], query: { porumbel: id }, label: 'porumbel.vezi_in_arbore', icon: 'copac' as IconName, on: false },

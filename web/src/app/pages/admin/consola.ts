@@ -5,6 +5,7 @@ import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { Icon } from '../../shared/icon';
 import { IdentityFields, IdentityForm, emptyIdentity, identityBody } from './identity-fields';
+import { DateField } from '../../shared/date-field';
 
 type Status = 'pending' | 'active' | 'expiring' | 'expired';
 interface Row {
@@ -69,7 +70,7 @@ function plusOneYear(start: string) {
  */
 @Component({
   selector: 'app-consola',
-  imports: [FormsModule, Icon, IdentityFields, UpperCasePipe],
+  imports: [DateField, FormsModule, Icon, IdentityFields, UpperCasePipe],
   template: `
     <div class="wide">
       <div class="title-row">
@@ -89,7 +90,7 @@ function plusOneYear(start: string) {
           <label class="check"><input type="checkbox" [(ngModel)]="nb.activate" name="nbAct" /> A plătit deja: activează abonamentul</label>
           @if (nb.activate) {
             <div class="row">
-              <label class="field">Începe pe <input type="date" [(ngModel)]="nb.start" name="nbStart" /></label>
+              <label class="field">Începe pe <app-date [(ngModel)]="nb.start" name="nbStart" /></label>
               <span class="muted">→ ține până pe <strong>{{ nb.start ? date(endFor(nb.start)) : '—' }}</strong></span>
             </div>
           }
@@ -189,7 +190,7 @@ function plusOneYear(start: string) {
               <h3>Abonament <span class="st" [class]="'st ' + d.status">{{ statusLabel[d.status] }}</span></h3>
               @if (d.subscriptionStart) { <p>De pe {{ date(d.subscriptionStart) }} până pe {{ date(d.subscriptionEnd!) }}.@if (d.reminderSentAt) { Memento trimis pe {{ date(d.reminderSentAt) }}. }</p> }
               <div class="row">
-                <label class="field">Începe pe <input type="date" [(ngModel)]="startDate" name="start" /></label>
+                <label class="field">Începe pe <app-date [(ngModel)]="startDate" name="start" /></label>
                 <span class="muted">→ ține până pe <strong>{{ startDate ? date(endFor(startDate)) : '—' }}</strong></span>
               </div>
               <label class="field">Notă (opțional) <input [(ngModel)]="subNote" name="subNote" placeholder="de ex. plătit cash, 150 lei" /></label>

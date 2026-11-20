@@ -457,10 +457,6 @@
     "text": "Vânzător",
     "sens": "Meniul vânzătorului (adminul care dă programul crescătorilor)."
   },
-  "meniu.iesi": {
-    "text": "Ieși",
-    "sens": "Ieșirea din cont, în meniu."
-  },
   "meniu.brand": {
     "text": "Porumbar, panoul",
     "sens": "Eticheta pentru cititorul de ecran a siglei din colț."
@@ -613,11 +609,6 @@
   },
   "parola_camp.arata": "Arată parola",
   "parola_camp.ascunde": "Ascunde parola",
-  "vedere.cum_arati": {
-    "text": "Cum arăți porumbeii",
-    "sens": "Comutatorul Grilă / Listă (pentru cititorul de ecran)."
-  },
-  "vedere.grila": "Grilă",
   "vedere.lista": "Listă",
   "trimite.trimite": {
     "text": "Trimite",
@@ -1589,7 +1580,7 @@
   "vanzari.primesc": "Primesc porumbelul",
   "vanzari.nu_primesc": "Nu îl primesc",
   "vanzari.niciunul": "Niciun porumbel în așteptare. Când cineva îți vinde un porumbel pe emailul contului tău, apare aici.",
-  "vanzari.vandute": "Vândute de tine",
+  "vanzari.vandute": "Vânduți",
   "vanzari.nimic": "Nimic încă. Vinzi un porumbel din fișa lui, fila „QR”.",
   "vanzari.st_pending": {
     "text": "În așteptare",
@@ -1907,5 +1898,55 @@
   "porumbel.fila_introdu": {
     "text": "Rezultat nou",
     "sens": "Fila de pe fișa porumbelului: același ecran ca Rezultate concurs → Rezultat nou."
+  },
+  "meniu.submeniu": "Submeniu",
+  "perechi.sub_sezon": "Perechile sezonului",
+  "vanzari.sub_vin": "Cumpărați",
+  "cont.sub_apare": "Ce apare pe fișă",
+  "cont.sub_cod": "Codul de crescător",
+  "cont.sub_iesire": "Ieșire și ștergere",
+  "panou.sub_porumbei": {
+    "text": "Vezi porumbeii",
+    "sens": "Primul submeniu al Panoului: porumbeii pe carduri (fosta „Grilă”)."
+  },
+  "data.model": {
+    "text": "zz.ll.aaaa",
+    "sens": "Textul gri din câmpul de dată gol: cum se scrie data (zi.lună.an)."
+  },
+  "data.alege": {
+    "text": "Alege data din calendar",
+    "sens": "Butonul cu calendar de lângă câmpul de dată (și titlul calendarului)."
+  },
+  "data.luna": {
+    "text": "Luna",
+    "sens": "Lista de luni din calendar."
+  },
+  "data.anul": {
+    "text": "Anul",
+    "sens": "Lista de ani din calendar."
+  },
+  "data.luna_trecuta": {
+    "text": "Luna dinainte",
+    "sens": "Săgeata spre stânga din calendar."
+  },
+  "data.luna_urmatoare": {
+    "text": "Luna următoare",
+    "sens": "Săgeata spre dreapta din calendar."
+  },
+  "data.azi": {
+    "text": "Azi",
+    "sens": "Butonul din calendar care pune data de azi."
+  },
+  "data.sterge": {
+    "text": "Șterge data",
+    "sens": "Butonul din calendar care golește câmpul de dată."
+  },
+  "data.inchide": {
+    "text": "Închide",
+    "sens": "Închide calendarul fără să schimbe data."
+  },
+  "data.gresita": {
+    "text": "Data nu e bună. Scrie-o așa: {exemplu}",
+    "sens": "Sub câmpul de dată, când ce a scris omul nu e o dată. {exemplu} = data de azi, scrisă corect."
   }
 }

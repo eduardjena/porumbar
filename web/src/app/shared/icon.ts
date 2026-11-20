@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
  */
 export type IconName =
   | 'panou' | 'retea' | 'plus' | 'cont' | 'lista' | 'cautare' | 'editeaza' | 'arbore' | 'jurnal' | 'poze' | 'rude'
-  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou';
+  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou' | 'calendar';
 
 @Component({
   selector: 'app-icon',
@@ -16,6 +16,7 @@ export type IconName =
       @switch (name()) {
         @case ('panou') { <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /> }
         @case ('retea') { <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /> }
+        @case ('calendar') { <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" /> }
         @case ('plus') { <path d="M5 12h14M12 5v14" /> }
         @case ('minus') { <path d="M5 12h14" /> }
         @case ('rotire') { <path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5" /> }

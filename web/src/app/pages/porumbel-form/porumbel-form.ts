@@ -11,6 +11,7 @@ import { PigeonPicker } from '../../shared/pigeon-picker';
 import { ConfirmService } from '../../core/confirm';
 import { Draft, draftBody, draftChanges, draftOf, emptyDraft } from './pigeon-draft';
 import { TPipe, t } from '../../core/i18n';
+import { DateField } from '../../shared/date-field';
 
 const empty = emptyDraft;
 const fromPigeon = draftOf;
@@ -36,7 +37,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker, TPipe],
+  imports: [DateField, FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker, TPipe],
   template: `
     <app-breadcrumbs [items]="crumbs()" />
     <h1>{{ (id() ? 'form.titlu_editeaza' : 'porumbel.nou') | t }}</h1>
@@ -95,7 +96,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
             <input name="name" [(ngModel)]="f.name" />
           </label>
           <label class="field">{{ 'camp.data_eclozarii' | t }} <span class="hint">{{ 'text.optional' | t }}</span>
-            <input type="date" name="hatchedOn" [(ngModel)]="f.hatchedOn" />
+            <app-date name="hatchedOn" [(ngModel)]="f.hatchedOn" />
           </label>
           <label class="field">{{ 'form.crescator_origine' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: '„Van Heteren”, „Comb. Den Haan”' } }}</span>
             <input name="breederText" [(ngModel)]="f.breederText" />

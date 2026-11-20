@@ -43,7 +43,17 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   național); cercetarea: docs/cercetare/reports/Concursuri columbofile în Porumbar.md (branch docs)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
+  src/app/app.ts  meniul mare (sus pe calculator, jos pe telefon) și, sub el, banda de submeniuri (macheta A, 2026-11-19):
+                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează; fișa porumbelului → filele
+                  ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=); Perechi → Perechile sezonului /
+                  Pereche nouă / Inelele mele, Vânzări → Cumpărați / Vânduți, Cont → Abonament / Datele de pe
+                  fișă / Ce apare pe fișă / Codul de crescător / Limba / Ieșire și ștergere (toate ?sec=). Fiecare submeniu
+                  are adresa lui. Banda pornește sub butonul părinte din meniul mare; dacă nu încape, butoanele se fac mai
+                  mici și rândul se trage spre stânga (alignBand). Meniul mare stă la mijlocul spațiului dintre siglă și
+                  margine; evidențierea e doar din font (îngroșat, mai mare, negru); fără „Înapoi” și fără „Ieși” în bare.
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
+                  (Arbore → Carduri: pe lățimea sitului, porumbelul în stânga și strămoșii spre dreapta, fișa celui ales
+                  sub arbore; Importă pedigree: linii de descendență albastre spre tată, roz spre mamă, ca în Carduri)
                   (Grilă /panou, Listă /porumbar, Importă pedigree /porumbei/pedigree, Rezultate concurs /concursuri și Scanează
                   /scaneaza stau într-un cadru comun,
                   panou/porumbar-cadru.ts: antetul, butoanele și bara de filtre nu se redesenează la schimbare; datele și
@@ -57,6 +67,8 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul
                   porumbel/rezultat-editor.ts, ecranul de introducere cu `focusPigeon`)
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
+                  date-field.ts (<app-date>): câmpul de dată peste tot, NU <input type="date"> (calendarul browserului
+                  vine în limba telefonului, adesea engleză); RO zz.ll.aaaa, HU éééé. hh. nn., valoarea AAAA-LL-ZZ
                   clasament.ts: citește clasamentul Columba lipit DOAR în telefon; la server pleacă numai rândurile omului
                   (după codul de crescător din Cont sau după inelele lui). Fără importuri, testat cu Node
                   (test/clasament.test.js). Nu se descarcă nimic de pe columba.ro și nu se citește din poză (decizia

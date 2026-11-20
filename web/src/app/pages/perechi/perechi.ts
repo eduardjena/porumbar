@@ -7,6 +7,7 @@ import { percent, ringText } from '../../core/catalog';
 import { formatDay, t, TPipe } from '../../core/i18n';
 import { Pair, PigeonSummary, RingSeries } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { DateField } from '../../shared/date-field';
 
 const today = () => new Date().toISOString().slice(0, 10);
 export const statusLabel = (s: Pair['status']) => t(`perechi.status_${s}`);
@@ -19,21 +20,22 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
  */
 @Component({
   selector: 'app-perechi',
-  imports: [FormsModule, RouterLink, Icon, TPipe],
+  imports: [DateField, FormsModule, RouterLink, Icon, TPipe],
   template: `
     <div class="head">
       <h1>{{ 'perechi.titlu' | t }}</h1>
+      @if (section() !== 'inele') {
       <label class="season">{{ 'camp.sezonul' | t }}
         <select [ngModel]="season()" (ngModelChange)="changeSeason($event)">
           @for (s of seasons(); track s) { <option [ngValue]="s">{{ s }}</option> }
         </select>
       </label>
+      }
     </div>
-    <p class="muted">{{ 'perechi.intro' | t }}</p>
+    <!-- Submeniurile (Perechile sezonului / Pereche nouă / Inelele mele) stau în banda de sus (app.ts), după ?sec=. -->
+    @if (section() === 'sezon') { <p class="muted">{{ 'perechi.intro' | t }}</p> }
 
-    @if (!adding()) {
-      <button type="button" class="primary big" (click)="openAdd()"><app-icon name="plus" />{{ 'perechi.pereche_noua' | t }}</button>
-    } @else {
+    @if (section() === 'noua') {
       <form class="card stack" (ngSubmit)="create()">
         <h2>{{ 'perechi.pereche_noua' | t }}</h2>
         <label class="field">{{ 'perechi.cauta' | t }} <input name="filter" [(ngModel)]="filter" [placeholder]="'perechi.inel_sau_nume' | t" autocomplete="off" /></label>
@@ -59,18 +61,19 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
         }
         <label class="check"><input type="checkbox" name="planned" [(ngModel)]="planned" /> {{ 'perechi.doar_planuiesc' | t }}</label>
         @if (!planned) {
-          <label class="field">{{ 'camp.data_imperecherii' | t }} <input type="date" name="pairedOn" [(ngModel)]="pairedOn" required /></label>
+          <label class="field">{{ 'camp.data_imperecherii' | t }} <app-date name="pairedOn" [(ngModel)]="pairedOn" required /></label>
         }
         <label class="field">{{ 'perechi.cuibul_boxa' | t }} <span class="hint">{{ 'perechi.nu_e_obligatoriu' | t }}</span><input name="nest" [(ngModel)]="nest" [placeholder]="'perechi.de_ex_12' | t" /></label>
         @if (formError()) { <div class="error" role="alert">{{ formError() }}</div> }
         <div class="row">
           <button class="primary" type="submit" [disabled]="!cockId || !henId || busy()"><app-icon name="bifa" />{{ 'perechi.salveaza_perechea' | t }}</button>
-          <button type="button" (click)="adding.set(false)">{{ 'actiune.renunta' | t }}</button>
+          <button type="button" (click)="toSeason()">{{ 'actiune.renunta' | t }}</button>
         </div>
       </form>
     }
 
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
+    @if (section() === 'sezon') {
     <ul class="pairs">
       @for (p of pairs(); track p.id) {
         <li>
@@ -94,7 +97,9 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
         @if (loaded()) { <p class="muted">{{ 'perechi.nicio_pereche' | t: { sezon: season() } }}</p> }
       }
     </ul>
+    }
 
+    @if (section() === 'inele') {
     <section class="card stack series">
       <h2>{{ 'perechi.inelele_mele' | t }}</h2>
       <p class="muted">{{ 'perechi.serii_intro' | t }}</p>
@@ -111,6 +116,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
       </form>
       @if (seriesError()) { <div class="error" role="alert">{{ seriesError() }}</div> }
     </section>
+    }
   `,
   styles: `
     .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -142,6 +148,9 @@ export default class Perechi {
   private readonly confirm = inject(ConfirmService);
   /** ?sezon=2025 */
   readonly sezon = input<string>();
+  /** Submeniul din banda de sus: ?sec=noua (Pereche nouă), ?sec=inele (Inelele mele); altfel perechile sezonului. */
+  readonly sec = input<string>();
+  protected readonly section = computed(() => (this.sec() === 'noua' || this.sec() === 'inele' ? this.sec()! : 'sezon'));
   readonly season = signal(new Date().getFullYear());
   readonly seasons = signal<number[]>([new Date().getFullYear()]);
   readonly pairs = signal<Pair[]>([]);
@@ -181,6 +190,10 @@ export default class Perechi {
 
   constructor() {
     effect(() => {
+      const noua = this.section() === 'noua';
+      untracked(() => (noua ? this.openAdd() : this.adding.set(false)));
+    });
+    effect(() => {
       const s = Number(this.sezon());
       untracked(() => {
         if (Number.isInteger(s) && s > 1990) this.season.set(s);
@@ -214,6 +227,11 @@ export default class Perechi {
 
   changeSeason(s: number) {
     this.router.navigate([], { queryParams: { sezon: s }, replaceUrl: true });
+  }
+
+  /** „Renunță” la perechea nouă: înapoi la perechile sezonului. */
+  toSeason() {
+    this.router.navigate([], { queryParams: { sec: undefined }, queryParamsHandling: 'merge' });
   }
 
   async openAdd() {

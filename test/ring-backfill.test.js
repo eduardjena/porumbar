@@ -58,3 +58,39 @@ test('inelele vechi recunoscute acum primesc cheia; o dublură rămâne neatins�
   assert.equal(mine.status, 201, JSON.stringify(mine.data));
   assert.equal(mine.data.pigeon.id, au, 'strămoșul devine porumbelul propriu, nu o dublură');
 });
+
+test('o eroare la un rând (dublură apărută între verificare și scriere, eroare a bazei) nu oprește completarea celorlalte', async () => {
+  const a = await newAccount(call, 'Concurent');
+  const me = (await call('/api/auth/me', { cookie: a })).data.account;
+  const racing = await oldRow(me.id, 'external', 'NEHU2008X1234');
+  const broken = await oldRow(me.id, 'external', 'IHU 09 S 76230');
+  const fine = await oldRow(me.id, 'external', 'CU21 MTN 3401');
+  const r = await backfill({
+    async beforeUpdate(row) {
+      // Alt proces scrie între timp același inel (indexul unic ux_pigeons_ext_ring).
+      if (row.id === racing) await db.insert(`INSERT INTO pigeons (account_id, kind, ring_raw, ring_key, created_at, updated_at) VALUES (?, 'external', 'NEHU-08-X-1234', 'NEHU|2008|X|1234', now(), now())`, me.id);
+      if (row.id === broken) await db.one('SELECT 1 / 0 AS x');
+    },
+  });
+  assert.ok(r.skipped >= 1, JSON.stringify(r));
+  assert.ok(r.errors >= 1, JSON.stringify(r));
+  const key = async (id) => (await db.one('SELECT ring_key FROM pigeons WHERE id = ?', id)).ring_key;
+  assert.equal(await key(racing), null);
+  assert.equal(await key(broken), null);
+  assert.equal(await key(fine), 'CU|2021|MTN|3401', 'celelalte rânduri se completează');
+});
+
+test('la pornire, o eroare a completării se scrie în jurnal, iar serverul pornește', async () => {
+  const { backfillAtStartup } = await import('../src/ring-backfill.js');
+  const errors = [];
+  const original = console.error;
+  console.error = (...args) => errors.push(args.join(' '));
+  try {
+    assert.equal(await backfillAtStartup(async () => { throw new Error('baza a căzut'); }), null);
+  } finally {
+    console.error = original;
+  }
+  assert.match(errors.join('\n'), /baza a căzut/);
+  const ok = await backfillAtStartup();
+  assert.equal(typeof ok.filled, 'number');
+});

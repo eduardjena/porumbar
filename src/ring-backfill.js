@@ -10,11 +10,14 @@ import { formatRing, parseRing, ringKey } from './rings.js';
  * Nu e o migrare numerotată (alt branch adaugă migrări): e idempotentă, atinge doar rândurile cu ring_key NULL, nu
  * schimbă o cheie existentă și sare peste un rând a cărui cheie ar dubla alt porumbel de același fel din cont
  * (indexurile unice ux_pigeons_own_ring / ux_pigeons_ext_ring din src/db.js). A doua rulare nu mai schimbă nimic.
+ * O eroare la un rând (de ex. o dublură scrisă de alt proces între verificare și scriere, când o publicare pe Railway
+ * se suprapune cu cea veche) lasă doar acel rând cum era. `beforeUpdate` e doar pentru teste.
  */
-export async function backfillRingKeys() {
+export async function backfillRingKeys({ beforeUpdate = null } = {}) {
   const rows = await all(`SELECT id, account_id, kind, ring_raw, name FROM pigeons WHERE ring_key IS NULL AND ring_raw IS NOT NULL ORDER BY id`);
   let filled = 0;
   let skipped = 0;
+  let errors = 0;
   for (const row of rows) {
     const r = parseRing(row.ring_raw);
     const key = ringKey(r);
@@ -25,13 +28,34 @@ export async function backfillRingKeys() {
     }
     // search_text ca în pigeons.js: numele, textul scris și forma normalizată.
     const search = fold([row.name, row.ring_raw, formatRing(r)].filter(Boolean).join(' '));
-    const { changes } = await run(
-      `UPDATE pigeons SET ring_key = ?, ring_country = ?, ring_year = ?, ring_club = ?, ring_number = ?, search_text = ?
-        WHERE id = ? AND ring_key IS NULL`,
-      key, r.country, r.year, r.club, r.number, search, row.id,
-    );
-    filled += changes;
+    try {
+      await beforeUpdate?.(row);
+      const { changes } = await run(
+        `UPDATE pigeons SET ring_key = ?, ring_country = ?, ring_year = ?, ring_club = ?, ring_number = ?, search_text = ?
+          WHERE id = ? AND ring_key IS NULL`,
+        key, r.country, r.year, r.club, r.number, search, row.id,
+      );
+      filled += changes;
+    } catch (err) {
+      // 23505 = indexul unic: alt porumbel a primit între timp aceeași cheie.
+      if (err?.code === '23505') skipped++;
+      else {
+        errors++;
+        console.error(`[porumbar] Cheia inelului pentru porumbelul ${row.id} nu s-a completat: ${err?.message ?? err}`); // i18n: ro
+      }
+    }
   }
-  if (filled || skipped) console.log(`[porumbar] Inele recunoscute acum: ${filled} completate, ${skipped} lăsate (ar dubla alt porumbel din cont).`); // i18n: ro
-  return { filled, skipped };
+  // În jurnal doar când s-a schimbat ceva sau a fost o eroare (rândurile lăsate rămân la fiecare pornire).
+  if (filled || errors) console.log(`[porumbar] Inele recunoscute acum: ${filled} completate, ${skipped} lăsate (ar dubla alt porumbel din cont), ${errors} erori.`); // i18n: ro
+  return { filled, skipped, errors };
+}
+
+/** La pornire: o eroare a completării (baza, alt proces) se scrie în jurnal, dar nu oprește serverul. */
+export async function backfillAtStartup(fill = backfillRingKeys) {
+  try {
+    return await fill();
+  } catch (err) {
+    console.error(`[porumbar] Completarea cheilor inelelor a eșuat, serverul pornește oricum: ${err?.message ?? err}`); // i18n: ro
+    return null;
+  }
 }

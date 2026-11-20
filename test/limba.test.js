@@ -3,18 +3,25 @@ import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
 import { adminCookie, newAccount, setLang } from './helpers/accounts.js';
+import { LANGS } from '../src/i18n.js';
 
-// Limba contului o pune vânzătorul; maghiara e „în probă” (nepublică) până o verifică cineva.
+// O limbă „în probă” (nepublică) o pune doar vânzătorul, până o verifică cineva. Maghiara e publică din 2026-11-20;
+// aici o facem din nou „în probă”, ca să rămână verificat felul în care merge o limbă nouă, încă neverificată.
 let server;
 let base;
 let admin;
 const call = apiCaller(() => ({ base }));
 const me = async (cookie) => (await call('/api/auth/me', { cookie })).data.account;
+const hu = LANGS.find((l) => l.code === 'hu');
 before(async () => {
+  hu.public = false;
   ({ server, base } = await startTestApp());
   admin = await adminCookie(call);
 });
-after(() => server?.close());
+after(() => {
+  hu.public = true;
+  server?.close();
+});
 
 test('un cont nou e în română', async () => {
   const a = await newAccount(call, 'Ion');
@@ -127,4 +134,18 @@ test('inel maghiar fără numărul asociației: mesaj clar, în limba omului', a
   assert.equal(ok.status, 201, JSON.stringify(ok.data));
   assert.equal(ok.data.pigeon.ring.display, 'HU-2023-29-14530');
   assert.equal(ok.data.pigeon.sex, 'M');
+});
+
+test('o limbă publică (maghiara, ca acum) se poate alege la înregistrare și schimba singur în Cont', async () => {
+  hu.public = true;
+  try {
+    const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: 'publica@exemplu.test', password: 'parola-de-test-123', name: 'Nagy Péter', lang: 'hu' } });
+    assert.equal(r.status, 201, JSON.stringify(r.data));
+    assert.equal(r.data.account.lang, 'hu');
+    const a = await newAccount(call, 'Vasile Public');
+    assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { lang: 'hu' } })).status, 200);
+    assert.equal((await me(a)).lang, 'hu');
+  } finally {
+    hu.public = false;
+  }
 });

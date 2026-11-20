@@ -38,11 +38,29 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js
+  results.js      concursurile: aceleași cifre ca foaia Columba (penalizarea și FCI cu 4 zecimale, FCI cu plafon 5.000
+                  fără Maraton / Extrem, premiat = primii 20%, ziua sosirii 1–7, clasamentul club / filială / zonă /
+                  național); cercetarea: docs/cercetare/reports/Concursuri columbofile în Porumbar.md (branch docs)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
-                  scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator)
+                  (Grilă /panou, Listă /porumbar, Importă pedigree /porumbei/pedigree, Rezultate concurs /concursuri și Scanează
+                  /scaneaza stau într-un cadru comun,
+                  panou/porumbar-cadru.ts: antetul, butoanele și bara de filtre nu se redesenează la schimbare; datele și
+                  filtrele în panou/porumbar-state.ts. Rezultate concurs are 2 submeniuri: Listare rezultate
+                  /concursuri/lista, tabelul din rezultate/rezultate-toate.ts, și Rezultat nou /concursuri/nou,
+                  concurs/concurs-rezultate.ts: toți porumbeii la un concurs, de mână sau lipind clasamentul)
+                  scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
+                  concurs, rezultate (vezi mai sus). Fișa porumbelului se editează pe loc, pe secțiuni
+                  (porumbel/fisa-editabila.ts, butonul „Schimbă”); câmpurile, lista „Ce se schimbă” și corpul trimis la
+                  server sunt comune cu „Porumbel nou” (porumbel-form/pigeon-draft.ts). Filele Rezultate și Rezultat nou
+                  ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul
+                  porumbel/rezultat-editor.ts, ecranul de introducere cu `focusPigeon`)
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
+                  clasament.ts: citește clasamentul Columba lipit DOAR în telefon; la server pleacă numai rândurile omului
+                  (după codul de crescător din Cont sau după inelele lui). Fără importuri, testat cu Node
+                  (test/clasament.test.js). Nu se descarcă nimic de pe columba.ro și nu se citește din poză (decizia
+                  vânzătorului, 2026-11-19)
 i18n/           dicționarele de limbi, citite de server și de interfață (vezi „Limbi”)
 test/           testele (node:test) pe un PostgreSQL temporar: `npm test`; un fișier: `node scripts/test.mjs test/x.test.js`
 scripts/        dev-db (Postgres de dezvoltare în data/pg, port 5433), db-setup, seed-exemplu (cont demo, doar local), test

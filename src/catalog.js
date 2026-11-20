@@ -79,12 +79,23 @@ export const JOURNAL_TYPES = [
 // Categoriile concursurilor, ca în antetul clasamentelor („CATEGORIA - VITEZA”).
 export const RACE_CATEGORIES = [
   { code: 'viteza', label: 'Viteză' },
-  { code: 'semifond', label: 'Semifond' },
+  // Columba scrie „Demifond” și „Extrem”; FCI: semifond / mare fond. Codurile rămân cele vechi.
+  { code: 'semifond', label: 'Demifond (semifond)' },
   { code: 'fond', label: 'Fond' },
-  { code: 'mare-fond', label: 'Mare fond' },
+  { code: 'mare-fond', label: 'Extrem (mare fond)' },
   { code: 'maraton', label: 'Maraton' },
   { code: 'pui', label: 'Pui' },
   { code: 'altele', label: 'Altele' },
+];
+
+// Clasamentul în care a ieșit porumbelul (același concurs are clasament pe club, filială, zonă și național).
+// `short` = cum apare pe pedigree („1e Jud.-197KM-10023P-'26”).
+export const RACE_LEVELS = [
+  { code: 'club', label: 'Club', short: 'Club' },
+  { code: 'filiala', label: 'Filială (județ)', short: 'Jud.' },
+  { code: 'zona', label: 'Zonă', short: 'Zon.' },
+  { code: 'national', label: 'Național', short: 'Nat.' },
+  { code: 'altul', label: 'Altul', short: null },
 ];
 
 export const codes = (list) => list.map((x) => x.code);
@@ -137,5 +148,6 @@ export function publicCatalog(lang = 'ro') {
     evalCriteria: tr(lang, 'evaluare', EVAL_CRITERIA),
     journalTypes: tr(lang, 'jurnal', JOURNAL_TYPES),
     raceCategories: tr(lang, 'concurs', RACE_CATEGORIES),
+    raceLevels: tr(lang, 'clasament', RACE_LEVELS),
   };
 }

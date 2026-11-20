@@ -52,7 +52,8 @@
 }
 
 * { box-sizing: border-box; }
-html { font-size: 18px; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+/* Locul barei de derulare e mereu păstrat: altfel, între o pagină lungă și una scurtă, antetul și pagina sar în lateral. */
+html { font-size: 18px; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; scrollbar-gutter: stable; }
 body {
   margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5;
   font-variant-numeric: tabular-nums;

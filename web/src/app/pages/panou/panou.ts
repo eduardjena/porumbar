@@ -1,13 +1,12 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Api, errorMessage } from '../../core/api';
+import { errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexShort } from '../../core/catalog';
 import { TPipe, t } from '../../core/i18n';
 import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { ViewToggle } from '../../shared/view-toggle';
-import { PanouBar } from './panou-bar';
-import { GROUPS, SORTS, ViewState, buildGroups, loadView, resultsLine, saveView } from './panou-view';
+import { resultsLine } from './panou-view';
+import { PorumbarState } from './porumbar-state';
 import { SharePdfService } from '../../core/share-pdf';
 
 const BANDS: { band: number; label: string; key?: string }[] = [
@@ -30,39 +29,24 @@ function reasons(p: BoardPigeon): string {
 
 @Component({
   selector: 'app-panou',
-  imports: [RouterLink, Icon, ViewToggle, PanouBar, TPipe],
+  imports: [RouterLink, Icon, TPipe],
   template: `
-    <div class="head">
-      <div>
-        <h1>{{ 'panou.titlu' | t }}</h1>
-        @if (loaded()) { <p class="muted count">{{ countLine() }}</p> }
-      </div>
-      <div class="row actions">
-        <app-view-toggle current="grila" />
-        <a routerLink="/porumbei/pedigree" class="btn"><app-icon name="fisa" />{{ 'panou.importa_pedigree' | t }}</a>
-        <a routerLink="/scaneaza" class="btn"><app-icon name="qr" />{{ 'panou.scaneaza_qr' | t }}</a>
-        <a routerLink="/porumbei/nou" class="btn primary add"><app-icon name="plus" />{{ 'porumbel.nou' | t }}</a>
-      </div>
-    </div>
-
-    @if (all().length) { <app-panou-bar [(state)]="view" [statuses]="catalog.catalog()?.statuses ?? []" [years]="years()" /> }
-
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (shareNote(); as n) { <div class="notice" role="status">{{ n }}</div> }
 
-    @if (loaded() && !all().length) {
+    @if (s.loaded() && !s.all().length) {
       <div class="empty card">
         <span class="empty-ico"><app-icon name="porumbel" [size]="48" /></span>
         <h2>{{ 'panou.gol_titlu' | t }}</h2>
         <p class="muted">{{ 'panou.gol_text' | t }}</p>
         <a routerLink="/porumbei/nou" class="btn primary"><app-icon name="plus" />{{ 'panou.adauga_primul' | t }}</a>
       </div>
-    } @else if (loaded() && !shownCount()) {
+    } @else if (s.loaded() && !s.shownCount()) {
       <p class="muted">{{ 'panou.nimic_gasit' | t }}</p>
     }
 
     <!-- Grilă compactă: încap zeci de porumbei pe ecran (2 pe rând pe telefon, 5–6 pe calculator); cu grupare, câte o secțiune pe grupă. -->
-    @for (g of groups(); track g.key) {
+    @for (g of s.groups(); track g.key) {
       @if (g.label) {
         <button type="button" class="group-head" [attr.aria-expanded]="!collapsed().has(g.key)" (click)="toggleGroup(g.key)">
           <app-icon name="jos" [size]="22" [class.shut]="collapsed().has(g.key)" />
@@ -83,7 +67,7 @@ function reasons(p: BoardPigeon): string {
                 <span class="mono ring">{{ ring(p) }}</span>
                 <span class="name">{{ p.name || ' ' }}</span>
                 <span class="meta muted">{{ p.year ?? '' }}@if (p.status) { · {{ catalog.label('statuses', p.status) }} }</span>
-                <span class="why">{{ resultsMode() ? resultsLine(p) : why(p) }}</span>
+                <span class="why">{{ s.resultsMode() ? resultsLine(p) : why(p) }}</span>
               </a>
               <!-- Tipărirea direct din panou, în colțul din dreapta sus al casetei (nu în link-ul casetei: link în link nu se poate). -->
               <a [routerLink]="['/porumbei', p.id, 'tiparire']" class="print" [title]="'porumbel.tipareste_pedigree' | t" [attr.aria-label]="'panou.tipareste_aria' | t: { cine: p.ring?.display ?? p.name ?? ('panou.porumbel_mic' | t) }">
@@ -100,7 +84,7 @@ function reasons(p: BoardPigeon): string {
       }
     }
 
-    @if (all().length) {
+    @if (s.all().length) {
       <div class="legend" [attr.aria-label]="'panou.culorile_notei' | t">
         <span class="muted">{{ 'panou.nota' | t }}</span>
         @for (b of bands; track b.band) { <span class="chip" [class]="'chip band-' + b.band">{{ b.key ? (b.key | t) : b.label }}</span> }
@@ -109,9 +93,6 @@ function reasons(p: BoardPigeon): string {
     }
   `,
   styles: `
-    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-    .head h1 { margin-bottom: 2px; }
-    .count { margin: 0; }
         .group-head {
       display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; margin: 18px 0 8px; padding: 6px 4px; border: 0;
       border-bottom: 2px solid var(--border); border-radius: 0; background: none; box-shadow: none; color: var(--text); font-size: 1.1rem; font-weight: 800; text-align: left;
@@ -156,25 +137,36 @@ function reasons(p: BoardPigeon): string {
     .empty h2 { margin: 8px 0 0; }
     .empty-ico { width: 88px; height: 88px; border-radius: 28px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
     @media (max-width: 767px) {
-      .actions .add { display: none; }
       .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
       .tile { padding: 10px; }
     }
   `,
 })
 export default class Panou {
-  private readonly api = inject(Api);
+  protected readonly s = inject(PorumbarState);
   protected readonly catalog = inject(CatalogService);
   protected readonly bands = BANDS;
   protected readonly sex = sexShort;
   protected readonly why = reasons;
   protected readonly ring = ringText;
-  readonly all = signal<BoardPigeon[]>([]);
-  readonly loaded = signal(false);
-  readonly error = signal('');
+  protected readonly resultsLine = resultsLine;
   protected readonly share = inject(SharePdfService);
+  readonly error = signal('');
   /** Mesajul de după „Trimite” (de ex. PDF-ul s-a descărcat, unde browserul nu poate trimite fișiere). */
   readonly shareNote = signal('');
+  /** Grupele strânse (se deschid la loc când se schimbă gruparea). */
+  readonly collapsed = signal<Set<string>>(new Set());
+
+  constructor() {
+    let group = this.s.view().group;
+    effect(() => {
+      const g = this.s.view().group;
+      if (g !== group) {
+        group = g;
+        this.collapsed.set(new Set());
+      }
+    });
+  }
 
   async send(id: number) {
     this.shareNote.set('');
@@ -184,56 +176,11 @@ export default class Panou {
       this.error.set(t('panou.fisa_nepregatita', { eroare: errorMessage(e) }));
     }
   }
-  /** Ce arată bara: căutarea, ordonarea, gruparea, filtrele (ținute minte, fără căutare). */
-  readonly view = signal<ViewState>(loadView());
-  /** Grupele strânse (se deschid la loc când se schimbă gruparea). */
-  readonly collapsed = signal<Set<string>>(new Set());
-  protected readonly resultsLine = resultsLine;
-  protected readonly groups = computed(() => buildGroups(this.all(), this.view(), this.catalog.catalog()));
-  protected readonly shownCount = computed(() => this.groups().reduce((n, g) => n + g.items.length, 0));
-  protected readonly years = computed(() => [...new Set(this.all().map((p) => p.year).filter((y): y is number => !!y))].sort((a, b) => b - a));
-  /** Rândul de jos al casetei arată rezultatele când ordonarea sau gruparea e după ele. */
-  protected readonly resultsMode = computed(() => ['loc', 'premii', 'coef'].includes(this.view().sort) || ['rezultate', 'categorie'].includes(this.view().group));
-  protected readonly countLine = computed(() => {
-    const n = this.all().length;
-    const v = this.view();
-    const shown = this.shownCount();
-    const sort = SORTS.find((s) => s.key === v.sort);
-    const parts = [t('panou.numar_porumbei', { count: n })];
-    if (shown !== n) parts.push(t('panou.numar_afisati', { count: shown }));
-    parts.push(v.sort === 'nota' ? t('panou.ordonare.nota_ajutor') : t('panou.dupa', { ordonare: sort?.label.toLowerCase() }));
-    if (v.group !== 'none') parts.push(t('panou.grupati', { grupare: GROUPS.find((g) => g.key === v.group)?.label.toLowerCase() }));
-    return parts.join(' · ');
-  });
 
   toggleGroup(key: string) {
     const next = new Set(this.collapsed());
     if (next.has(key)) next.delete(key);
     else next.add(key);
     this.collapsed.set(next);
-  }
-
-  constructor() {
-    this.load();
-    let group = this.view().group;
-    effect(() => {
-      const v = this.view();
-      saveView(v);
-      if (v.group !== group) {
-        group = v.group;
-        this.collapsed.set(new Set());
-      }
-    });
-  }
-
-  private async load() {
-    try {
-      this.all.set((await this.api.get<{ pigeons: BoardPigeon[] }>('/board')).pigeons);
-      this.error.set('');
-    } catch (e) {
-      this.error.set(errorMessage(e));
-    } finally {
-      this.loaded.set(true);
-    }
   }
 }

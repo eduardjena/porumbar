@@ -11,7 +11,7 @@ import { BREEDS, COLORS, EYE_COLORS, STATUSES, EVAL_CRITERIA, codes, fold } from
 const KINDS = ['own', 'external'];
 const MAX_LINES = 10;
 
-const ringOf = (row) =>
+export const ringOf = (row) =>
   row.ring_raw == null
     ? null
     : {

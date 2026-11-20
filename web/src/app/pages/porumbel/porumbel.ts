@@ -3,21 +3,24 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexLabel } from '../../core/catalog';
-import { TPipe, t } from '../../core/i18n';
+import { TPipe, formatDay, t } from '../../core/i18n';
 import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
 import { Arbore } from './arbore';
 import { Partajare } from './partajare';
-import { Rezultate } from './rezultate';
+import RezultateToate from '../rezultate/rezultate-toate';
+import ConcursRezultate from '../concurs/concurs-rezultate';
+import { FisaEditabila } from './fisa-editabila';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { Icon, IconName } from '../../shared/icon';
 
-type Tab = 'fisa' | 'rezultate' | 'rude' | 'arbore' | 'jurnal' | 'qr';
+type Tab = 'fisa' | 'rezultate' | 'introdu' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'fisa', label: 'porumbel.fila_fisa', icon: 'porumbel' },
   { id: 'rezultate', label: 'porumbel.fila_rezultate', icon: 'cupa' },
+  { id: 'introdu', label: 'porumbel.fila_introdu', icon: 'plus' },
   { id: 'rude', label: 'porumbel.fila_rude', icon: 'rude' },
   { id: 'arbore', label: 'porumbel.fila_arbore', icon: 'fisa' },
   { id: 'jurnal', label: 'porumbel.fila_jurnal', icon: 'jurnal' },
@@ -26,7 +29,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, Rezultate, TPipe],
+  imports: [FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Icon, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -40,10 +43,6 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
             @if (p.kind === 'external') { <span class="badge">{{ 'porumbel.nu_e_al_meu_mic' | t }}</span> }
           </p>
         </div>
-        <div class="row">
-          <a class="btn" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" />{{ 'porumbel.vezi_in_arbore' | t }}</a>
-          <a class="btn" [routerLink]="['/porumbei', p.id, 'editeaza']"><app-icon name="editeaza" />{{ 'actiune.editeaza' | t }}</a>
-        </div>
       </div>
 
       <nav class="tabs" role="tablist">
@@ -52,34 +51,14 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
             <app-icon [name]="tb.icon" [size]="26" /><span>{{ tb.label | t }}</span>
           </button>
         }
+        <!-- La capătul barei: duce în arborele tuturor porumbeilor, cu acesta în centru. -->
+        <a class="tab-link" [routerLink]="['/arbore']" [queryParams]="{ porumbel: p.id }"><app-icon name="copac" [size]="26" /><span>{{ 'porumbel.vezi_in_arbore' | t }}</span></a>
       </nav>
 
       @switch (tab()) {
         @case ('fisa') {
-          <section class="card stack">
-            <dl class="facts">
-              <dt>{{ 'porumbel.rasa' | t }}</dt><dd>{{ catalog.label('breeds', p.breed) }}</dd>
-              @if (p.lines.length) { <dt>{{ 'porumbel.linii' | t }}</dt><dd>{{ p.lines.join(', ') }}</dd> }
-              <dt>{{ 'porumbel.culoare' | t }}</dt>
-              <dd>{{ catalog.label('colors', p.color) || '—' }}@if (p.colorPa) {, {{ 'porumbel.pene_albe' | t }}}@if (p.colorText) { <span class="muted">({{ p.colorText }})</span>}</dd>
-              @if (p.eyeColor) { <dt>{{ 'porumbel.ochi' | t }}</dt><dd>{{ catalog.label('eyeColors', p.eyeColor) }}</dd> }
-              @if (p.hatchedOn) { <dt>{{ 'porumbel.eclozat' | t }}</dt><dd>{{ p.hatchedOn }}</dd> }
-              @if (p.breederText) { <dt>{{ 'porumbel.crescator' | t }}</dt><dd>{{ p.breederText }}</dd> }
-              @if (p.ring && p.ring.raw !== p.ring.display) { <dt>{{ 'porumbel.inel_scris' | t }}</dt><dd class="mono">{{ p.ring.raw }}</dd> }
-            </dl>
-            @if (p.pedigreeText) { <h3>{{ 'porumbel.pe_pedigree' | t }}</h3><p class="pre">{{ p.pedigreeText }}</p> }
-            @if (hasEvaluation()) {
-              <h3>{{ 'porumbel.evaluare' | t }}</h3>
-              <dl class="facts">
-                @for (c of catalog.catalog()?.evalCriteria ?? []; track c.code) {
-                  @if (p.evaluation.scores?.[c.code]; as s) { <dt>{{ c.label }}</dt><dd>{{ '★'.repeat(s) }}{{ '☆'.repeat(5 - s) }} <span class="muted">{{ s }}/5</span></dd> }
-                }
-              </dl>
-              @if (p.evaluation.calitati) { <p><strong>{{ 'porumbel.calitati' | t }}:</strong> {{ p.evaluation.calitati }}</p> }
-              @if (p.evaluation.deDorit) { <p><strong>{{ 'porumbel.de_dorit' | t }}:</strong> {{ p.evaluation.deDorit }}</p> }
-              @if (p.evaluation.defecte) { <p><strong>{{ 'porumbel.defecte' | t }}:</strong> {{ p.evaluation.defecte }}</p> }
-            }
-          </section>
+          <!-- Tot ce are fișa, pe secțiuni; fiecare secțiune se schimbă pe loc („Schimbă”). -->
+          <app-fisa-editabila [pigeon]="p" (saved)="pigeonSaved($event)" />
           <h2>{{ 'porumbel.parintii' | t }}</h2>
           <app-parents-editor [pigeonId]="p.id" [initialFather]="family()?.father ?? null" [initialMother]="family()?.mother ?? null"
                               (saved)="parentsSaved($event)" />
@@ -110,7 +89,12 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           <app-arbore [pigeonId]="p.id" [version]="version()" (addParent)="openParent($event.id)" />
         }
         @case ('rezultate') {
-          <app-rezultate [pigeonId]="p.id" />
+          <!-- Același tabel ca la Rezultate concurs → Listare rezultate, doar cu rezultatele acestui porumbel. -->
+          <app-rezultate-toate [pigeonId]="p.id" />
+        }
+        @case ('introdu') {
+          <!-- Același ecran ca la Rezultate concurs → Introdu rezultat nou; porumbelul acesta e primul în listă. -->
+          <app-concurs-rezultate [focusPigeon]="p.id" (saved)="tab.set('rezultate')" />
         }
         @case ('qr') {
           <app-partajare [pigeon]="p" />
@@ -150,13 +134,15 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     .title h1 { margin-bottom: 4px; }
     .name { font-weight: 400; }
     .sub { margin: 0 0 12px; }
-    .tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
-    .tabs button {
-      border: 0; border-radius: 14px; background: none; color: var(--muted); flex-direction: column; gap: 2px;
-      min-height: 64px; padding: 6px 4px; font-size: 0.85rem;
+    .tabs { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: 12px 0 18px; padding: 6px; background: var(--surface-2); border-radius: 20px; }
+    .tabs button, .tabs .tab-link {
+      border: 0; border-radius: 14px; background: none; color: var(--muted); display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 2px; min-height: 64px; padding: 6px 4px; font-size: 0.85rem; font-weight: 700; text-align: center;
+      text-decoration: none; box-shadow: none;
     }
-    /* Pe telefon, cele 6 file pe două rânduri, ca etichetele să rămână întregi și mari. */
-    @media (max-width: 600px) { .tabs { grid-template-columns: repeat(3, 1fr); } }
+    .tabs .tab-link:hover { background: var(--surface); color: var(--text); }
+    /* Pe telefon, cele 8 pe două rânduri, ca etichetele să rămână întregi și mari. */
+    @media (max-width: 600px) { .tabs { grid-template-columns: repeat(4, 1fr); } .tabs button, .tabs .tab-link { font-size: 0.78rem; padding: 6px 2px; } }
     .tabs button.on { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow); }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
     .facts dt { font-weight: 600; color: var(--muted); }
@@ -173,6 +159,7 @@ export default class Porumbel {
   private readonly confirm = inject(ConfirmService);
   protected readonly catalog = inject(CatalogService);
   readonly id = input.required<string>();
+  protected readonly day = formatDay;
   /** De unde a venit omul (?din=arbore|lista; arbore3d = linkuri vechi), ca firimiturile să-l întoarcă acolo. */
   readonly din = input<string>();
   readonly radacina = input<string>();
@@ -203,10 +190,6 @@ export default class Porumbel {
   jDate = new Date().toISOString().slice(0, 10);
   jType = 'nota';
   jText = '';
-  protected readonly hasEvaluation = computed(() => {
-    const e = this.p()?.evaluation;
-    return !!e && (Object.keys(e.scores ?? {}).length > 0 || !!e.calitati || !!e.deDorit || !!e.defecte);
-  });
 
   constructor() {
     effect(() => {
@@ -215,6 +198,12 @@ export default class Porumbel {
       this.tab.set(TABS.some((t) => t.id === fila) ? (fila as Tab) : 'fisa');
       this.load(id);
     });
+  }
+
+  /** După „Salvează” într-o secțiune a fișei: porumbelul nou peste cel vechi (și arborele din fila Pedigree). */
+  pigeonSaved(p: Pigeon) {
+    this.p.set(p);
+    this.version.update((v) => v + 1);
   }
 
   private async load(id: string) {

@@ -86,6 +86,10 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
           </tbody>
         </table>
       </fieldset>
+      <label class="field">{{ 'concurs.codul_tau' | t }}
+        <input class="mono" name="breederCode" [(ngModel)]="breederCode" autocapitalize="characters" autocomplete="off" spellcheck="false" [placeholder]="'text.de_exemplu' | t: { exemplu: 'VL9001' }" />
+        <span class="hint">{{ 'concurs.codul_ajutor' | t }}</span>
+      </label>
       @if (saved()) { <div class="notice" role="status">{{ 'cont.salvat' | t }}</div> }
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
       <button class="primary" type="submit">{{ 'actiune.salveaza' | t }}</button>
@@ -132,6 +136,7 @@ export default class Cont {
   printPhone = this.auth.account()?.printPhone !== false;
   printAddress = this.auth.account()?.printAddress !== false;
   printEmail = this.auth.account()?.printEmail !== false;
+  breederCode = this.auth.account()?.breederCode ?? '';
   deletePassword = '';
   readonly saved = signal(false);
   readonly error = signal('');
@@ -158,6 +163,7 @@ export default class Cont {
       { label: t('cont.telefon_link_public'), before: yes(a?.showPhone), after: yes(this.showPhone) },
       { label: t('cont.adresa_link_public'), before: yes(a?.showAddress), after: yes(this.showAddress) },
       { label: t('cont.email_link_public'), before: yes(a?.showEmail), after: yes(this.showEmail) },
+      { label: t('concurs.codul_tau'), before: a?.breederCode ?? '', after: this.breederCode.trim().toUpperCase().replace(/\s+/g, '') },
     ]);
     if (!diff.length) return this.saved.set(true);
     if (!(await this.confirm.ask({ title: t('cont.salvezi'), lines: diff, confirmLabel: t('cont.da_salveaza') }))) return;
@@ -167,6 +173,7 @@ export default class Cont {
         ...(admin ? { name: this.name, pedigreeName: this.pedigreeName || null, phone: this.phone || null, address: this.address || null } : {}),
         showPhone: this.showPhone, showAddress: this.showAddress, showEmail: this.showEmail,
         printPhone: this.printPhone, printAddress: this.printAddress, printEmail: this.printEmail,
+        breederCode: this.breederCode,
       });
       this.saved.set(true);
     } catch (e) {

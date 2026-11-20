@@ -1,6 +1,6 @@
 import { ApplicationConfig, Injector, effect, inject, provideAppInitializer, provideBrowserGlobalErrorListeners, untracked } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding, withNavigationErrorHandler } from '@angular/router';
+import { PreloadAllModules, provideRouter, withComponentInputBinding, withNavigationErrorHandler, withPreloading } from '@angular/router';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/api';
 import { AuthService } from './core/auth';
@@ -14,6 +14,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
+      // Paginile se aduc în fundal după pornire: trecerea de la una la alta nu mai așteaptă descărcarea.
+      withPreloading(PreloadAllModules),
       // După o versiune nouă a aplicației, paginile vechi (fișiere cu alt nume) nu mai există: o tab deschisă dinainte
       // ar rămâne blocată. Reîncărcăm pagina spre adresa cerută, o singură dată.
       withNavigationErrorHandler((e) => {

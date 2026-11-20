@@ -107,7 +107,7 @@ function forgetOldDraft() {
           @for (g of gens; track g) { <div>{{ genName(g) }}</div> }
         </div>
         <div class="sheet" #sheet>
-          <svg class="links" aria-hidden="true"><path [attr.d]="links()" /></svg>
+          <svg class="links" aria-hidden="true"><path class="tata" [attr.d]="links().father" /><path class="mama" [attr.d]="links().mother" /></svg>
           @for (i of indexes; track i) {
             @let s = d().slots[i];
             @let g = gen(i);
@@ -158,7 +158,10 @@ function forgetOldDraft() {
     .sheet { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(16, minmax(64px, auto)); gap: 6px 28px; }
     /* Liniile de descendență: de la fiecare porumbel, spre tată (sus) și mamă (jos), ca pe pedigree-ul de hârtie. */
     .links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-    .links path { fill: none; stroke: #b9a88f; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .links path { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    /* Aceleași culori ca în Arbore → Carduri și în Rețea: tata albastru, mama roz. */
+    .links .tata { stroke: #9fb8cf; }
+    .links .mama { stroke: #d2a6c9; }
     .slot { position: relative; z-index: 1; align-self: center; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
     .slot.has { border-color: #c2b39c; }
     .slot.g0 { border: 2px solid var(--accent); }
@@ -214,7 +217,7 @@ export default class PedigreeHartie {
 
   private readonly sheet = viewChild<ElementRef<HTMLElement>>('sheet');
   /** Liniile dintre căsuțe (calea SVG), măsurate după ce s-au așezat căsuțele. */
-  protected readonly links = signal('');
+  protected readonly links = signal({ father: '', mother: '' });
 
   constructor() {
     forgetOldDraft();
@@ -232,17 +235,19 @@ export default class PedigreeHartie {
 
   /** Copil → părinți: din mijlocul marginii drepte a copilului, la jumătatea spațiului, apoi la tată și la mamă. */
   private drawLinks(el: HTMLElement) {
-    if (getComputedStyle(el).display !== 'grid') return this.links.set('');
+    if (getComputedStyle(el).display !== 'grid') return this.links.set({ father: '', mother: '' });
     const box = el.getBoundingClientRect();
     const at = new Map<number, DOMRect>();
     el.querySelectorAll<HTMLElement>('.slot[data-i]').forEach((s) => at.set(+s.dataset['i']!, s.getBoundingClientRect()));
     const r = (v: number) => Math.round(v) + 0.5;
-    let d = '';
+    const d = { father: '', mother: '' };
     for (let i = 1; 2 * i + 1 <= SLOTS; i++) {
       const c = at.get(i), f = at.get(2 * i), m = at.get(2 * i + 1);
       if (!c || !f || !m) continue;
       const x1 = r(c.right - box.left), y1 = r(c.top + c.height / 2 - box.top), x2 = r(f.left - box.left), xm = r((x1 + x2) / 2);
-      for (const p of [f, m]) d += `M${x1} ${y1}H${xm}V${r(p.top + p.height / 2 - box.top)}H${x2}`;
+      const to = (p: DOMRect) => `M${x1} ${y1}H${xm}V${r(p.top + p.height / 2 - box.top)}H${x2}`;
+      d.father += to(f);
+      d.mother += to(m);
     }
     this.links.set(d);
   }

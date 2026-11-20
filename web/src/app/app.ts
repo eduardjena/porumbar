@@ -132,9 +132,10 @@ const NAV: NavItem[] = [
       background: rgb(255 253 249 / 94%); border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
     }
+    /* Rândul de sus are înălțime fixă; butoanele meniului îl umplu de sus până jos (celule, nu pastile). */
     .top-inner {
-      max-width: 1120px; margin: 0 auto; padding: 10px 24px;
-      display: flex; align-items: center; justify-content: flex-start; gap: 16px;
+      max-width: 1120px; margin: 0 auto; padding: 0 24px; min-height: 68px;
+      display: flex; align-items: stretch; justify-content: flex-start; gap: 16px;
     }
     .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
     /* Banda de submeniuri: pastile ca în bara de filtre; pe telefon se derulează cu degetul. */
@@ -155,20 +156,21 @@ const NAV: NavItem[] = [
     .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
     .pill.back { color: var(--accent-strong); }
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
-    .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; letter-spacing: -0.01em; }
+    .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
     /* Meniul mare lângă siglă (submeniurile au loc să pornească de sub butonul lor); „Ieși” singur, în dreapta. */
-    .top-nav { display: flex; gap: 4px; align-items: center; flex: 1 1 auto; margin-left: 8px; }
+    .top-nav { display: flex; gap: 0; align-items: stretch; flex: 1 1 auto; margin-left: 8px; }
     .top-nav .ghost { margin-left: auto; }
+    /* Evidențierea e dreptunghiulară, pe toată celula: se vede clar sub ce buton pornesc submeniurile. */
     .top-nav a, .top-nav .ghost {
-      padding: 8px 16px; border-radius: 999px; color: var(--muted); text-decoration: none; min-height: 48px;
+      padding: 0 16px; border-radius: 0; color: var(--muted); text-decoration: none; min-height: 48px; box-shadow: none;
       display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; background: none; border: 0;
     }
     .top-nav a:hover, .top-nav .ghost:hover { background: var(--surface-2); color: var(--text); }
-    .top-nav a.on { background: var(--accent-soft); color: var(--accent-strong); }
+    .top-nav a.on { background: var(--accent-soft); color: var(--accent-strong); box-shadow: inset 0 -3px 0 var(--accent); }
     /* Calculatoare mai înguste / tablete: meniul de sus mai strâns (iconița deasupra textului), ca să încapă tot. */
     @media (min-width: 768px) and (max-width: 1060px) {
-      .top-nav a, .top-nav .ghost { flex-direction: column; gap: 2px; padding: 4px 10px; font-size: 0.8rem; border-radius: 14px; }
+      .top-nav a, .top-nav .ghost { flex-direction: column; justify-content: center; gap: 2px; padding: 0 10px; font-size: 0.8rem; }
       .top-nav > :last-child { margin-right: -10px; }
     }
     @media (min-width: 768px) and (max-width: 900px) {
@@ -192,16 +194,16 @@ const NAV: NavItem[] = [
       .bottom-nav {
         display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
         background: rgb(255 253 249 / 97%); border-top: 1px solid var(--border); backdrop-filter: saturate(1.4) blur(10px);
-        padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+        padding: 0 0 env(safe-area-inset-bottom);
       }
       .bottom-nav a {
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-        min-height: 64px; min-width: 0; color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+        min-height: 72px; padding: 4px 0; min-width: 0; color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
       }
       .bottom-nav .badge { top: -4px; right: 2px; min-width: 22px; height: 22px; font-size: 0.8rem; }
-      .bottom-nav .ico { width: 52px; height: 40px; border-radius: 999px; display: grid; place-items: center; transition: background-color 0.2s var(--ease); }
-      .bottom-nav a.on { color: var(--accent-strong); }
-      .bottom-nav a.on .ico { background: var(--accent-soft); }
+      .bottom-nav .ico { width: 52px; height: 40px; display: grid; place-items: center; }
+      /* Și jos: evidențierea pe toată celula, cu o linie sus spre conținut. */
+      .bottom-nav a.on { color: var(--accent-strong); background: var(--accent-soft); box-shadow: inset 0 3px 0 var(--accent); }
       .bottom-nav a.add .ico { width: 52px; height: 40px; background: var(--accent); color: #fff; border-radius: 14px; }
       .bottom-nav a.add.on .ico { background: var(--accent-strong); }
     }

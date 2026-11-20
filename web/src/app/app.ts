@@ -137,7 +137,6 @@ const NAV: NavItem[] = [
       max-width: 1120px; margin: 0 auto; padding: 0 24px; min-height: 68px;
       display: flex; align-items: stretch; justify-content: flex-start; gap: 16px;
     }
-    .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
     /* Banda de submeniuri: celule ca în meniul mare (evidențierea pe toată celula); pe telefon se derulează cu degetul. */
     .band { background: var(--surface); }
     .band-inner {
@@ -159,8 +158,8 @@ const NAV: NavItem[] = [
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
-    /* Meniul mare în dreapta antetului („Ieși” stă în Cont → Ieșire și ștergere). */
-    .top-nav { display: flex; gap: 0; align-items: stretch; flex: 1 1 auto; justify-content: flex-end; margin-left: 8px; }
+    /* Meniul mare la mijlocul spațiului dintre siglă și marginea din dreapta („Ieși” stă în Cont → Ieșire și ștergere). */
+    .top-nav { display: flex; gap: 0; align-items: stretch; flex: 1 1 auto; justify-content: center; margin-left: 8px; }
     /* Fără celule și fără linii: butonul ales se vede doar prin literă (îngroșată, mai mare, neagră); restul, gri. */
     .top-nav a {
       padding: 0 16px; border-radius: 0; color: var(--muted); text-decoration: none; min-height: 48px; box-shadow: none;
@@ -172,7 +171,6 @@ const NAV: NavItem[] = [
     @media (min-width: 768px) and (max-width: 1060px) {
       .top-nav a { flex-direction: column; justify-content: center; gap: 2px; padding: 0 10px; font-size: 0.8rem; }
       .top-nav a.on { font-size: 0.92rem; }
-      .top-nav > :last-child { margin-right: -10px; }
     }
     @media (min-width: 768px) and (max-width: 900px) {
       .brand { font-size: 0; gap: 0; }

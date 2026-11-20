@@ -100,9 +100,10 @@ cererile care schimbă date trebuie să fie JSON și de pe același site). Forma
   diacritice românești în cod (excepții: comentarii, consola vânzătorului, rânduri marcate `// i18n: ro`).
 - Consola vânzătorului (`/vanzator`, `src/routes/admin.js`) rămâne în română. Mailul către vânzător e în română; mailurile
   către crescător sunt în limba contului.
-- Limba contului (`accounts.lang`) o pune vânzătorul (Crescător nou / Date pe fișă). O limbă **nepublică** („în probă”,
-  de ex. maghiara până o verifică un crescător maghiar) o primește doar cine i-o dă vânzătorul; omul poate trece singur
-  doar spre o limbă publică. Fișa tipărită și PDF-ul pot ieși și în altă limbă (alegerea de pe pagina de tipărire).
+- Limbile publice: româna și maghiara (publică din 2026-11-20, la cererea vânzătorului): omul și-o alege la înregistrare
+  sau în Cont, iar fără cont vine după limba telefonului. Vânzătorul poate pune limba oricui (Crescător nou / Date pe
+  fișă). O limbă **nepublică** („în probă”, una nouă, încă neverificată) o primește doar cine i-o dă vânzătorul; omul
+  poate trece singur doar spre o limbă publică (testul test/limba.test.js face maghiara „în probă” ca să verifice asta). Fișa tipărită și PDF-ul pot ieși și în altă limbă (alegerea de pe pagina de tipărire).
 - Termenii maghiari ai crescătorilor (culori, H / T pentru sex, „SZÁRMAZÁSI LAP”): `docs/cercetare/termeni-maghiari.md`.
 - O limbă nouă: un fișier `i18n/<cod>.json` cu toate cheile + un rând în `languages.json` (cu `public: false` până e verificată).
 

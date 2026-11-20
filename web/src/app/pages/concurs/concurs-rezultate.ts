@@ -8,6 +8,7 @@ import { PigeonSummary, Race } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { PastedRow, ownRows, readPasted, ringKeyOf } from '../../shared/clasament';
 import { PorumbarState } from '../panou/porumbar-state';
+import { DateField } from '../../shared/date-field';
 
 /** Concursul, ca în formularul unui rezultat (texte, ca să primească și „196,608”). */
 interface RaceForm {
@@ -46,7 +47,7 @@ const GONE = new Set(['vandut', 'pierdut', 'mort']);
  */
 @Component({
   selector: 'app-concurs-rezultate',
-  imports: [FormsModule, Icon, TPipe],
+  imports: [DateField, FormsModule, Icon, TPipe],
   template: `
 
     @if (done(); as d) {
@@ -85,7 +86,7 @@ const GONE = new Set(['vandut', 'pierdut', 'mort']);
         }
         @if (!race.raceId) {
           <div class="row">
-            <label class="field grow">{{ 'camp.data' | t }} <input type="date" name="date" [(ngModel)]="race.date" required /></label>
+            <label class="field grow">{{ 'camp.data' | t }} <app-date name="date" [(ngModel)]="race.date" required /></label>
             <label class="field grow">{{ 'camp.categoria' | t }}
               <select name="category" [(ngModel)]="race.category">
                 @for (c of catalog.catalog()?.raceCategories ?? []; track c.code) { <option [value]="c.code">{{ c.label }}</option> }

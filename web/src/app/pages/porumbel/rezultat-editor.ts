@@ -6,6 +6,7 @@ import { ConfirmService } from '../../core/confirm';
 import { Race, RaceResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { TPipe, formatDay, t } from '../../core/i18n';
+import { DateField } from '../../shared/date-field';
 
 /** Formularul, cu aceleași câmpuri ca clasamentul columba.ro (texte, ca să primească și „196,608”). */
 interface Form {
@@ -43,7 +44,7 @@ const plain = (n: number) => String(n).replace('.', ',');
  */
 @Component({
   selector: 'app-rezultat-editor',
-  imports: [FormsModule, Icon, TPipe],
+  imports: [DateField, FormsModule, Icon, TPipe],
   template: `
     <form class="card stack editor" (ngSubmit)="save()">
       <h3>{{ 'rezultate.schimba_titlu' | t }}</h3>
@@ -59,7 +60,7 @@ const plain = (n: number) => String(n).replace('.', ',');
       <fieldset class="stack">
         <legend>{{ 'rezultate.concursul' | t }}</legend>
         <div class="row">
-          <label class="field grow">{{ 'camp.data' | t }} <input type="date" name="date" [(ngModel)]="f.date" required /></label>
+          <label class="field grow">{{ 'camp.data' | t }} <app-date name="date" [(ngModel)]="f.date" required /></label>
           <label class="field grow">{{ 'camp.categoria' | t }}
             <select name="category" [(ngModel)]="f.category">
               @for (c of catalog.catalog()?.raceCategories ?? []; track c.code) { <option [value]="c.code">{{ c.label }}</option> }

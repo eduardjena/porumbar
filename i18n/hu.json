@@ -1263,5 +1263,15 @@
   "cont.sub_apare": "Mi látszik az adatlapon",
   "cont.sub_cod": "Tenyésztői kód",
   "cont.sub_iesire": "Kilépés és törlés",
-  "panou.sub_porumbei": "Galambok"
+  "panou.sub_porumbei": "Galambok",
+  "data.model": "éééé. hh. nn.",
+  "data.alege": "Dátum kiválasztása a naptárból",
+  "data.luna": "Hónap",
+  "data.anul": "Év",
+  "data.luna_trecuta": "Előző hónap",
+  "data.luna_urmatoare": "Következő hónap",
+  "data.azi": "Ma",
+  "data.sterge": "Dátum törlése",
+  "data.inchide": "Bezárás",
+  "data.gresita": "A dátum nem jó. Így írja: {exemplu}"
 }

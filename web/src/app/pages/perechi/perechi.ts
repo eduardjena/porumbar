@@ -7,6 +7,7 @@ import { percent, ringText } from '../../core/catalog';
 import { formatDay, t, TPipe } from '../../core/i18n';
 import { Pair, PigeonSummary, RingSeries } from '../../core/models';
 import { Icon } from '../../shared/icon';
+import { DateField } from '../../shared/date-field';
 
 const today = () => new Date().toISOString().slice(0, 10);
 export const statusLabel = (s: Pair['status']) => t(`perechi.status_${s}`);
@@ -19,7 +20,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
  */
 @Component({
   selector: 'app-perechi',
-  imports: [FormsModule, RouterLink, Icon, TPipe],
+  imports: [DateField, FormsModule, RouterLink, Icon, TPipe],
   template: `
     <div class="head">
       <h1>{{ 'perechi.titlu' | t }}</h1>
@@ -60,7 +61,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
         }
         <label class="check"><input type="checkbox" name="planned" [(ngModel)]="planned" /> {{ 'perechi.doar_planuiesc' | t }}</label>
         @if (!planned) {
-          <label class="field">{{ 'camp.data_imperecherii' | t }} <input type="date" name="pairedOn" [(ngModel)]="pairedOn" required /></label>
+          <label class="field">{{ 'camp.data_imperecherii' | t }} <app-date name="pairedOn" [(ngModel)]="pairedOn" required /></label>
         }
         <label class="field">{{ 'perechi.cuibul_boxa' | t }} <span class="hint">{{ 'perechi.nu_e_obligatoriu' | t }}</span><input name="nest" [(ngModel)]="nest" [placeholder]="'perechi.de_ex_12' | t" /></label>
         @if (formError()) { <div class="error" role="alert">{{ formError() }}</div> }

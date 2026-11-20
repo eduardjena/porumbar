@@ -10,6 +10,7 @@ import { Icon } from '../../shared/icon';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
 import { statusLabel } from './perechi';
 import { CuloriPui } from './culori-pui';
+import { DateField } from '../../shared/date-field';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -43,7 +44,7 @@ interface ClutchForm {
  */
 @Component({
   selector: 'app-pereche',
-  imports: [FormsModule, RouterLink, Icon, TPipe, Breadcrumbs, CuloriPui],
+  imports: [DateField, FormsModule, RouterLink, Icon, TPipe, Breadcrumbs, CuloriPui],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (pair(); as p) {
@@ -71,8 +72,8 @@ interface ClutchForm {
         </div>
       } @else {
         <form class="card stack" (ngSubmit)="saveEdit()">
-          <label class="field">{{ 'camp.data_imperecherii' | t }} <span class="hint">{{ 'perechi.hint_goala_planuita' | t }}</span><input type="date" name="pairedOn" [(ngModel)]="e.pairedOn" /></label>
-          <label class="field">{{ 'camp.data_despartirii' | t }} <span class="hint">{{ 'perechi.hint_goala_impreuna' | t }}</span><input type="date" name="separatedOn" [(ngModel)]="e.separatedOn" /></label>
+          <label class="field">{{ 'camp.data_imperecherii' | t }} <span class="hint">{{ 'perechi.hint_goala_planuita' | t }}</span><app-date name="pairedOn" [(ngModel)]="e.pairedOn" /></label>
+          <label class="field">{{ 'camp.data_despartirii' | t }} <span class="hint">{{ 'perechi.hint_goala_impreuna' | t }}</span><app-date name="separatedOn" [(ngModel)]="e.separatedOn" /></label>
           <label class="field">{{ 'perechi.cuibul_boxa' | t }} <input name="nest" [(ngModel)]="e.nest" /></label>
           <label class="field">{{ 'camp.nota' | t }} <textarea name="note" [(ngModel)]="e.note"></textarea></label>
           @if (editError()) { <div class="error" role="alert">{{ editError() }}</div> }
@@ -91,8 +92,8 @@ interface ClutchForm {
         <form class="card stack" (ngSubmit)="addClutch()">
           <h3>{{ 'perechi.ponta_noua' | t }}</h3>
           <div class="row">
-            <label class="field grow">{{ 'perechi.primul_ou' | t }} <input type="date" name="egg1" [(ngModel)]="egg1On" required /></label>
-            <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <span class="hint">{{ 'perechi.daca_e' | t }}</span><input type="date" name="egg2" [(ngModel)]="egg2On" /></label>
+            <label class="field grow">{{ 'perechi.primul_ou' | t }} <app-date name="egg1" [(ngModel)]="egg1On" required /></label>
+            <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <span class="hint">{{ 'perechi.daca_e' | t }}</span><app-date name="egg2" [(ngModel)]="egg2On" /></label>
           </div>
           @if (clutchError()) { <div class="error" role="alert">{{ clutchError() }}</div> }
           <button class="primary" type="submit" [disabled]="!egg1On"><app-icon name="ou" />{{ 'perechi.adauga_ponta' | t }}</button>
@@ -120,7 +121,7 @@ interface ClutchForm {
             @if (clutchEdit() === c.id) {
               <form class="stack sub" (ngSubmit)="saveClutch(c)">
                 <div class="row">
-                  <label class="field grow">{{ 'camp.data_eclozarii' | t }} <input type="date" name="hatchedOn" [(ngModel)]="cf.hatchedOn" /></label>
+                  <label class="field grow">{{ 'camp.data_eclozarii' | t }} <app-date name="hatchedOn" [(ngModel)]="cf.hatchedOn" /></label>
                   <label class="field grow">{{ 'camp.cati_pui' | t }}
                     <select name="hatched" [(ngModel)]="cf.hatched">@for (n of nums(cf.eggs); track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
@@ -134,8 +135,8 @@ interface ClutchForm {
                   </label>
                 </div>
                 <div class="row">
-                  <label class="field grow">{{ 'perechi.primul_ou' | t }} <input type="date" name="cegg1" [(ngModel)]="cf.egg1On" /></label>
-                  <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <input type="date" name="cegg2" [(ngModel)]="cf.egg2On" /></label>
+                  <label class="field grow">{{ 'perechi.primul_ou' | t }} <app-date name="cegg1" [(ngModel)]="cf.egg1On" /></label>
+                  <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <app-date name="cegg2" [(ngModel)]="cf.egg2On" /></label>
                   <label class="field grow">{{ 'camp.cate_oua' | t }}
                     <select name="eggs" [(ngModel)]="cf.eggs">@for (n of [1, 2, 3]; track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>

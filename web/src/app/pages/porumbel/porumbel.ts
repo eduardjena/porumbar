@@ -15,6 +15,7 @@ import { FisaEditabila } from './fisa-editabila';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { IconName } from '../../shared/icon';
+import { DateField } from '../../shared/date-field';
 
 type Tab = 'fisa' | 'rezultate' | 'introdu' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
@@ -29,7 +30,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [FormsModule, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
+  imports: [DateField, FormsModule, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -94,7 +95,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
         @case ('jurnal') {
           <form class="card stack" (ngSubmit)="addEntry()">
             <div class="row">
-              <label class="field grow">{{ 'camp.data' | t }} <input type="date" name="jdate" [(ngModel)]="jDate" required /></label>
+              <label class="field grow">{{ 'camp.data' | t }} <app-date name="jdate" [(ngModel)]="jDate" required /></label>
               <label class="field grow">{{ 'porumbel.jurnal_tip' | t }}
                 <select name="jtype" [(ngModel)]="jType">
                   @for (jt of catalog.catalog()?.journalTypes ?? []; track jt.code) { <option [value]="jt.code">{{ jt.label }}</option> }
@@ -108,7 +109,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
           <ul class="entries">
             @for (e of journal(); track e.id) {
               <li class="card">
-                <div class="row between"><strong>{{ e.date }} · {{ catalog.label('journalTypes', e.type) }}</strong>
+                <div class="row between"><strong>{{ day(e.date) }} · {{ catalog.label('journalTypes', e.type) }}</strong>
                   <button type="button" class="link" (click)="removeEntry(e)">{{ 'actiune.sterge' | t }}</button></div>
                 <p class="pre">{{ e.text }}</p>
               </li>
@@ -258,7 +259,7 @@ export default class Porumbel {
   async removeEntry(e: JournalEntry) {
     const ok = await this.confirm.ask({
       title: t('porumbel.sterge_nota_titlu'),
-      lines: [`${e.date} · ${this.catalog.label('journalTypes', e.type)}: ${e.text.slice(0, 80)}`, t('text.nu_se_poate_da_inapoi')],
+      lines: [`${formatDay(e.date)} · ${this.catalog.label('journalTypes', e.type)}: ${e.text.slice(0, 80)}`, t('text.nu_se_poate_da_inapoi')],
       confirmLabel: t('actiune.da_sterge'),
       danger: true,
     });

@@ -10,6 +10,7 @@ import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { RingInput } from '../../shared/ring-input';
 import { Draft, draftBody, draftChanges, draftOf, emptyDraft } from '../porumbel-form/pigeon-draft';
+import { DateField } from '../../shared/date-field';
 
 type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
 
@@ -20,7 +21,7 @@ type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
  */
 @Component({
   selector: 'app-fisa-editabila',
-  imports: [FormsModule, NgTemplateOutlet, Icon, RingInput, TPipe],
+  imports: [DateField, FormsModule, NgTemplateOutlet, Icon, RingInput, TPipe],
   template: `
     @if (pigeon(); as p) {
       <section class="card stack fisa">
@@ -43,7 +44,7 @@ type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
               <label class="check"><input type="radio" name="sex" value="" [(ngModel)]="d.sex" /> {{ 'form.sex_nu_stiu' | t }}</label>
             </fieldset>
             <label class="field">{{ 'form.nume' | t }} <input name="name" [(ngModel)]="d.name" /></label>
-            <label class="field">{{ 'camp.data_eclozarii' | t }} <input type="date" name="hatchedOn" [(ngModel)]="d.hatchedOn" /></label>
+            <label class="field">{{ 'camp.data_eclozarii' | t }} <app-date name="hatchedOn" [(ngModel)]="d.hatchedOn" /></label>
             <label class="field">{{ 'form.crescator_origine' | t }} <input name="breederText" [(ngModel)]="d.breederText" /></label>
             <label class="field">{{ 'porumbel.starea' | t }}
               <select name="status" [(ngModel)]="d.status">

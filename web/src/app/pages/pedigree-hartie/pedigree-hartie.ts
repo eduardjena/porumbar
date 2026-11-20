@@ -245,7 +245,12 @@ export default class PedigreeHartie {
       const c = at.get(i), f = at.get(2 * i), m = at.get(2 * i + 1);
       if (!c || !f || !m) continue;
       const x1 = r(c.right - box.left), y1 = r(c.top + c.height / 2 - box.top), x2 = r(f.left - box.left), xm = r((x1 + x2) / 2);
-      const to = (p: DOMRect) => `M${x1} ${y1}H${xm}V${r(p.top + p.height / 2 - box.top)}H${x2}`;
+      // Colțurile puțin rotunjite (6px, mai puțin dacă nu e loc).
+      const to = (p: DOMRect) => {
+        const y = r(p.top + p.height / 2 - box.top), dir = Math.sign(y - y1);
+        const k = Math.min(6, xm - x1, x2 - xm, Math.abs(y - y1) / 2);
+        return `M${x1} ${y1}H${xm - k}Q${xm} ${y1} ${xm} ${y1 + dir * k}V${y - dir * k}Q${xm} ${y} ${xm + k} ${y}H${x2}`;
+      };
       d.father += to(f);
       d.mother += to(m);
     }

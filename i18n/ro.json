@@ -1580,7 +1580,7 @@
   "vanzari.primesc": "Primesc porumbelul",
   "vanzari.nu_primesc": "Nu îl primesc",
   "vanzari.niciunul": "Niciun porumbel în așteptare. Când cineva îți vinde un porumbel pe emailul contului tău, apare aici.",
-  "vanzari.vandute": "Vânduți de tine",
+  "vanzari.vandute": "Vânduți",
   "vanzari.nimic": "Nimic încă. Vinzi un porumbel din fișa lui, fila „QR”.",
   "vanzari.st_pending": {
     "text": "În așteptare",
@@ -1901,7 +1901,7 @@
   },
   "meniu.submeniu": "Submeniu",
   "perechi.sub_sezon": "Perechile sezonului",
-  "vanzari.sub_vin": "Vin la tine",
+  "vanzari.sub_vin": "Cumpărați",
   "cont.sub_apare": "Ce apare pe fișă",
   "cont.sub_cod": "Codul de crescător",
   "cont.sub_iesire": "Ieșire și ștergere",

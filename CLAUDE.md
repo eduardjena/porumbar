@@ -31,10 +31,19 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   accounts.js     sesiuni (cookie `porumbar_session`), requireAccount / optionalAccount, publicAccount
   i18n.js         dicționarele, t(), limba cererii (vezi „Limbi”)
   http.js         HttpError(status, cheie, valori), validări (text, realDate, oneOf), rateLimit, errorHandler
-  rings.js        citirea inelelor scrise în orice formă (RO-26-800546 L, 412084/15 RO, HU-2023-29-14530 H, …); inelele
-                  maghiare cer numărul organizatorului (2 cifre sau litera seriei; o cifră scrisă de mână = 04); H / T
-                  sau ♂ / ♀ = sexul; spaniole și „159989 019-ESP” (Serie + Año). Aceleași reguli, simplificate, în
-                  web/src/app/shared/ring-input.ts (previewRing): se schimbă amândouă deodată
+  rings.js        citirea inelelor din toată lumea (modul pur, fără importuri; tipurile în rings.d.ts). Două trepte:
+                  regulile vechi (RO-26-800546 L, 412084/15 RO, HU-2023-29-14530 H, DV-08778-24-271, AUS 18-301-1405,
+                  „159989 019-ESP” …), neschimbate: cheile lor sunt în baza de date (test/rings-compat.test.js); apoi
+                  parserul pe bucăți, cu emitenții din docs/cercetare/reports/Formatele inelelor de porumbei.md:
+                  club (DV, AT, DK, PL, CZ, SK, SI, LT), literă de serie (GB, NEHU, NWHU, SU, WHU, IHU S/N = regiunea,
+                  JP, PHA), provincia CN, cod de club liber în orice ordine (AU = SUA, IF, CU = Canada, NPA, ZA, ZW, MX,
+                  NZ, KR, VN, TH, Golful), emitenți simpli (BE, NL, FR, PT, IT, CH, LU, HR, BG, TW + CTRPA…, NIPPON,
+                  HKPA, asociațiile australiene, AUST …). AUS = Austria; PL-DE = Derby; V / W după DV = sexul; anul pe
+                  2 cifre ≤ anul curent + 1 → 20AA. Partea din mijloc stă în `club`. Maghiarul fără organizator se
+                  refuză (numerele se repetă). Un inel nerecunoscut rămâne `ok: false`, dar un porumbel PROPRIU se
+                  salvează așa, cu cheia de rezervă `?|` + textul curățat (storedRingKey; dubluri, căutare, rezultate);
+                  strămoșii nerecunoscuți n-au cheie (nu se leagă singuri). Telefonul folosește aceleași reguli:
+                  web/src/app/shared/ring-preview.ts importă src/rings.js (Dockerfile îl copiază la build-ul interfeței)
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js

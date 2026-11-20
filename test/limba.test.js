@@ -77,7 +77,7 @@ test('fără cont, telefonul în maghiară primește încă româna (maghiara e 
 test('mesajele serverului vin în limba contului (maghiară), iar în română rămân cele de azi', async () => {
   const a = await newAccount(call, 'Gábor');
   await setLang(call, (await me(a)).id, 'hu');
-  const bad = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: 'xyz' } });
+  const bad = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: '000' } });
   assert.equal(bad.status, 400);
   assert.equal(bad.data.error, 'A gyűrűszám nem olvasható. Írd úgy, mint a példában: RO-25-123456.');
   const locked = await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { name: 'Altul' } });
@@ -87,7 +87,7 @@ test('mesajele serverului vin în limba contului (maghiară), iar în română r
   assert.equal(field.status, 400);
   assert.doesNotMatch(field.data.error, /[ăâîșț]|camp\./, 'numele câmpului e și el tradus');
   const ro = await newAccount(call, 'Ion');
-  const badRo = await call('/api/pigeons', { method: 'POST', cookie: ro, body: { kind: 'own', ring: 'xyz' } });
+  const badRo = await call('/api/pigeons', { method: 'POST', cookie: ro, body: { kind: 'own', ring: '000' } });
   assert.equal(badRo.data.error, 'Inelul nu poate fi citit. Scrie-l ca în exemplu: RO-25-123456.');
 });
 

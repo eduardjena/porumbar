@@ -62,9 +62,48 @@ test('strămoși fără inel și cu inel necitit (Review Focus 2)', async () => 
   const z = await create(a, { kind: 'external', ring: 'Latebred BasVK??' });
   assert.equal(z.status, 201);
   assert.equal(z.data.pigeon.ring.display, 'Latebred BasVK??');
-  const own = await create(a, { kind: 'own', ring: 'Latebred' });
+  // Un porumbel propriu fără inel tot nu se poate salva.
+  const own = await create(a, { kind: 'own', ring: '000' });
   assert.equal(own.status, 400);
   assert.equal(own.data.error, 'Inelul nu poate fi citit. Scrie-l ca în exemplu: RO-25-123456.');
+});
+
+test('plasa de siguranță: un porumbel propriu cu inel nerecunoscut se salvează cum a fost scris (design inele-lume)', async () => {
+  const c = await newAccount(call, 'Plasa');
+  const own = await create(c, { kind: 'own', ring: 'Latebred BasVK 7' });
+  assert.equal(own.status, 201, JSON.stringify(own.data));
+  assert.equal(own.data.pigeon.ring.raw, 'Latebred BasVK 7');
+  assert.equal(own.data.pigeon.ring.display, 'Latebred BasVK 7');
+  assert.equal(own.data.pigeon.ring.country, null);
+  // Aceeași scriere, cu alți separatori și litere mici: dublură.
+  const dup = await create(c, { kind: 'own', ring: 'latebred-basvk-7' });
+  assert.equal(dup.status, 409);
+  assert.equal(dup.data.error, 'Inelul latebred-basvk-7 este deja în porumbarul tău.');
+  // Căutarea îl găsește și după scrierea curățată, și după o bucată din text.
+  for (const q of ['LATEBRED BASVK 7', 'basvk']) {
+    const found = await call(`/api/pigeons?q=${encodeURIComponent(q)}`, { cookie: c });
+    assert.deepEqual(found.data.pigeons.map((p) => p.id), [own.data.pigeon.id], q);
+  }
+  // Ca strămoș, același text rămâne un porumbel separat, fără cheie (ca înainte): nu se leagă singur.
+  assert.equal((await create(c, { kind: 'external', ring: 'Latebred BasVK 7' })).status, 201);
+  assert.equal((await create(c, { kind: 'external', ring: 'Latebred BasVK 7' })).status, 201);
+  // Inelele noi din lume se recunosc: GB cu literă de serie, AU (SUA) cu club.
+  const gb = await create(c, { kind: 'own', ring: 'GB22T12345 HEN' });
+  assert.equal(gb.status, 201, JSON.stringify(gb.data));
+  assert.equal(gb.data.pigeon.ring.display, 'GB-22-T-12345');
+  assert.equal(gb.data.pigeon.sex, 'F');
+  assert.equal((await create(c, { kind: 'own', ring: 'GB-2022-T-12345' })).status, 409);
+  assert.equal((await create(c, { kind: 'own', ring: '25138 RMR AU 2025' })).data.pigeon.ring.display, 'AU-25-RMR-25138');
+  // Inelul maghiar fără organizator rămâne refuzat.
+  const hu = await create(c, { kind: 'own', ring: 'HU-23-14530' });
+  assert.equal(hu.status, 400);
+  assert.match(hu.data.error, /numărul asociației/);
+  // Lista arată inelul nerecunoscut cum a fost scris.
+  const list = await call('/api/pigeons?kind=own', { cookie: c });
+  assert.ok(list.data.pigeons.some((p) => p.ring?.display === 'Latebred BasVK 7'));
+  // Căutarea după inel (fișa de pedigree): același text găsește porumbelul propriu.
+  const look = await call(`/api/pigeons/lookup?ring=${encodeURIComponent('LATEBRED BASVK 7')}`, { cookie: c });
+  assert.ok(look.data.matches.some((m) => m.pigeon.id === own.data.pigeon.id));
 });
 
 test('strămoș extern dublat în același cont', async () => {

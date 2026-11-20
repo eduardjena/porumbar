@@ -221,6 +221,23 @@ test('lipirea: rândul din clasament (viteză, FCI, ziua) intră ca atare; un in
   assert.equal(same.data.results[0].pigeonId, res.pigeonId, 'același inel: același porumbel, nu unul nou');
 });
 
+test('lipirea cu inele din lume și cu un inel nerecunoscut: același porumbel la a doua lipire', async () => {
+  const race = { ...yablanita, releasePlace: 'Lume', date: '2026-06-01' };
+  const r = await many({
+    race, distanceKm: 100, source: 'lipit',
+    rows: [{ newPigeon: { ring: 'GB22T12345' }, place: 1 }, { newPigeon: { ring: 'Latebred BasVK 9' }, place: 2 }],
+  });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const [gb, odd] = r.data.results.map((x) => x.pigeonId);
+  assert.equal((await call(`/api/pigeons/${gb}`, { cookie: a })).data.pigeon.ring.display, 'GB-22-T-12345');
+  assert.equal((await call(`/api/pigeons/${odd}`, { cookie: a })).data.pigeon.ring.display, 'Latebred BasVK 9');
+  const again = await many({
+    race: { ...race, releasePlace: 'Lume 2' }, distanceKm: 100, source: 'lipit',
+    rows: [{ newPigeon: { ring: 'GB-2022-T-12345' }, place: 1 }, { newPigeon: { ring: 'LATEBRED BASVK 9' }, place: 2 }],
+  });
+  assert.deepEqual(again.data.results.map((x) => x.pigeonId), [gb, odd]);
+});
+
 test('lipirea / scrierea de mână: porumbelul altui cont și datele greșite sunt refuzate, fără jumătăți', async () => {
   const theirs = (await call('/api/pigeons', { method: 'POST', cookie: b, body: { kind: 'own', ring: 'RO-25-9999' } })).data.pigeon;
   const race = { ...yablanita, releasePlace: 'Refuz', date: '2026-05-25' };

@@ -3,7 +3,7 @@ import { ref } from './i18n.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { RACE_CATEGORIES, RACE_LEVELS, codes, fold } from './catalog.js';
 import { createPigeon, getPigeonRow, ringOf } from './pigeons.js';
-import { parseRing, ringKey } from './rings.js';
+import { parseRing, storedRingKey } from './rings.js';
 
 /*
  * Rezultatele la concursuri introduse de mână (design: docs/superpowers/specs/2026-11-16-rezultate-manual-design.md).
@@ -286,7 +286,8 @@ export async function saveMany(accountId, body) {
 async function pigeonOf(accountId, row) {
   if (row?.pigeonId != null) return (await getPigeonRow(accountId, row.pigeonId)).id;
   const ring = typeof row?.newPigeon?.ring === 'string' ? row.newPigeon.ring : '';
-  const key = ringKey(parseRing(ring));
+  // Și un inel nerecunoscut: porumbelul propriu cu aceeași scriere (cheia de rezervă) sau unul nou.
+  const key = storedRingKey(parseRing(ring));
   if (!key) throw badRequest('eroare.scrie_inelul');
   const found = await one(`SELECT id FROM pigeons WHERE account_id = ? AND ring_key = ? ORDER BY (kind = 'own') DESC, id LIMIT 1`, accountId, key);
   if (found) return found.id;

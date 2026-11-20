@@ -3,7 +3,7 @@ import { all, run, tx, lockAccount } from '../db.js';
 import { badRequest } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow, getPigeon, loadNodes, toPigeon, toSummary } from '../pigeons.js';
-import { parseRing, formatRing, ringKey } from '../rings.js';
+import { parseRing, formatRing, ringKey, fallbackKey } from '../rings.js';
 import { buildTree, wrightCoi, coiOf, ancestorIds } from '../genealogy.js';
 import { bloodlines } from '../bloodlines.js';
 import { COLORS } from '../catalog.js';
@@ -72,7 +72,10 @@ export function familyRouter() {
     let rows = [];
     // Un porumbel fără inel („000 M”) nu se caută: două strămoși necunoscuți nu sunt același porumbel.
     if (key) rows = await all('SELECT * FROM pigeons WHERE account_id = ? AND ring_key = ? ORDER BY kind, id', req.account.id, key);
-    else if (raw && !ring.unringed) rows = await all('SELECT * FROM pigeons WHERE account_id = ? AND lower(ring_raw) = lower(?) ORDER BY kind, id', req.account.id, raw);
+    else if (raw && !ring.unringed) {
+      // Inel nerecunoscut: aceeași scriere (porumbelul propriu, după cheia de rezervă, sau textul identic).
+      rows = await all('SELECT * FROM pigeons WHERE account_id = ? AND (ring_key = ? OR lower(ring_raw) = lower(?)) ORDER BY kind, id', req.account.id, fallbackKey(ring), raw);
+    }
     const matches = [];
     for (const row of rows) matches.push(await historyCard(req.account.id, row));
     res.json({ ring: { ok: ring.ok, unringed: ring.unringed, raw, display: ring.ok && !ring.unringed ? formatRing(ring) : raw }, matches });

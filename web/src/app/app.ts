@@ -138,22 +138,21 @@ const NAV: NavItem[] = [
       display: flex; align-items: stretch; justify-content: flex-start; gap: 16px;
     }
     .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
-    /* Banda de submeniuri: pastile ca în bara de filtre; pe telefon se derulează cu degetul. */
+    /* Banda de submeniuri: celule ca în meniul mare (evidențierea pe toată celula); pe telefon se derulează cu degetul. */
     .band { border-top: 1px solid var(--border); }
     .band-inner {
-      max-width: 1120px; margin: 0 auto; padding: 8px 24px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+      max-width: 1120px; margin: 0 auto; padding: 0 24px; display: flex; overflow-x: auto; scrollbar-width: none;
     }
     .band-inner::-webkit-scrollbar { display: none; }
-    .band-row { display: flex; gap: 6px; width: max-content; }
-    /* Când nu încap de sub meniul părinte până la margine: butoane mai mici. */
-    .band-row.compact { gap: 4px; }
-    .band-row.compact .pill { min-height: 40px; padding: 0 10px; gap: 4px; font-size: 0.82rem; }
+    .band-row { display: flex; gap: 0; width: max-content; }
+    /* Când nu încap de sub meniul părinte până la margine: celule mai înguste, cu literă mai mică. */
+    .band-row.compact .pill { padding: 0 10px; gap: 4px; font-size: 0.82rem; }
     .pill {
-      flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; white-space: nowrap;
-      background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-weight: 700; font-size: 0.9rem; text-decoration: none; box-shadow: none;
+      flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 14px; border-radius: 0; white-space: nowrap;
+      background: none; border: 0; color: var(--muted); font-weight: 700; font-size: 0.9rem; text-decoration: none; box-shadow: none;
     }
-    .pill:hover { border-color: var(--accent); }
-    .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .pill:hover { background: var(--surface-2); color: var(--text); }
+    .pill.on { background: var(--accent-soft); color: var(--accent-strong); box-shadow: inset 0 -3px 0 var(--accent); }
     .pill.back { color: var(--accent-strong); }
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
@@ -186,7 +185,7 @@ const NAV: NavItem[] = [
     @media (max-width: 767px) {
       .made-by { position: static; display: block; width: fit-content; margin: 28px 0 0 auto; background: none; }
       .top-inner { padding: 8px 16px; }
-      .band-inner { padding: 6px 16px 8px; }
+      .band-inner { padding: 0 16px; }
       .pill { font-size: 0.85rem; padding: 0 12px; }
       .top-nav { display: none; }
       main { padding: 16px 16px 24px; }

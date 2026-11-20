@@ -53,7 +53,12 @@ export async function backfillRingKeys({ beforeUpdate = null } = {}) {
 /** La pornire: o eroare a completării (baza, alt proces) se scrie în jurnal, dar nu oprește serverul. */
 export async function backfillAtStartup(fill = backfillRingKeys) {
   try {
-    return await fill();
+    const out = await fill();
+    // Regula anului s-a schimbat („27” = 2027, nu 1927): dacă baza are inele salvate cu anul 1927, se vede în jurnal.
+    const p = await one('SELECT count(*)::int AS n FROM pigeons WHERE ring_year = 1927');
+    const s = await one('SELECT count(*)::int AS n FROM ring_series WHERE year = 1927');
+    if (p.n || s.n) console.warn(`[porumbar] Atenție: ${p.n} porumbei și ${s.n} serii de inele au anul 1927 (probabil 2027 scris „27”).`); // i18n: ro
+    return out;
   } catch (err) {
     console.error(`[porumbar] Completarea cheilor inelelor a eșuat, serverul pornește oricum: ${err?.message ?? err}`); // i18n: ro
     return null;

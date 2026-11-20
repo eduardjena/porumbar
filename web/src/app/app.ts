@@ -128,9 +128,9 @@ const NAV: NavItem[] = [
       display: grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; line-height: 1;
       box-shadow: 0 0 0 2px var(--surface);
     }
-    /* Rândul meniului mare pe fundal mai închis; banda de submeniuri, dedesubt, rămâne deschisă. */
+    /* Rândul meniului mare pe fundal închis; banda de submeniuri, dedesubt, rămâne deschisă. */
     .top {
-      background: var(--surface-2); border-bottom: 1px solid var(--border);
+      background: #e4d8c4; border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
     }
     /* Rândul de sus are înălțime fixă; butoanele meniului îl umplu de sus până jos (celule, nu pastile). */
@@ -140,7 +140,7 @@ const NAV: NavItem[] = [
     }
     .top-nav > :last-child { margin-right: -16px; } /* textul „Ieși” cade exact pe marginea conținutului */
     /* Banda de submeniuri: celule ca în meniul mare (evidențierea pe toată celula); pe telefon se derulează cu degetul. */
-    .band { border-top: 1px solid var(--border); background: rgb(255 253 249 / 96%); }
+    .band { background: var(--surface); }
     .band-inner {
       max-width: 1120px; margin: 0 auto; padding: 0 24px; display: flex; overflow-x: auto; scrollbar-width: none;
     }
@@ -153,7 +153,8 @@ const NAV: NavItem[] = [
       background: none; border: 0; color: var(--muted); font-weight: 700; font-size: 0.9rem; text-decoration: none; box-shadow: none;
     }
     .pill:hover { background: var(--surface-2); color: var(--text); }
-    .pill.on { background: var(--accent-soft); color: var(--accent-strong); box-shadow: inset 0 -3px 0 var(--accent); }
+    /* Submeniul ales: fond cărămiziu deschis, fără linie. */
+    .pill.on { background: var(--accent-soft); color: var(--accent-strong); }
     .pill.back { color: var(--accent-strong); }
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
@@ -167,8 +168,8 @@ const NAV: NavItem[] = [
       display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1rem; background: none; border: 0;
     }
     .top-nav a:hover, .top-nav .ghost:hover { background: rgb(0 0 0 / 5%); color: var(--text); }
-    /* Linia butonului ales: sus la meniul mare (la submeniuri e jos). */
-    .top-nav a.on { background: var(--accent-soft); color: var(--accent-strong); box-shadow: inset 0 3px 0 var(--accent); }
+    /* Butonul ales din meniul mare are culoarea benzii de dedesubt (ca o filă deschisă spre submeniurile lui), cu linia sus. */
+    .top-nav a.on { background: var(--surface); color: var(--accent-strong); box-shadow: inset 0 3px 0 var(--accent); }
     /* Calculatoare mai înguste / tablete: meniul de sus mai strâns (iconița deasupra textului), ca să încapă tot. */
     @media (min-width: 768px) and (max-width: 1060px) {
       .top-nav a, .top-nav .ghost { flex-direction: column; justify-content: center; gap: 2px; padding: 0 10px; font-size: 0.8rem; }

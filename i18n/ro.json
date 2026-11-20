@@ -636,7 +636,10 @@
     "sens": "După inelul recunoscut: „…, mascul”."
   },
   "inel.femela": "femelă",
-  "inel.necitit": "Nu pot citi inelul. Scrie-l ca în exemplu: RO-25-123456.",
+  "inel.nerecunoscut": {
+    "text": "Nu recunosc formatul; îl păstrez cum l-ai scris. Verifică-l.",
+    "sens": "Sub câmpul de inel al porumbelului propriu, când programul nu recunoaște forma inelului (de ex. o țară nouă). Nu e o eroare: inelul se salvează exact cum a fost scris."
+  },
   "inel.neobisnuit": "Nu e un inel obișnuit: se păstrează exact cum l-ai scris.",
   "parinti.tatal": "Tatăl",
   "parinti.mama": "Mama",
@@ -1650,7 +1653,6 @@
   "hartie.ph_text": "Ce scrie pe pedigree (crescător, rezultate)",
   "hartie.adauga_n": "Adaugă pedigree-ul ({n} căsuțe)",
   "hartie.goleste_tot": "Golește tot",
-  "hartie.hint_necitit_al_meu": "Inelul nu poate fi citit. Ex.: RO-15-412084",
   "hartie.hint_necitit": "Inel necitit: se trece așa cum e scris.",
   "hartie.hint_nou": "{inel} · nou în program",
   "hartie.hint_exista": "{inel} · îl ai deja, se folosește acela",

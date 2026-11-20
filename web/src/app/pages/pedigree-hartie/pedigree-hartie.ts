@@ -6,7 +6,7 @@ import { ConfirmService } from '../../core/confirm';
 import { t, TPipe } from '../../core/i18n';
 import { Kind, LookupResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { previewRing } from '../../shared/ring-input';
+import { previewRing } from '../../shared/ring-preview';
 import { generationName, roleName } from '../retea/arbore-data';
 import { CititorPoza, PedigreeNode } from './cititor-poza';
 
@@ -300,7 +300,12 @@ export default class PedigreeHartie {
     const ring = this.d().slots[i].ring.trim();
     if (!ring) return;
     const p = previewRing(ring);
-    if (!p.ok) return this.hint(i, { kind: i === 1 && this.d().kind === 'own' ? 'bad' : 'new', text: i === 1 && this.d().kind === 'own' ? t('hartie.hint_necitit_al_meu') : t('hartie.hint_necitit') });
+    if (!p.ok) {
+      // Porumbelul meu: un inel nerecunoscut se păstrează cum e scris (avertisment blând); maghiarul fără organizator, nu.
+      const mine = i === 1 && this.d().kind === 'own';
+      if (mine && p.needsClub) return this.hint(i, { kind: 'bad', text: t('eroare.inel_hu_asociatie') });
+      return this.hint(i, { kind: 'new', text: mine ? t('inel.nerecunoscut') : t('hartie.hint_necitit') });
+    }
     if (p.unringed) return this.hint(i, { kind: 'unringed', text: t('text.fara_inel_mare') });
     try {
       const r = await this.api.get<LookupResult>(`/pigeons/lookup?ring=${encodeURIComponent(ring)}`);

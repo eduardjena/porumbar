@@ -25,6 +25,8 @@ interface BandItem {
   link: string[];
   query?: Record<string, string | undefined>;
   on: boolean;
+  /** Numărul din colț (de ex. porumbeii care vin la tine). */
+  badge?: number;
 }
 
 const TREE_VIEWS: { id: string; label: string; icon: IconName }[] = [
@@ -86,7 +88,7 @@ const NAV: NavItem[] = [
               }
               @for (i of b.items; track i.label) {
                 <a class="pill" [routerLink]="i.link" [queryParams]="i.query ?? null" [class.on]="i.on" [attr.aria-current]="i.on ? 'page' : null">
-                  <app-icon [name]="i.icon" [size]="18" />{{ i.label | t }}
+                  <app-icon [name]="i.icon" [size]="18" />{{ i.label | t }}@if (i.badge) { <span class="count">{{ i.badge > 9 ? '9+' : i.badge }}</span> }
                 </a>
               }
               </div>
@@ -152,6 +154,7 @@ const NAV: NavItem[] = [
     .pill:hover { border-color: var(--accent); }
     .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
     .pill.back { color: var(--accent-strong); }
+    .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
     .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; letter-spacing: -0.01em; }
     .brand-mark { width: 40px; height: 40px; display: block; }
     .top-nav { display: flex; gap: 4px; align-items: center; }
@@ -250,6 +253,43 @@ export class App {
           { link: ['/arbore'], query: { porumbel: id }, label: 'porumbel.vezi_in_arbore', icon: 'copac' as IconName, on: false },
         ],
       };
+    }
+    // Perechi, Vânzări și Cont: fiecare parte a paginii e un submeniu (?sec=).
+    const sec = q['sec'];
+    if (path === '/perechi' || /^\/perechi\/\d+$/.test(path)) {
+      const list = path === '/perechi';
+      const current = !list ? null : sec === 'noua' || sec === 'inele' ? sec : 'sezon';
+      const keep = { sezon: q['sezon'] };
+      return {
+        back: !list,
+        items: [
+          { link: ['/perechi'], query: { ...keep, sec: undefined }, label: 'perechi.sub_sezon', icon: 'ou' as IconName, on: current === 'sezon' },
+          { link: ['/perechi'], query: { ...keep, sec: 'noua' }, label: 'perechi.pereche_noua', icon: 'plus' as IconName, on: current === 'noua' },
+          { link: ['/perechi'], query: { sec: 'inele' }, label: 'perechi.inelele_mele', icon: 'lista' as IconName, on: current === 'inele' },
+        ],
+      };
+    }
+    if (path === '/vanzari') {
+      const sold = sec === 'vandute';
+      return {
+        items: [
+          { link: ['/vanzari'], query: { sec: undefined }, label: 'vanzari.sub_vin', icon: 'porumbel' as IconName, on: !sold, badge: this.incoming.count() },
+          { link: ['/vanzari'], query: { sec: 'vandute' }, label: 'vanzari.vandute', icon: 'vinde' as IconName, on: sold },
+        ],
+      };
+    }
+    if (path === '/cont') {
+      const admin = !!this.auth.account()?.isAdmin;
+      const all: [string, string, IconName][] = [
+        ...(admin ? [] : [['abonament', 'cont.abonament', 'bifa'] as [string, string, IconName]]),
+        ['fisa', 'cont.date_fisa', 'fisa'],
+        ['apare', 'cont.sub_apare', 'editeaza'],
+        ['cod', 'cont.sub_cod', 'cupa'],
+        ['limba', 'cont.limba', 'lista'],
+        ['iesire', 'cont.sub_iesire', 'iesire'],
+      ];
+      const current = all.some(([k]) => k === sec) ? sec : all[0][0];
+      return { items: all.map(([k, label, icon], i) => ({ link: ['/cont'], query: { sec: i === 0 ? undefined : k }, label, icon, on: current === k })) };
     }
     if (path === '/arbore') {
       const fallback = this.auth.account()?.treeView;

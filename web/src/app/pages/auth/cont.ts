@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth';
@@ -26,8 +26,10 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
   `,
   template: `
     <h1>{{ 'cont.titlu' | t }}</h1>
+    <!-- Submeniurile (Abonament, Datele de pe fișă, Ce apare pe fișă, Codul de crescător, Limba, Ieșire și ștergere)
+         stau în banda de sus (app.ts), după ?sec=. -->
     @if (auth.account(); as a) {
-      @if (!a.isAdmin && a.subscription; as s) {
+      @if (section() === 'abonament' && !a.isAdmin && a.subscription; as s) {
         <section class="card stack subs">
           <h2>{{ 'cont.abonament' | t }}</h2>
           @if (s.start) {
@@ -42,8 +44,9 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
         </section>
       }
     }
+    @if (section() === 'fisa' || section() === 'apare' || section() === 'cod') {
     <form class="card stack" (ngSubmit)="save()">
-      @if (auth.account()?.isAdmin) {
+      @if (section() === 'fisa' && auth.account()?.isAdmin) {
         <p class="muted">{{ 'cont.admin_explicatie' | t }}</p>
         <label class="field">{{ 'cont.nume' | t }}
           <input name="name" required [(ngModel)]="name" autocomplete="name" />
@@ -57,7 +60,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
         <label class="field">{{ 'cont.adresa' | t }}
           <textarea name="address" [(ngModel)]="address" autocomplete="street-address" rows="3" [placeholder]="'cont.adresa_exemplu' | t"></textarea>
         </label>
-      } @else if (auth.account(); as a) {
+      } @else if (section() === 'fisa' && auth.account(); as a) {
         <h2 class="h">{{ 'cont.date_fisa' | t }}</h2>
         <p class="muted">{{ 'cont.date_fisa_explicatie' | t }}{{ a.sellerContact ? ' (' + a.sellerContact + ')' : '' }}.</p>
         <div class="sheet">
@@ -68,6 +71,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
           @if (printEmail) { <span>{{ a.email }}</span> }
         </div>
       }
+      @if (section() === 'apare') {
       <fieldset class="show">
         <legend>{{ 'cont.ce_apare' | t }}</legend>
         <p class="muted">{{ 'cont.ce_apare_explicatie' | t }}</p>
@@ -86,16 +90,21 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
           </tbody>
         </table>
       </fieldset>
+      }
+      @if (section() === 'cod') {
       <label class="field">{{ 'concurs.codul_tau' | t }}
         <input class="mono" name="breederCode" [(ngModel)]="breederCode" autocapitalize="characters" autocomplete="off" spellcheck="false" [placeholder]="'text.de_exemplu' | t: { exemplu: 'VL9001' }" />
         <span class="hint">{{ 'concurs.codul_ajutor' | t }}</span>
       </label>
+      }
       @if (saved()) { <div class="notice" role="status">{{ 'cont.salvat' | t }}</div> }
       @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
-      <button class="primary" type="submit">{{ 'actiune.salveaza' | t }}</button>
+      <!-- Crescătorul doar vede datele de pe fișă (le pune vânzătorul): acolo nu e nimic de salvat. -->
+      @if (section() !== 'fisa' || auth.account()?.isAdmin) { <button class="primary" type="submit">{{ 'actiune.salveaza' | t }}</button> }
     </form>
+    }
 
-    @if (langChoices().length > 1) {
+    @if (section() === 'limba') {
       <h2>{{ 'cont.limba' | t }}</h2>
       <div class="card stack">
         <div class="row wrap" role="group" [attr.aria-label]="'cont.limba' | t">
@@ -107,6 +116,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
       </div>
     }
 
+    @if (section() === 'iesire') {
     <h2>{{ 'cont.iesire' | t }}</h2>
     <button type="button" class="wide" (click)="logout()">{{ 'cont.iesi' | t }}</button>
 
@@ -119,10 +129,19 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
       @if (deleteError()) { <div class="error" role="alert">{{ deleteError() }}</div> }
       <button type="button" class="danger" [disabled]="!deletePassword" (click)="remove()">{{ 'cont.sterge_definitiv' | t }}</button>
     </div>
+    }
   `,
 })
 export default class Cont {
   protected readonly auth = inject(AuthService);
+  /** Submeniul din banda de sus (?sec=); vânzătorul n-are abonament, așa că pornește de la datele de pe fișă. */
+  readonly sec = input<string>();
+  protected readonly section = computed(() => {
+    const all = ['abonament', 'fisa', 'apare', 'cod', 'limba', 'iesire'];
+    const s = this.sec();
+    if (s && all.includes(s)) return s;
+    return this.auth.account()?.isAdmin ? 'fisa' : 'abonament';
+  });
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);

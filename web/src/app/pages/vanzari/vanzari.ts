@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, input, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
@@ -41,6 +41,8 @@ interface Outgoing {
       </section>
     }
 
+    <!-- Submeniurile (Vin la tine / Vândute de tine) stau în banda de sus (app.ts), după ?sec=. -->
+    @if (sec() !== 'vandute') {
     <h2>{{ 'vanzari.vin_la_tine' | t }}</h2>
     @for (tr of incoming(); track tr.id) {
       <section class="card stack in">
@@ -54,7 +56,7 @@ interface Outgoing {
     } @empty {
       <p class="muted">{{ 'vanzari.niciunul' | t }}</p>
     }
-
+    } @else {
     <h2>{{ 'vanzari.vandute' | t }}</h2>
     @for (o of outgoing(); track o.id) {
       <a class="card out" [routerLink]="['/porumbei', o.pigeonId]" [queryParams]="{ fila: 'qr' }">
@@ -64,6 +66,7 @@ interface Outgoing {
       </a>
     } @empty {
       <p class="muted">{{ 'vanzari.nimic' | t }}</p>
+    }
     }
   `,
   styles: `
@@ -82,6 +85,8 @@ export default class Vanzari implements OnInit {
   private readonly confirm = inject(ConfirmService);
   /** Anunțul de sus („Cineva ți-a trimis un porumbel”) se ține la zi de aici. */
   private readonly waiting = inject(IncomingService);
+  /** Submeniul din banda de sus: ?sec=vandute; altfel cei care vin la tine. */
+  readonly sec = input<string>();
   readonly incoming = signal<Incoming[]>([]);
   readonly outgoing = signal<Outgoing[]>([]);
   readonly error = signal('');

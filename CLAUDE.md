@@ -45,7 +45,11 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/app.ts  meniul mare (sus pe calculator, jos pe telefon) și, sub el, banda de submeniuri (macheta A, 2026-11-19):
                   Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează; fișa porumbelului → Înapoi și
-                  filele ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=). Fiecare submeniu are adresa lui.
+                  filele ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=); Perechi → Perechile sezonului /
+                  Pereche nouă / Inelele mele, Vânzări → Vin la tine / Vândute de tine, Cont → Abonament / Datele de pe
+                  fișă / Ce apare pe fișă / Codul de crescător / Limba / Ieșire și ștergere (toate ?sec=). Fiecare submeniu
+                  are adresa lui. Banda pornește sub butonul părinte din meniul mare; dacă nu încape, butoanele se fac mai
+                  mici și rândul se trage spre stânga (alignBand).
   src/app/pages/  panou, porumbar, porumbel, porumbel-form, retea (arbore, evantai, linii, rețea), perechi, vanzari,
                   (Grilă /panou, Listă /porumbar, Importă pedigree /porumbei/pedigree, Rezultate concurs /concursuri și Scanează
                   /scaneaza stau într-un cadru comun,

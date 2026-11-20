@@ -1905,5 +1905,10 @@
     "sens": "Fila de pe fișa porumbelului: același ecran ca Rezultate concurs → Rezultat nou."
   },
   "meniu.submeniu": "Submeniu",
-  "meniu.inapoi": "Înapoi"
+  "meniu.inapoi": "Înapoi",
+  "perechi.sub_sezon": "Perechile sezonului",
+  "vanzari.sub_vin": "Vin la tine",
+  "cont.sub_apare": "Ce apare pe fișă",
+  "cont.sub_cod": "Codul de crescător",
+  "cont.sub_iesire": "Ieșire și ștergere"
 }

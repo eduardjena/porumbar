@@ -1,26 +1,36 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { sexShort } from '../../core/catalog';
 import { TreeNode } from '../../core/models';
 import { TPipe } from '../../core/i18n';
 import { ArboreData, generationName, REPEAT_COLORS, roleName, repeatCounts, TreePigeon } from './arbore-data';
 
 /*
- * Vederea „Carduri moderne” (macheta 1): pedigree-ul ca pe hârtie, dar modern. Coloane pe generații (strămoșii în
- * stânga, porumbelul în dreapta), carduri cu M/F, inel, text, an, notă; „nu e al tău” scris; strămoșii repetați
+ * Vederea „Carduri moderne” (macheta 1): pedigree-ul ca pe hârtie, dar modern. Coloane pe generații (porumbelul în
+ * stânga, ca pe fișă, strămoșii spre dreapta), cât e lățimea paginii; carduri cu M/F, inel, text, an, notă; „nu e al tău” scris; strămoșii repetați
  * cu insigna „×N” în aceeași culoare; legături curbe; porumbelul ales cu halou pastel.
  */
 
 const LEVELS = 4; // generații deasupra porumbelului: părinți … răstrăbunici
 const SLOT = 64; // înălțimea unui loc de răstrăbunic
-const COLS = [
-  { x: 0, w: 172 }, // răstrăbunici
-  { x: 190, w: 180 }, // străbunici
-  { x: 388, w: 192 }, // bunici
-  { x: 598, w: 204 }, // părinți
-  { x: 820, w: 212 }, // porumbelul
-];
-const WIDTH = 1032;
+const WEIGHTS = [212, 204, 192, 180, 172]; // porumbelul, părinți, bunici, străbunici, răstrăbunici (cât din lățime)
+const GAP = 26; // spațiul dintre coloane, pentru legături
+const MIN_WIDTH = 760; // mai îngust de atât, arborele se derulează
+/** Padding-ul din stânga al cardurilor pe generații (titlul coloanei începe în dreptul textului din card). */
+const PAD = [16, 11, 11, 9, 9];
 const HEIGHT = SLOT * 2 ** LEVELS;
+
+/** Coloanele pe lățimea dată: x și lățimea fiecărei generații (0 = porumbelul, în stânga). */
+export function columns(width: number) {
+  const w = Math.max(width, MIN_WIDTH);
+  const free = w - GAP * LEVELS;
+  const total = WEIGHTS.reduce((a, b) => a + b, 0);
+  let x = 0;
+  return WEIGHTS.map((k) => {
+    const col = { x: Math.round(x), w: Math.floor((free * k) / total) };
+    x += (free * k) / total + GAP;
+    return col;
+  });
+}
 
 interface Card {
   key: string;
@@ -37,15 +47,15 @@ interface Card {
   selector: 'app-vedere-carduri',
   imports: [TPipe],
   template: `
-    <div class="heads" [style.width.px]="width">
-      @for (c of cols; track $index; let g = $index) {
-        <div class="col-head" [style.left.px]="c.x" [style.width.px]="c.w">
-          {{ genName(4 - g) }} <span class="muted">{{ 4 - g === 0 ? '' : 2 ** (4 - g) }}</span>
+    <div class="heads" [style.width.px]="width()">
+      @for (c of cols(); track $index; let g = $index) {
+        <div class="col-head" [style.left.px]="c.x" [style.width.px]="c.w" [style.padding-left.px]="pad[g]">
+          {{ genName(g) }}@if (g > 0) { <span class="n">{{ 2 ** g }}</span> }
         </div>
       }
     </div>
-    <div class="board" [style.width.px]="width" [style.height.px]="height">
-      <svg class="links" [attr.width]="width" [attr.height]="height" aria-hidden="true">
+    <div class="board" [style.width.px]="width()" [style.height.px]="height">
+      <svg class="links" [attr.width]="width()" [attr.height]="height" aria-hidden="true">
         @for (l of links(); track l.key) {
           <path [attr.d]="l.d" [attr.stroke]="l.lit ? '#a33d1c' : l.side === 'F' ? '#9fb8cf' : '#d2a6c9'" [attr.stroke-width]="l.lit ? 3 : 2" fill="none" />
         }
@@ -100,7 +110,8 @@ interface Card {
   styles: `
     :host { display: block; overflow-x: auto; padding-bottom: 8px; }
     .heads { position: relative; height: 36px; }
-    .col-head { position: absolute; top: 0; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .col-head { position: absolute; top: 0; display: flex; align-items: baseline; gap: 6px; white-space: nowrap; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+    .col-head .n { font-weight: 600; opacity: 0.75; }
     .board { position: relative; }
     .links { position: absolute; inset: 0; pointer-events: none; }
     .card-p {
@@ -112,6 +123,7 @@ interface Card {
     .card-p.sel { border-color: var(--accent); box-shadow: 0 0 0 4px #f3d3c3, 0 0 26px 6px rgb(240 180 150 / 70%); }
     .card-p.g4, .card-p.g3 { padding: 6px 8px; border-radius: 12px; }
     .card-p.g0 { padding: 14px; border: 2px solid var(--accent); }
+    /* Padding + bordură = PAD din cod (titlurile coloanelor se aliniază cu textul din carduri). */
     .card-p.empty { color: var(--muted); background: var(--surface-2); box-shadow: none; font-size: 0.85rem; cursor: default; }
     .role { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-strong); }
     .line1 { display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -147,9 +159,22 @@ export class VedereCarduri {
   readonly selectedId = input.required<number>();
   readonly select = output<number>();
   readonly open = output<number>();
-  protected readonly cols = COLS;
-  protected readonly width = WIDTH;
+  /** Lățimea locului (măsurată); coloanele se împart pe ea. */
+  private readonly avail = signal(1072);
+  protected readonly width = computed(() => Math.max(this.avail(), MIN_WIDTH));
+  protected readonly cols = computed(() => columns(this.avail()));
+  protected readonly pad = PAD;
   protected readonly height = HEIGHT;
+
+  constructor() {
+    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    const ro = new ResizeObserver(() => {
+      const w = Math.floor(host.clientWidth);
+      if (w > 0) this.avail.set(w);
+    });
+    ro.observe(host);
+    inject(DestroyRef).onDestroy(() => ro.disconnect());
+  }
   protected readonly sex = sexShort;
   protected readonly role = roleName;
   protected readonly genName = generationName;
@@ -165,7 +190,7 @@ export class VedereCarduri {
     const out: Card[] = [];
     const place = (node: TreeNode | null, gen: number, i: number, path: ('F' | 'M')[]) => {
       if (gen > LEVELS) return;
-      const col = COLS[LEVELS - gen];
+      const col = this.cols()[gen];
       const y = (i + 0.5) * SLOT * 2 ** (LEVELS - gen);
       out.push({ key: path.join('') || 'root', id: node?.id ?? null, gen, path, x: col.x, y, w: col.w, repeat: node?.repeat ?? null });
       if (!node && gen >= 2) return;
@@ -176,7 +201,7 @@ export class VedereCarduri {
     return out;
   });
 
-  /** Legăturile curbe: din marginea stângă a puiului spre marginea dreaptă a părintelui. */
+  /** Legăturile curbe: din marginea dreaptă a puiului spre marginea stângă a părintelui. */
   protected readonly links = computed(() => {
     const byKey = new Map(this.cards().map((c) => [c.path.join(''), c]));
     const sel = this.selectedId();
@@ -188,10 +213,10 @@ export class VedereCarduri {
       if (!c.path.length || c.id == null) continue;
       const child = byKey.get(c.path.slice(0, -1).join(''));
       if (!child) continue;
-      const x1 = c.x + c.w;
-      const x2 = child.x;
+      const x1 = child.x + child.w;
+      const x2 = c.x;
       const mid = (x1 + x2) / 2;
-      out.push({ key: c.key, d: `M${x1},${c.y} C${mid},${c.y} ${mid},${child.y} ${x2},${child.y}`, side: c.path[c.path.length - 1], lit: litKeys.has(c.key) });
+      out.push({ key: c.key, d: `M${x1},${child.y} C${mid},${child.y} ${mid},${c.y} ${x2},${c.y}`, side: c.path[c.path.length - 1], lit: litKeys.has(c.key) });
     }
     return out;
   });

@@ -33,7 +33,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
   selector: 'app-arbore',
   imports: [FormsModule, NgTemplateOutlet, Icon, TPipe, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea],
   template: `
-    <div class="wide">
+    <div [class.wide]="view() !== 'carduri'">
       <!-- Stânga barei: titlul. -->
       <ng-template #titleTpl>
         <div class="bar-title">
@@ -93,7 +93,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
           }
           @default {
             @if (data(); as d) {
-              <div class="layout">
+              <div class="layout" [class.stacked]="view() === 'carduri'">
                 <div class="main-view">
                   @switch (view()) {
                     @case ('carduri') { <app-vedere-carduri [data]="d" [selectedId]="selected()" (select)="selected.set($event)" (open)="open($event)" /> }
@@ -111,7 +111,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
     </div>
   `,
   styles: `
-    /* Arborele are nevoie de lățime: pagina iese din coloana obișnuită (până la 1560px). */
+    /* Evantaiul și Sângele au nevoie de lățime: pagina iese din coloana obișnuită (până la 1560px). Cardurile stau pe lățimea sitului. */
     .wide { width: min(1560px, calc(100vw - 48px)); margin-left: calc((100% - min(1560px, 100vw - 48px)) / 2); }
     /* Lista se deschide sub bară, peste arbore (fixă, ca să nu fie tăiată de bara care se derulează pe telefon). */
     .picker {
@@ -140,6 +140,9 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
     .main-view { min-width: 0; }
     app-arbore-panou { position: sticky; top: 136px; }
+    /* La Carduri, arborele ia toată lățimea paginii; fișa porumbelului ales vine sub el. */
+    .layout.stacked { grid-template-columns: 1fr; }
+    .layout.stacked app-arbore-panou { position: static; }
     @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } app-arbore-panou { position: static; } }
     @media (max-width: 767px) { .wide { width: 100%; margin-left: 0; } }
   `,

@@ -94,7 +94,14 @@ test('plasa de siguranță: un porumbel propriu cu inel nerecunoscut se salveaz�
   assert.equal(gb.data.pigeon.sex, 'F');
   assert.equal((await create(c, { kind: 'own', ring: 'GB-2022-T-12345' })).status, 409);
   assert.equal((await create(c, { kind: 'own', ring: '25138 RMR AU 2025' })).data.pigeon.ring.display, 'AU-25-RMR-25138');
-  // Inelul maghiar fără organizator rămâne refuzat.
+  // Fără nicio literă sau cifră nu e un inel.
+  for (const ring of ['??', '-', '♂']) {
+    const none = await create(c, { kind: 'own', ring });
+    assert.equal(none.status, 400, ring);
+    assert.equal(none.data.error, 'Inelul nu poate fi citit. Scrie-l ca în exemplu: RO-25-123456.', ring);
+  }
+  // Inelul maghiar fără organizator rămâne refuzat, și cu sexul scris în cuvinte.
+  for (const ring of ['HU-23-14530 tojó', 'HUNGARY 2023 14530']) assert.equal((await create(c, { kind: 'own', ring })).status, 400, ring);
   const hu = await create(c, { kind: 'own', ring: 'HU-23-14530' });
   assert.equal(hu.status, 400);
   assert.match(hu.data.error, /numărul asociației/);

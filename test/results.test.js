@@ -236,6 +236,10 @@ test('lipirea cu inele din lume și cu un inel nerecunoscut: același porumbel l
     rows: [{ newPigeon: { ring: 'GB-2022-T-12345' }, place: 1 }, { newPigeon: { ring: 'LATEBRED BASVK 9' }, place: 2 }],
   });
   assert.deepEqual(again.data.results.map((x) => x.pigeonId), [gb, odd]);
+  // Un inel prea lung se refuză înainte de citire.
+  const long = await many({ race: { ...race, releasePlace: 'Lume 3' }, distanceKm: 100, source: 'lipit', rows: [{ newPigeon: { ring: 'AU' + 'A1'.repeat(5000) }, place: 1 }] });
+  assert.equal(long.status, 400);
+  assert.match(long.data.error, /80/);
 });
 
 test('lipirea / scrierea de mână: porumbelul altui cont și datele greșite sunt refuzate, fără jumătăți', async () => {

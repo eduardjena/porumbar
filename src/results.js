@@ -285,7 +285,8 @@ export async function saveMany(accountId, body) {
 /** Porumbelul rândului: al contului, după id, sau după inel (cel existent ori unul nou, al omului). */
 async function pigeonOf(accountId, row) {
   if (row?.pigeonId != null) return (await getPigeonRow(accountId, row.pigeonId)).id;
-  const ring = typeof row?.newPigeon?.ring === 'string' ? row.newPigeon.ring : '';
+  // Lungimea se verifică înainte de citire (câmpul de inel are cel mult 80 de caractere).
+  const ring = text(typeof row?.newPigeon?.ring === 'string' ? row.newPigeon.ring : '', 'camp.inel', { max: 80, optional: true }) ?? '';
   // Și un inel nerecunoscut: porumbelul propriu cu aceeași scriere (cheia de rezervă) sau unul nou.
   const key = storedRingKey(parseRing(ring));
   if (!key) throw badRequest('eroare.scrie_inelul');

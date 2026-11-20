@@ -1,6 +1,6 @@
 import { one, all, run, insert, tx, nowIso, lockAccount } from './db.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
-import { parseRing, formatRing, ringKey, storedRingKey } from './rings.js';
+import { parseRing, formatRing, ringKey, fallbackKey, storedRingKey } from './rings.js';
 import { BREEDS, COLORS, EYE_COLORS, STATUSES, EVAL_CRITERIA, codes, fold } from './catalog.js';
 
 /*
@@ -128,8 +128,9 @@ function validate(input, existing = null) {
   const raw = ringText == null || String(ringText).trim() === '' ? null : text(ringText, 'camp.inel', { max: 80 });
   const ring = raw ? parseRing(raw) : null;
   // Un porumbel propriu are inel. Unul nerecunoscut se păstrează cum l-a scris omul (cheia de rezervă, ringKeyOf);
-  // doar „fără inel” și inelul maghiar fără organizator (numerele se repetă între asociații) se refuză.
-  if (kind === 'own' && (!ring || ring.unringed || ring.needsClub)) throw badRequest(ring?.needsClub ? 'eroare.inel_hu_asociatie' : 'eroare.inel_necitit');
+  // doar „fără inel”, textul fără nicio literă sau cifră („??”) și inelul maghiar fără organizator (numerele se repetă
+  // între asociații) se refuză.
+  if (kind === 'own' && (!ring || ring.unringed || ring.needsClub || (!ring.ok && !fallbackKey(ring)))) throw badRequest(ring?.needsClub ? 'eroare.inel_hu_asociatie' : 'eroare.inel_necitit');
 
   let sex = pick('sex', existing?.sex ?? null);
   if (sex === '') sex = null;

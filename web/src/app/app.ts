@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, ElementRef, HostListener, afterRenderEffect, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
@@ -66,7 +66,7 @@ const NAV: NavItem[] = [
           <img class="brand-mark" src="/icon.svg" alt="" width="40" height="40" />
           Porumbar
         </a>
-        <nav class="top-nav" [attr.aria-label]="'meniu.meniu' | t">
+        <nav #topNav class="top-nav" [attr.aria-label]="'meniu.meniu' | t">
           @for (n of nav(); track n.path) {
             <a [routerLink]="n.path" [class.on]="isOn(n)" [attr.aria-current]="isOn(n) ? 'page' : null" [attr.aria-label]="ariaOf(n)">
               <span class="ico"><app-icon [name]="n.icon" [size]="22" />@if (badgeOf(n); as b) { <span class="badge" aria-hidden="true">{{ b }}</span> }</span>{{ n.label | t }}
@@ -79,6 +79,8 @@ const NAV: NavItem[] = [
         @if (band(); as b) {
           <nav class="band" [attr.aria-label]="'meniu.submeniu' | t">
             <div class="band-inner">
+              <!-- Rândul pornește sub butonul din meniul mare de care ține (alignBand). -->
+              <div #bandRow class="band-row">
               @if (b.back) {
                 <button type="button" class="pill back" (click)="back()"><app-icon name="inapoi" [size]="18" />{{ 'meniu.inapoi' | t }}</button>
               }
@@ -87,6 +89,7 @@ const NAV: NavItem[] = [
                   <app-icon [name]="i.icon" [size]="18" />{{ i.label | t }}
                 </a>
               }
+              </div>
             </div>
           </nav>
         }
@@ -138,6 +141,10 @@ const NAV: NavItem[] = [
       max-width: 1120px; margin: 0 auto; padding: 8px 24px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
     }
     .band-inner::-webkit-scrollbar { display: none; }
+    .band-row { display: flex; gap: 6px; width: max-content; }
+    /* Când nu încap de sub meniul părinte până la margine: butoane mai mici. */
+    .band-row.compact { gap: 4px; }
+    .band-row.compact .pill { min-height: 40px; padding: 0 10px; gap: 4px; font-size: 0.82rem; }
     .pill {
       flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; white-space: nowrap;
       background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); font-weight: 700; font-size: 0.9rem; text-decoration: none; box-shadow: none;
@@ -254,6 +261,39 @@ export class App {
     return null;
   });
 
+  private readonly topNav = viewChild<ElementRef<HTMLElement>>('topNav');
+  private readonly bandRow = viewChild<ElementRef<HTMLElement>>('bandRow');
+
+  /**
+   * Banda pornește sub butonul din meniul mare de care ține și merge spre dreapta. Dacă nu încape până la margine,
+   * butoanele se fac mai mici; dacă tot nu încape, rândul se trage spre stânga cât trebuie. Pe telefon (meniul mare e
+   * jos) pornește de la margine și se derulează cu degetul.
+   */
+  private alignBand() {
+    const row = this.bandRow()?.nativeElement;
+    if (!row) return;
+    const box = row.parentElement as HTMLElement;
+    const nav = this.topNav()?.nativeElement;
+    const parent = nav && getComputedStyle(nav).display !== 'none' ? nav.querySelector<HTMLElement>('a.on') : null;
+    row.style.marginLeft = '0px';
+    row.classList.remove('compact');
+    if (!parent) return;
+    const cs = getComputedStyle(box);
+    const contentLeft = box.getBoundingClientRect().left + parseFloat(cs.paddingLeft);
+    const room = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    let start = Math.max(0, Math.round(parent.getBoundingClientRect().left - contentLeft));
+    if (row.offsetWidth > room - start) {
+      row.classList.add('compact');
+      if (row.offsetWidth > room - start) start = Math.max(0, room - row.offsetWidth);
+    }
+    row.style.marginLeft = `${start}px`;
+  }
+
+  @HostListener('window:resize')
+  protected onResize() {
+    this.alignBand();
+  }
+
   /** „Înapoi” din bandă: pagina dinainte; dacă nu e una în aplicație, Panoul. */
   back() {
     if (this.navigations > 1) this.location.back();
@@ -267,6 +307,21 @@ export class App {
   }
 
   constructor() {
+    // După fiecare desenare în care s-a schimbat banda (alt meniu, altă pagină), ea se așază sub meniul părinte; și ori de
+    // câte ori meniul mare sau banda își schimbă mărimea (literele se încarcă mai târziu, fereastra se lărgește).
+    const sizes = typeof ResizeObserver === 'function' ? new ResizeObserver(() => this.alignBand()) : null;
+    afterRenderEffect((onCleanup) => {
+      this.band();
+      this.url();
+      const nav = this.topNav()?.nativeElement;
+      const row = this.bandRow()?.nativeElement;
+      this.alignBand();
+      if (!sizes) return;
+      if (nav) sizes.observe(nav);
+      if (row?.parentElement) sizes.observe(row.parentElement);
+      onCleanup(() => sizes.disconnect());
+    });
+    document.fonts?.ready.then(() => this.alignBand()).catch(() => undefined);
     this.router.events.subscribe((e) => {
       if (!(e instanceof NavigationEnd)) return;
       this.navigations++;

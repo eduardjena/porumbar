@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
@@ -106,11 +106,12 @@ function forgetOldDraft() {
         <div class="heads" aria-hidden="true">
           @for (g of gens; track g) { <div>{{ genName(g) }}</div> }
         </div>
-        <div class="sheet">
+        <div class="sheet" #sheet>
+          <svg class="links" aria-hidden="true"><path [attr.d]="links()" /></svg>
           @for (i of indexes; track i) {
             @let s = d().slots[i];
             @let g = gen(i);
-            <div class="slot" [class]="'slot g' + g" [style.grid-column]="g + 1" [style.grid-row]="rowOf(i)"
+            <div class="slot" [attr.data-i]="i" [class]="'slot g' + g" [style.grid-column]="g + 1" [style.grid-row]="rowOf(i)"
                  [class.hidden-mobile]="g >= 3 && !openGen()[g]" [class.has]="filled(s)">
               @if (i === 1 || i === 2 || i === 4 || i === 8 || i === 16) {
                 <button type="button" class="gen-toggle" (click)="toggleGen(g)" [attr.aria-expanded]="g < 3 || openGen()[g]">
@@ -153,9 +154,12 @@ function forgetOldDraft() {
     .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .kind label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
     .sex { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
-    .heads { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 16px 0 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85rem; color: var(--muted); }
-    .sheet { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(16, minmax(64px, auto)); gap: 6px 10px; }
-    .slot { align-self: center; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
+    .heads { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 28px; margin: 16px 0 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.85rem; color: var(--muted); }
+    .sheet { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(16, minmax(64px, auto)); gap: 6px 28px; }
+    /* Liniile de descendență: de la fiecare porumbel, spre tată (sus) și mamă (jos), ca pe pedigree-ul de hârtie. */
+    .links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .links path { fill: none; stroke: #b9a88f; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .slot { position: relative; z-index: 1; align-self: center; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
     .slot.has { border-color: #c2b39c; }
     .slot.g0 { border: 2px solid var(--accent); }
     .slot input, .slot textarea, .slot select { min-height: 38px; padding: 6px 10px; font-size: 0.95rem; border-radius: 10px; }
@@ -178,7 +182,7 @@ function forgetOldDraft() {
     .done h2 { display: flex; align-items: center; gap: 10px; }
     @media (max-width: 1000px) {
       .wide { width: 100%; margin-left: 0; }
-      .heads { display: none; }
+      .heads, .links { display: none; }
       /* Pe ecran îngust: căsuțele pe rând, pe generații; străbunicii și răstrăbunicii se deschid la cerere. */
       .sheet { display: flex; flex-direction: column; gap: 8px; }
       .slot { grid-row: auto !important; grid-column: auto !important; }
@@ -208,8 +212,39 @@ export default class PedigreeHartie {
   readonly result = signal<ImportResult | null>(null);
   protected readonly count = computed(() => this.d().slots.filter(filled).length);
 
+  private readonly sheet = viewChild<ElementRef<HTMLElement>>('sheet');
+  /** Liniile dintre căsuțe (calea SVG), măsurate după ce s-au așezat căsuțele. */
+  protected readonly links = signal('');
+
   constructor() {
     forgetOldDraft();
+    let ro: ResizeObserver | undefined;
+    effect(() => {
+      ro?.disconnect();
+      const el = this.sheet()?.nativeElement;
+      if (!el) return;
+      ro = new ResizeObserver(() => this.drawLinks(el));
+      ro.observe(el);
+      el.querySelectorAll('.slot').forEach((s) => ro!.observe(s));
+    });
+    inject(DestroyRef).onDestroy(() => ro?.disconnect());
+  }
+
+  /** Copil → părinți: din mijlocul marginii drepte a copilului, la jumătatea spațiului, apoi la tată și la mamă. */
+  private drawLinks(el: HTMLElement) {
+    if (getComputedStyle(el).display !== 'grid') return this.links.set('');
+    const box = el.getBoundingClientRect();
+    const at = new Map<number, DOMRect>();
+    el.querySelectorAll<HTMLElement>('.slot[data-i]').forEach((s) => at.set(+s.dataset['i']!, s.getBoundingClientRect()));
+    const r = (v: number) => Math.round(v) + 0.5;
+    let d = '';
+    for (let i = 1; 2 * i + 1 <= SLOTS; i++) {
+      const c = at.get(i), f = at.get(2 * i), m = at.get(2 * i + 1);
+      if (!c || !f || !m) continue;
+      const x1 = r(c.right - box.left), y1 = r(c.top + c.height / 2 - box.top), x2 = r(f.left - box.left), xm = r((x1 + x2) / 2);
+      for (const p of [f, m]) d += `M${x1} ${y1}H${xm}V${r(p.top + p.height / 2 - box.top)}H${x2}`;
+    }
+    this.links.set(d);
   }
 
   /** Rândul din grilă: porumbelul ocupă 16 rânduri, părinții câte 8 … răstrăbunicii câte unul. */

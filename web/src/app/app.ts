@@ -239,7 +239,7 @@ export class App {
     const path = this.url().split(/[?#]/)[0];
     const q = tree.queryParams as Record<string, string | undefined>;
     const panou: [string, string, IconName, boolean][] = [
-      ['/panou', 'vedere.grila', 'panou', path === '/panou'],
+      ['/panou', 'panou.sub_porumbei', 'panou', path === '/panou'],
       ['/porumbar', 'vedere.lista', 'lista', path === '/porumbar'],
       ['/concursuri', 'panou.rezultate_concurs', 'cupa', path.startsWith('/concursuri')],
       ['/porumbei/pedigree', 'panou.importa_pedigree', 'fisa', path === '/porumbei/pedigree'],

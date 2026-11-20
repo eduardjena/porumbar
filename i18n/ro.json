@@ -609,7 +609,6 @@
   },
   "parola_camp.arata": "Arată parola",
   "parola_camp.ascunde": "Ascunde parola",
-  "vedere.grila": "Grilă",
   "vedere.lista": "Listă",
   "trimite.trimite": {
     "text": "Trimite",
@@ -1906,5 +1905,9 @@
   "vanzari.sub_vin": "Vin la tine",
   "cont.sub_apare": "Ce apare pe fișă",
   "cont.sub_cod": "Codul de crescător",
-  "cont.sub_iesire": "Ieșire și ștergere"
+  "cont.sub_iesire": "Ieșire și ștergere",
+  "panou.sub_porumbei": {
+    "text": "Vezi porumbeii",
+    "sens": "Primul submeniu al Panoului: porumbeii pe carduri (fosta „Grilă”)."
+  }
 }

@@ -445,7 +445,6 @@
   "parola_camp.parola": "Jelszó",
   "parola_camp.arata": "Jelszó megjelenítése",
   "parola_camp.ascunde": "Jelszó elrejtése",
-  "vedere.grila": "Rács",
   "vedere.lista": "Lista",
   "trimite.trimite": "Küldés",
   "trimite.se_pregateste": "Előkészítés…",
@@ -1263,5 +1262,6 @@
   "vanzari.sub_vin": "Hozzád érkeznek",
   "cont.sub_apare": "Mi látszik az adatlapon",
   "cont.sub_cod": "Tenyésztői kód",
-  "cont.sub_iesire": "Kilépés és törlés"
+  "cont.sub_iesire": "Kilépés és törlés",
+  "panou.sub_porumbei": "Galambok"
 }

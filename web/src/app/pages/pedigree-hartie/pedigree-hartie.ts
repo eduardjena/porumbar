@@ -304,6 +304,7 @@ export default class PedigreeHartie {
       // Porumbelul meu: un inel nerecunoscut se păstrează cum e scris (avertisment blând); maghiarul fără organizator, nu.
       const mine = i === 1 && this.d().kind === 'own';
       if (mine && p.needsClub) return this.hint(i, { kind: 'bad', text: t('eroare.inel_hu_asociatie') });
+      if (mine && !p.unknown) return this.hint(i, { kind: 'bad', text: t('eroare.inel_necitit') });
       return this.hint(i, { kind: 'new', text: mine ? t('inel.nerecunoscut') : t('hartie.hint_necitit') });
     }
     if (p.unringed) return this.hint(i, { kind: 'unringed', text: t('text.fara_inel_mare') });

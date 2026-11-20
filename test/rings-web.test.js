@@ -31,6 +31,8 @@ test('previzualizarea: nerecunoscut (avertisment blând) față de maghiarul fă
   assert.equal(previewRing('HU-23-14530').needsClub, true);
   assert.equal(previewRing('HU-23-14530').unknown, false);
   assert.equal(previewRing('').unknown, false);
+  assert.equal(previewRing('??').unknown, false, 'fără nicio literă sau cifră: nu e un inel (serverul îl refuză)');
+  assert.equal(previewRing('??').ok, false);
   assert.equal(previewRing('GB22T12345').display, 'GB-22-T-12345');
   assert.equal(previewRing('HU-23-29-14530').display, 'HU-2023-29-14530');
 });

@@ -23,6 +23,8 @@ import { previewRing } from './ring-preview';
         </p>
       } @else if (required() && preview().needsClub) {
         <p class="bad" role="status">{{ 'eroare.inel_hu_asociatie' | t }}</p>
+      } @else if (required() && !preview().unknown) {
+        <p class="bad" role="status">{{ 'eroare.inel_necitit' | t }}</p>
       } @else if (required()) {
         <p class="warn" role="status">{{ 'inel.nerecunoscut' | t }}</p>
       } @else {

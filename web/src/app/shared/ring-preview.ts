@@ -1,4 +1,4 @@
-import { formatRing, parseRing } from '../../../../src/rings.js';
+import { fallbackKey, formatRing, parseRing } from '../../../../src/rings.js';
 
 /*
  * Ce a înțeles programul din inelul scris: aceleași reguli ca pe server (src/rings.js, importat direct), ca telefonul să
@@ -13,7 +13,8 @@ export interface RingPreview {
   unringed: boolean;
   /** Inel maghiar fără numărul organizatorului: se refuză la un porumbel propriu. */
   needsClub: boolean;
-  /** Scris, dar nerecunoscut: se păstrează cum e scris (avertisment blând, nu eroare). */
+  /** Scris, dar nerecunoscut: se păstrează cum e scris (avertisment blând, nu eroare). Fals pentru un text fără nicio
+   * literă sau cifră („??”), pe care serverul îl refuză la un porumbel propriu. */
   unknown: boolean;
 }
 
@@ -25,6 +26,6 @@ export function previewRing(text: string): RingPreview {
     sex: r.sex,
     unringed: r.unringed,
     needsClub: Boolean(r.needsClub),
-    unknown: !r.ok && !r.needsClub && Boolean(r.raw),
+    unknown: fallbackKey(r) !== null,
   };
 }

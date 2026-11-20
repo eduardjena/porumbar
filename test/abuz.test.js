@@ -127,9 +127,13 @@ test('unicode: emoji, RTL, zero-width în nume se păstrează exact; inel cu zer
   const found = await call(`/api/pigeons?q=${encodeURIComponent('fulger')}`, { cookie: a });
   assert.equal(found.status, 200);
   assert.ok(found.data.pigeons.some((x) => x.id === p.data.pigeon.id));
-  // Un porumbel propriu cu inel ciudat se păstrează cum a fost scris (plasa de siguranță), dar nu trece drept inel
-  // recunoscut: n-are țară, se arată textul, iar cheia lui nu e a inelului RO-25-123456.
-  for (const bad of ['RO-25-12​3456', 'RO-25-١٢٣٤٥٦', 'RO-25-１２３４５６', '🐦-25-123456']) {
+  // Caracterele invizibile și cifrele late nu fac alt inel: e tot RO-25-123456 (al doilea e dublură).
+  const zw = await create(a, { kind: 'own', ring: 'RO-25-12​3456' });
+  assert.equal(zw.status, 201);
+  assert.equal(zw.data.pigeon.ring.display, 'RO-25-123456');
+  assert.equal((await create(a, { kind: 'own', ring: 'RO-25-１２３４５６' })).status, 409);
+  // Cifrele arabe și emoji: se păstrează cum au fost scrise (plasa de siguranță), dar nu trec drept inel recunoscut.
+  for (const bad of ['RO-25-١٢٣٤٥٦', '🐦-25-123456']) {
     const r = await create(a, { kind: 'own', ring: bad });
     assert.equal(r.status, 201, bad);
     assert.equal(r.data.pigeon.ring.country, null, bad);

@@ -140,6 +140,13 @@ const PINNED = [
   {"raw":"DV 17-1063-813","ok":true,"unringed":false,"country":"DV","year":2017,"club":"1063","number":"813","sex":null,"key":"DV|2017|1063|813","display":"DV-01063-17-813"},
   {"raw":"DV-17-01063-813","ok":true,"unringed":false,"country":"DV","year":2017,"club":"1063","number":"813","sex":null,"key":"DV|2017|1063|813","display":"DV-01063-17-813"},
   {"raw":"CZ 08 0154 1723","ok":true,"unringed":false,"country":"CZ","year":2008,"club":"154","number":"1723","sex":null,"key":"CZ|2008|154|1723","display":"CZ-08-154-1723"},
+  // Danemarca cu club (scrise cu anul în față, ca la myloft): afișarea veche, cu anul primul, rămâne.
+  {"raw":"DK 15-151-1958","ok":true,"unringed":false,"country":"DK","year":2015,"club":"151","number":"1958","sex":null,"key":"DK|2015|151|1958","display":"DK-15-151-1958"},
+  {"raw":"DAN 26-046-0205","ok":true,"unringed":false,"country":"DK","year":2026,"club":"46","number":"205","sex":null,"key":"DK|2026|46|205","display":"DK-26-46-205"},
+  {"raw":"DAN 18-127-0694","ok":true,"unringed":false,"country":"DK","year":2018,"club":"127","number":"694","sex":null,"key":"DK|2018|127|694","display":"DK-18-127-694"},
+  {"raw":"DK-24-242-1698","ok":true,"unringed":false,"country":"DK","year":2024,"club":"242","number":"1698","sex":null,"key":"DK|2024|242|1698","display":"DK-24-242-1698"},
+  {"raw":"DK 03 127 694","ok":true,"unringed":false,"country":"DK","year":2003,"club":"127","number":"694","sex":null,"key":"DK|2003|127|694","display":"DK-03-127-694"},
+  {"raw":"DAN-11-335-216 F","ok":true,"unringed":false,"country":"DK","year":2011,"club":"335","number":"216","sex":"F","key":"DK|2011|335|216","display":"DK-11-335-216"},
 ];
 
 for (const want of PINNED) {
@@ -152,6 +159,10 @@ for (const want of PINNED) {
     assert.equal(formatRing(r), want.display, 'afișarea');
   });
 }
+
+test('compatibil: afișarea veche (cea arătată până acum) se citește înapoi în aceeași cheie', () => {
+  for (const want of PINNED.filter((w) => w.ok)) assert.equal(ringKey(parseRing(want.display, { now })), want.key, want.display);
+});
 
 test('compatibil: fără inel rămâne fără inel, fără cheie', () => {
   for (const [raw, sex] of [['000 M', 'M'], ['0000/07 RO M', 'M'], ['000', null], ['00000', null]]) {

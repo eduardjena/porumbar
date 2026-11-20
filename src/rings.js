@@ -10,7 +10,9 @@
  *
  * Două trepte:
  *  1. Regulile de dinainte (pozițiile fixe, tabelul LEGACY): tot ce recunoșteau ele dă exact aceeași cheie și aceeași
- *     afișare (cheile stau în baza de date; test/rings-compat.test.js).
+ *     afișare (cheile stau în baza de date; test/rings-compat.test.js). Singura schimbare: anul pe 2 cifre egal cu
+ *     anul curent + 1 e acum 20AA (înainte 19AA). Inelele salvate înainte ca strămoși nerecunoscuți primesc cheia la
+ *     pornire (src/ring-backfill.js).
  *  2. Ce n-au recunoscut ele trece prin parserul pe bucăți (tokeni): emitentul din tabelul ALIASES, apoi șablonul
  *     familiei lui (club, literă de serie, provincie, cod de club american …).
  * Ce nu recunoaște niciuna rămâne `ok: false`; un porumbel propriu se poate salva și așa, cu cheia de rezervă
@@ -39,7 +41,7 @@ const ALIASES = {
   IHU: 'IHU', RP: 'PL', CS: 'CZ', HUNG: 'HU', RSR: 'RO', CRO: 'HR', HR: 'HR', SLO: 'SI', SLOVENIA: 'SI', SI: 'SI',
   LTU: 'LT', LT: 'LT', TR: 'TR', EG: 'EG',
   AU: 'AU', ARPU: 'AU', IF: 'IF', NPA: 'NPA', CU: 'CU', CRPU: 'CU', MEX: 'MX', MX: 'MX',
-  ZA: 'ZA', SA: 'ZA', ZW: 'ZW', KW: 'KW', KUW: 'KW', QATAR: 'QA', QTR: 'QA', QA: 'QA', UAE: 'AE', AE: 'AE', KSA: 'KSA', NZ: 'NZ',
+  ZA: 'ZA', SA: 'ZA', ZW: 'ZW', HUNGARY: 'HU', KW: 'KW', KUW: 'KW', QATAR: 'QA', QTR: 'QA', QA: 'QA', UAE: 'AE', AE: 'AE', KSA: 'KSA', NZ: 'NZ',
   VRPU: 'VRPU', VHA: 'VHA', VPU: 'VPU', VPO: 'VPO', WPF: 'WPF', QRPF: 'QRPF', QPF: 'QPF', SAHPA: 'SAHPA', ACP: 'ACP',
   PRV: 'PRV', GIPP: 'GIPP', GMPF: 'GMPF', AUST: 'AUST',
   CHINA: 'CN', TWN: 'TW', TAIWAN: 'TW', '台灣': 'TW', '台湾': 'TW', CTRPA: 'CTRPA', KLPR: 'KLPR', TPA: 'TPA', DTRPA: 'DTRPA',
@@ -48,8 +50,12 @@ const ALIASES = {
 };
 
 // Familiile (după partea din mijloc). Restul: țară / emitent + an + număr.
-/** Clubul (secția, organizația) e un număr; implicit înaintea anului (DV, DK, PL, LT) sau după el. */
-const CLUB_FIRST = new Set(['DV', 'DK', 'LT']);
+/**
+ * Clubul (secția, organizația) e un număr, înaintea anului sau după el. Când amândouă pot fi an: clubul primul la DV și
+ * LT, anul primul la celelalte (așa se afișează și așa se citește înapoi afișarea; DK cu club era deja salvat cu anul
+ * primul, DK-15-151-1958).
+ */
+const CLUB_FIRST = new Set(['DV', 'LT']);
 const CLUB_YEAR = new Set(['DV', 'AT', 'DK', 'PL', 'LT', 'CZ', 'SK', 'SI']);
 /** Clubul păstrat cum e scris (cod de regiune pe 2 cifre), nu fără zerouri. */
 const CLUB_AS_WRITTEN = new Set(['LT']);
@@ -60,11 +66,28 @@ const FREE = new Set(['AU', 'IF', 'CU', 'NPA', 'ZA', 'ZW', 'MX', 'NZ', 'KR', 'VN
 /** Emitenții americani: pe pedigree-uri prefixul apare oriunde (25138 RMR AU 2025, 19970-AU19-RMR). */
 const ANYWHERE = new Set(['AU', 'IF', 'CU', 'NPA']);
 /** Afișarea cu clubul înaintea anului, ca pe inel (DV are și zerourile clubului). */
-const SHOW_CLUB_FIRST = new Set(['DK', 'LT']);
+const SHOW_CLUB_FIRST = new Set(['LT']);
+/**
+ * Numărul cu lățime fixă (raportul, nivel O / E): la afișare se pun la loc zerourile din față (cheia nu le ține). Doar la
+ * familiile noi: cele vechi se afișează ca înainte (FR-21-6470). China cu provincie: 7 cifre din 2014, 6 înainte; JP cu
+ * litera de serie: 5.
+ */
+const WIDTH = { HKPA: 7, HR: 5, SI: 4, KR: 4, MX: 6, NIPPON: 6, TH: 5, VN: 6, ID: 6, KSA: 6 };
+/** Emitenții din lumea englezească: H de la final = hen (femelă); la ceilalți (maghiari) H = hím. */
+const ENGLISH = new Set(['GB', 'NEHU', 'NWHU', 'SU', 'WHU', 'IHU', 'AU', 'IF', 'CU', 'NPA', 'US', 'ZA', 'NZ', 'AUST',
+  'VRPU', 'VHA', 'VPU', 'VPO', 'WPF', 'QRPF', 'QPF', 'SAHPA', 'ACP', 'PRV', 'GIPP', 'GMPF']);
+/** Mai lung de atât nu e un inel (câmpul are cel mult 80): nu se citește deloc, ca să nu coste timp. */
+const MAX_LENGTH = 120;
 
 // Litera de sex de la final: L/M = mascul, T/F = femelă (Compuclub folosește L/T); maghiarii scriu H (hím) / T (tojó);
-// pe pedigree-urile tipărite (mai ales maghiare) și ♂ / ♀; englezii COCK / HEN; germanii V / W (doar după un inel DV).
-const SEX = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F', '♂': 'M', '♀': 'F', COCK: 'M', HEN: 'F', V: 'M', W: 'F' };
+// pe pedigree-urile tipărite (mai ales maghiare) și ♂ / ♀; englezii COCK / HEN (și H = hen, vezi ENGLISH); germanii
+// V / W (doar după un inel DV); în cuvinte și HÍM / TOJÓ, MALE / FEMALE.
+const SEX = { L: 'M', M: 'M', H: 'M', T: 'F', F: 'F', '♂': 'M', '♀': 'F', V: 'M', W: 'F' };
+const SEX_WORDS = { COCK: 'M', HEN: 'F', HIM: 'M', TOJO: 'F', MALE: 'M', FEMALE: 'F' };
+const SEX_WORD_AT_END = /(?:^|[^\p{L}])(?:COCK|HEN|H[IÍ]M|TOJ[OÓ]|MALE|FEMALE)$/u;
+
+/** Textul de citit: formele late (ＲＯ) devin obișnuite, caracterele invizibile (cratimă moale, spațiu de lățime 0) cad. */
+const clean = (text) => text.normalize('NFKC').replace(/\p{Cf}/gu, '').toUpperCase().replace(/\s+/g, ' ').trim();
 
 const stripZeros = (s) => s.replace(/^0+(?=\d)/, '');
 const country = (code) => (code ? LEGACY[code] ?? null : 'RO');
@@ -83,14 +106,16 @@ function fullYear(text, now) {
 export function parseRing(text, { now = new Date() } = {}) {
   const raw = typeof text === 'string' ? text.trim() : '';
   const result = { ok: false, unringed: false, raw, country: null, year: null, number: null, club: null, sex: null };
-  let s = raw.toUpperCase().replace(/\s+/g, ' ');
+  if (raw.length > MAX_LENGTH) return result;
+  let s = clean(raw);
   if (!s) return result;
 
   // Sexul: cuvânt separat la final („RO-26-800546 L”), lipit de cifre („738256/09F”), semnul ♂ / ♀ sau după bară
   // („398221/23/M”, în rezultatele FCI).
   let m = s.match(/^(.*?)\s*([♂♀])$/) ?? s.match(/^(.*?)(?:\s+|(?<=\d))([LMTFH])$/) ?? s.match(/^(.*\d)\s*\/\s*([LMTFH])$/);
-  if (m && m[1]) {
-    result.sex = SEX[m[2]];
+  const sexLetter = m && m[1] ? m[2] : null;
+  if (sexLetter) {
+    result.sex = SEX[sexLetter];
     s = m[1].trim();
   }
 
@@ -104,7 +129,9 @@ export function parseRing(text, { now = new Date() } = {}) {
   if (!parts) return result;
 
   const number = stripZeros(parts.number);
-  const out = { ...result, ok: true, country: parts.country, year: fullYear(parts.year, now), number, club: parts.club ?? null };
+  // H după un inel englezesc / american / australian = hen.
+  const sex = sexLetter === 'H' && ENGLISH.has(parts.country) ? 'F' : result.sex;
+  const out = { ...result, ok: true, sex, country: parts.country, year: fullYear(parts.year, now), number, club: parts.club ?? null };
   if (/^0+$/.test(number)) out.unringed = true;
   return out;
 }
@@ -155,7 +182,9 @@ function tokenize(s) {
     if (!chunk) continue;
     // Literele O tastate în loc de zero, într-o bucată de cifre: PL-O264-1O-15025.
     const fixed = /\d/.test(chunk) && /^[\dO]+$/.test(chunk) ? chunk.replace(/O/g, '0') : chunk;
-    fixed.match(/\d+|\p{L}+/gu).forEach((value, i) => tokens.push({ value, digits: /^\d/.test(value), glued: i > 0 }));
+    for (const [j, value] of fixed.match(/\d+|\p{L}+/gu).entries()) {
+      tokens.push({ value, digits: /^\d/.test(value), glued: j > 0, i: tokens.length });
+    }
   }
   return tokens;
 }
@@ -163,15 +192,17 @@ function tokenize(s) {
 /** Inelele pe care regulile vechi nu le-au recunoscut: emitentul, apoi șablonul familiei lui. */
 function worldParts(s, result, now) {
   const tokens = tokenize(s);
-  if (!tokens?.length) return null;
+  // Un inel are cel mult câteva bucăți (AU2017 F&D LOFTS 17219 are 6); mai multe nu se citesc.
+  if (!tokens?.length || tokens.length > 12) return null;
   const maxYear = now.getFullYear() + 1;
   const yearLike = (t) => t.digits && (t.value.length === 2 || (t.value.length === 4 && Number(t.value) >= 1900 && Number(t.value) <= maxYear));
 
-  // Sexul scris în cuvinte la final (COCK / HEN).
+  // Sexul scris în cuvinte la final (COCK / HEN, HÍM / TOJÓ, MALE / FEMALE).
   const last = tokens.at(-1);
-  if (!last.digits && (last.value === 'COCK' || last.value === 'HEN') && !result.sex) {
-    result.sex = SEX[last.value];
+  if (!last.digits && SEX_WORDS[last.value] && !result.sex) {
+    result.sex = SEX_WORDS[last.value];
     tokens.pop();
+    if (!tokens.length) return null;
   }
 
   // China fără prefix: AAAA-PP-NNNNNNN (anul întreg, provincia 00–33, numărul de 7 cifre; 6 până în 2013).
@@ -188,14 +219,15 @@ function worldParts(s, result, now) {
   const letters = tokens.filter((t) => !t.digits);
   let issuerAt = -1;
   if (!tokens[0].digits && ALIASES[tokens[0].value]) issuerAt = 0;
-  else if (letters.length && ALIASES[letters.at(-1).value]) issuerAt = tokens.indexOf(letters.at(-1));
+  else if (letters.length && ALIASES[letters.at(-1).value]) issuerAt = letters.at(-1).i;
   else issuerAt = tokens.findIndex((t) => !t.digits && ANYWHERE.has(ALIASES[t.value]));
   if (issuerAt < 0) return null;
   const prefix = tokens[issuerAt].value;
   let code = ALIASES[prefix];
   const rest = tokens.filter((_, i) => i !== issuerAt);
   // Anul lipit de emitent (AU2017, ZA24, GB22T…) e sigur anul.
-  const glued = rest.find((t) => t.digits && t.glued && tokens.indexOf(t) === issuerAt + 1 && yearLike(t)) ?? null;
+  const next = tokens[issuerAt + 1];
+  const glued = next && next.digits && next.glued && yearLike(next) ? next : null;
 
   // V / W după un inel german = sexul (DV 1009 23 9V).
   if (code === 'DV' && !rest.at(-1)?.digits && (rest.at(-1)?.value === 'V' || rest.at(-1)?.value === 'W') && !result.sex) {
@@ -208,10 +240,7 @@ function worldParts(s, result, now) {
   if (prefix === 'SA' && !(digits.some((t) => t.value.length === 4 && yearLike(t)) && words.length)) return null;
 
   /** Cifrele lipite de un cod de club sunt numărul, nu anul (IF PROTEGE99 11). */
-  const afterClub = (t) => {
-    const i = tokens.indexOf(t);
-    return t.glued && i - 1 !== issuerAt && !tokens[i - 1].digits;
-  };
+  const afterClub = (t) => t.glued && t.i - 1 !== issuerAt && !tokens[t.i - 1].digits;
   /** Anul: cel lipit de emitent; altfel primul an posibil (2 cifre sau 1900…anul următor). */
   const pickYear = (list) => glued ?? list.find((t) => yearLike(t) && !afterClub(t)) ?? null;
 
@@ -257,8 +286,8 @@ function worldParts(s, result, now) {
     // An, literă de serie (opțională), număr: GB22T12345, IHU 09 S 76230 (S / N = regiunea), JPN 09 AB 12345.
     const [y, n] = digits;
     const series = words[0] ?? null;
-    if (!yearLike(y) || rest.indexOf(y) > rest.indexOf(n)) return null;
-    if (series && (series.value.length > 2 || rest.indexOf(series) < rest.indexOf(y) || rest.indexOf(series) > rest.indexOf(n))) return null;
+    if (!yearLike(y)) return null;
+    if (series && (series.value.length > 2 || series.i < y.i || series.i > n.i)) return null;
     if (series && code === 'IHU' && !['S', 'N'].includes(series.value)) return null;
     return { country: code, year: y.value, club: series?.value ?? null, number: n.value };
   }
@@ -272,7 +301,8 @@ function worldParts(s, result, now) {
     const club = rest.filter((t) => t !== year && t !== number);
     if (club.some((t) => t.digits && t.value.length > 3)) return null;
     const clubText = club.map((t) => t.value).join('');
-    return { country: code, year: year.value, club: clubText ? (/^\d+$/.test(clubText) ? stripZeros(clubText) : clubText) : null, number: number.value };
+    // Clubul cum e scris (KUW-2023-1-…, MALTA 26-04-4205: câmpul din mijloc are sens necunoscut, zeroul rămâne).
+    return { country: code, year: year.value, club: clubText || null, number: number.value };
   }
 
   if (digits.length === 2 && !words.length) {
@@ -288,17 +318,20 @@ function worldParts(s, result, now) {
 /**
  * Afișarea uniformă: RO-25-276971, DV-08778-24-271 (Germania: clubul pe 5 cifre, înaintea anului),
  * AT-18-301-1405 (alte țări cu club sau literă de serie: anul, clubul, numărul: GB-22-T-12345, AU-18-RMR-18861),
- * DK-127-03-694 / LT-01-03-14003 (clubul înaintea anului, ca pe inel); un inel necitit sau lipsă rămâne cum a fost scris.
+ * LT-01-03-14003 (clubul înaintea anului, ca pe inel); numărul cu zerourile din față la familiile noi cu lățime fixă
+ * (CN-26-15-0443185, HKPA-26-0001384); un inel necitit sau lipsă rămâne cum a fost scris.
  */
 export function formatRing(r) {
   if (!r?.ok || r.unringed) return r?.raw ?? '';
   const yy = String(r.year % 100).padStart(2, '0');
   // Ungaria: anul întreg, ca pe inel (HU-2023-29-14530).
   if (r.country === 'HU' && r.club) return `HU-${r.year}-${r.club}-${r.number}`;
-  if (!r.club) return `${r.country}-${yy}-${r.number}`;
-  if (r.country === 'DV') return `${r.country}-${r.club.padStart(5, '0')}-${yy}-${r.number}`;
-  if (SHOW_CLUB_FIRST.has(r.country)) return `${r.country}-${r.club}-${yy}-${r.number}`;
-  return `${r.country}-${yy}-${r.club}-${r.number}`;
+  const width = r.country === 'CN' && r.club ? (r.year >= 2014 ? 7 : 6) : r.country === 'JP' && r.club ? 5 : WIDTH[r.country];
+  const number = width ? String(r.number).padStart(width, '0') : r.number;
+  if (!r.club) return `${r.country}-${yy}-${number}`;
+  if (r.country === 'DV') return `${r.country}-${r.club.padStart(5, '0')}-${yy}-${number}`;
+  if (SHOW_CLUB_FIRST.has(r.country)) return `${r.country}-${r.club}-${yy}-${number}`;
+  return `${r.country}-${yy}-${r.club}-${number}`;
 }
 
 /** Cheia de comparare: același inel scris în forme diferite dă aceeași cheie; null pentru inel necitit sau lipsă. */
@@ -313,9 +346,13 @@ export function ringKey(r) {
  * recunoscut, fără inel, maghiar fără organizator sau fără nicio literă / cifră.
  */
 export function fallbackKey(r) {
-  if (!r || r.ok || r.needsClub || !r.raw) return null;
-  let s = r.raw.toUpperCase().replace(/\s+/g, ' ').trim();
-  if (r.sex) s = s.replace(/\s*(?:[♂♀]|\/\s*[LMTFH]|(?<=[\s\d])[LMTFH])$/u, '');
+  if (!r || r.ok || r.needsClub || !r.raw || r.raw.length > MAX_LENGTH) return null;
+  let s = clean(r.raw);
+  if (r.sex) {
+    s = SEX_WORD_AT_END.test(s)
+      ? s.replace(/\p{L}+$/u, '')
+      : s.replace(/\s*(?:[♂♀]|\/\s*[LMTFH]|(?<=[\s\d])[LMTFH])$/u, '');
+  }
   const text = s.replace(/[^\p{L}\p{N}]/gu, '');
   return text ? `?|${text}` : null;
 }

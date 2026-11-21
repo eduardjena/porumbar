@@ -62,7 +62,7 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/app.ts  meniul mare (sus pe calculator, jos pe telefon) și, sub el, banda de submeniuri (macheta A, 2026-11-19):
-                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează; fișa porumbelului → filele
+                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează / Tratamente; fișa porumbelului → filele
                   ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=); Perechi → Perechile sezonului /
                   Pereche nouă / Inelele mele, Vânzări → Cumpărați / Vânduți, Cont → Abonament / Datele de pe
                   fișă / Ce apare pe fișă / Codul de crescător / Limba / Ieșire și ștergere (toate ?sec=). Fiecare submeniu
@@ -79,7 +79,9 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   /concursuri/lista, tabelul din rezultate/rezultate-toate.ts, și Rezultat nou /concursuri/nou,
                   concurs/concurs-rezultate.ts: toți porumbeii la un concurs, de mână sau lipind clasamentul)
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
-                  concurs, rezultate (vezi mai sus). Fișa porumbelului se editează pe loc, pe secțiuni
+                  concurs, rezultate (vezi mai sus), tratamente (/tratamente: În curs · Urmează · Gata, fișa nou / modifică
+                  în tratament-form.ts, detaliul cu porumbeii; banda „În curs / Urmează” de pe Panou e
+                  panou/tratamente-banda.ts; intrarea din jurnal scrisă de un tratament n-are „Șterge”, trimite la el). Fișa porumbelului se editează pe loc, pe secțiuni
                   (porumbel/fisa-editabila.ts, butonul „Schimbă”); câmpurile, lista „Ce se schimbă” și corpul trimis la
                   server sunt comune cu „Porumbel nou” (porumbel-form/pigeon-draft.ts). Filele Rezultate și Rezultat nou
                   ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul

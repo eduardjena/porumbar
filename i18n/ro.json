@@ -2075,5 +2075,337 @@
   "amintire.email_text": {
     "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că amintirile nu au ajuns pe telefon. Îl poți opri din pagina Cont.\n",
     "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente."
+  },
+  "meniu.tratamente": {
+    "text": "Tratamente",
+    "sens": "Butonul din banda Panoului și numele paginii cu tratamentele și vaccinurile date la tot porumbarul."
+  },
+  "titlu.tratamente": {
+    "text": "Tratamente · Porumbar",
+    "sens": "Titlul ferestrei pe pagina Tratamente."
+  },
+  "titlu.tratament_nou": {
+    "text": "Tratament nou · Porumbar",
+    "sens": "Titlul ferestrei pe fișa unui tratament nou."
+  },
+  "titlu.tratament": {
+    "text": "Tratament · Porumbar",
+    "sens": "Titlul ferestrei când e deschis un tratament."
+  },
+  "titlu.tratament_modifica": {
+    "text": "Modifică tratamentul · Porumbar",
+    "sens": "Titlul ferestrei când omul schimbă un tratament."
+  },
+  "tratamente.titlu": {
+    "text": "Tratamente",
+    "sens": "Titlul paginii Tratamente."
+  },
+  "tratamente.intro": {
+    "text": "Curele și vaccinurile date la tot porumbarul sau la un grup. Fiecare porumbel le are și în jurnalul lui.",
+    "sens": "Rândul de sub titlul paginii Tratamente."
+  },
+  "tratamente.nou": {
+    "text": "Tratament nou",
+    "sens": "Butonul care deschide fișa unui tratament nou și titlul ei."
+  },
+  "tratamente.niciunul": {
+    "text": "Niciun tratament încă",
+    "sens": "Pagina Tratamente când nu e scris niciun tratament."
+  },
+  "tratamente.niciunul_text": {
+    "text": "Scrie aici cura sau vaccinul, o singură dată pentru tot porumbarul. Porumbar îți amintește când începe și când se termină.",
+    "sens": "Explicația de pe pagina Tratamente goală."
+  },
+  "tratamente.in_curs": {
+    "text": "În curs",
+    "sens": "Titlul listei cu tratamentele care se dau acum."
+  },
+  "tratamente.urmeaza": {
+    "text": "Urmează",
+    "sens": "Titlul listei cu tratamentele care încep mai târziu."
+  },
+  "tratamente.gata": {
+    "text": "Gata",
+    "sens": "Titlul listei cu tratamentele terminate sau oprite."
+  },
+  "tratamente.mai_multe": {
+    "text": "Mai multe",
+    "sens": "Butonul de sub tratamentele terminate care aduce altele, mai vechi."
+  },
+  "tratamente.n_porumbei": {
+    "one": "{count} porumbel",
+    "few": "{count} porumbei",
+    "other": "{count} de porumbei",
+    "sens": "Câți porumbei primesc tratamentul (în listă, în fișă și în detaliu)."
+  },
+  "tratamente.n_zile": {
+    "one": "{count} zi",
+    "few": "{count} zile",
+    "other": "{count} de zile",
+    "sens": "Câte zile ține tratamentul, lângă perioadă."
+  },
+  "tratamente.azi": {
+    "text": "azi",
+    "sens": "Starea unui tratament de o singură zi care se dă azi."
+  },
+  "tratamente.ziua_din": {
+    "text": "ziua {zi} din {zile}",
+    "sens": "Starea unui tratament în curs. {zi} = ziua de azi a tratamentului, {zile} = câte zile are."
+  },
+  "tratamente.incepe_pe": {
+    "text": "începe pe {data}",
+    "sens": "Starea unui tratament care urmează. {data} = prima zi."
+  },
+  "tratamente.terminat_pe": {
+    "text": "terminat pe {data}",
+    "sens": "Starea unui tratament terminat. {data} = ultima zi."
+  },
+  "tratamente.oprit_pe": {
+    "text": "oprit pe {data}",
+    "sens": "Starea unui tratament oprit înainte de sfârșit. {data} = ziua opririi."
+  },
+  "tratamente.stare_in_curs": {
+    "text": "În curs",
+    "sens": "Pastila de stare a unui tratament care se dă acum."
+  },
+  "tratamente.stare_urmeaza": {
+    "text": "Urmează",
+    "sens": "Pastila de stare a unui tratament care n-a început."
+  },
+  "tratamente.stare_gata": {
+    "text": "Gata",
+    "sens": "Pastila de stare a unui tratament terminat."
+  },
+  "tratamente.stare_anulat": {
+    "text": "Oprit",
+    "sens": "Pastila de stare a unui tratament oprit înainte de sfârșit."
+  },
+  "tratamente.repeta_nu": {
+    "text": "Nu",
+    "sens": "„Se repetă”: tratamentul nu se repetă."
+  },
+  "tratamente.repeta_peste": {
+    "one": "Peste {count} zi de la început",
+    "few": "Peste {count} zile de la început",
+    "other": "Peste {count} de zile de la început",
+    "sens": "„Se repetă”: următorul tratament începe după atâtea zile, socotite de la începutul acestuia."
+  },
+  "tratamente.repeta_anual": {
+    "text": "În fiecare an, în aceeași zi",
+    "sens": "„Se repetă”: următorul tratament e peste un an, în aceeași zi și lună."
+  },
+  "tratamente.fel": {
+    "text": "Fel",
+    "sens": "Eticheta: tratament sau vaccin."
+  },
+  "tratamente.cum": {
+    "text": "Cum",
+    "sens": "Eticheta: cum se dă (în apă, în hrană, pastilă, injecție, picături)."
+  },
+  "tratamente.perioada": {
+    "text": "Perioada",
+    "sens": "Eticheta zilelor tratamentului (de la … până la …)."
+  },
+  "tratamente.cui": {
+    "text": "Cui",
+    "sens": "Eticheta: cui i se dă (tot porumbarul, un grup, porumbei aleși)."
+  },
+  "tratamente.se_repeta": {
+    "text": "Se repetă",
+    "sens": "Eticheta repetării tratamentului."
+  },
+  "tratamente.vezi_urmatorul": {
+    "text": "Vezi tratamentul următor",
+    "sens": "Legătura către tratamentul următor din repetare, deja planificat."
+  },
+  "tratamente.modifica": {
+    "text": "Modifică",
+    "sens": "Butonul care deschide fișa tratamentului ca să fie schimbată."
+  },
+  "tratamente.modifica_titlu": {
+    "text": "Modifică tratamentul",
+    "sens": "Titlul fișei când omul schimbă un tratament."
+  },
+  "tratamente.opreste": {
+    "text": "Oprește tratamentul",
+    "sens": "Butonul care oprește azi un tratament în curs (intrările din jurnal rămân)."
+  },
+  "tratamente.sterge": {
+    "text": "Șterge tratamentul",
+    "sens": "Butonul care șterge tratamentul cu tot cu intrările lui din jurnal."
+  },
+  "tratamente.porumbeii": {
+    "text": "Porumbeii",
+    "sens": "Titlul listei cu porumbeii care primesc tratamentul."
+  },
+  "tratamente.lista_se_fixeaza": {
+    "text": "Lista se fixează în ziua de început, după starea porumbeilor din ziua aceea.",
+    "sens": "Sub porumbeii unui tratament care n-a început (dat unui grup): lista de acum se poate schimba până atunci."
+  },
+  "tratamente.fara_porumbei": {
+    "text": "Niciun porumbel.",
+    "sens": "Lista porumbeilor unui tratament e goală."
+  },
+  "tratamente.opreste_titlu": {
+    "text": "Oprești tratamentul azi?",
+    "sens": "Titlul confirmării înainte de oprirea unui tratament în curs."
+  },
+  "tratamente.opreste_text": {
+    "text": "Intrările din jurnal rămân, cu „oprit pe {zi}”.",
+    "sens": "Rând în confirmarea opririi. {zi} = data de azi."
+  },
+  "tratamente.opreste_urmatorul": {
+    "text": "Tratamentul următor, planificat din repetare, se șterge.",
+    "sens": "Rând în confirmarea opririi, când tratamentul are deja planificat următorul."
+  },
+  "tratamente.opreste_da": {
+    "text": "Da, oprește",
+    "sens": "Butonul de confirmare a opririi tratamentului."
+  },
+  "tratamente.sterge_titlu": {
+    "text": "Ștergi tratamentul?",
+    "sens": "Titlul confirmării înainte de ștergerea unui tratament."
+  },
+  "tratamente.sterge_jurnal": {
+    "text": "Se șterg și intrările lui din jurnalul porumbeilor.",
+    "sens": "Rând în confirmarea ștergerii unui tratament început."
+  },
+  "tratamente.sterge_urmatorul": {
+    "text": "Se șterge și tratamentul următor, planificat din repetare.",
+    "sens": "Rând în confirmarea ștergerii, când tratamentul are deja planificat următorul."
+  },
+  "tratamente.oprit_nu_se_modifica": {
+    "text": "Un tratament oprit nu se mai modifică. Îl poți doar șterge.",
+    "sens": "Când omul deschide „Modifică” la un tratament oprit."
+  },
+  "tratamente.vezi_tratamentul": {
+    "text": "Vezi tratamentul",
+    "sens": "Legătura către tratament (de ex. la intrarea din jurnal scrisă de un tratament, în locul lui „Șterge”)."
+  },
+  "tratamente.ce_dai": {
+    "text": "Ce dai",
+    "sens": "Eticheta: boala / vaccinul (din listă) sau numele scris de om."
+  },
+  "tratamente.alege_din_lista": {
+    "text": "Alege din listă…",
+    "sens": "Primul rând, gol, al listei „Ce dai”."
+  },
+  "tratamente.altul": {
+    "text": "Altul… (scriu eu)",
+    "sens": "Ultimul rând al listei „Ce dai”: omul scrie singur numele."
+  },
+  "tratamente.scrie_ce_dai": {
+    "text": "Scrie ce dai",
+    "sens": "Câmpul cu numele scris de om, după „Altul…”."
+  },
+  "tratamente.exemplu_nume": {
+    "text": "de ex. Ronidazol 10%",
+    "sens": "Exemplul din câmpul cu numele scris de om."
+  },
+  "tratamente.aleg_eu": {
+    "text": "Aleg eu porumbeii",
+    "sens": "Al cincilea răspuns la „Cui”: omul bifează porumbeii."
+  },
+  "tratamente.alesi_n": {
+    "one": "Ai ales {count} porumbel",
+    "few": "Ai ales {count} porumbei",
+    "other": "Ai ales {count} de porumbei",
+    "sens": "Sub „Cui”, la „Aleg eu”: câți porumbei sunt bifați."
+  },
+  "tratamente.cauta_porumbei": {
+    "text": "Caută după inel sau nume",
+    "sens": "Câmpul de căutare deasupra porumbeilor de bifat."
+  },
+  "tratamente.fara_porumbei_vii": {
+    "text": "Nu ai porumbei în porumbar.",
+    "sens": "La „Aleg eu”, când contul n-are porumbei proprii vii."
+  },
+  "tratamente.niciun_porumbel_gasit": {
+    "text": "Niciun porumbel nu se potrivește.",
+    "sens": "La „Aleg eu”, când căutarea nu găsește nimic."
+  },
+  "tratamente.incepe": {
+    "text": "Începe",
+    "sens": "Eticheta primei zile a tratamentului."
+  },
+  "tratamente.cate_zile": {
+    "text": "Câte zile",
+    "sens": "Eticheta: câte zile se dă tratamentul."
+  },
+  "tratamente.zile_interval": {
+    "text": "de la 1 la 60",
+    "sens": "Ajutor sub „Câte zile”."
+  },
+  "tratamente.zile_gresit": {
+    "text": "La „Câte zile” scrie un număr de la 1 la 60.",
+    "sens": "Când numărul de zile nu e bun."
+  },
+  "tratamente.o_zi": {
+    "text": "O singură zi: {data}.",
+    "sens": "Sub „Câte zile”, la un tratament de o zi. {data} = ziua."
+  },
+  "tratamente.se_termina": {
+    "text": "Se termină pe {data}.",
+    "sens": "Sub „Câte zile”: ultima zi, socotită. {data} = ultima zi."
+  },
+  "tratamente.repeta_dupa_zile": {
+    "text": "Peste un număr de zile",
+    "sens": "Răspuns la „Se repetă”: următorul începe după atâtea zile (omul scrie numărul)."
+  },
+  "tratamente.repeta_an": {
+    "text": "Peste 1 an, în aceeași zi",
+    "sens": "Răspuns la „Se repetă”: următorul e peste un an, în aceeași zi și lună."
+  },
+  "tratamente.peste_cate_zile": {
+    "text": "Peste câte zile de la început",
+    "sens": "Câmpul cu numărul de zile până la următorul tratament."
+  },
+  "tratamente.repetare_interval": {
+    "text": "de la 1 la 365",
+    "sens": "Ajutor sub „Peste câte zile”."
+  },
+  "tratamente.repetare_gresita": {
+    "text": "La „Peste câte zile” scrie un număr de la 1 la 365.",
+    "sens": "Când numărul de zile până la repetare nu e bun."
+  },
+  "tratamente.urmatorul_pe": {
+    "text": "Următorul începe pe {data}.",
+    "sens": "Sub „Se repetă”: când începe tratamentul următor. {data} = prima lui zi."
+  },
+  "tratamente.nota_hint": {
+    "text": "doza sau ce vrei să ții minte; nu e obligatoriu",
+    "sens": "Ajutor lângă câmpul Notă din fișa tratamentului."
+  },
+  "tratamente.salveaza": {
+    "text": "Salvează tratamentul",
+    "sens": "Butonul care salvează fișa tratamentului."
+  },
+  "tratamente.salvezi_titlu": {
+    "text": "Salvezi schimbările?",
+    "sens": "Titlul confirmării înainte de salvarea unui tratament schimbat (dedesubt, lista schimbărilor)."
+  },
+  "tratamente.salvezi_da": {
+    "text": "Da, salvează",
+    "sens": "Butonul de confirmare a schimbărilor la un tratament."
+  },
+  "tratamente.jurnal_se_rescrie": {
+    "text": "Intrările din jurnalul porumbeilor se pun la zi.",
+    "sens": "Rând în confirmarea schimbării unui tratament început."
+  },
+  "tratamente.banda_in_curs": {
+    "text": "În curs: {nume}, ziua {zi} din {zile}",
+    "sens": "Rândul de pe Panou pentru un tratament în curs. {nume} = boala / vaccinul, {zi} = ziua de azi, {zile} = câte zile are."
+  },
+  "tratamente.banda_in_curs_azi": {
+    "text": "În curs: {nume}, azi",
+    "sens": "Rândul de pe Panou pentru un tratament de o singură zi, dat azi. {nume} = boala / vaccinul."
+  },
+  "tratamente.banda_urmeaza": {
+    "text": "Urmează: {nume}, pe {data}",
+    "sens": "Rândul de pe Panou pentru un tratament care începe în următoarele 30 de zile. {nume} = boala / vaccinul, {data} = prima zi."
+  },
+  "tratamente.toate": {
+    "text": "Toate tratamentele",
+    "sens": "Legătura de pe Panou către pagina Tratamente."
   }
 }

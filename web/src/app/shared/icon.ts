@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
  */
 export type IconName =
   | 'panou' | 'retea' | 'plus' | 'cont' | 'lista' | 'cautare' | 'editeaza' | 'arbore' | 'jurnal' | 'poze' | 'rude'
-  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou' | 'calendar';
+  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou' | 'calendar' | 'tratament' | 'vaccin';
 
 @Component({
   selector: 'app-icon',
@@ -51,6 +51,9 @@ export type IconName =
         @case ('copie') { <rect width="14" height="14" x="8" y="8" rx="2" /><path d="M4 16a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2" /> }
         @case ('ou') { <path d="M12 22c6.2 0 7.9-5.6 7.5-10-.4-4.3-3.9-10-7.5-10S4.9 7.7 4.5 12c-.4 4.4 1.3 10 7.5 10z" /> }
         @case ('cupa') { <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8" /><path d="M18 2H6v7a6 6 0 0 0 12 0z" /> }
+        <!-- Tratamentul (picurătoare) și vaccinul (seringă): două desene diferite, ca să se deosebească dintr-o privire. -->
+        @case ('tratament') { <path d="m12 9-8.4 8.4A2 2 0 0 0 3 18.8v1.4a2 2 0 0 1-.6 1.4A2 2 0 0 1 3.8 21h1.4a2 2 0 0 0 1.4-.6L15 12" /><path d="m18 9 .4.4a1 1 0 1 1-3 3l-3.8-3.8a1 1 0 1 1 3-3l.4.4 3.4-3.4a1 1 0 1 1 3 3z" /><path d="m2 22 .4-.4" /> }
+        @case ('vaccin') { <path d="m18 2 4 4M17 7l3-3M19 9 8.7 19.3c-.9.9-2.5.9-3.4 0l-.6-.6c-.9-.9-.9-2.5 0-3.4L15 5M9 11l4 4M5 19l-3 3M14 4l6 6" /> }
         @case ('vinde') { <path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z" /><circle cx="7.5" cy="7.5" r=".5" /> }
       }
     </svg>

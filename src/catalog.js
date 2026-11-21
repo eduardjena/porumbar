@@ -76,6 +76,24 @@ export const JOURNAL_TYPES = [
   { code: 'altele', label: 'Altele' },
 ];
 
+// Tratamentele și vaccinurile pe tot porumbarul (etichetele vin din i18n: catalog.tratament_*).
+export const TREATMENT_METHODS = [{ code: 'apa' }, { code: 'hrana' }, { code: 'pastila' }, { code: 'injectie' }, { code: 'picaturi' }];
+
+export const TREATMENT_TARGETS = [{ code: 'toti' }, { code: 'concurenti' }, { code: 'reproducatori' }, { code: 'tineret' }, { code: 'alesi' }];
+
+// Boli și vaccinuri uzuale, ca sugestii pentru numele tratamentului (fără nume comerciale de medicamente).
+export const TREATMENT_SUGGESTIONS = [
+  { code: 'tricomonaza' },
+  { code: 'coccidioza' },
+  { code: 'ornitoza' },
+  { code: 'viermi' },
+  { code: 'salmoneloza' },
+  { code: 'paramixo' },
+  { code: 'variola' },
+  { code: 'adenovirus' },
+  { code: 'paraziti_externi' },
+];
+
 // Categoriile concursurilor, ca în antetul clasamentelor („CATEGORIA - VITEZA”).
 export const RACE_CATEGORIES = [
   { code: 'viteza', label: 'Viteză' },
@@ -149,5 +167,8 @@ export function publicCatalog(lang = 'ro') {
     journalTypes: tr(lang, 'jurnal', JOURNAL_TYPES),
     raceCategories: tr(lang, 'concurs', RACE_CATEGORIES),
     raceLevels: tr(lang, 'clasament', RACE_LEVELS),
+    treatmentMethods: tr(lang, 'tratament_mod', TREATMENT_METHODS),
+    treatmentTargets: tr(lang, 'tratament_cui', TREATMENT_TARGETS),
+    treatmentSuggestions: tr(lang, 'tratament_sugestie', TREATMENT_SUGGESTIONS),
   };
 }

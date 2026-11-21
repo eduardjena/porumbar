@@ -54,7 +54,7 @@ export class PushService {
 
   /**
    * Abonamentul acestui telefon e bun pentru serverul de acum (făcut cu cheia lui)? Dacă da, îl trimite din nou
-   * serverului (salvarea e după adresă, deci îl leagă de contul intrat acum). Un abonament cu altă cheie nu contează.
+   * serverului (salvarea e după adresă, deci îl leagă de contul intrat acum). Un abonament cu altă cheie, sau pe care serverul îl refuză, nu contează (false).
    */
   async activeForServer(): Promise<boolean> {
     if (!this.supported()) return false;
@@ -64,11 +64,19 @@ export class PushService {
       if (!sub) return false;
       const key = await this.publicKey();
       if (!key || !sameKey(sub.options?.applicationServerKey, keyBytes(key))) return false;
-      await this.api.post('/auth/push', { endpoint: sub.endpoint, keys: sub.toJSON().keys }).catch(() => undefined);
+      await this.api.post('/auth/push', { endpoint: sub.endpoint, keys: sub.toJSON().keys });
       return true;
     } catch {
       return false;
     }
+  }
+
+  /**
+   * La intrarea în cont: dacă abonamentul de pe acest telefon e făcut cu cheia serverului, rămâne și trece la contul
+   * intrat acum (amintirile nu se pierd); altfel abonamentul rămas se scoate din browser. Nu aruncă.
+   */
+  async keepOrDrop(): Promise<void> {
+    if (!(await this.activeForServer())) await this.dropLocal();
   }
 
   /**

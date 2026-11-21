@@ -150,7 +150,9 @@ memento-uri. Ținta e amintirea care „te trage de mânecă”; registrul vine 
 10. **Service worker și dispozitive:** `web/public/sw.js` ajunge necomprimat și fără hash la rădăcina build-ului;
     Express îl servește cu `Cache-Control: no-cache`; dacă CSP-ul nu are `worker-src`, se adaugă `worker-src 'self'`.
     Abonamentul se salvează după `endpoint` (dacă alt cont intră pe același telefon și pornește amintirile, abonamentul
-    trece la el); la „Ieși din cont”, telefonul își șterge abonamentul.
+    trece la el); la „Ieși din cont”, telefonul își șterge abonamentul. La intrare / creare de cont / parolă nouă, un
+    abonament făcut cu cheia de acum a serverului rămâne și trece la contul care tocmai a intrat (pe același telefon,
+    amintirile contului dinainte se opresc); unul făcut cu altă cheie, sau pe care serverul îl refuză, se scoate din browser.
 11. **Afișare:** la un tratament de o zi, banda scrie „azi”, nu „ziua 1 din 1”. „În curs” = neanulat și azi între
     început și sfârșit. „Gata” arată ultimele 50, cu „Mai multe”. Vaccinul are altă iconiță decât tratamentul. La „Aleg
     eu” apar doar porumbeii proprii fără starea vândut / pierdut / mort.

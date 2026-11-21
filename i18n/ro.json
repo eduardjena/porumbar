@@ -2407,5 +2407,87 @@
   "tratamente.toate": {
     "text": "Toate tratamentele",
     "sens": "Legătura de pe Panou către pagina Tratamente."
+  },
+  "cont.sub_amintiri": {
+    "text": "Amintiri",
+    "sens": "Eticheta din banda Cont: setările pentru amintiri (notificări pe telefon și email)."
+  },
+  "amintiri.titlu": {
+    "text": "Amintiri",
+    "sens": "Titlul secțiunii din Cont."
+  },
+  "amintiri.explicatie": {
+    "text": "Primești o amintire când urmează un tratament sau un vaccin.",
+    "sens": "Explicația de sub titlul secțiunii Amintiri."
+  },
+  "amintiri.porneste": {
+    "text": "Primesc amintiri pe telefonul ăsta",
+    "sens": "Butonul mare; la apăsare telefonul întreabă dacă are voie să trimită notificări."
+  },
+  "amintiri.telefon_activ": {
+    "text": "Telefonul ăsta primește amintiri.",
+    "sens": "Stare: notificările sunt pornite pe acest telefon."
+  },
+  "amintiri.proba": {
+    "text": "Trimite o probă",
+    "sens": "Buton: trimite o notificare de probă pe acest telefon."
+  },
+  "amintiri.opreste": {
+    "text": "Opresc pe telefonul ăsta",
+    "sens": "Buton: telefonul nu mai primește notificări."
+  },
+  "amintiri.proba_ok": {
+    "text": "Ți-am trimis o probă. Ar trebui să apară în câteva secunde.",
+    "sens": "Mesaj după ce s-a trimis notificarea de probă."
+  },
+  "amintiri.proba_expirat": {
+    "text": "Telefonul nu mai primește notificări. Apasă din nou pe „Primesc amintiri pe telefonul ăsta”.",
+    "sens": "Mesaj când notificarea de probă nu mai ajunge la telefon (abonamentul a expirat)."
+  },
+  "amintiri.proba_eroare": {
+    "text": "Nu a mers acum. Mai încearcă peste un minut.",
+    "sens": "Mesaj când notificarea de probă n-a putut fi trimisă."
+  },
+  "amintiri.eroare_pornire": {
+    "text": "Nu am putut porni amintirile pe telefon. Mai încearcă puțin mai târziu.",
+    "sens": "Mesaj când abonarea la notificări a eșuat."
+  },
+  "amintiri.ios_titlu": {
+    "text": "Pe iPhone, notificările merg doar din iconița de pe ecranul principal. Fă așa:",
+    "sens": "Titlul pașilor pentru iPhone, când aplicația e deschisă în Safari."
+  },
+  "amintiri.ios_pas1": {
+    "text": "Apasă butonul „Partajează” din Safari (pătratul cu săgeată în sus).",
+    "sens": "Pasul 1 pentru iPhone."
+  },
+  "amintiri.ios_pas2": {
+    "text": "Alege „Adaugă pe ecranul principal”.",
+    "sens": "Pasul 2 pentru iPhone (cum se numește în iOS în română)."
+  },
+  "amintiri.ios_pas3": {
+    "text": "Deschide Porumbar din iconița nouă și revino aici.",
+    "sens": "Pasul 3 pentru iPhone."
+  },
+  "amintiri.nesuportat": {
+    "text": "Telefonul acesta nu primește notificări. Primești emailul de seară.",
+    "sens": "Când browserul nu poate primi notificări."
+  },
+  "amintiri.refuzat": {
+    "text": "Ai blocat notificările pentru Porumbar. Le repornești din setările telefonului (la Notificări, sau în setările site-ului din browser), apoi deschizi din nou pagina asta.",
+    "sens": "Când omul a refuzat permisiunea pentru notificări."
+  },
+  "amintiri.telefoane": {
+    "one": "Amintirile merg pe {count} telefon.",
+    "few": "Amintirile merg pe {count} telefoane.",
+    "other": "Amintirile merg pe {count} de telefoane.",
+    "sens": "{count} = câte telefoane sunt abonate în total."
+  },
+  "amintiri.email": {
+    "text": "Primesc amintiri pe email",
+    "sens": "Bifa pentru rezumatul de seară trimis pe email."
+  },
+  "amintiri.email_explicatie": {
+    "text": "Un rezumat seara, cu ce urmează.",
+    "sens": "Explicația bifei pentru email."
   }
 }

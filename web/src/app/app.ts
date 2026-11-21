@@ -282,6 +282,7 @@ export class App {
         ['apare', 'cont.sub_apare', 'editeaza'],
         ['cod', 'cont.sub_cod', 'cupa'],
         ['limba', 'cont.limba', 'lista'],
+        ['amintiri', 'cont.sub_amintiri', 'clopot'],
         ['iesire', 'cont.sub_iesire', 'iesire'],
       ];
       const current = all.some(([k]) => k === sec) ? sec : all[0][0];

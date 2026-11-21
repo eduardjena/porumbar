@@ -24,6 +24,10 @@ export interface Account {
   breederCode?: string | null;
   /** Limba contului (o pune vânzătorul). */
   lang: string;
+  /** Primește rezumatul de seară și pe email. */
+  reminderEmail?: boolean;
+  /** Câte telefoane primesc amintirile (doar la /auth/me). */
+  pushDevices?: number;
 }
 
 export interface Subscription {

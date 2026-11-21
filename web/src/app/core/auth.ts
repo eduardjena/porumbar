@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Api } from './api';
 import { Account } from './models';
+import { PushService } from './push';
 
 /** Ciornele formularelor (porumbar.ciorna.*) nu trebuie să rămână pentru următorul cont de pe același telefon. */
 export function clearDrafts() {
@@ -15,6 +16,7 @@ export function clearDrafts() {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = inject(Api);
+  private readonly push = inject(PushService);
   readonly account = signal<Account | null>(null);
   private loaded: Promise<void> | null = null;
 
@@ -50,10 +52,13 @@ export class AuthService {
 
   async update(data: Partial<Account>): Promise<void> {
     const r = await this.api.patch<{ account: Account }>('/auth/me', data);
-    this.account.set(r.account);
+    // Răspunsul la PATCH nu are numărul de telefoane abonate: îl păstrăm pe cel știut.
+    this.account.set({ ...r.account, pushDevices: r.account.pushDevices ?? this.account()?.pushDevices });
   }
 
   async logout(): Promise<void> {
+    // Abonamentul de notificări al telefonului se șterge întâi (cât mai e sesiunea), dar nu ținem ieșirea în loc mai mult de 3 secunde.
+    await Promise.race([this.push.unsubscribe(), new Promise<void>((done) => setTimeout(done, 3000))]).catch(() => undefined);
     await this.api.post('/auth/logout').catch(() => undefined);
     this.account.set(null);
     clearDrafts();

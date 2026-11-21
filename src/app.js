@@ -16,6 +16,7 @@ import { requireAccount, optionalAccount } from './accounts.js';
 import { publicRouter } from './routes/public.js';
 import { transfersRouter } from './routes/transfers.js';
 import { adminRouter } from './routes/admin.js';
+import { treatmentsRouter } from './routes/treatments.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
 const WEB_INDEX = path.join(WEB_DIR, 'index.html');
@@ -91,6 +92,7 @@ export function createApp() {
   app.use('/api', pedigreesRouter());
   app.use('/api', publicRouter());
   app.use('/api', transfersRouter());
+  app.use('/api', treatmentsRouter());
   app.use('/api/admin', adminRouter());
   app.use('/api/pigeons', pigeonsRouter());
 

@@ -1969,5 +1969,65 @@
   "data.gresita": {
     "text": "Data nu e bună. Scrie-o așa: {exemplu}",
     "sens": "Sub câmpul de dată, când ce a scris omul nu e o dată. {exemplu} = data de azi, scrisă corect."
+  },
+  "eroare.tratament_negasit": {
+    "text": "Tratamentul nu a fost găsit.",
+    "sens": "Când tratamentul cerut nu există sau e al altui cont."
+  },
+  "eroare.grup_fara_porumbei": {
+    "text": "Grupul ales nu are porumbei.",
+    "sens": "La salvarea unui tratament: ținta aleasă (de ex. „Tineretul”) nu are niciun porumbel acum."
+  },
+  "eroare.tratament_porumbei": {
+    "text": "Poți alege doar porumbei proprii din porumbar, care nu sunt vânduți, pierduți sau morți.",
+    "sens": "La „Aleg eu”: lista are un porumbel care nu e al contului, e extern sau nu mai e în porumbar."
+  },
+  "eroare.tratament_nu_e_in_curs": {
+    "text": "Tratamentul nu e în curs. Cele neîncepute se șterg, cele terminate rămân în jurnal.",
+    "sens": "Când omul apasă „Oprește” pe un tratament care nu e în curs."
+  },
+  "eroare.intrare_din_tratament": {
+    "text": "Intrarea vine dintr-un tratament. Schimbă sau șterge tratamentul, din pagina Tratamente.",
+    "sens": "Când omul încearcă să șteargă din jurnal o intrare scrisă de un tratament."
+  },
+  "camp.zile": {
+    "text": "zile",
+    "sens": "Numele câmpului „câte zile durează tratamentul”, în mesajele de eroare."
+  },
+  "camp.mod": {
+    "text": "mod de administrare",
+    "sens": "Numele câmpului „cum se dă” (în apă, în hrană…), în mesajele de eroare."
+  },
+  "camp.cui": {
+    "text": "cui i se dă",
+    "sens": "Numele câmpului țintă a tratamentului (tot porumbarul, un grup, porumbei aleși), în mesajele de eroare."
+  },
+  "camp.porumbei": {
+    "text": "porumbei",
+    "sens": "Numele câmpului cu lista porumbeilor aleși, în mesajele de eroare."
+  },
+  "camp.repetare": {
+    "text": "repetare",
+    "sens": "Numele câmpului de repetare a tratamentului, în mesajele de eroare."
+  },
+  "camp.data_inceput": {
+    "text": "Data de început",
+    "sens": "Numele câmpului cu prima zi a tratamentului, în mesajele de eroare."
+  },
+  "camp.inainte_de": {
+    "text": "înainte de",
+    "sens": "Numele parametrului „Mai multe” din lista tratamentelor terminate, în mesajele de eroare."
+  },
+  "tratament.jurnal_text": {
+    "text": "{nume} ({mod}, {perioada})",
+    "sens": "Intrarea din jurnalul porumbelului, scrisă de un tratament. {nume} = boala / vaccinul, {mod} = cum se dă (în apă, injecție…), {perioada} = zilele (de ex. 21.11.2026 – 25.11.2026)."
+  },
+  "tratament.jurnal_nota": {
+    "text": " — {nota}",
+    "sens": "Se adaugă la intrarea din jurnal când tratamentul are notă. {nota} = textul omului."
+  },
+  "tratament.jurnal_oprit": {
+    "text": " (oprit pe {zi})",
+    "sens": "Se adaugă la intrarea din jurnal când tratamentul a fost oprit înainte de sfârșit. {zi} = data opririi."
   }
 }

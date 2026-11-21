@@ -1290,5 +1290,20 @@
   "data.azi": "Ma",
   "data.sterge": "Dátum törlése",
   "data.inchide": "Bezárás",
-  "data.gresita": "A dátum nem jó. Így írja: {exemplu}"
+  "data.gresita": "A dátum nem jó. Így írja: {exemplu}",
+  "eroare.tratament_negasit": "A kezelés nem található.",
+  "eroare.grup_fara_porumbei": "A kiválasztott csoportban nincs galamb.",
+  "eroare.tratament_porumbei": "Csak saját, a dúcban lévő galambokat választhat, amelyek nincsenek eladva, elveszve vagy elpusztulva.",
+  "eroare.tratament_nu_e_in_curs": "A kezelés nincs folyamatban. A meg nem kezdetteket törölje, a befejezettek a naplóban maradnak.",
+  "eroare.intrare_din_tratament": "Ez a bejegyzés egy kezelésből származik. A Kezelések oldalon módosítsa vagy törölje a kezelést.",
+  "camp.zile": "napok",
+  "camp.mod": "beadás módja",
+  "camp.cui": "kinek adják",
+  "camp.porumbei": "galambok",
+  "camp.repetare": "ismétlés",
+  "camp.data_inceput": "Kezdő dátum",
+  "camp.inainte_de": "ezelőtt",
+  "tratament.jurnal_text": "{nume} ({mod}, {perioada})",
+  "tratament.jurnal_nota": " — {nota}",
+  "tratament.jurnal_oprit": " (leállítva: {zi})"
 }

@@ -1,12 +1,14 @@
 import express from 'express';
 import { one, run, tx, nowIso, lockAccount } from '../db.js';
-import { HttpError, badRequest, notFound, text } from '../http.js';
+import { HttpError, badRequest, notFound, text, rateLimit } from '../http.js';
 import { config } from '../config.js';
 import { requireAccount } from '../accounts.js';
 import { t, ref } from '../i18n.js';
 import { sendPush } from '../push.js';
 
 const MAX_DEVICES = 10;
+const PUSH_HOSTS = ['fcm.googleapis.com', 'web.push.apple.com'];
+const PUSH_HOST_SUFFIXES = ['.push.services.mozilla.com', '.notify.windows.com', '.push.apple.com'];
 
 function endpointOf(v) {
   const endpoint = text(v, 'camp.adresa_dispozitiv', { max: 1000 });
@@ -16,7 +18,12 @@ function endpointOf(v) {
   } catch {
     throw badRequest('eroare.valoare_invalida_camp', { camp: ref('camp.adresa_dispozitiv') });
   }
-  if (url.protocol !== 'https:') throw badRequest('eroare.valoare_invalida_camp', { camp: ref('camp.adresa_dispozitiv') });
+  // Doar serviciile de push ale browserelor, pe https și portul obișnuit (altfel serverul ar putea fi pus să cheme orice adresă).
+  const host = url.hostname.toLowerCase();
+  const known = PUSH_HOSTS.includes(host) || PUSH_HOST_SUFFIXES.some((s) => host.endsWith(s));
+  if (url.protocol !== 'https:' || url.port || url.username || url.password || !known) {
+    throw badRequest('eroare.valoare_invalida_camp', { camp: ref('camp.adresa_dispozitiv') });
+  }
   return endpoint;
 }
 
@@ -40,7 +47,7 @@ export function pushRouter() {
       await run(
         `INSERT INTO push_subscriptions (account_id, endpoint, p256dh, auth, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?)
          ON CONFLICT (endpoint) DO UPDATE SET account_id = EXCLUDED.account_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth,
-                                              user_agent = EXCLUDED.user_agent, created_at = EXCLUDED.created_at`,
+                                              user_agent = EXCLUDED.user_agent, created_at = EXCLUDED.created_at, last_ok_at = NULL`,
         req.account.id, endpoint, p256dh, auth, userAgent, nowIso(),
       );
       // Cel mult 10 dispozitive: cele mai vechi pleacă.
@@ -59,7 +66,9 @@ export function pushRouter() {
     res.status(204).end();
   });
 
-  r.post('/test', requireAccount, async (req, res) => {
+  // Fiecare probă cheamă un serviciu extern: câteva pe minut, pe cont.
+  const testLimit = rateLimit({ windowMs: 60_000, max: 5, key: (req) => `push-test|${req.account.id}` });
+  r.post('/test', requireAccount, testLimit, async (req, res) => {
     const endpoint = text(req.body?.endpoint, 'camp.adresa_dispozitiv', { max: 1000 });
     const sub = await one('SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE account_id = ? AND endpoint = ?', req.account.id, endpoint);
     if (!sub) throw new HttpError(404, 'eroare.negasit');

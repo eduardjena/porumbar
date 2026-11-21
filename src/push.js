@@ -3,6 +3,13 @@ import { sendNotification } from 'web-push';
 import { all, run, nowIso } from './db.js';
 import { config } from './config.js';
 
+/** Opțiunile trimiterii; `timeout`: un serviciu care nu răspunde nu oprește restul trimiterilor. */
+export const pushSendOptions = () => ({
+  vapidDetails: { subject: config.vapidSubject, publicKey: config.vapidPublicKey, privateKey: config.vapidPrivateKey },
+  TTL: 24 * 3600,
+  timeout: 10_000,
+});
+
 /** Trimite o notificare unui dispozitiv: 'ok', 'gone' (abonament închis, 404 / 410) sau 'error'. */
 async function realSend(sub, payload) {
   if (!config.pushReady) return 'error';
@@ -10,7 +17,7 @@ async function realSend(sub, payload) {
     await sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       JSON.stringify(payload),
-      { vapidDetails: { subject: config.vapidSubject, publicKey: config.vapidPublicKey, privateKey: config.vapidPrivateKey }, TTL: 24 * 3600 },
+      pushSendOptions(),
     );
     return 'ok';
   } catch (err) {

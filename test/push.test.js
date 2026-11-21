@@ -9,18 +9,19 @@ let server;
 let base;
 let setPushSender;
 let pushToAccount;
+let pushSendOptions;
 let all;
 let one;
 const call = apiCaller(() => ({ base }));
 const keys = generateVAPIDKeys();
-const fakeSub = (n) => ({ endpoint: `https://push.exemplu.test/send/${n}`, keys: { p256dh: `p256dh-${n}`, auth: `auth-${n}` } });
+const fakeSub = (n) => ({ endpoint: `https://fcm.googleapis.com/fcm/send/${n}`, keys: { p256dh: `p256dh-${n}`, auth: `auth-${n}` } });
 const subscribe = (cookie, n) => call('/api/auth/push', { method: 'POST', cookie, body: fakeSub(n) });
 const endpointsOf = async (id) => (await all('SELECT endpoint FROM push_subscriptions WHERE account_id = ? ORDER BY id', id)).map((r) => r.endpoint);
 const idOf = async (cookie) => (await call('/api/auth/me', { cookie })).data.account.id;
 
 before(async () => {
   ({ server, base } = await startTestApp());
-  ({ setPushSender, pushToAccount } = await import('../src/push.js'));
+  ({ setPushSender, pushToAccount, pushSendOptions } = await import('../src/push.js'));
   ({ all, one } = await import('../src/db.js'));
 });
 after(() => server?.close());
@@ -62,10 +63,10 @@ test('abonare, preluare de alt cont, ștergere; user_agent scurt; pushDevices î
 test('validare: http:// refuzat; al 11-lea dispozitiv îl înlocuiește pe cel mai vechi', async () => {
   const a = await newAccount(call, 'A');
   const id = await idOf(a);
-  const bad = await call('/api/auth/push', { method: 'POST', cookie: a, body: { endpoint: 'http://push.exemplu.test/x', keys: { p256dh: 'p', auth: 'a' } } });
+  const bad = await call('/api/auth/push', { method: 'POST', cookie: a, body: { endpoint: 'http://fcm.googleapis.com/x', keys: { p256dh: 'p', auth: 'a' } } });
   assert.equal(bad.status, 400);
   assert.equal((await call('/api/auth/push', { method: 'POST', cookie: a, body: { endpoint: fakeSub(1).endpoint } })).status, 400);
-  const long = await call('/api/auth/push', { method: 'POST', cookie: a, body: { endpoint: `https://push.exemplu.test/${'x'.repeat(1000)}`, keys: { p256dh: 'p', auth: 'a' } } });
+  const long = await call('/api/auth/push', { method: 'POST', cookie: a, body: { endpoint: `https://fcm.googleapis.com/${'x'.repeat(1000)}`, keys: { p256dh: 'p', auth: 'a' } } });
   assert.equal(long.status, 400);
   for (let i = 1; i <= 11; i += 1) assert.equal((await subscribe(a, `d${i}`)).status, 201);
   const ends = await endpointsOf(id);
@@ -130,4 +131,56 @@ test('cont doar-citire: se poate abona și își schimbă reminderEmail', async 
 test('CSP-ul are worker-src self', async () => {
   const r = await call('/api/health', { auth: 'none' });
   assert.match(r.res.headers.get('content-security-policy'), /worker-src 'self'/);
+});
+
+test('adresa dispozitivului: doar serviciile de push cunoscute (fără SSRF)', async () => {
+  const a = await newAccount(call, 'A');
+  const post = (endpoint) => call('/api/auth/push', { method: 'POST', cookie: a, body: { endpoint, keys: { p256dh: 'p', auth: 'a' } } });
+  for (const bad of [
+    'https://127.0.0.1/x', 'https://169.254.169.254/', 'https://evil.example/x', 'https://[::1]/x', 'https://fcm.googleapis.com:8443/x',
+    'https://fcm.googleapis.com.evil.example/x', 'https://evilpush.apple.com/x', 'https://user@fcm.googleapis.com/x', 'https://push.services.mozilla.com/x',
+  ]) assert.equal((await post(bad)).status, 400, bad);
+  for (const good of [
+    'https://fcm.googleapis.com/fcm/send/abc', 'https://updates.push.services.mozilla.com/wpush/v2/abc', 'https://web.push.apple.com/abc',
+    'https://wns2-par02p.notify.windows.com/w/abc', 'https://api.push.apple.com/3/device/abc',
+  ]) assert.equal((await post(good)).status, 201, good);
+});
+
+test('POST /test are limită pe cont (5 pe minut)', async () => {
+  const a = await newAccount(call, 'A');
+  await subscribe(a, 'lim');
+  setPushSender(async () => 'ok');
+  const send = () => call('/api/auth/push/test', { method: 'POST', cookie: a, body: { endpoint: fakeSub('lim').endpoint } });
+  for (let i = 0; i < 5; i += 1) assert.equal((await send()).status, 200);
+  assert.equal((await send()).status, 429);
+});
+
+test('preluarea de alt cont șterge starea veche (last_ok_at, created_at nou)', async () => {
+  const a = await newAccount(call, 'A');
+  const b = await newAccount(call, 'B');
+  await subscribe(a, 'tk');
+  await one("UPDATE push_subscriptions SET last_ok_at = now(), created_at = '2020-01-01' WHERE endpoint = ? RETURNING id", fakeSub('tk').endpoint);
+  await subscribe(b, 'tk');
+  const row = await one('SELECT last_ok_at, created_at FROM push_subscriptions WHERE endpoint = ?', fakeSub('tk').endpoint);
+  assert.equal(row.last_ok_at, null);
+  assert.ok(new Date(row.created_at).getFullYear() > 2020);
+});
+
+test('trimiterea reală are timeout de 10 secunde', () => {
+  assert.equal(pushSendOptions().timeout, 10_000);
+});
+
+test('REMINDER_EMAILS_PER_MINUTE: număr întreg ≥ 1, altfel 10', async () => {
+  const { config } = await import('../src/config.js');
+  const prev = process.env.REMINDER_EMAILS_PER_MINUTE;
+  try {
+    for (const [v, want] of [[undefined, 10], ['', 10], ['abc', 10], ['0', 1], ['-5', 1], ['2.7', 2], ['30', 30]]) {
+      if (v === undefined) delete process.env.REMINDER_EMAILS_PER_MINUTE;
+      else process.env.REMINDER_EMAILS_PER_MINUTE = v;
+      assert.equal(config.reminderEmailsPerMinute, want, String(v));
+    }
+  } finally {
+    if (prev === undefined) delete process.env.REMINDER_EMAILS_PER_MINUTE;
+    else process.env.REMINDER_EMAILS_PER_MINUTE = prev;
+  }
 });

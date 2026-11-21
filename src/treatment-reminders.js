@@ -42,6 +42,12 @@ function groupBy(rows, key) {
 
 // ---- Coada emailurilor: cel mult `reminderEmailsPerMinute` pe minut, ca să nu treacă de limita căsuței. ----
 
+/** Ce se scrie în jurnalul serverului când un email nu pleacă: doar codurile, nu mesajul (poate avea adresa omului). */
+export function mailErrorText(e) {
+  const parts = [e?.code, e?.responseCode].filter((x) => x != null && x !== '');
+  return parts.length ? parts.join(' ') : 'eroare SMTP'; // i18n: ro
+}
+
 let mailQueue = Promise.resolve();
 let lastMailAt = 0;
 
@@ -53,7 +59,7 @@ function enqueueMail(mail, gapMs) {
     try {
       await sendMail(mail);
     } catch (e) {
-      console.error('[porumbar] Rezumatul de seară nu a plecat:', e.message); // i18n: ro
+      console.error('[porumbar] Rezumatul de seară nu a plecat:', mailErrorText(e)); // i18n: ro
     }
   });
 }
@@ -218,9 +224,25 @@ export async function runTreatmentReminders(now = new Date(), { emailDelayMs } =
   return { frozen, pushed: pushResults.size, emails };
 }
 
-/** Verificarea la 15 s după pornire, apoi din oră în oră (fiecare moment e văzut de cel puțin 3 verificări). */
+const TICK_AT = 30_000; // verificarea orară: la hh:00:30
+
+/** Cât până la următoarea verificare orară (hh:00:30), dar cel puțin o secundă (un ceas care sună puțin mai devreme nu rulează de două ori). */
+export function msUntilNextTick(now = new Date()) {
+  const since = (((now.getTime() - TICK_AT) % HOUR) + HOUR) % HOUR;
+  const wait = HOUR - since;
+  return wait < 1000 ? wait + HOUR : wait;
+}
+
+/**
+ * Verificarea la 15 s după pornire, apoi la fiecare oră fixă (hh:00:30), ca momentele de la 07:00 și 19:00 să plece
+ * imediat, nu cu până la o oră întârziere (fiecare moment e văzut de cel puțin 3 verificări).
+ */
 export function startTreatmentReminders() {
   const tick = () => runTreatmentReminders().catch((e) => console.error('[porumbar] Amintirile tratamentelor nu au rulat:', e.message)); // i18n: ro
+  const hourly = () => {
+    tick();
+    setTimeout(hourly, msUntilNextTick()).unref();
+  };
   setTimeout(tick, 15_000).unref();
-  setInterval(tick, HOUR).unref();
+  setTimeout(hourly, msUntilNextTick()).unref();
 }

@@ -52,6 +52,39 @@ export class PushService {
     }
   }
 
+  /**
+   * Abonamentul acestui telefon e bun pentru serverul de acum (făcut cu cheia lui)? Dacă da, îl trimite din nou
+   * serverului (salvarea e după adresă, deci îl leagă de contul intrat acum). Un abonament cu altă cheie nu contează.
+   */
+  async activeForServer(): Promise<boolean> {
+    if (!this.supported()) return false;
+    try {
+      const reg = await navigator.serviceWorker.getRegistration('/');
+      const sub = await reg?.pushManager.getSubscription();
+      if (!sub) return false;
+      const key = await this.publicKey();
+      if (!key || !sameKey(sub.options?.applicationServerKey, keyBytes(key))) return false;
+      await this.api.post('/auth/push', { endpoint: sub.endpoint, keys: sub.toJSON().keys }).catch(() => undefined);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Scoate abonamentul din browser, fără să întrebe serverul (după intrarea în cont: abonamentul rămas de la contul de
+   * dinainte nu mai primește nimic, iar serverul îl șterge la prima trimitere). Nu aruncă.
+   */
+  async dropLocal(): Promise<void> {
+    try {
+      if (!this.supported()) return;
+      const reg = await navigator.serviceWorker.getRegistration('/');
+      await (await reg?.pushManager.getSubscription())?.unsubscribe();
+    } catch {
+      /* cel mult rămâne un abonament pe care serverul îl șterge singur când nu mai merge */
+    }
+  }
+
   /** Cere permisiunea (doar de la o apăsare de buton), abonează telefonul și spune serverului. Întoarce false dacă omul a refuzat. */
   async subscribe(): Promise<boolean> {
     // Permisiunea se cere întâi, direct din apăsare (Safari o vrea așa).

@@ -353,7 +353,8 @@ export default class TratamentForm {
     if (this.pigeonsAsked) return;
     this.pigeonsAsked = true;
     try {
-      this.ownPigeons.set((await this.api.get<{ pigeons: PigeonSummary[] }>('/pigeons')).pigeons);
+      // Doar cei proprii: lista serverului are cel mult 1.000 de porumbei, iar cei externi ar veni primii.
+      this.ownPigeons.set((await this.api.get<{ pigeons: PigeonSummary[] }>('/pigeons?kind=own')).pigeons);
     } catch (e) {
       this.pigeonsAsked = false;
       this.saveError.set(errorMessage(e));

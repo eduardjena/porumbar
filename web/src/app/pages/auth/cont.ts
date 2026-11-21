@@ -297,7 +297,8 @@ export default class Cont {
   }
 
   private async refreshPushState() {
-    const on = !!(await this.push.currentEndpoint());
+    // „Pornit” doar dacă abonamentul e făcut cu cheia serverului de acum; altfel butonul mare îl reface.
+    const on = await this.push.activeForServer();
     this.pushState.set(on ? 'on' : this.push.permission() === 'denied' ? 'denied' : 'off');
   }
 
@@ -309,6 +310,8 @@ export default class Cont {
       const ok = await this.push.subscribe();
       if (ok) await this.auth.refresh().catch(() => undefined);
       await this.refreshPushState();
+      // Fereastra telefonului închisă fără „Permite” (dar nici blocat): altfel nu s-ar vedea nimic.
+      if (!ok && this.push.permission() === 'default') this.pushMessage.set(t('amintiri.permisiune_neacordata'));
     } catch {
       this.pushError.set(t('amintiri.eroare_pornire'));
     } finally {

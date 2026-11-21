@@ -184,6 +184,8 @@ test('fără dispozitive: un email seara, cu ambele tratamente, în limba contul
   assert.match(mails[0].text, /Holnap kezdődik: .*, 2 galamb \(ivóvízbe\)/);
   assert.match(mails[0].text, /Holnap kezdődik: .*\(injekció\)/);
   assert.ok(mails[0].text.includes('http://localhost:3100/tratamente'), mails[0].text);
+  assert.ok(mails[0].text.includes('mert a telefonodon az emlékeztetők nincsenek bekapcsolva (vagy nem érkeztek meg)'), mails[0].text);
+  assert.ok(mails[0].text.includes('Fiók → Emlékeztetők'), mails[0].text);
   // A doua zi seara: „mâine e ultima zi” → încă un email (unul pe seară).
   await run(at(d, 19));
   assert.equal(mailsTo(a).length, 2);
@@ -204,6 +206,11 @@ test('singurul dispozitiv răspunde „gone”: abonamentul dispare și pleacă 
   assert.equal((await all('SELECT 1 FROM push_subscriptions WHERE account_id = ?', a.id)).length, 0);
   assert.equal(mailsTo(a).length, 1);
   assert.match(mailsTo(a)[0].text, /Mâine începe: Tricomonază \(gălbenele\), 2 porumbei \(în apă\)/);
+  assert.ok(
+    mailsTo(a)[0].text.includes('Primești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Amintiri.'),
+    mailsTo(a)[0].text,
+  );
+  assert.ok(!mailsTo(a)[0].text.includes('nu au ajuns pe telefon'));
 });
 
 test('fără emailuri cerute (reminder_email = false) și fără dispozitive: niciun email', async () => {
@@ -254,4 +261,30 @@ test('salvat la 19:30 pentru mâine: fără „Mâine începe” la 20:00; „ul
   const got = pushesTo(ep);
   assert.equal(got.length, 1);
   assert.equal(got[0].payload.body, 'Azi e ultima zi: Tricomonază (gălbenele)');
+});
+
+test('verificarea orară cade la hh:00:30, cel puțin o secundă mai târziu', async () => {
+  const { msUntilNextTick } = await import('../src/treatment-reminders.js');
+  const t = (iso) => msUntilNextTick(new Date(iso));
+  assert.equal(t('2026-11-21T10:00:00.000Z'), 30_000);
+  assert.equal(t('2026-11-21T10:00:30.000Z'), 3600e3, 'exact la hh:00:30: următoarea oră');
+  assert.equal(t('2026-11-21T10:00:29.500Z'), 3600e3 + 500, 'mai puțin de o secundă: nu încă o rulare imediat');
+  assert.equal(t('2026-11-21T10:00:31.000Z'), 3600e3 - 1000);
+  assert.equal(t('2026-11-21T10:59:59.000Z'), 31_000);
+  assert.equal(t('2026-11-21T10:41:00.000Z'), 19 * 60e3 + 30_000);
+});
+
+test('eroarea emailului nu ajunge în jurnal cu adresa omului', async () => {
+  const { mailErrorText } = await import('../src/treatment-reminders.js');
+  const e = Object.assign(new Error("Can't send mail - all recipients were rejected: 550 5.1.1 <om@exemplu.ro>: Recipient address rejected"), {
+    code: 'EENVELOPE',
+    responseCode: 550,
+    response: '550 5.1.1 <om@exemplu.ro>: Recipient address rejected',
+  });
+  const out = mailErrorText(e);
+  assert.ok(!out.includes('om@exemplu.ro'), out);
+  assert.match(out, /EENVELOPE/);
+  assert.match(out, /550/);
+  assert.equal(typeof mailErrorText(new Error('x a@b.ro')), 'string');
+  assert.ok(!mailErrorText(new Error('x a@b.ro')).includes('a@b.ro'));
 });

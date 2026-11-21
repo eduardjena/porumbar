@@ -225,6 +225,8 @@ export interface Treatment {
   count: number;
   /** Următorul din lanțul repetărilor, dacă e planificat. */
   nextId: number | null;
+  /** Următorul există și n-a început încă: doar pe acesta îl șterg oprirea și ștergerea. */
+  nextPlanned: boolean;
 }
 
 export interface TreatmentPigeon {

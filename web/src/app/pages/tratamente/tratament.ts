@@ -143,7 +143,7 @@ export default class Tratament {
       lines: [
         `${x.label} · ${periodText(x)}`,
         t('tratamente.opreste_text', { zi: formatDay(todayIso()) }),
-        ...(x.nextId ? [t('tratamente.opreste_urmatorul')] : []),
+        ...(x.nextPlanned ? [t('tratamente.opreste_urmatorul')] : []),
       ],
       confirmLabel: t('tratamente.opreste_da'),
     });
@@ -160,7 +160,7 @@ export default class Tratament {
       lines: [
         `${x.label} · ${periodText(x)}`,
         ...(x.status === 'urmeaza' ? [] : [t('tratamente.sterge_jurnal')]),
-        ...(x.nextId ? [t('tratamente.sterge_urmatorul')] : []),
+        ...(x.nextPlanned ? [t('tratamente.sterge_urmatorul')] : []),
         t('text.nu_se_poate_da_inapoi'),
       ],
       confirmLabel: t('actiune.da_sterge'),

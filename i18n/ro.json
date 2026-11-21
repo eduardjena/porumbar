@@ -1986,6 +1986,10 @@
     "text": "Tratamentul nu e în curs. Cele neîncepute se șterg, cele terminate rămân în jurnal.",
     "sens": "Când omul apasă „Oprește” pe un tratament care nu e în curs."
   },
+  "eroare.tratament_oprit": {
+    "text": "Tratamentul a fost oprit și nu se mai poate modifica. Îl poți șterge sau poți face unul nou.",
+    "sens": "Când omul încearcă să modifice un tratament oprit (de exemplu dintr-o pagină deschisă de dinainte de oprire)."
+  },
   "eroare.intrare_din_tratament": {
     "text": "Intrarea vine dintr-un tratament. Schimbă sau șterge tratamentul, din pagina Tratamente.",
     "sens": "Când omul încearcă să șteargă din jurnal o intrare scrisă de un tratament."
@@ -2073,8 +2077,8 @@
     "sens": "Subiectul emailului de seară cu tratamentele care încep mâine, se termină mâine sau se repetă peste 3 zile."
   },
   "amintire.email_text": {
-    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că amintirile nu au ajuns pe telefon. Îl poți opri din pagina Cont.\n",
-    "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente."
+    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Amintiri.\n",
+    "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente. „Cont → Amintiri” = meniul Cont, secțiunea Amintiri (unde se pornesc notificările pe telefon și se oprește emailul)."
   },
   "meniu.tratamente": {
     "text": "Tratamente",
@@ -2451,6 +2455,10 @@
   "amintiri.eroare_pornire": {
     "text": "Nu am putut porni amintirile pe telefon. Mai încearcă puțin mai târziu.",
     "sens": "Mesaj când abonarea la notificări a eșuat."
+  },
+  "amintiri.permisiune_neacordata": {
+    "text": "Telefonul n-a primit voie să trimită notificări. Apasă din nou butonul și alege „Permite”.",
+    "sens": "Când omul a închis fereastra telefonului care întreabă de notificări fără să aleagă „Permite” (nici n-a blocat)."
   },
   "amintiri.ios_titlu": {
     "text": "Pe iPhone, notificările merg doar din iconița de pe ecranul principal. Fă așa:",

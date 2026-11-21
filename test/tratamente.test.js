@@ -82,7 +82,7 @@ test('grupul se fixează la început, nu la salvare', async () => {
   assert.equal((await call(`/api/treatments/${t.id}`, { cookie: a })).data.treatment.count, 2, 'încă neînghețat');
   assert.equal((await journal(a, p1)).length, 0);
   // Simulăm ziua de început.
-  await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', t.id), 'ro');
+  await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', t.id), 'ro', { today: addDays(today(), 2) });
   assert.equal((await all('SELECT * FROM treatment_pigeons WHERE treatment_id = ?', t.id)).length, 2);
   assert.equal((await journal(a, p1)).length, 1);
   await call(`/api/pigeons/${p1.id}`, { method: 'PATCH', cookie: a, body: { status: 'vandut' } });
@@ -161,14 +161,14 @@ test('repetarea', async () => {
   // Începe în viitor: copilul se face la fixare.
   assert.equal(yr.data.treatment.nextId, null);
   const { freezeTreatment } = await import('../src/treatments.js');
-  await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', yr.data.treatment.id), 'ro');
+  await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', yr.data.treatment.id), 'ro', { today: '2028-02-29' });
   const yr2 = (await call(`/api/treatments/${yr.data.treatment.id}`, { cookie: a })).data.treatment;
   assert.ok(yr2.nextId);
   const child = (await call(`/api/treatments/${yr2.nextId}`, { cookie: a })).data.treatment;
   assert.equal(child.startDate, '2029-02-28');
   assert.deepEqual(child.repeat, { kind: 'an' });
   // A doua fixare nu mai face încă un copil.
-  await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', yr.data.treatment.id), 'ro');
+  await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', yr.data.treatment.id), 'ro', { today: '2028-02-29' });
   assert.equal((await all('SELECT id FROM treatments WHERE parent_id = ?', yr.data.treatment.id)).length, 1);
 
   const z = (await post(a, { repeat: { kind: 'zile', days: 21 } })).data.treatment;
@@ -286,14 +286,52 @@ test('modificarea părintelui nu atinge următorul planificat decât dacă s-a s
   assert.equal((await call(`/api/treatments/${t.nextId}`, { cookie: a })).data.treatment.note, 'a omului');
 });
 
-test('un tratament anulat nu-și mai face următorul la modificare', async () => {
+test('un tratament oprit nu se mai modifică (409) și nu-și mai face următorul', async () => {
   const a = await newAccount(call, 'A');
   await pigeon(a, 'concurent');
   const t = (await post(a, { repeat: { kind: 'zile', days: 7 } })).data.treatment;
   await call(`/api/treatments/${t.id}/cancel`, { method: 'POST', cookie: a });
   const r = await call(`/api/treatments/${t.id}`, { method: 'PATCH', cookie: a, body: body({ repeat: { kind: 'zile', days: 7 }, note: 'x' }) });
-  assert.equal(r.status, 200, JSON.stringify(r.data));
-  assert.equal(r.data.treatment.nextId, null);
+  assert.equal(r.status, 409, JSON.stringify(r.data));
+  assert.match(r.data.error, /oprit/);
+  const after = (await call(`/api/treatments/${t.id}`, { cookie: a })).data.treatment;
+  assert.equal(after.note, null, 'neschimbat');
+  assert.equal(after.nextId, null);
+});
+
+test('fixarea fără `force` nu atinge un tratament oprit sau unul care n-a început', async () => {
+  const { freezeTreatment } = await import('../src/treatments.js');
+  const { one, run, all } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  const p = await pigeon(a, 'concurent');
+  const future = (await post(a, { target: 'concurenti', startDate: addDays(today(), 2), repeat: { kind: 'zile', days: 7 } })).data.treatment;
+  assert.equal(await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', future.id), 'ro'), false);
+  const f = await one('SELECT * FROM treatments WHERE id = ?', future.id);
+  assert.equal(f.frozen_at, null, 'viitorul rămâne nefixat');
+  assert.equal((await all('SELECT id FROM treatments WHERE parent_id = ?', future.id)).length, 0);
+  assert.equal((await journal(a, p)).length, 0);
+  // Oprit, dar (cumva) nefixat: nici el nu se fixează.
+  await run('UPDATE treatments SET start_date = ?, cancelled_on = ? WHERE id = ?', today(), today(), future.id);
+  assert.equal(await freezeTreatment(await one('SELECT * FROM treatments WHERE id = ?', future.id), 'ro'), false);
+  assert.equal((await one('SELECT frozen_at FROM treatments WHERE id = ?', future.id)).frozen_at, null);
+  assert.equal((await all('SELECT id FROM treatments WHERE parent_id = ?', future.id)).length, 0);
+  assert.equal((await journal(a, p)).length, 0);
+});
+
+test('nextPlanned: doar când următorul din lanț n-a început', async () => {
+  const { run } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  await pigeon(a, 'concurent');
+  const t = (await post(a, { repeat: { kind: 'zile', days: 7 } })).data.treatment;
+  assert.ok(t.nextId);
+  assert.equal(t.nextPlanned, true);
+  await run('UPDATE treatments SET frozen_at = now() WHERE id = ?', t.nextId);
+  const again = (await call(`/api/treatments/${t.id}`, { cookie: a })).data.treatment;
+  assert.equal(again.nextId, t.nextId);
+  assert.equal(again.nextPlanned, false, 'următorul a început: nu se mai șterge');
+  const single = (await post(a, {})).data.treatment;
+  assert.equal(single.nextId, null);
+  assert.equal(single.nextPlanned, false);
 });
 
 test('două fixări simultane: un singur următor și o singură intrare pe porumbel', async () => {
@@ -304,7 +342,7 @@ test('două fixări simultane: un singur următor și o singură intrare pe poru
   const p2 = await pigeon(a, 'concurent');
   const t = (await post(a, { target: 'concurenti', startDate: addDays(today(), 2), repeat: { kind: 'zile', days: 10 } })).data.treatment;
   const row = await one('SELECT * FROM treatments WHERE id = ?', t.id);
-  await Promise.all(Array.from({ length: 8 }, () => freezeTreatment(row, 'ro')));
+  await Promise.all(Array.from({ length: 8 }, () => freezeTreatment(row, 'ro', { today: addDays(today(), 2) })));
   assert.equal((await all('SELECT id FROM treatments WHERE parent_id = ?', t.id)).length, 1);
   for (const p of [p1, p2]) assert.equal((await journal(a, p)).length, 1);
   assert.equal((await all('SELECT * FROM treatment_pigeons WHERE treatment_id = ?', t.id)).length, 2);

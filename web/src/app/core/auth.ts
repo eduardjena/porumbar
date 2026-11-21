@@ -38,6 +38,9 @@ export class AuthService {
   async login(email: string, password: string): Promise<void> {
     const r = await this.api.post<{ account: Account }>('/auth/login', { email, password });
     this.account.set(r.account);
+    // Un abonament de notificări rămas în browser poate fi al altui cont: îl scoatem (fără să ținem intrarea în loc);
+    // omul pornește din nou amintirile din Cont.
+    void this.push.dropLocal();
   }
 
   async register(name: string, email: string, password: string, lang: string): Promise<void> {

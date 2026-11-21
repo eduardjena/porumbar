@@ -144,6 +144,8 @@ export function freezeTreatment(row, lang, { force = false, today = todayBuchare
   return tx(async () => {
     const tr = await lockRow(row.id);
     if (!tr || (tr.frozen_at && !force)) return false;
+    // Oprit sau încă neînceput: nu e (încă) ziua lui de fixare.
+    if (!force && (tr.cancelled_on || tr.start_date > today)) return false;
     if (tr.target !== 'alesi') {
       const ids = await groupPigeonIds(tr.account_id, tr.target);
       await run('DELETE FROM treatment_pigeons WHERE treatment_id = ?', tr.id);
@@ -179,7 +181,7 @@ function statusOf(tr, today) {
 
 export async function toTreatment(tr, lang, today = todayBucharest()) {
   const status = statusOf(tr, today);
-  const next = await one('SELECT id FROM treatments WHERE parent_id = ? ORDER BY id LIMIT 1', tr.id);
+  const next = await one('SELECT id, frozen_at FROM treatments WHERE parent_id = ? ORDER BY id LIMIT 1', tr.id);
   return {
     id: tr.id,
     name: tr.name,
@@ -197,6 +199,8 @@ export async function toTreatment(tr, lang, today = todayBucharest()) {
     day: status === 'in_curs' ? diffDays(today, tr.start_date) + 1 : null,
     count: (await recipientIds(tr)).length,
     nextId: next?.id ?? null,
+    // Următorul încă neînceput: doar pe acesta îl șterg oprirea și ștergerea.
+    nextPlanned: !!next && !next.frozen_at,
   };
 }
 
@@ -273,6 +277,7 @@ export function updateTreatment(accountId, lang, id, body) {
   const v = validateInput(body);
   return tx(async () => {
     const old = await treatmentRow(accountId, id, { lock: true });
+    if (old.cancelled_on) throw new HttpError(409, 'eroare.tratament_oprit');
     const wasFrozen = !!old.frozen_at;
     const keep = await storedIds(old.id);
     let listChanged = old.target !== v.target;

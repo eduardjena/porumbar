@@ -45,8 +45,8 @@ const PIGEON_TABS: { id: string; label: string; icon: IconName }[] = [
 ];
 
 const NAV: NavItem[] = [
-  // Panoul: Grilă / Listă / Rezultate, fișa unui porumbel și ce se deschide din panou (rezultate concurs, scanare).
-  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|concursuri|scaneaza|porumbei\/(\d+|pedigree))(\/|\?|$)/ },
+  // Panoul: Grilă / Listă / Rezultate, fișa unui porumbel și ce se deschide din panou (rezultate concurs, scanare, tratamente).
+  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|concursuri|scaneaza|tratamente|porumbei\/(\d+|pedigree))(\/|\?|$)/ },
   { path: '/arbore', label: 'meniu.arbore', icon: 'copac' },
   { path: '/perechi', label: 'meniu.perechi', icon: 'ou' },
   { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true },
@@ -235,6 +235,7 @@ export class App {
       ['/concursuri', 'panou.rezultate_concurs', 'cupa', path.startsWith('/concursuri')],
       ['/porumbei/pedigree', 'panou.importa_pedigree', 'fisa', path === '/porumbei/pedigree'],
       ['/scaneaza', 'panou.scaneaza_qr', 'qr', path === '/scaneaza'],
+      ['/tratamente', 'meniu.tratamente', 'tratament', path === '/tratamente' || path.startsWith('/tratamente/')],
     ];
     if (panou.some(([, , , on]) => on)) return { items: panou.map(([link, label, icon, on]) => ({ link: [link], label, icon, on })) };
     const pigeon = /^\/porumbei\/(\d+)$/.exec(path);
@@ -281,6 +282,7 @@ export class App {
         ['apare', 'cont.sub_apare', 'editeaza'],
         ['cod', 'cont.sub_cod', 'cupa'],
         ['limba', 'cont.limba', 'lista'],
+        ['amintiri', 'cont.sub_amintiri', 'clopot'],
         ['iesire', 'cont.sub_iesire', 'iesire'],
       ];
       const current = all.some(([k]) => k === sec) ? sec : all[0][0];

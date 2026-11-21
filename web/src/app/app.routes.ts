@@ -40,6 +40,11 @@ export const routes: Routes = [
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: title('titlu.editeaza'), loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/tiparire', canActivate: [authGuard], title: title('titlu.tiparire'), loadComponent: () => import('./pages/porumbel/tiparire') },
   { path: 'porumbei/:id', canActivate: [authGuard], title: title('titlu.porumbel'), loadComponent: () => import('./pages/porumbel/porumbel') },
+  // Tratamentele pe tot porumbarul (lista În curs / Urmează / Gata, fișa, detaliul cu porumbeii).
+  { path: 'tratamente', canActivate: [authGuard], title: title('titlu.tratamente'), loadComponent: () => import('./pages/tratamente/tratamente') },
+  { path: 'tratamente/nou', canActivate: [authGuard], title: title('titlu.tratament_nou'), loadComponent: () => import('./pages/tratamente/tratament-form') },
+  { path: 'tratamente/:id/modifica', canActivate: [authGuard], title: title('titlu.tratament_modifica'), loadComponent: () => import('./pages/tratamente/tratament-form') },
+  { path: 'tratamente/:id', canActivate: [authGuard], title: title('titlu.tratament'), loadComponent: () => import('./pages/tratamente/tratament') },
   { path: 'vanzator', canActivate: [adminGuard], title: title('titlu.vanzator'), loadComponent: () => import('./pages/admin/consola') },
   { path: 'vanzari', canActivate: [authGuard], title: title('titlu.vanzari'), loadComponent: () => import('./pages/vanzari/vanzari') },
   // Pagina deschisă de codul QR: fără cont.

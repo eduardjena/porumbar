@@ -55,6 +55,15 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   necitit atunci, dar recunoscut acum, primesc cheia; idempotent, sare peste ce ar dubla alt porumbel
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
+  treatments.js   tratamentele pe tot porumbarul: fișa (grup, porumbei, repetare), grupurile, jurnalul legat (intrarea din
+                  jurnal scrisă de un tratament nu se șterge separat), repetările (doar în viitor), blocare pe rând
+  treatment-schedule.js  momentele amintirilor în ora României (modul pur)
+  treatment-reminders.js rulantul pe oră (pornit din server.js): fixează momentele, trimite push + rezumatul de seară pe
+                  email (cel mult unul pe seară); deduplicare în `treatment_notices` / `email_digests`;
+                  `REMINDER_EMAILS_PER_MINUTE` limitează emailurile
+  push.js, routes/push.js  notificările pe telefon (`/api/auth/push`): abonarea, trimiterea prin `web-push` (versiune
+                  fixată 4.0.0), doar către gazdele de push cunoscute; fără chei VAPID nu pleacă nimic pe telefon
+  routes/treatments.js  API-ul `/api/treatments`
   genealogy.js, bloodlines.js, color-genetics.js, value.js, breeding.js, results.js, subscriptions.js, mail.js
   results.js      concursurile: aceleași cifre ca foaia Columba (penalizarea și FCI cu 4 zecimale, FCI cu plafon 5.000
                   fără Maraton / Extrem, premiat = primii 20%, ziua sosirii 1–7, clasamentul club / filială / zonă /
@@ -62,7 +71,7 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/app.ts  meniul mare (sus pe calculator, jos pe telefon) și, sub el, banda de submeniuri (macheta A, 2026-11-19):
-                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează; fișa porumbelului → filele
+                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează / Tratamente; fișa porumbelului → filele
                   ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=); Perechi → Perechile sezonului /
                   Pereche nouă / Inelele mele, Vânzări → Cumpărați / Vânduți, Cont → Abonament / Datele de pe
                   fișă / Ce apare pe fișă / Codul de crescător / Limba / Ieșire și ștergere (toate ?sec=). Fiecare submeniu
@@ -79,11 +88,16 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   /concursuri/lista, tabelul din rezultate/rezultate-toate.ts, și Rezultat nou /concursuri/nou,
                   concurs/concurs-rezultate.ts: toți porumbeii la un concurs, de mână sau lipind clasamentul)
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
-                  concurs, rezultate (vezi mai sus). Fișa porumbelului se editează pe loc, pe secțiuni
+                  concurs, rezultate (vezi mai sus), tratamente (/tratamente: În curs · Urmează · Gata, fișa nou / modifică
+                  în tratament-form.ts, detaliul cu porumbeii; banda „În curs / Urmează” de pe Panou e
+                  panou/tratamente-banda.ts; intrarea din jurnal scrisă de un tratament n-are „Șterge”, trimite la el). Fișa porumbelului se editează pe loc, pe secțiuni
                   (porumbel/fisa-editabila.ts, butonul „Schimbă”); câmpurile, lista „Ce se schimbă” și corpul trimis la
                   server sunt comune cu „Porumbel nou” (porumbel-form/pigeon-draft.ts). Filele Rezultate și Rezultat nou
                   ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul
                   porumbel/rezultat-editor.ts, ecranul de introducere cu `focusPigeon`)
+  web/public/sw.js  service worker-ul (primește push-ul și deschide aplicația); core/push.ts + core/push-key.ts: abonarea
+                  la push (se refăce dacă cheia serverului s-a schimbat). Cont → Amintiri (?sec=amintiri): notificări pe
+                  telefon și email. Banda „În curs / Urmează” de pe Panou apare doar pe Grilă
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
                   date-field.ts (<app-date>): câmpul de dată peste tot, NU <input type="date"> (calendarul browserului
                   vine în limba telefonului, adesea engleză); RO zz.ll.aaaa, HU éééé. hh. nn., valoarea AAAA-LL-ZZ
@@ -142,6 +156,13 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
   `railway up <folder> --path-as-root --service porumbar --detach`; urmărești `railway deployment list --service porumbar`;
   verifici că `main-*.js` de pe site e același cu cel din build-ul local și că `/api/health` răspunde 200.
 - Variabilele secrete (`ADMIN_PASSWORD`, `ANTHROPIC_API_KEY`, SMTP) le pune vânzătorul în Railway, niciodată prin chat.
+- Tratamentele cu amintiri (feat/tratamente): variabile noi `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+  (`mailto:adresa`) și `REMINDER_EMAILS_PER_MINUTE` (implicit 10). Cheile VAPID se fac o singură dată cu
+  `npx web-push generate-vapid-keys` și le pune vânzătorul în Railway, niciodată prin chat; dacă se schimbă, fiecare
+  telefon trebuie să se aboneze din nou. Fără chei nu există push pe telefon (Panoul și emailul merg), iar emailul cere
+  `SMTP_URL`. Migrarea acestei funcții e **22**; dacă feat/plata-paddle (22–25) intră înainte în `main`, se renumerotează
+  la merge. **Condiție de lansare:** probă pe un Android real și pe un iPhone real (aplicația adăugată pe ecranul
+  principal) înainte de publicare.
 - Citirea din poze: cheia în `ANTHROPIC_API_KEY` (cheie API de pe console.anthropic.com, plătită separat de abonamentul
   Claude; cheia trebuie făcută într-un spațiu de lucru anume, de ex. „Default”, nu pentru toate). Modelul:
   `PEDIGREE_MODEL` (implicit `claude-sonnet-5-5`, ~2,5–3 cenți pe citire; Haiku a fost încercat și greșea cam o dată din

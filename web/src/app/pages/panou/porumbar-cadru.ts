@@ -4,6 +4,7 @@ import { TPipe, t } from '../../core/i18n';
 import { CatalogService } from '../../core/catalog';
 import { Icon } from '../../shared/icon';
 import { PanouBar } from './panou-bar';
+import { TratamenteBanda } from './tratamente-banda';
 import { PorumbarState } from './porumbar-state';
 
 /** Unde e omul în cadru: Grilă, Listă sau pagina „Rezultate concurs” (listarea ori introducerea). */
@@ -25,7 +26,7 @@ const tabOf = (url: string): Tab => {
  */
 @Component({
   selector: 'app-porumbar-cadru',
-  imports: [RouterOutlet, RouterLink, Icon, PanouBar, TPipe],
+  imports: [RouterOutlet, RouterLink, Icon, PanouBar, TratamenteBanda, TPipe],
   template: `
     <div class="head">
       <div>
@@ -33,6 +34,9 @@ const tabOf = (url: string): Tab => {
         @if (s.loaded()) { <p class="muted count">{{ subtitle() }}</p> }
       </div>
     </div>
+
+    <!-- Pe Panou (Grilă), sus: tratamentele în curs și cele care urmează în 30 de zile; fără ele, nimic. -->
+    @if (tab() === 'grila') { <app-tratamente-banda /> }
 
     @if (results()) {
       <nav class="sub" [attr.aria-label]="'panou.rezultate_concurs' | t">

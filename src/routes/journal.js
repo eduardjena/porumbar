@@ -1,11 +1,11 @@
 import express from 'express';
 import { one, all, run, insert, nowIso } from '../db.js';
-import { badRequest, notFound, text, oneOf, realDate } from '../http.js';
+import { HttpError, badRequest, notFound, text, oneOf, realDate } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
 import { JOURNAL_TYPES, codes } from '../catalog.js';
 
-const toEntry = (r) => ({ id: r.id, date: r.entry_date, type: r.type, text: r.text });
+const toEntry = (r) => ({ id: r.id, date: r.entry_date, type: r.type, text: r.text, treatmentId: r.treatment_id ?? null });
 
 const validDate = (value) => realDate(value, 'camp.data');
 
@@ -33,8 +33,11 @@ export function journalRouter() {
 
   r.delete('/journal/:entryId', requireAccount, async (req, res) => {
     const id = Number(req.params.entryId);
-    const { changes } = Number.isSafeInteger(id) ? await run('DELETE FROM journal_entries WHERE id = ? AND account_id = ?', id, req.account.id) : { changes: 0 };
-    if (!changes) throw notFound('eroare.intrare_negasita');
+    const row = Number.isSafeInteger(id) ? await one('SELECT treatment_id FROM journal_entries WHERE id = ? AND account_id = ?', id, req.account.id) : null;
+    if (!row) throw notFound('eroare.intrare_negasita');
+    // Intrarea scrisă de un tratament se schimbă doar din tratament.
+    if (row.treatment_id) throw new HttpError(409, 'eroare.intrare_din_tratament');
+    await run('DELETE FROM journal_entries WHERE id = ? AND account_id = ?', id, req.account.id);
     res.status(204).end();
   });
 

@@ -1,9 +1,10 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
+import { PushService } from '../../core/push';
 import { LANGS, TPipe, formatDay, isPublicLang, t } from '../../core/i18n';
 
 const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
@@ -23,6 +24,8 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
     .ticks thead th { font-size: 0.9rem; color: var(--muted); font-weight: 700; }
     .ticks tbody th { text-align: left; font-weight: 600; }
     .ticks input { width: 28px; height: 28px; margin: 0; }
+    .steps { margin: 0; padding-left: 22px; line-height: 1.5; } .steps li { margin-bottom: 4px; }
+    .check { display: flex; gap: 12px; align-items: flex-start; } .check input { width: 28px; height: 28px; margin: 0; flex: none; }
   `,
   template: `
     <h1>{{ 'cont.titlu' | t }}</h1>
@@ -116,6 +119,47 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
       </div>
     }
 
+    @if (section() === 'amintiri') {
+      <h2>{{ 'amintiri.titlu' | t }}</h2>
+      @if (pushState() !== 'nokeys') {
+      <div class="card stack">
+        <p>{{ 'amintiri.explicatie' | t }}</p>
+        @switch (pushState()) {
+          @case ('ios') {
+            <p><strong>{{ 'amintiri.ios_titlu' | t }}</strong></p>
+            <ol class="steps">
+              <li>{{ 'amintiri.ios_pas1' | t }}</li>
+              <li>{{ 'amintiri.ios_pas2' | t }}</li>
+              <li>{{ 'amintiri.ios_pas3' | t }}</li>
+            </ol>
+          }
+          @case ('unsupported') { <p class="muted">{{ 'amintiri.nesuportat' | t }}</p> }
+          @case ('denied') { <div class="notice" role="status">{{ 'amintiri.refuzat' | t }}</div> }
+          @case ('on') {
+            <div class="notice" role="status">{{ 'amintiri.telefon_activ' | t }}</div>
+            <button type="button" class="wide" [disabled]="pushBusy()" (click)="pushTest()">{{ 'amintiri.proba' | t }}</button>
+            <button type="button" class="wide" [disabled]="pushBusy()" (click)="pushOff()">{{ 'amintiri.opreste' | t }}</button>
+          }
+          @case ('off') {
+            <button type="button" class="primary wide" [disabled]="pushBusy()" (click)="pushOn()">{{ 'amintiri.porneste' | t }}</button>
+          }
+        }
+        @if (pushState() === 'on' || pushState() === 'off') {
+          @if ((auth.account()?.pushDevices ?? 0) > (pushState() === 'on' ? 1 : 0)) { <p class="muted">{{ 'amintiri.telefoane' | t: { count: auth.account()?.pushDevices } }}</p> }
+        }
+        @if (pushMessage()) { <div class="notice" role="status">{{ pushMessage() }}</div> }
+        @if (pushError()) { <div class="error" role="alert">{{ pushError() }}</div> }
+      </div>
+      }
+      <div class="card stack">
+        <label class="check">
+          <input type="checkbox" name="reminderEmail" [checked]="auth.account()?.reminderEmail !== false" [disabled]="emailBusy()" (change)="setReminderEmail($any($event.target).checked)" />
+          <span><strong>{{ 'amintiri.email' | t }}</strong><br /><span class="muted">{{ 'amintiri.email_explicatie' | t }}</span></span>
+        </label>
+        @if (emailError()) { <div class="error" role="alert">{{ emailError() }}</div> }
+      </div>
+    }
+
     @if (section() === 'iesire') {
     <h2>{{ 'cont.iesire' | t }}</h2>
     <button type="button" class="wide" (click)="logout()">{{ 'cont.iesi' | t }}</button>
@@ -137,7 +181,7 @@ export default class Cont {
   /** Submeniul din banda de sus (?sec=); vânzătorul n-are abonament, așa că pornește de la datele de pe fișă. */
   readonly sec = input<string>();
   protected readonly section = computed(() => {
-    const all = ['abonament', 'fisa', 'apare', 'cod', 'limba', 'iesire'];
+    const all = ['abonament', 'fisa', 'apare', 'cod', 'limba', 'amintiri', 'iesire'];
     const s = this.sec();
     if (s && all.includes(s)) return s;
     return this.auth.account()?.isAdmin ? 'fisa' : 'abonament';
@@ -145,6 +189,14 @@ export default class Cont {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
+  private readonly push = inject(PushService);
+  private pushStarted = false;
+  protected readonly pushState = signal<'loading' | 'nokeys' | 'ios' | 'unsupported' | 'denied' | 'on' | 'off'>('loading');
+  protected readonly pushBusy = signal(false);
+  protected readonly pushMessage = signal('');
+  protected readonly pushError = signal('');
+  protected readonly emailBusy = signal(false);
+  protected readonly emailError = signal('');
   name = this.auth.account()?.name ?? '';
   pedigreeName = this.auth.account()?.pedigreeName ?? '';
   phone = this.auth.account()?.phone ?? '';
@@ -221,6 +273,95 @@ export default class Cont {
       await this.auth.update({ lang: code });
     } catch (e) {
       this.langError.set(errorMessage(e));
+    }
+  }
+
+  constructor() {
+    // Starea telefonului se citește doar când omul deschide secțiunea.
+    effect(() => {
+      if (this.section() === 'amintiri' && !this.pushStarted) {
+        this.pushStarted = true;
+        void this.initPush();
+      }
+    });
+  }
+
+  private async initPush() {
+    if (this.push.isIosNotInstalled()) return this.pushState.set('ios');
+    if (!this.push.supported()) return this.pushState.set('unsupported');
+    if (!(await this.push.publicKey())) {
+      // Serverul nu are chei: nu e nimic de pornit pe telefon, rămâne doar emailul.
+      return this.pushState.set('nokeys');
+    }
+    await this.refreshPushState();
+  }
+
+  private async refreshPushState() {
+    // „Pornit” doar dacă abonamentul e făcut cu cheia serverului de acum; altfel butonul mare îl reface.
+    const on = await this.push.activeForServer();
+    this.pushState.set(on ? 'on' : this.push.permission() === 'denied' ? 'denied' : 'off');
+  }
+
+  async pushOn() {
+    this.pushBusy.set(true);
+    this.pushMessage.set('');
+    this.pushError.set('');
+    try {
+      const ok = await this.push.subscribe();
+      if (ok) await this.auth.refresh().catch(() => undefined);
+      await this.refreshPushState();
+      // Fereastra telefonului închisă fără „Permite” (dar nici blocat): altfel nu s-ar vedea nimic.
+      if (!ok && this.push.permission() === 'default') this.pushMessage.set(t('amintiri.permisiune_neacordata'));
+    } catch {
+      this.pushError.set(t('amintiri.eroare_pornire'));
+    } finally {
+      this.pushBusy.set(false);
+    }
+  }
+
+  async pushOff() {
+    this.pushBusy.set(true);
+    this.pushMessage.set('');
+    this.pushError.set('');
+    try {
+      await this.push.unsubscribe();
+      await this.auth.refresh().catch(() => undefined);
+      await this.refreshPushState();
+    } finally {
+      this.pushBusy.set(false);
+    }
+  }
+
+  async pushTest() {
+    this.pushBusy.set(true);
+    this.pushMessage.set('');
+    this.pushError.set('');
+    try {
+      const endpoint = await this.push.currentEndpoint();
+      if (!endpoint) return await this.refreshPushState();
+      const result = await this.push.test(endpoint);
+      if (result === 'ok') this.pushMessage.set(t('amintiri.proba_ok'));
+      else if (result === 'gone') {
+        this.pushError.set(t('amintiri.proba_expirat'));
+        await this.push.unsubscribe();
+        await this.refreshPushState();
+      } else this.pushError.set(t('amintiri.proba_eroare'));
+    } catch (e) {
+      this.pushError.set(errorMessage(e));
+    } finally {
+      this.pushBusy.set(false);
+    }
+  }
+
+  async setReminderEmail(on: boolean) {
+    this.emailBusy.set(true);
+    this.emailError.set('');
+    try {
+      await this.auth.update({ reminderEmail: on });
+    } catch (e) {
+      this.emailError.set(errorMessage(e));
+    } finally {
+      this.emailBusy.set(false);
     }
   }
 

@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, signal, effect, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexLabel } from '../../core/catalog';
 import { TPipe, formatDay, t } from '../../core/i18n';
@@ -30,7 +30,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [DateField, FormsModule, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
+  imports: [DateField, FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
@@ -110,7 +110,12 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
             @for (e of journal(); track e.id) {
               <li class="card">
                 <div class="row between"><strong>{{ day(e.date) }} · {{ catalog.label('journalTypes', e.type) }}</strong>
-                  <button type="button" class="link" (click)="removeEntry(e)">{{ 'actiune.sterge' | t }}</button></div>
+                  <!-- Intrarea scrisă de un tratament se schimbă sau se șterge doar din tratament. -->
+                  @if (e.treatmentId) {
+                    <a class="link-btn" [routerLink]="['/tratamente', e.treatmentId]">{{ 'tratamente.vezi_tratamentul' | t }}</a>
+                  } @else {
+                    <button type="button" class="link" (click)="removeEntry(e)">{{ 'actiune.sterge' | t }}</button>
+                  }</div>
                 <p class="pre">{{ e.text }}</p>
               </li>
             } @empty { <p class="muted">{{ 'porumbel.nicio_nota' | t }}</p> }
@@ -134,6 +139,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
     .grow { flex: 1 1 160px; }
     .between { justify-content: space-between; }
     .entries { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .link-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; font-weight: 600; }
   `,
 })
 export default class Porumbel {

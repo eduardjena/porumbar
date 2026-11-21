@@ -24,6 +24,10 @@ export interface Account {
   breederCode?: string | null;
   /** Limba contului (o pune vânzătorul). */
   lang: string;
+  /** Primește rezumatul de seară și pe email. */
+  reminderEmail?: boolean;
+  /** Câte telefoane primesc amintirile (doar la /auth/me). */
+  pushDevices?: number;
 }
 
 export interface Subscription {
@@ -48,6 +52,9 @@ export interface Catalog {
   journalTypes: CodeLabel[];
   raceCategories: CodeLabel[];
   raceLevels: CodeLabel[];
+  treatmentMethods: CodeLabel[];
+  treatmentTargets: CodeLabel[];
+  treatmentSuggestions: CodeLabel[];
 }
 
 export interface Ring {
@@ -188,6 +195,45 @@ export interface JournalEntry {
   date: string;
   type: string;
   text: string;
+  /** Intrarea scrisă de un tratament (nu se șterge separat, trimite la tratament). */
+  treatmentId: number | null;
+}
+
+/** Repetarea unui tratament: peste N zile (de la începutul lui) sau peste 1 an (aceeași zi și lună). */
+export type TreatmentRepeat = { kind: 'zile'; days: number } | { kind: 'an' };
+
+/** Un tratament sau vaccin dat odată unui grup de porumbei (GET /api/treatments). */
+export interface Treatment {
+  id: number;
+  /** Codul sugestiei (de ex. `tricomonaza`) sau textul omului. */
+  name: string;
+  /** Numele de afișat, în limba contului. */
+  label: string;
+  kind: 'tratament' | 'vaccin';
+  method: string;
+  startDate: string;
+  endDate: string;
+  days: number;
+  note: string | null;
+  target: 'toti' | 'concurenti' | 'reproducatori' | 'tineret' | 'alesi';
+  repeat: TreatmentRepeat | null;
+  cancelledOn: string | null;
+  status: 'urmeaza' | 'in_curs' | 'gata' | 'anulat';
+  /** Ziua de azi a tratamentului (1 = prima), doar „în curs”. */
+  day: number | null;
+  /** Câți porumbei: fixați de la început, sau (încă neînceput) numărul de acum al grupului. */
+  count: number;
+  /** Următorul din lanțul repetărilor, dacă e planificat. */
+  nextId: number | null;
+  /** Următorul există și n-a început încă: doar pe acesta îl șterg oprirea și ștergerea. */
+  nextPlanned: boolean;
+}
+
+export interface TreatmentPigeon {
+  id: number;
+  ring: Ring | null;
+  name: string | null;
+  status: string | null;
 }
 
 

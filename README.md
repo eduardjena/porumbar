@@ -25,6 +25,17 @@ http://localhost:4300, cu cererile `/api` trimise spre 3100).
 Date de exemplu: `npm run seed:exemplu` pune pedigree-ul din `docs/exemple/` într-un cont de exemplu (datele contului sunt
 scrise în `scripts/seed-exemplu.mjs`).
 
+## Notificări pe telefon (chei VAPID, local)
+
+Amintirile de la tratamente pot veni ca notificări pe telefon. Pentru a le încerca local, fă o pereche de chei de probă:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Pune cele două chei doar în `.env` (nu în cod, nu în chat), împreună cu `VAPID_SUBJECT=mailto:adresa@exemplu.ro`.
+Fără ele aplicația merge normal, doar că nu trimite notificări pe telefon. Cheile de producție sunt altele și se pun în Railway.
+
 ## Teste
 
 ```bash

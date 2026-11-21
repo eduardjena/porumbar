@@ -260,10 +260,101 @@ test('separare între conturi', async () => {
 });
 
 test('cont doar-citire', async () => {
-  const x = await newAccount(call, 'X', { active: false });
-  const r = await post(x, {});
-  assert.ok(r.status >= 400 && r.status < 500, String(r.status));
-  assert.equal((await call('/api/treatments?stare=in_curs', { cookie: x })).status, 200);
+  const { run } = await import('../src/db.js');
+  const x = await newAccount(call, 'X');
+  await pigeon(x, 'concurent');
+  const t = (await post(x, {})).data.treatment;
+  const me = (await call('/api/auth/me', { cookie: x })).data.account;
+  await run(`UPDATE accounts SET subscription_start = '2000-01-01', subscription_end = '2001-01-01' WHERE id = ?`, me.id);
+  assert.equal((await post(x, {})).status, 402, 'cu porumbei în cont, deci refuzul vine de la abonament');
+  assert.equal((await call(`/api/treatments/${t.id}`, { method: 'PATCH', cookie: x, body: body() })).status, 402);
+  assert.equal((await call(`/api/treatments/${t.id}/cancel`, { method: 'POST', cookie: x })).status, 402);
+  assert.equal((await call(`/api/treatments/${t.id}`, { method: 'DELETE', cookie: x })).status, 402);
+  assert.equal((await call('/api/treatments?stare=in_curs', { cookie: x })).status, 200, 'citirea merge');
+  const y = await newAccount(call, 'Y', { active: false });
+  assert.equal((await post(y, {})).status, 402);
+});
+
+test('modificarea părintelui nu atinge următorul planificat decât dacă s-a schimbat repetarea / începutul', async () => {
+  const { run } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  await pigeon(a, 'concurent');
+  const t = (await post(a, { repeat: { kind: 'zile', days: 21 } })).data.treatment;
+  await run(`UPDATE treatments SET note = 'a omului' WHERE id = ?`, t.nextId);
+  const r = await call(`/api/treatments/${t.id}`, { method: 'PATCH', cookie: a, body: body({ repeat: { kind: 'zile', days: 21 }, note: 'nota nouă' }) });
+  assert.equal(r.data.treatment.nextId, t.nextId, 'același copil');
+  assert.equal((await call(`/api/treatments/${t.nextId}`, { cookie: a })).data.treatment.note, 'a omului');
+});
+
+test('un tratament anulat nu-și mai face următorul la modificare', async () => {
+  const a = await newAccount(call, 'A');
+  await pigeon(a, 'concurent');
+  const t = (await post(a, { repeat: { kind: 'zile', days: 7 } })).data.treatment;
+  await call(`/api/treatments/${t.id}/cancel`, { method: 'POST', cookie: a });
+  const r = await call(`/api/treatments/${t.id}`, { method: 'PATCH', cookie: a, body: body({ repeat: { kind: 'zile', days: 7 }, note: 'x' }) });
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.data.treatment.nextId, null);
+});
+
+test('două fixări simultane: un singur următor și o singură intrare pe porumbel', async () => {
+  const { freezeTreatment } = await import('../src/treatments.js');
+  const { one, all } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  const p1 = await pigeon(a, 'concurent');
+  const p2 = await pigeon(a, 'concurent');
+  const t = (await post(a, { target: 'concurenti', startDate: addDays(today(), 2), repeat: { kind: 'zile', days: 10 } })).data.treatment;
+  const row = await one('SELECT * FROM treatments WHERE id = ?', t.id);
+  await Promise.all(Array.from({ length: 8 }, () => freezeTreatment(row, 'ro')));
+  assert.equal((await all('SELECT id FROM treatments WHERE parent_id = ?', t.id)).length, 1);
+  for (const p of [p1, p2]) assert.equal((await journal(a, p)).length, 1);
+  assert.equal((await all('SELECT * FROM treatment_pigeons WHERE treatment_id = ?', t.id)).length, 2);
+});
+
+test('citirea fixează tratamentele a căror zi de început a venit', async () => {
+  const { run, all } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  const p = await pigeon(a, 'concurent');
+  const t = (await post(a, { target: 'concurenti', startDate: addDays(today(), 3) })).data.treatment;
+  assert.equal((await journal(a, p)).length, 0);
+  await run('UPDATE treatments SET start_date = ? WHERE id = ?', today(), t.id);
+  const g = await call(`/api/treatments/${t.id}`, { cookie: a });
+  assert.equal(g.data.treatment.status, 'in_curs');
+  assert.equal((await all('SELECT * FROM treatment_pigeons WHERE treatment_id = ?', t.id)).length, 1);
+  assert.equal((await journal(a, p)).length, 1);
+  // Și lista.
+  const t2 = (await post(a, { target: 'toti', startDate: addDays(today(), 3) })).data.treatment;
+  await run('UPDATE treatments SET start_date = ? WHERE id = ?', today(), t2.id);
+  await call('/api/treatments?stare=in_curs', { cookie: a });
+  assert.equal((await all('SELECT * FROM treatment_pigeons WHERE treatment_id = ?', t2.id)).length, 1);
+  assert.equal((await journal(a, p)).length, 2);
+});
+
+test('anularea unuia început azi, dar nefixat, scrie întâi jurnalul', async () => {
+  const { run } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  const p = await pigeon(a, 'concurent');
+  const t = (await post(a, { target: 'concurenti', startDate: addDays(today(), 3) })).data.treatment;
+  await run('UPDATE treatments SET start_date = ? WHERE id = ?', today(), t.id);
+  const c = await call(`/api/treatments/${t.id}/cancel`, { method: 'POST', cookie: a });
+  assert.equal(c.status, 200, JSON.stringify(c.data));
+  const e = await journal(a, p);
+  assert.equal(e.length, 1);
+  assert.match(e[0].text, /oprit pe/);
+});
+
+test('repetarea nu face lanț de tratamente din trecut', async () => {
+  const { all } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  await pigeon(a, 'concurent');
+  const t = (await post(a, { startDate: addDays(today(), -30), repeat: { kind: 'zile', days: 7 } })).data.treatment;
+  const kids = await all('SELECT start_date FROM treatments WHERE parent_id = ?', t.id);
+  assert.equal(kids.length, 1);
+  assert.ok(kids[0].start_date > today());
+  assert.equal(kids[0].start_date, addDays(today(), 5), '30 de zile înapoi + 5 × 7 = 35');
+  const y = (await post(a, { startDate: `${Number(today().slice(0, 4)) - 3}-01-15`, days: 2, repeat: { kind: 'an' } })).data.treatment;
+  const yk = await all('SELECT start_date FROM treatments WHERE parent_id = ?', y.id);
+  assert.equal(yk.length, 1);
+  assert.ok(yk[0].start_date > today());
 });
 
 test('„gata”: ultimele 50, cu „Mai multe”', async () => {

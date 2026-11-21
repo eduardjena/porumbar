@@ -32,6 +32,21 @@ export function nextStart(tr) {
   return null;
 }
 
+/** Următorul din lanț, dar mereu după `today`: ce a trecut deja nu se reface (fără lanț de tratamente din trecut). */
+export function nextStartAfter(tr, today) {
+  if (tr.repeat_kind === 'zile') {
+    const n = Math.max(1, Math.floor(diffDays(today, tr.start_date) / tr.repeat_days) + 1);
+    return addDays(tr.start_date, n * tr.repeat_days);
+  }
+  let cur = tr;
+  let s = nextStart(cur);
+  for (let i = 0; s && s <= today && i < 250; i++) {
+    cur = { ...cur, start_date: s };
+    s = nextStart(cur);
+  }
+  return s;
+}
+
 /** Data scrisă pentru om: ro 21.11.2026, hu 2026. 11. 21. */
 export function formatDate(iso, lang) {
   const [y, m, d] = iso.split('-');
@@ -96,7 +111,7 @@ export async function syncJournal(row, lang) {
 /** Următorul tratament din lanț: aceeași țintă (la „aleși”, aceiași porumbei), neînghețat. */
 export async function createNextOccurrence(row) {
   const tr = await one('SELECT * FROM treatments WHERE id = ?', row.id);
-  const start = nextStart(tr);
+  const start = nextStartAfter(tr, todayBucharest());
   if (!start) throw new Error('Treatment does not repeat.');
   const now = nowIso();
   const id = await insert(
@@ -111,14 +126,20 @@ export async function createNextOccurrence(row) {
 }
 
 async function ensureNext(tr) {
-  if (tr.repeat_kind && !(await one('SELECT 1 FROM treatments WHERE parent_id = ?', tr.id))) await createNextOccurrence(tr);
+  if (tr.repeat_kind && !tr.cancelled_on && !(await one('SELECT 1 FROM treatments WHERE parent_id = ?', tr.id))) await createNextOccurrence(tr);
 }
 
-/** Ziua de început: lista grupului se fixează, jurnalul se scrie, se planifică următorul din lanț. */
-export function freezeTreatment(row, lang) {
+const lockRow = (id) => one('SELECT * FROM treatments WHERE id = ? FOR UPDATE', id);
+
+/**
+ * Ziua de început: lista grupului se fixează, jurnalul se scrie, se planifică următorul din lanț. Rândul se blochează
+ * și se recitește, ca două rulări simultane (verificarea din fundal, o citire, o modificare) să nu facă dublu; unul deja
+ * fixat nu se mai fixează (decât cu `force`, la schimbarea țintei după început).
+ */
+export function freezeTreatment(row, lang, { force = false } = {}) {
   return tx(async () => {
-    const tr = await one('SELECT * FROM treatments WHERE id = ?', row.id);
-    if (!tr) return;
+    const tr = await lockRow(row.id);
+    if (!tr || (tr.frozen_at && !force)) return;
     if (tr.target !== 'alesi') {
       const ids = await groupPigeonIds(tr.account_id, tr.target);
       await run('DELETE FROM treatment_pigeons WHERE treatment_id = ?', tr.id);
@@ -130,10 +151,16 @@ export function freezeTreatment(row, lang) {
   });
 }
 
+/** Prima citire de după ziua de început fixează tratamentele contului care n-au fost încă fixate. */
+export async function freezeDue(accountId, lang) {
+  const due = await all('SELECT id FROM treatments WHERE account_id = ? AND frozen_at IS NULL AND cancelled_on IS NULL AND start_date <= ?::date ORDER BY id', accountId, todayBucharest());
+  for (const d of due) await freezeTreatment(d, lang);
+}
+
 // ---- API ----
 
-export const treatmentRow = async (accountId, id) => {
-  const row = Number.isSafeInteger(Number(id)) ? await one('SELECT * FROM treatments WHERE id = ? AND account_id = ?', Number(id), accountId) : null;
+export const treatmentRow = async (accountId, id, { lock = false } = {}) => {
+  const row = Number.isSafeInteger(Number(id)) ? await one(`SELECT * FROM treatments WHERE id = ? AND account_id = ?${lock ? ' FOR UPDATE' : ''}`, Number(id), accountId) : null;
   if (!row) throw notFound('eroare.tratament_negasit');
   return row;
 };
@@ -240,7 +267,7 @@ export function createTreatment(accountId, lang, body) {
 export function updateTreatment(accountId, lang, id, body) {
   const v = validateInput(body);
   return tx(async () => {
-    const old = await treatmentRow(accountId, id);
+    const old = await treatmentRow(accountId, id, { lock: true });
     const wasFrozen = !!old.frozen_at;
     const keep = await storedIds(old.id);
     let listChanged = old.target !== v.target;
@@ -254,8 +281,10 @@ export function updateTreatment(accountId, lang, id, body) {
       `UPDATE treatments SET name = ?, kind = ?, method = ?, start_date = ?, days = ?, note = ?, target = ?, repeat_kind = ?, repeat_days = ?, updated_at = ? WHERE id = ?`,
       v.name, v.kind, v.method, v.startDate, v.days, v.note, v.target, v.repeatKind, v.repeatDays, nowIso(), old.id,
     );
-    // Următorul planificat (încă neînceput) se refă; unul început deja rămâne al lui.
-    await run('DELETE FROM treatments WHERE parent_id = ? AND frozen_at IS NULL', old.id);
+    // Următorul planificat (încă neînceput) se refă doar dacă s-a schimbat ce îl hotărăște (repetarea sau începutul);
+    // altfel rămâne cum e, cu ce a modificat omul la el. Unul început deja rămâne al lui.
+    const planChanged = old.repeat_kind !== v.repeatKind || old.repeat_days !== v.repeatDays || old.start_date !== v.startDate;
+    if (planChanged) await run('DELETE FROM treatments WHERE parent_id = ? AND frozen_at IS NULL', old.id);
     if (v.target === 'alesi') {
       if (listChanged) await replaceChosen(old.id, v.pigeonIds);
     } else if (listChanged) {
@@ -263,7 +292,8 @@ export function updateTreatment(accountId, lang, id, body) {
     }
     const row = await one('SELECT * FROM treatments WHERE id = ?', old.id);
     if (row.start_date > todayBucharest()) {
-      // Încă neînceput (sau mutat în viitor): fără listă fixată, fără jurnal.
+      // Încă neînceput (sau mutat în viitor): fără listă fixată, fără jurnal, fără următor planificat.
+      await run('DELETE FROM treatments WHERE parent_id = ? AND frozen_at IS NULL', old.id);
       if (wasFrozen) {
         await run('DELETE FROM journal_entries WHERE treatment_id = ?', old.id);
         await run('UPDATE treatments SET frozen_at = NULL WHERE id = ?', old.id);
@@ -273,7 +303,7 @@ export function updateTreatment(accountId, lang, id, body) {
       await syncJournal(row, lang);
       await ensureNext(row);
     } else {
-      await freezeTreatment(row, lang);
+      await freezeTreatment(row, lang, { force: true });
     }
     return one('SELECT * FROM treatments WHERE id = ?', old.id);
   });
@@ -281,9 +311,14 @@ export function updateTreatment(accountId, lang, id, body) {
 
 export function cancelTreatment(accountId, lang, id) {
   return tx(async () => {
-    const row = await treatmentRow(accountId, id);
+    let row = await treatmentRow(accountId, id, { lock: true });
     const today = todayBucharest();
     if (statusOf(row, today) !== 'in_curs') throw new HttpError(409, 'eroare.tratament_nu_e_in_curs');
+    // Început azi, dar nefixat încă: întâi se fixează (lista și jurnalul), apoi se oprește.
+    if (!row.frozen_at) {
+      await freezeTreatment(row, lang);
+      row = await one('SELECT * FROM treatments WHERE id = ?', row.id);
+    }
     await run('UPDATE treatments SET cancelled_on = ?, updated_at = ? WHERE id = ?', today, nowIso(), row.id);
     await run('DELETE FROM treatments WHERE parent_id = ? AND frozen_at IS NULL', row.id);
     await syncJournal(row, lang);
@@ -293,7 +328,7 @@ export function cancelTreatment(accountId, lang, id) {
 
 export function deleteTreatment(accountId, id) {
   return tx(async () => {
-    const row = await treatmentRow(accountId, id);
+    const row = await treatmentRow(accountId, id, { lock: true });
     await run('DELETE FROM treatments WHERE parent_id = ? AND frozen_at IS NULL', row.id);
     // Cel de dinainte rămâne, dar nu se mai repetă.
     if (row.parent_id) await run('UPDATE treatments SET repeat_kind = NULL, repeat_days = NULL WHERE id = ?', row.parent_id);

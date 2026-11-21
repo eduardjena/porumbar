@@ -5,7 +5,7 @@ import { ref } from '../i18n.js';
 import { TREATMENT_TARGETS, codes } from '../catalog.js';
 import {
   treatmentRow, toTreatment, treatmentPigeons, listTreatments, createTreatment, updateTreatment, cancelTreatment, deleteTreatment,
-  groupPigeonIds,
+  groupPigeonIds, freezeDue,
 } from '../treatments.js';
 
 /** Tratamentele și vaccinurile pe tot porumbarul sau pe grupuri. */
@@ -13,6 +13,7 @@ export function treatmentsRouter() {
   const r = express.Router();
 
   r.get('/treatments', requireAccount, async (req, res) => {
+    await freezeDue(req.account.id, req.lang);
     res.json({ treatments: await listTreatments(req.account.id, req.lang, { stare: req.query.stare, before: req.query.before }) });
   });
 
@@ -24,6 +25,7 @@ export function treatmentsRouter() {
   });
 
   r.get('/treatments/:id', requireAccount, async (req, res) => {
+    await freezeDue(req.account.id, req.lang);
     const row = await treatmentRow(req.account.id, req.params.id);
     res.json({ treatment: await toTreatment(row, req.lang), pigeons: await treatmentPigeons(row) });
   });

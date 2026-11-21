@@ -92,7 +92,8 @@ export function authRouter() {
   r.get('/me', requireAccount, async (req, res) => {
     // Citirile din poze ale anului de abonament (fără cost: acela e pentru vânzător).
     const { used, allowed, perYear, fullFrom } = await readsOf(req.account.id);
-    res.json({ account: { ...req.account, reads: { used, allowed, perYear, fullFrom } } });
+    const { n } = await one('SELECT COUNT(*)::int AS n FROM push_subscriptions WHERE account_id = ?', req.account.id);
+    res.json({ account: { ...req.account, pushDevices: n, reads: { used, allowed, perYear, fullFrom } } });
   });
 
   r.patch('/me', requireAccount, async (req, res) => {
@@ -131,9 +132,9 @@ export function authRouter() {
     };
     await run(
       `UPDATE accounts SET name = ?, pedigree_name = ?, phone = ?, address = ?, tree_view = ?, show_phone = ?, show_address = ?, show_email = ?,
-              print_phone = ?, print_address = ?, print_email = ?, lang = ?, breeder_code = ? WHERE id = ?`,
+              print_phone = ?, print_address = ?, print_email = ?, lang = ?, breeder_code = ?, reminder_email = ? WHERE id = ?`,
       name, pedigreeName, phone, address, treeView, flag('showPhone'), flag('showAddress'), flag('showEmail'),
-      flag('printPhone'), flag('printAddress'), flag('printEmail'), lang, breederCode, req.account.id,
+      flag('printPhone'), flag('printAddress'), flag('printEmail'), lang, breederCode, flag('reminderEmail'), req.account.id,
     );
     res.json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', req.account.id)) });
   });

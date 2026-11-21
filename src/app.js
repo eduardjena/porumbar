@@ -5,6 +5,7 @@ import { errorHandler } from './http.js';
 import { publicCatalog } from './catalog.js';
 import { isLang, flatDictionary, requestLang, langScope, t } from './i18n.js';
 import { authRouter } from './routes/auth.js';
+import { pushRouter } from './routes/push.js';
 import { pigeonsRouter } from './routes/pigeons.js';
 import { familyRouter } from './routes/family.js';
 import { journalRouter } from './routes/journal.js';
@@ -32,6 +33,7 @@ export const DEFAULT_CSP = [
   "form-action 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
+  "worker-src 'self'",
 ].join('; ');
 
 /** Cererea vine din pagina altui site? (Sec-Fetch-Site al browserului, altfel Origin față de Host.) */
@@ -82,6 +84,8 @@ export function createApp() {
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.get('/api/catalog', optionalAccount, (req, res) => res.json(publicCatalog(req.lang)));
+  // Înaintea lui /api/auth: sub /api/auth, deci scutit de regula „doar citire” (și fără abonament se pot porni amintirile).
+  app.use('/api/auth/push', pushRouter());
   app.use('/api/auth', authRouter());
   // Familia înaintea fișei: /api/pigeons/lookup nu trebuie luat drept id de porumbel.
   app.use('/api', familyRouter());
@@ -111,7 +115,9 @@ export function createApp() {
       express.static(WEB_DIR, {
         index: false,
         setHeaders: (res, file) => {
-          if (/[-.][A-Za-z0-9_-]{8,}\.(js|css)$/.test(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable');
+          // Service worker-ul: browserul îl verifică la fiecare pornire, deci nu stă în cache; poate controla tot site-ul.
+          if (path.basename(file) === 'sw.js') res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
+          else if (/[-.][A-Za-z0-9_-]{8,}\.(js|css)$/.test(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable');
         },
       }),
     );

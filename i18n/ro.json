@@ -2029,5 +2029,21 @@
   "tratament.jurnal_oprit": {
     "text": " (oprit pe {zi})",
     "sens": "Se adaugă la intrarea din jurnal când tratamentul a fost oprit înainte de sfârșit. {zi} = data opririi."
+  },
+  "camp.adresa_dispozitiv": {
+    "text": "adresa dispozitivului",
+    "sens": "Numele câmpului „endpoint” al abonamentului la notificări pe telefon, în mesaje de eroare."
+  },
+  "camp.cheie": {
+    "text": "cheia",
+    "sens": "Numele câmpurilor cu chei ale abonamentului la notificări pe telefon, în mesaje de eroare."
+  },
+  "push.titlu": {
+    "text": "Porumbar",
+    "sens": "Titlul notificărilor pe telefon (numele aplicației)."
+  },
+  "push.proba": {
+    "text": "Proba: amintirile merg",
+    "sens": "Textul notificării de probă trimise din setări, ca omul să vadă că telefonul primește amintirile."
   }
 }

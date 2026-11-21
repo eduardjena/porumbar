@@ -1305,5 +1305,9 @@
   "camp.inainte_de": "ezelőtt",
   "tratament.jurnal_text": "{nume} ({mod}, {perioada})",
   "tratament.jurnal_nota": " — {nota}",
-  "tratament.jurnal_oprit": " (leállítva: {zi})"
+  "tratament.jurnal_oprit": " (leállítva: {zi})",
+  "camp.adresa_dispozitiv": "az eszköz címe",
+  "camp.cheie": "a kulcs",
+  "push.titlu": "Porumbar",
+  "push.proba": "Próba: az emlékeztetők működnek"
 }

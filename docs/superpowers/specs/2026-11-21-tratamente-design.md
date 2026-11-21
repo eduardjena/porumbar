@@ -45,8 +45,11 @@ memento-uri. Ținta e amintirea care „te trage de mânecă”; registrul vine 
    „Trimite o probă”, „Opresc pe telefonul ăsta”. Pe iPhone, când browserul nu e aplicația de pe ecranul principal,
    în locul butonului apare explicația pas cu pas „Partajează → Adaugă pe ecranul principal”, apoi deschiderea din
    iconiță. Pe un browser care nu știe notificări: un rând simplu că primește emailul.
-7. **Emailul** (plasa de siguranță): în aceleași momente, contul primește emailul **doar dacă nu are niciun dispozitiv
-   cu notificări pornite** (sau toate au eșuat). Din Cont se poate opri („Nu vreau amintiri pe email”).
+7. **Emailul** (plasa de siguranță): **cel mult un email pe zi pentru un cont, seara la 19:00, și doar când are ceva
+   de făcut**, numai pentru conturile **fără niciun dispozitiv cu notificări pornite** (sau ale căror trimiteri de
+   seară au eșuat toate). Emailul adună tot: ce începe mâine, ce are mâine ultima zi, ce se repetă peste 3 zile. Fără
+   email de dimineață. Din Cont se poate opri („Nu vreau amintiri pe email”). Motivul: la ~1.000 de utilizatori trebuie
+   să încapă în limita unei căsuțe obișnuite (fără serviciu de mail plătit) — estimat ~30 pe zi, vârfuri ~150.
 
 ## Ce nu facem acum (non-obiective)
 - Hrana, stocul de hrană și de medicamente.
@@ -127,11 +130,13 @@ memento-uri. Ținta e amintirea care „te trage de mânecă”; registrul vine 
 4. **Numărul de porumbei:** înainte de început e numărul de acum al grupului; după fixare, porumbeii rămân în tratament
    și în jurnal chiar dacă sunt vânduți sau mor (e istoric). Salvarea cu un grup gol e refuzată („Grupul ales nu are
    porumbei”). Un tratament care la fixare are 0 porumbei nu trimite notificări.
-5. **Emailul:** la același moment, după încercarea de push, contul primește un email dacă nu are niciun dispozitiv
-   abonat sau dacă **toate** trimiterile au dat eroare (404/410 șterg abonamentul). Același rând din
-   `treatment_notices` acoperă push-ul și emailul, iar nimic nu se reîncearcă (mai bine o amintire pierdută decât spam).
-   Fără `SMTP_URL` în producție: nu se trimite și nu se scrie conținutul în jurnalul serverului. Un singur email per
-   moment, text simplu, în limba contului, cu linkul către Tratamente.
+5. **Emailul (rezumatul de seară):** la verificarea de la 19:00, după push-urile serii, un cont primește un email
+   dacă are ceva pentru mâine / peste 3 zile **și** nu are niciun dispozitiv abonat sau **toate** trimiterile serii au
+   dat eroare (404/410 șterg abonamentul). Un rând în `email_digests (cont, data)` cu cheie unică, scris înainte de
+   trimitere: cel mult un email pe zi, nimic nu se reîncearcă (mai bine o amintire pierdută decât spam). Trimiterea e
+   **rară**: o coadă care trimite câteva emailuri pe minut (implicit 10/minut, din `.env`), ca să nu treacă de limita
+   căsuței. Fără `SMTP_URL` în producție: nu se trimite și nu se scrie conținutul în jurnalul serverului. Text simplu,
+   în limba contului, cu linkul către Tratamente.
 6. **Cine primește:** orice cont cu tratamente active, inclusiv cele doar-citire (lanțul repetărilor continuă și la
    ele). Notificările se adună pe cont la fiecare verificare; atingerea deschide tratamentul când e unul singur, altfel
    Panoul. „Cu 3 zile înainte” și „seara dinainte” sunt două momente diferite, deci două notificări (aprobat).

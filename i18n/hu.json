@@ -1309,5 +1309,15 @@
   "camp.adresa_dispozitiv": "az eszköz címe",
   "camp.cheie": "a kulcs",
   "push.titlu": "Porumbar",
-  "push.proba": "Próba: az emlékeztetők működnek"
+  "push.proba": "Próba: az emlékeztetők működnek",
+  "amintire.porumbei": {
+    "one": "{count} galamb",
+    "other": "{count} galamb"
+  },
+  "amintire.inainte": "Holnap kezdődik: {nume}, {porumbei} ({mod})",
+  "amintire.ultima_zi": "Ma van az utolsó nap: {nume}",
+  "amintire.ultima_zi_maine": "Holnap van az utolsó nap: {nume}",
+  "amintire.repetare": "{zi}: {nume}, {porumbei} ({mod})",
+  "amintire.email_subiect": "Porumbar: emlékeztető a kezelésekről",
+  "amintire.email_text": "Kedves {nume}!\n\nTeendők a galambokkal:\n{lista}\n\nAz összes kezelés: {link}\n\nAzért kapod ezt az e-mailt, mert az emlékeztetők nem jutottak el a telefonodra. A Fiók oldalon kikapcsolhatod.\n"
 }

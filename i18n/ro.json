@@ -2045,5 +2045,35 @@
   "push.proba": {
     "text": "Proba: amintirile merg",
     "sens": "Textul notificării de probă trimise din setări, ca omul să vadă că telefonul primește amintirile."
+  },
+  "amintire.porumbei": {
+    "one": "{count} porumbel",
+    "few": "{count} porumbei",
+    "other": "{count} de porumbei",
+    "sens": "Câți porumbei primesc tratamentul, în notificarea pe telefon și în emailul de amintire."
+  },
+  "amintire.inainte": {
+    "text": "Mâine începe: {nume}, {porumbei} ({mod})",
+    "sens": "Notificarea de seară (19:00) dinaintea primei zile a tratamentului. {nume} = boala / vaccinul, {porumbei} = de ex. „24 de porumbei”, {mod} = cum se dă, cu literă mică (în apă, injecție…)."
+  },
+  "amintire.ultima_zi": {
+    "text": "Azi e ultima zi: {nume}",
+    "sens": "Notificarea de dimineață (07:00) din ultima zi a unui tratament de cel puțin 2 zile. {nume} = boala / vaccinul."
+  },
+  "amintire.ultima_zi_maine": {
+    "text": "Mâine e ultima zi: {nume}",
+    "sens": "Rând în emailul de seară: tratamentul are mâine ultima zi. {nume} = boala / vaccinul."
+  },
+  "amintire.repetare": {
+    "text": "{zi}: {nume}, {porumbei} ({mod})",
+    "sens": "Notificarea cu 3 zile înainte de un tratament care se repetă (ca omul să aibă timp să cumpere vaccinul). {zi} = ziua săptămânii, cu literă mare (de ex. „Joi”), {nume} = boala / vaccinul, {porumbei} = de ex. „24 de porumbei”, {mod} = cum se dă."
+  },
+  "amintire.email_subiect": {
+    "text": "Porumbar: amintire pentru tratamente",
+    "sens": "Subiectul emailului de seară cu tratamentele care încep mâine, se termină mâine sau se repetă peste 3 zile."
+  },
+  "amintire.email_text": {
+    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că amintirile nu au ajuns pe telefon. Îl poți opri din pagina Cont.\n",
+    "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente."
   }
 }

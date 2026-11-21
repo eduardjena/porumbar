@@ -108,10 +108,13 @@ export async function syncJournal(row, lang) {
   }
 }
 
-/** Următorul tratament din lanț: aceeași țintă (la „aleși”, aceiași porumbei), neînghețat. */
-export async function createNextOccurrence(row) {
+/**
+ * Următorul tratament din lanț: aceeași țintă (la „aleși”, aceiași porumbei), neînghețat. `today`: ziua socotită
+ * „azi” (verificarea orară o dă din ora ei, ca testele cu ora fixată să nu depindă de ceas).
+ */
+export async function createNextOccurrence(row, today = todayBucharest()) {
   const tr = await one('SELECT * FROM treatments WHERE id = ?', row.id);
-  const start = nextStartAfter(tr, todayBucharest());
+  const start = nextStartAfter(tr, today);
   if (!start) throw new Error('Treatment does not repeat.');
   const now = nowIso();
   const id = await insert(
@@ -125,8 +128,8 @@ export async function createNextOccurrence(row) {
   return id;
 }
 
-async function ensureNext(tr) {
-  if (tr.repeat_kind && !tr.cancelled_on && !(await one('SELECT 1 FROM treatments WHERE parent_id = ?', tr.id))) await createNextOccurrence(tr);
+async function ensureNext(tr, today = todayBucharest()) {
+  if (tr.repeat_kind && !tr.cancelled_on && !(await one('SELECT 1 FROM treatments WHERE parent_id = ?', tr.id))) await createNextOccurrence(tr, today);
 }
 
 const lockRow = (id) => one('SELECT * FROM treatments WHERE id = ? FOR UPDATE', id);
@@ -134,12 +137,13 @@ const lockRow = (id) => one('SELECT * FROM treatments WHERE id = ? FOR UPDATE', 
 /**
  * Ziua de început: lista grupului se fixează, jurnalul se scrie, se planifică următorul din lanț. Rândul se blochează
  * și se recitește, ca două rulări simultane (verificarea din fundal, o citire, o modificare) să nu facă dublu; unul deja
- * fixat nu se mai fixează (decât cu `force`, la schimbarea țintei după început).
+ * fixat nu se mai fixează (decât cu `force`, la schimbarea țintei după început). `today` ca la createNextOccurrence.
+ * Întoarce true dacă rularea aceasta l-a fixat.
  */
-export function freezeTreatment(row, lang, { force = false } = {}) {
+export function freezeTreatment(row, lang, { force = false, today = todayBucharest() } = {}) {
   return tx(async () => {
     const tr = await lockRow(row.id);
-    if (!tr || (tr.frozen_at && !force)) return;
+    if (!tr || (tr.frozen_at && !force)) return false;
     if (tr.target !== 'alesi') {
       const ids = await groupPigeonIds(tr.account_id, tr.target);
       await run('DELETE FROM treatment_pigeons WHERE treatment_id = ?', tr.id);
@@ -147,7 +151,8 @@ export function freezeTreatment(row, lang, { force = false } = {}) {
     }
     await run('UPDATE treatments SET frozen_at = ? WHERE id = ?', nowIso(), tr.id);
     await syncJournal(tr, lang);
-    await ensureNext(tr);
+    await ensureNext(tr, today);
+    return true;
   });
 }
 

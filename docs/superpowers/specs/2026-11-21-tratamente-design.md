@@ -114,8 +114,8 @@ memento-uri. Ținta e amintirea care „te trage de mânecă”; registrul vine 
 1. **Momentele notificărilor** se calculează la fiecare verificare din starea curentă a tratamentului. Un moment se
    trimite dacă: a sosit, n-a trecut cu mai mult de 3 ore, e **după** crearea / ultima modificare a tratamentului,
    tratamentul nu e anulat, are ≥ 1 porumbel și nu există deja rândul `(tratament, fel, data)` în
-   `treatment_notices`. Deci: un tratament salvat azi care începe azi nu primește „mâine începe”; unul salvat la
-   19:30 pentru mâine îl primește la verificarea următoare. Dacă omul mută datele, momentele noi se trimit (planul s-a
+   `treatment_notices`. Deci: un tratament salvat azi care începe azi nu primește „mâine începe”, nici unul salvat
+   seara după 19:00 pentru mâine (omul tocmai l-a scris); „ultima zi” vine normal. Dacă omul mută datele, momentele noi se trimit (planul s-a
    schimbat); rândurile vechi rămân ca istoric.
 2. **Modifică** poate schimba orice, oricând. Până la ziua de început, grupul se socotește din stările de acum (nu e
    fixat); în ziua de început lista se fixează (prima verificare de după miezul nopții sau prima citire, care vine

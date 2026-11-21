@@ -1,14 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Api } from './api';
-
-/** Cheia publică vine în base64 „url-safe”; abonarea o vrea ca octeți. */
-function keyBytes(key: string): Uint8Array<ArrayBuffer> {
-  const b64 = (key + '='.repeat((4 - (key.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(b64);
-  const out = new Uint8Array(new ArrayBuffer(raw.length));
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-  return out;
-}
+import { keyBytes, sameKey } from './push-key';
 
 export type PushResult = 'ok' | 'gone' | 'error';
 
@@ -68,10 +60,33 @@ export class PushService {
     const key = await this.publicKey();
     if (!key) throw new Error('push-config');
     const reg = await this.registration();
-    const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(key) }));
+    const wanted = keyBytes(key);
+    let sub = await reg.pushManager.getSubscription();
+    // Abonamentul făcut cu altă cheie a serverului nu mai primește nimic: îl scoatem și facem unul nou.
+    if (sub && !sameKey(sub.options?.applicationServerKey, wanted)) {
+      await this.drop(sub);
+      sub = null;
+    }
+    if (!sub) {
+      try {
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: wanted });
+      } catch (e) {
+        // Mai există un abonament cu altă cheie: îl scoatem și încercăm o singură dată din nou.
+        if (!(e instanceof DOMException && e.name === 'InvalidStateError')) throw e;
+        const old = await reg.pushManager.getSubscription();
+        if (old) await this.drop(old);
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: wanted });
+      }
+    }
     const json = sub.toJSON();
     await this.api.post('/auth/push', { endpoint: sub.endpoint, keys: json.keys });
     return true;
+  }
+
+  /** Șterge un abonament la server (cât se poate) și în browser. */
+  private async drop(sub: PushSubscription): Promise<void> {
+    await this.api.delete('/auth/push', { endpoint: sub.endpoint }).catch(() => undefined);
+    await sub.unsubscribe();
   }
 
   /** Scoate abonamentul acestui telefon (la server și în browser). Nu aruncă: la ieșirea din cont nu are voie să blocheze. */

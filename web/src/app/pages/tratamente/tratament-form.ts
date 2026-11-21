@@ -171,10 +171,15 @@ const squash = (s: string) => s.toLowerCase().replace(/[\s/-]+/g, '');
     form { max-width: 760px; }
     fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
     legend { font-weight: 700; padding: 0; margin-bottom: 6px; }
-    .choices { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
-    .choices.two { grid-template-columns: 1fr 1fr; }
+    /*
+     * Rândurile de alegeri se rup singure pe ecran îngust: fiecare carte cere cel puțin lățimea ei (dar niciodată mai mult
+     * decât rândul, min(100%, …)), deci pe telefon trec una sub alta în loc să iasă din ecran (Fel la 375px ieșea cu 5px).
+     */
+    .choices { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); }
+    .choices.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+    .choices.methods { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
     .choice {
-      display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 14px; cursor: pointer; font-weight: 600;
+      display: flex; align-items: center; gap: 10px; min-height: 56px; min-width: 0; padding: 8px 14px; cursor: pointer; font-weight: 600; overflow-wrap: anywhere;
       border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface);
     }
     .choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); box-shadow: 0 0 0 1px var(--accent) inset; }
@@ -189,8 +194,6 @@ const squash = (s: string) => s.toLowerCase().replace(/[\s/-]+/g, '');
     .days { flex: 0 1 200px; }
     .days input { max-width: 200px; }
     @media (max-width: 767px) {
-      .choices { grid-template-columns: 1fr; }
-      .choices.two, .choices.methods { grid-template-columns: 1fr 1fr; }
       .days { flex: 1 1 100%; }
       .row > button, .row > .btn { flex: 1 1 100%; }
     }

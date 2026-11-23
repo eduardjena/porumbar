@@ -84,3 +84,19 @@ test('canContinue', () => {
   assert.equal(canContinue(['inel_numar']), true);
   assert.equal(canContinue(['ignor', 'inel']), true);
 });
+
+test('„Nr.” singur e contor de rânduri, nu număr de inel', () => {
+  const rows = [['Nr.', 'Nume', 'Sex'], ['1', 'Fulger', 'M']];
+  const f = guessColumns(rows, true);
+  assert.equal(f.includes('inel'), false);
+  assert.equal(f.includes('inel_numar'), false);
+  assert.equal(canContinue(f), false);
+});
+
+test('„Nr. crt.” e ignorat, inelul rămâne la „Inel”', () => {
+  assert.deepEqual(guessColumns([['Nr. crt.', 'Inel', 'Nume'], ['1', 'RO-24-0117345', 'A']], true), ['ignor', 'inel', 'nume']);
+});
+
+test('inelul în bucăți după titlu: Țara, An, Nr', () => {
+  assert.deepEqual(guessColumns([['Țara', 'An', 'Nr'], ['RO', '24', '0117345']], true), ['inel_tara', 'inel_an', 'inel_numar']);
+});

@@ -27,7 +27,7 @@ const TITLURI: Partial<Record<Field, string[]>> = {
   inel_tara: ['tara', 'country', 'orszag', 'land', 'pays', 'tara inel'],
   inel_an: ['an', 'anul', 'an inel', 'year', 'ev', 'jaar', 'jahr', 'annee', 'ring year'],
   inel_club: ['club', 'asociatie', 'asociatia', 'egyesulet', 'association', 'vereniging', 'verein', 'federation', 'federatie'],
-  inel_numar: ['numar', 'nr', 'number', 'szam', 'nummer', 'numero', 'serial', 'serie'],
+  inel_numar: ['number', 'szam', 'nummer', 'numero', 'serial', 'serie'],
   nume: ['nume', 'denumire', 'name', 'naam', 'nev', 'bezeichnung', 'nom'],
   sex: ['sex', 'sexul', 'ivar', 'geslacht', 'geschlecht', 'sexe', 'gender'],
   culoare: ['culoare', 'culoarea', 'szin', 'kleur', 'farbe', 'couleur', 'colour', 'color', 'colour of plumage'],
@@ -44,6 +44,9 @@ const TITLURI: Partial<Record<Field, string[]>> = {
   observatii: ['observatii', 'observatie', 'notes', 'note', 'notite', 'remarks', 'comments', 'opmerking', 'opmerkingen',
     'megjegyzes', 'bemerkung', 'bemerkungen', 'remarque', 'remarques'],
 };
+
+// „Nr.” / „Număr” singure sunt de obicei contorul de rânduri: devin număr de inel doar lângă țară / an / club.
+const NUMAR_AMBIGUU = new Set(['nr', 'numar']);
 
 const DICT: Map<string, Field> = new Map();
 for (const [f, list] of Object.entries(TITLURI) as [Field, string[]][]) {
@@ -152,6 +155,11 @@ export function guessColumns(rows: string[][], hasHeader: boolean): Field[] {
       const f = titleField(rows[0][i] ?? '');
       if (f && !luat.has(f)) pune(i, f);
     }
+  }
+
+  if (hasHeader && rows[0] && !luat.has('inel_numar') && (luat.has('inel_tara') || luat.has('inel_an') || luat.has('inel_club'))) {
+    const i = rows[0].slice(0, lat).findIndex((c, k) => fields[k] === 'ignor' && NUMAR_AMBIGUU.has(fold(c)));
+    if (i >= 0) pune(i, 'inel_numar');
   }
 
   const inelePentru: Field[] = ['inel', 'tata', 'mama'];

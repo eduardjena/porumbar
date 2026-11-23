@@ -1434,5 +1434,147 @@
   "amintiri.refuzat": "Letiltottad a Porumbar értesítéseit. A telefon beállításaiban (Értesítések, vagy a böngésző webhelybeállításai) kapcsold vissza, majd nyisd meg újra ezt az oldalt.",
   "amintiri.telefoane": "Az emlékeztetők {count} telefonra mennek.",
   "amintiri.email": "Kérek emlékeztetőt e-mailben",
-  "amintiri.email_explicatie": "Esténként egy összefoglaló arról, mi következik."
+  "amintiri.email_explicatie": "Esténként egy összefoglaló arról, mi következik.",
+  "eroare.import_randuri": "A táblázatnak legalább egy és legfeljebb {max} sora lehet.",
+  "eroare.import_fara_anulare": "Nincs visszavonható importálás. Csak az utolsó Excel-importálás vonható vissza, legfeljebb 7 napig.",
+  "import_excel.fara_inel": "A sorban nincs gyűrűszám. A galambot kézzel veheted fel.",
+  "import_excel.inel_necitit": "A(z) {inel} gyűrűszám nem olvasható. A sort kihagytuk.",
+  "import_excel.inel_necitit_pus": "A(z) {inel} gyűrűszám nem olvasható. Úgy vettük fel, ahogy le van írva.",
+  "import_excel.inel_hu_asociatie": "A(z) {inel} magyar gyűrűről hiányzik a szervezet száma (pl. HU-2024-29-12345). A sort kihagytuk.",
+  "import_excel.dublura": "A(z) {inel} gyűrű már szerepel a táblázatban, a(z) {rand}. sorban. Az első sort tartottuk meg.",
+  "import_excel.parinte_necitit_tata": "Az apa gyűrűszáma ({parinte}) nem olvasható. Nem kapcsoltuk össze.",
+  "import_excel.parinte_necitit_mama": "Az anya gyűrűszáma ({parinte}) nem olvasható. Nem kapcsoltuk össze.",
+  "import_excel.conflict_sex_mascul": "{inel} a programban hím, a táblázatban viszont más szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_sex_femela": "{inel} a programban tojó, a táblázatban viszont más szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_alt_tata": "{inel} apja a programban már {are}, a táblázatban viszont {tabel} szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_alta_mama": "{inel} anyja a programban már {are}, a táblázatban viszont {tabel} szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_ciclu": "{parinte} nem lehet {copil} szülője: saját őse lenne. Nem kapcsoltuk össze.",
+  "import_excel.rand_refuzat": "A sort nem sikerült felvenni: {motiv}",
+  "titlu.excel": "Galambok Excelből · Porumbar",
+  "panou.din_excel": "Galambok behozása Excelből",
+  "excel.intro": "Excel-táblázatban vagy más programban tartod a galambjaidat? Hozd be ide mindet egyszerre. A meglévő gyűrűszámok nem duplázódnak meg, a családfa pedig az apa és az anya alapján magától összekapcsolódik.",
+  "excel.pas1": "1. A táblázat",
+  "excel.alege_fisier": "Fájl kiválasztása (.xlsx, .xls, .csv)",
+  "excel.fisier_ajutor": "A fájlt itt, a saját telefonodon vagy számítógépeden olvassuk be, és nem küldjük el sehova.",
+  "excel.se_citeste": "A fájl beolvasása…",
+  "excel.sau_lipeste": "vagy illeszd be ide az Excelből másolt táblázatot",
+  "excel.lipeste_ph": "Jelöld ki a táblázatot az Excelben, másold ki (Ctrl+C), és illeszd be ide (Ctrl+V).",
+  "excel.mai_departe": "Tovább",
+  "excel.inapoi": "Vissza",
+  "excel.fisier_mare": "A fájl túl nagy (legfeljebb 10 MB lehet). Mentsd el az Excelben csak a galambokat tartalmazó munkalapot, és próbáld újra.",
+  "excel.fisier_necitit": "A fájlt nem sikerült beolvasni. Próbálj egy .xlsx, .xls vagy .csv fájlt, vagy másold ki a táblázatot az Excelből, és illeszd be ide.",
+  "excel.tabel_gol": "A táblázatban nem találtunk egyetlen sort sem galambokkal.",
+  "excel.prea_multe_randuri": "A táblázatnak {n} sora van; egyszerre legfeljebb {max} sort lehet behozni. Oszd több részre.",
+  "excel.pas2": "2. Mi van az egyes oszlopokban",
+  "excel.pas2_ajutor": "Kitaláltuk, mi van az egyes oszlopokban. Ellenőrizd, és javítsd, ahol nem jó.",
+  "excel.foaia": "Munkalap a fájlban",
+  "excel.sursa_lipit": "A beillesztett táblázat",
+  "excel.randuri": {
+    "one": "{count} sor",
+    "other": "{count} sor"
+  },
+  "excel.primul_rand_titlu": "Az első sor fejléc",
+  "excel.rand_titlu": "A(z) {n}. sor fejléc",
+  "excel.coloana": "{litera} oszlop",
+  "excel.goala": "(üres)",
+  "excel.ce_este": "Mi ez",
+  "excel.doar_20": "Csak az első {max} oszlopot vettük figyelembe.",
+  "excel.tara_fara": "Az ország nélküli gyűrűk innen valók:",
+  "excel.tara_ajutor": "Az országot csak azokhoz a gyűrűkhöz tesszük hozzá, amelyek másként nem olvashatók.",
+  "excel.lipseste_inel": "Válaszd ki valamelyik oszlophoz a „Gyűrűszám (teljes)” vagy a „Gyűrű – sorszám” lehetőséget, hogy továbbléphess.",
+  "excel.camp.inel": "Gyűrűszám (teljes)",
+  "excel.camp.inel_tara": "Gyűrű – ország",
+  "excel.camp.inel_an": "Gyűrű – év",
+  "excel.camp.inel_club": "Gyűrű – szervezet / egyesület",
+  "excel.camp.inel_numar": "Gyűrű – sorszám",
+  "excel.camp.nume": "Név",
+  "excel.camp.sex": "Ivar",
+  "excel.camp.culoare": "Szín",
+  "excel.camp.ochi": "Szemszín",
+  "excel.camp.rasa": "Fajta",
+  "excel.camp.linii": "Vonalak",
+  "excel.camp.eclozare": "A kelés dátuma",
+  "excel.camp.crescator": "Tenyésztő",
+  "excel.camp.stare": "Állapot",
+  "excel.camp.tata": "Apa (gyűrűszám)",
+  "excel.camp.mama": "Anya (gyűrűszám)",
+  "excel.camp.observatii": "Megjegyzés",
+  "excel.camp.ignor": "Ezt az oszlopot kihagyom",
+  "excel.pas3": "3. Mi fog történni",
+  "excel.se_verifica": "A táblázat ellenőrzése…",
+  "excel.noi": {
+    "one": "{count} új galamb",
+    "other": "{count} új galamb"
+  },
+  "excel.exista": {
+    "one": "{count} galamb már megvan (csak a hiányzó adatokat töltjük ki)",
+    "other": "{count} galamb már megvan (csak a hiányzó adatokat töltjük ki)"
+  },
+  "excel.stramosi": {
+    "one": "{count} szülő, aki nincs a táblázatban → ősként vesszük fel",
+    "other": "{count} szülő, aki nincs a táblázatban → ősként vesszük fel"
+  },
+  "excel.pb.fara_inel": {
+    "one": "{count} sor gyűrűszám nélkül (kihagyjuk)",
+    "other": "{count} sor gyűrűszám nélkül (kihagyjuk)"
+  },
+  "excel.pb.inel_necitit": {
+    "one": "{count} sor olvashatatlan gyűrűszámmal",
+    "other": "{count} sor olvashatatlan gyűrűszámmal"
+  },
+  "excel.pb.dublura": {
+    "one": "{count} kétszer szereplő gyűrűszám (az első sort vesszük)",
+    "other": "{count} kétszer szereplő gyűrűszám (az első sort vesszük)"
+  },
+  "excel.pb.conflict": {
+    "one": "{count} eltérés (ezeknél semmit sem változtatunk)",
+    "other": "{count} eltérés (ezeknél semmit sem változtatunk)"
+  },
+  "excel.pb.parinte_necitit": {
+    "one": "{count} szülő olvashatatlan gyűrűszámmal (nem kapcsoljuk össze)",
+    "other": "{count} szülő olvashatatlan gyűrűszámmal (nem kapcsoljuk össze)"
+  },
+  "excel.pb.total": {
+    "one": "{count} problémás sor",
+    "other": "{count} problémás sor"
+  },
+  "excel.probleme_titlu": "A problémás sorok",
+  "excel.rand_n": "{n}. sor",
+  "excel.arata_toate": "Az összes mutatása ({n})",
+  "excel.lista_primele": "A lista {total} közül az első {n} sort mutatja.",
+  "excel.nimic_de_adaugat": "Ebből a táblázatból nincs mit hozzáadni.",
+  "excel.adauga": "Galambok hozzáadása",
+  "excel.se_adauga": "A galambok hozzáadása…",
+  "excel.gata": {
+    "one": "Kész: {count} galambot hoztunk be",
+    "other": "Kész: {count} galambot hoztunk be"
+  },
+  "excel.gata_stramosi": {
+    "one": "{count} őst is felvettünk (a táblázatban nem szereplő szülőket).",
+    "other": "{count} őst is felvettünk (a táblázatban nem szereplő szülőket)."
+  },
+  "excel.gata_existau": {
+    "one": "{count} galamb már megvolt a programban; náluk csak a hiányzó adatokat töltöttük ki.",
+    "other": "{count} galamb már megvolt a programban; náluk csak a hiányzó adatokat töltöttük ki."
+  },
+  "excel.vezi_porumbeii": "Galambok megtekintése",
+  "excel.alt_tabel": "Másik táblázat",
+  "excel.anuleaza": "Importálás visszavonása",
+  "excel.se_anuleaza": "Visszavonás…",
+  "excel.banda": {
+    "one": "Az utolsó Excel-importálás ({data}): {count} galamb.",
+    "other": "Az utolsó Excel-importálás ({data}): {count} galamb."
+  },
+  "excel.banda_pana": "Visszavonható eddig: {data}.",
+  "excel.anulezi_titlu": "Visszavonod az utolsó Excel-importálást?",
+  "excel.anulezi_text": "Töröljük az akkor behozott galambokat, ha azóta nem módosítottad és nem használtad őket, és kiürítjük, amit az importálás kitöltött. Amit te írtál, megmarad.",
+  "excel.anulezi_da": "Igen, visszavonom",
+  "excel.anulat": {
+    "one": "Visszavontuk az importálást: {count} galambot töröltünk.",
+    "other": "Visszavontuk az importálást: {count} galambot töröltünk."
+  },
+  "excel.anulat_ramas": {
+    "one": "{count} galamb megmaradt, mert az importálás után használtad.",
+    "other": "{count} galamb megmaradt, mert az importálás után használtad."
+  }
 }

@@ -8,11 +8,12 @@ import { TratamenteBanda } from './tratamente-banda';
 import { PorumbarState } from './porumbar-state';
 
 /** Unde e omul în cadru: Grilă, Listă sau pagina „Rezultate concurs” (listarea ori introducerea). */
-type Tab = 'grila' | 'lista' | 'rez-lista' | 'rez-nou' | 'import' | 'scan';
+type Tab = 'grila' | 'lista' | 'rez-lista' | 'rez-nou' | 'import' | 'excel' | 'scan';
 const tabOf = (url: string): Tab => {
   const path = url.split(/[?#]/)[0];
   if (path.startsWith('/porumbar')) return 'lista';
   if (path.startsWith('/porumbei/pedigree')) return 'import';
+  if (path.startsWith('/porumbei/excel')) return 'excel';
   if (path.startsWith('/scaneaza')) return 'scan';
   if (path.startsWith('/concursuri/nou')) return 'rez-nou';
   if (path.startsWith('/concursuri')) return 'rez-lista';
@@ -20,7 +21,7 @@ const tabOf = (url: string): Tab => {
 };
 
 /*
- * Cadrul comun al Panoului: Grilă, Listă, Importă pedigree, Rezultate concurs (cu submeniurile Listare rezultate /
+ * Cadrul comun al Panoului: Grilă, Listă, Importă pedigree, Adu porumbeii din Excel, Rezultate concurs (cu submeniurile Listare rezultate /
  * Rezultat nou) și Scanează cod QR. Submeniurile lor stau în banda de sub meniul mare (app.ts); aici stau titlul,
  * pastilele Rezultate concurs și bara de filtre, pe loc; la schimbare se schimbă doar ce e dedesubt (<router-outlet>). Datele și alegerea din bară: PorumbarState.
  */
@@ -87,6 +88,7 @@ export default class PorumbarCadru {
       case 'rez-lista': return this.s.resultsLine();
       case 'rez-nou': return t('concurs.intro');
       case 'import': return t('hartie.intro');
+      case 'excel': return t('excel.intro');
       case 'scan': return t('scan.intro');
       default: return this.s.countLine();
     }

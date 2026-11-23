@@ -62,6 +62,8 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
   `PEDIGREE_READS_FIRST_DAYS`; poza nu se păstrează). Citirea
   merge pe Claude Sonnet 5.5 (`PEDIGREE_MODEL`, ~2,5–3 cenți pe citire); costul are un plafon pe an pe crescător
   (`PEDIGREE_BUDGET_USD`, implicit 3 $).
+- **Adu porumbeii din Excel** (`/porumbei/excel`): fișier .xlsx / .xls / .csv sau tabel lipit, coloanele ghicite,
+  rezumat exact înainte de salvare, arborele legat după tată și mamă; ultimul import se poate anula 7 zile.
 - **Separare totală între conturi**: același inel poate exista în mai multe conturi și nimeni nu vede nimic din alt cont.
   Datele trec doar prin copii:
   - **link public / cod QR** pe fiecare porumbel (fila „QR”): pedigree-ul pe 5 generații fără cont, în formatul deschis

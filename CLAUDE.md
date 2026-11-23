@@ -55,6 +55,11 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   necitit atunci, dar recunoscut acum, primesc cheia; idempotent, sare peste ce ar dubla alt porumbel
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
   pedigree-format.js / pedigree-import.js / pedigree-reader.js   formatul deschis „porumbar-pedigree” v1, importul, citirea din poză (Claude)
+  table-import.js, table-values.js, routes/imports.js   „Adu porumbeii din Excel” (`/api/import/excel`: preview, salvare,
+                  last, undo): rândurile tabelului devin porumbei proprii; previzualizarea rulează același cod într-o
+                  tranzacție anulată (rezumat exact), salvarea ține contul blocat (`lockAccount`). Evidența pentru anulare
+                  în `excel_imports` + `excel_import_items` (migrarea **23**), ștearsă după 7 zile (pruneImports, la 6 ore,
+                  pornit din server.js) sau odată cu contul
   treatments.js   tratamentele pe tot porumbarul: fișa (grup, porumbei, repetare), grupurile, jurnalul legat (intrarea din
                   jurnal scrisă de un tratament nu se șterge separat), repetările (doar în viitor), blocare pe rând
   treatment-schedule.js  momentele amintirilor în ora României (modul pur)
@@ -71,7 +76,7 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
 web/            interfața: Angular 22, componente standalone, semnale, zoneless; build în web/dist (îl servește Express)
   src/app/core/   api (interceptor, errorMessage), auth, catalog, i18n, confirm, share-pdf, models
   src/app/app.ts  meniul mare (sus pe calculator, jos pe telefon) și, sub el, banda de submeniuri (macheta A, 2026-11-19):
-                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Scanează / Tratamente; fișa porumbelului → filele
+                  Panou → Grilă / Listă / Rezultate concurs / Importă pedigree / Adu porumbeii din Excel / Scanează / Tratamente; fișa porumbelului → filele
                   ei (?fila=) / Vezi în arbore; Arbore → vederile (?vedere=); Perechi → Perechile sezonului /
                   Pereche nouă / Inelele mele, Vânzări → Cumpărați / Vânduți, Cont → Abonament / Datele de pe
                   fișă / Ce apare pe fișă / Codul de crescător / Limba / Ieșire și ștergere (toate ?sec=). Fiecare submeniu
@@ -87,6 +92,8 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   filtrele în panou/porumbar-state.ts. Rezultate concurs are 2 submeniuri: Listare rezultate
                   /concursuri/lista, tabelul din rezultate/rezultate-toate.ts, și Rezultat nou /concursuri/nou,
                   concurs/concurs-rezultate.ts: toți porumbeii la un concurs, de mână sau lipind clasamentul)
+                  import-excel (/porumbei/excel, în cadrul Panoului: pasul 1 fișier sau tabel lipit, pasul 2 câte un card
+                  pe coloană, pasul 3 rezumatul de la server, apoi „Gata” și banda „Anulează importul”),
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
                   concurs, rezultate (vezi mai sus), tratamente (/tratamente: În curs · Urmează · Gata, fișa nou / modifică
                   în tratament-form.ts, detaliul cu porumbeii; banda „În curs / Urmează” de pe Panou e
@@ -105,6 +112,10 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   (după codul de crescător din Cont sau după inelele lui). Fără importuri, testat cu Node
                   (test/clasament.test.js). Nu se descarcă nimic de pe columba.ro și nu se citește din poză (decizia
                   vânzătorului, 2026-11-19)
+                  tabel-coloane.ts: „Adu porumbeii din Excel”, tabelul lipit și ghicirea coloanelor (titlu în RO / HU / EN /
+                  NL / DE / FR, apoi conținut); fără importuri, testat cu Node (test/import-coloane.test.js).
+                  tabel-fisier.ts: SINGURUL loc care importă SheetJS (`xlsx`); se încarcă doar cu `await import()` din
+                  pagina de import, când omul alege un fișier (după build, `main-*.js` nu trebuie să conțină „SheetJS”)
 i18n/           dicționarele de limbi, citite de server și de interfață (vezi „Limbi”)
 test/           testele (node:test) pe un PostgreSQL temporar: `npm test`; un fișier: `node scripts/test.mjs test/x.test.js`
 scripts/        dev-db (Postgres de dezvoltare în data/pg, port 5433), db-setup, seed-exemplu (cont demo, doar local), test
@@ -186,3 +197,14 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
   apare pe fișă și pe link.
 - Pozele porumbeilor nu se păstrează pe server; poza unui pedigree se citește și se aruncă.
 - Vederea 3D a arborelui a fost scoasă la cerere: nu se readuce.
+- **Importul din Excel** (spec `docs/superpowers/specs/2026-11-23-import-excel-design.md`): fișierul se citește în
+  browser și nu pleacă nicăieri; la server ajung doar celulele coloanelor alese, iar tabelul nu se păstrează. SheetJS
+  (ediția comunitară) se instalează doar din tarball-ul oficial `cdn.sheetjs.com`, versiune fixă (acum 0.20.3; NU
+  0.18.5 din registrul npm, are probleme de securitate), e inclus în build și nu se încarcă de pe CDN la rulare.
+  Limite: cel mult 3.000 de rânduri și 20 de coloane pe import, fișierul cel mult 10 MB (verificat în browser), cererea
+  JSON cel mult 2 MB, previzualizarea de cel mult 30 de ori pe minut pe cont. Nimic nu se dublează și nimic scris nu se
+  schimbă: la porumbeii existenți se completează doar câmpurile goale, o legătură diferită apare la „nepotriviri”.
+  **Anularea**: doar ultimul import din Excel al contului, doar 7 zile; un porumbel adus se șterge doar dacă e
+  neschimbat și nefolosit (judecat după conținut, nu după `updated_at`), câmpurile completate se golesc doar dacă au
+  încă valoarea pusă de import; ce a scris omul rămâne. Contul „doar citire” primește 402 la previzualizare, salvare și
+  anulare.

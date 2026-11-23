@@ -215,6 +215,29 @@ export async function createPigeon(accountId, input) {
   });
 }
 
+/** Fișa unui porumbel nou, validată ca la createPigeon (400 pentru un câmp greșit), fără nicio citire din bază. */
+export const validNewPigeon = (input) => validate(input ?? {});
+
+/**
+ * Mai mulți porumbei noi deodată (importul din Excel), câte 500 într-o instrucțiune. Fișele vin din validNewPigeon, iar
+ * cine cheamă a verificat deja dublurile și ține contul blocat (lockAccount). Întoarce id-urile, în ordinea listei.
+ */
+export async function insertPigeons(accountId, list) {
+  if (!list.length) return [];
+  // Id-urile se iau dinainte din secvență, ca ordinea lor să fie sigur cea a listei.
+  const ids = (await all(`SELECT nextval(pg_get_serial_sequence('pigeons', 'id')) AS id FROM generate_series(1, ?)`, list.length)).map((r) => r.id);
+  const now = nowIso();
+  const row = `(${Array(COLS.split(',').length + 4).fill('?').join(', ')})`;
+  for (let i = 0; i < list.length; i += 500) {
+    const chunk = list.slice(i, i + 500);
+    await run(
+      `INSERT INTO pigeons (id, account_id, ${COLS}, created_at, updated_at) VALUES ${chunk.map(() => row).join(', ')}`,
+      ...chunk.flatMap((p, j) => [ids[i + j], accountId, ...columns(p), now, now]),
+    );
+  }
+  return ids;
+}
+
 export async function updatePigeon(accountId, id, input) {
   return tx(async () => {
     const existing = await getPigeon(accountId, id);

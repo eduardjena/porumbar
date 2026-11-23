@@ -351,3 +351,38 @@ export interface RingSeries {
   last: string;
   count: number;
 }
+
+/** „Adu porumbeii din Excel”: un rând cu probleme din rezumat (mesajul vine tradus de server). */
+export interface ImportProblem {
+  line: number;
+  ring: string;
+  kind: 'fara_inel' | 'inel_necitit' | 'dublura' | 'conflict' | 'parinte_necitit';
+  message: string;
+}
+
+/** Rezumatul importului din Excel (la previzualizare și la salvare; `importId` doar la salvare). */
+export interface ImportSummary {
+  created: number;
+  existing: number;
+  ancestors: number;
+  /** Cel mult 100; câte sunt de fapt: `problemCount`. */
+  problems: ImportProblem[];
+  problemCount: number;
+  importId?: number;
+}
+
+/** Ultimul import din Excel care se mai poate anula (`created` = doar rândurile tabelului, fără strămoși). */
+export interface LastImport {
+  id: number;
+  createdAt: string;
+  created: number;
+  undoUntil: string;
+}
+
+/** Ce a făcut „Anulează importul”: `deleted` cu tot cu strămoșii noi; `kept` = porumbei folosiți după import. */
+export interface ImportUndo {
+  deleted: number;
+  kept: number;
+  cleared: number;
+  reverted: number;
+}

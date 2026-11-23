@@ -7,7 +7,7 @@ const title = (key: string) => () => t(key);
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'panou' },
-  // Panoul (Grilă / Listă / Importă pedigree / Rezultate concurs / Scanează): un cadru comun (antetul și bara stau pe loc), se schimbă doar ce e sub ele.
+  // Panoul (Grilă / Listă / Importă pedigree / Adu din Excel / Rezultate concurs / Scanează): un cadru comun (antetul și bara stau pe loc), se schimbă doar ce e sub ele.
   {
     path: '',
     canActivate: [authGuard],
@@ -16,6 +16,8 @@ export const routes: Routes = [
       { path: 'panou', canActivate: [sellerHomeGuard], title: title('titlu.panou'), loadComponent: () => import('./pages/panou/panou') },
       { path: 'porumbar', title: title('titlu.porumbar'), loadComponent: () => import('./pages/porumbar/porumbar') },
       { path: 'porumbei/pedigree', title: title('titlu.pedigree_hartie'), loadComponent: () => import('./pages/pedigree-hartie/pedigree-hartie') },
+      // „Adu porumbeii din Excel” (tabel lipit sau fișier); authGuard vine de la cadru.
+      { path: 'porumbei/excel', canActivate: [authGuard], title: title('titlu.excel'), loadComponent: () => import('./pages/import-excel/import-excel') },
       { path: 'scaneaza', title: title('titlu.scaneaza'), loadComponent: () => import('./pages/scaneaza/scaneaza') },
       // „Rezultate concurs”, cu submeniurile Listare rezultate / Rezultat nou.
       { path: 'concursuri', pathMatch: 'full', redirectTo: 'concursuri/lista' },

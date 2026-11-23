@@ -237,9 +237,10 @@ const nestLabel = (pair, pigeons) => pair.nest || `${pigeonName(pigeons.get(pair
 
 /**
  * Pontele deschise (primul ou de mai puțin de 45 de zile, neînchise cu „Nu mai urmări”) ale unui cont sau, fără
- * `accountId`, ale tuturor conturilor: `{ accountId, clutchId, pairId, label, nest, fosterLabel, clutch, updatedAt }`
- * (`nest`: numărul cuibului pus de crescător, altfel null).
- * Ponta cu doică stă la cuibul doicii (`pairId`, `label`), cu perechea proprie la `fosterLabel`.
+ * `accountId`, ale tuturor conturilor: `{ accountId, clutchId, pairId, ownPairId, label, nest, fosterLabel, fosterNest,
+ * clutch, updatedAt }` (`nest`, `fosterNest`: numărul cuibului pus de crescător, altfel null).
+ * Ponta cu doică stă la cuibul doicii (`pairId`, `label`), cu perechea proprie la `fosterLabel`; `ownPairId` e
+ * perechea pontei (pe fișa ei se inelează puii).
  * `clutch` are forma din `nest-schedule.js`.
  */
 export async function openClutches({ accountId = null, today }) {
@@ -263,9 +264,11 @@ export async function openClutches({ accountId = null, today }) {
       accountId: r.account_id,
       clutchId: r.id,
       pairId: (foster ?? own).id,
+      ownPairId: own.id,
       label: nestLabel(foster ?? own, pigeons),
       nest: (foster ?? own).nest || null,
       fosterLabel: foster ? nestLabel(own, pigeons) : null,
+      fosterNest: foster ? own.nest || null : null,
       clutch: {
         id: r.id, egg1On: r.egg1_on, egg2On: r.egg2_on, eggs: r.eggs, candledOn: r.candled_on, infertile: r.infertile, broken: r.broken,
         hatchedOn: r.hatched_on, hatched: r.hatched, young: r.young_count, calendarClosedOn: r.calendar_closed_on,
@@ -284,8 +287,11 @@ export async function calendar(accountId, today) {
       items.push({
         clutchId: o.clutchId,
         pairId: o.pairId,
+        ownPairId: o.ownPairId,
         label: o.label,
+        nest: o.nest,
         fosterLabel: o.fosterLabel,
+        fosterNest: o.fosterNest,
         kind: m.kind,
         from: m.from,
         to: m.to,
@@ -294,6 +300,8 @@ export async function calendar(accountId, today) {
         ...(m.question ? { question: true } : {}),
         eggs: c.eggs,
         eggsLeft: c.eggs - c.infertile - c.broken,
+        infertile: c.infertile,
+        broken: c.broken,
         hatched: c.hatched,
         young: c.young,
       });

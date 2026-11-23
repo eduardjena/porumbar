@@ -331,6 +331,8 @@ export interface Clutch {
   egg1On: string;
   egg2On: string | null;
   eggs: number;
+  /** Ziua mirării (ouăle privite la lumină). */
+  candledOn: string | null;
   infertile: number;
   broken: number;
   hatchedOn: string | null;
@@ -338,10 +340,42 @@ export interface Clutch {
   fosterPairId: number | null;
   foster: Pair | null;
   note: string | null;
+  /** Ziua în care omul a apăsat „Nu mai urmări”: ponta nu mai apare în banda „Cuiburile”. */
+  calendarClosedOn: string | null;
   expectedHatch: { from: string; to: string } | null;
   ringFrom: string | null;
   ringTo: string | null;
   young: PigeonSummary[];
+}
+
+/** Un moment din banda „Cuiburile” (`GET /api/breeding/calendar`). */
+export interface CalendarItem {
+  clutchId: number;
+  /** Perechea la al cărei cuib stau ouăle (doica, dacă e). */
+  pairId: number;
+  /** Perechea pontei: pe fișa ei se inelează puii. */
+  ownPairId: number;
+  /** Numărul cuibului sau, fără el, „mascul × femelă”. */
+  label: string;
+  nest: string | null;
+  /** Perechea proprie, când ouăle sunt la doică. */
+  fosterLabel: string | null;
+  fosterNest: string | null;
+  kind: 'ou2' | 'mirare' | 'eclozare' | 'inelare';
+  from: string;
+  to: string | null;
+  state: 'viitor' | 'azi' | 'intarziat';
+  /** Ultima zi de inelare. */
+  last?: boolean;
+  /** „Doar un ou?” la al doilea ou. */
+  question?: boolean;
+  eggs: number;
+  eggsLeft: number;
+  infertile: number;
+  broken: number;
+  hatched: number | null;
+  /** Câți pui sunt deja inelați din pontă. */
+  young: number;
 }
 
 export interface RingSeries {

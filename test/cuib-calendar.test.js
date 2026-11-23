@@ -51,8 +51,11 @@ test('banda: al doilea ou așteptat azi; când vine, dispare', async () => {
   assert.equal(it[0].kind, 'ou2');
   assert.equal(it[0].state, 'azi');
   assert.equal(it[0].label, '7');
+  assert.equal(it[0].nest, '7');
   assert.equal(it[0].fosterLabel, null);
+  assert.equal(it[0].fosterNest, null);
   assert.equal(it[0].pairId, p.id);
+  assert.equal(it[0].ownPairId, p.id);
   assert.equal((await patch(a, c, { egg2On: today })).status, 200);
   assert.equal((await items(a, c)).length, 0);
 });
@@ -63,6 +66,7 @@ test('mirarea: data pusă și ouă limpezi → mirarea dispare, eclozarea număr
   let it = await items(a, c);
   assert.deepEqual(it.map((i) => i.kind).sort(), ['eclozare', 'mirare']);
   assert.match(it[0].label, /^Fulger\d+ × Vânta\d+$/);
+  assert.equal(it[0].nest, null);
   const r = await patch(a, c, { candledOn: day(-10), infertile: 1 });
   assert.equal(r.status, 200, JSON.stringify(r.data));
   assert.equal(r.data.clutch.candledOn, day(-10));
@@ -70,6 +74,8 @@ test('mirarea: data pusă și ouă limpezi → mirarea dispare, eclozarea număr
   assert.deepEqual(it.map((i) => i.kind), ['eclozare']);
   assert.equal(it[0].eggs, 2);
   assert.equal(it[0].eggsLeft, 1);
+  assert.equal(it[0].infertile, 1);
+  assert.equal(it[0].broken, 0);
   assert.equal((await patch(a, c, { candledOn: day(-18) })).status, 400, 'mirarea nu e înaintea primului ou');
 });
 
@@ -92,7 +98,9 @@ test('doica: ponta apare la cuibul doicii, cu perechea proprie la fosterLabel', 
   assert.equal(it.length, 1);
   assert.equal(it[0].label, '9');
   assert.equal(it[0].fosterLabel, '3');
+  assert.equal(it[0].fosterNest, '3');
   assert.equal(it[0].pairId, foster.id);
+  assert.equal(it[0].ownPairId, own.id, 'inelarea se face pe fișa perechii pontei');
 });
 
 test('separare: celălalt cont nu vede nimic din ale mele', async () => {

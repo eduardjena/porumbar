@@ -125,7 +125,7 @@ test('scurtături: „N-au ieșit” și „Nu inelez” scot momentul', async (
   assert.ok((await items(a, c)).some((i) => i.kind === 'eclozare'));
   const r = await patch(a, c, { infertile: 2 });
   assert.equal(r.data.clutch.infertile, 2);
-  assert.ok(!(await items(a, c)).some((i) => i.kind === 'eclozare'));
+  assert.deepEqual(await items(a, c), [], 'nu rămâne niciun rând al pontei (nici mirare, nici al doilea ou)');
 
   const q = await pair(a);
   const d = await clutch(a, q, { egg1On: day(-24), egg2On: day(-22), hatchedOn: day(-7), hatched: 2 });

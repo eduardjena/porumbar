@@ -75,3 +75,18 @@ test('reminderMoments: 19:00 în ajun, iar la ultima zi de inelare și 07:00', (
   assert.equal(kind(h, 'inelare').onDate, '2026-05-24');
   assert.equal(kind(h, 'eclozare'), undefined);
 });
+
+test('ponta ieșită, fără data celui de-al doilea ou: nici „Doar un ou?”, nici mirare', () => {
+  const c = clutch({ hatchedOn: '2026-05-19', hatched: 2, young: 0 });
+  assert.equal(kind(nestMoments(c, '2026-05-21'), 'ou2'), undefined);
+  assert.equal(kind(nestMoments(c, '2026-05-21'), 'mirare'), undefined);
+  assert.ok(!reminderMoments(c).some((m) => m.kind === 'ou2' || m.kind === 'mirare'));
+});
+
+test('toate ouăle clocite: nici al doilea ou, nici mirare', () => {
+  const c = clutch({ infertile: 2 });
+  const m = nestMoments(c, '2026-05-06');
+  assert.equal(kind(m, 'ou2'), undefined);
+  assert.equal(kind(m, 'mirare'), undefined);
+  assert.equal(reminderMoments(c).length, 0);
+});

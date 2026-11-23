@@ -29,6 +29,7 @@ function boldParts(key: string, bold: Record<string, unknown>, plain: Record<str
 interface ClutchForm {
   egg1On: string;
   egg2On: string;
+  candledOn: string;
   eggs: number;
   hatchedOn: string;
   hatched: number;
@@ -143,6 +144,7 @@ interface ClutchForm {
                 <div class="row">
                   <label class="field grow">{{ 'perechi.primul_ou' | t }} <app-date name="cegg1" [(ngModel)]="cf.egg1On" /></label>
                   <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <app-date name="cegg2" [(ngModel)]="cf.egg2On" /></label>
+                  <label class="field grow">{{ 'camp.data_mirarii' | t }} <span class="hint">{{ 'perechi.daca_e' | t }}</span><app-date name="ccandled" [(ngModel)]="cf.candledOn" /></label>
                   <label class="field grow">{{ 'camp.cate_oua' | t }}
                     <select name="eggs" [(ngModel)]="cf.eggs">@for (n of [1, 2, 3]; track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
@@ -257,7 +259,7 @@ export default class Pereche {
   readonly suggested = signal(false);
   readonly busy = signal(false);
   e = { pairedOn: '', separatedOn: '', nest: '', note: '' };
-  cf: ClutchForm = { egg1On: '', egg2On: '', eggs: 2, hatchedOn: '', hatched: 2, infertile: 0, broken: 0, fosterPairId: null, note: '' };
+  cf: ClutchForm = { egg1On: '', egg2On: '', candledOn: '', eggs: 2, hatchedOn: '', hatched: 2, infertile: 0, broken: 0, fosterPairId: null, note: '' };
   egg1On = today();
   egg2On = '';
   yRing = '';
@@ -365,7 +367,7 @@ export default class Pereche {
   openClutch(c: Clutch) {
     this.clutchError.set('');
     this.cf = {
-      egg1On: c.egg1On, egg2On: c.egg2On ?? '', eggs: c.eggs, hatchedOn: c.hatchedOn ?? today(),
+      egg1On: c.egg1On, egg2On: c.egg2On ?? '', candledOn: c.candledOn ?? '', eggs: c.eggs, hatchedOn: c.hatchedOn ?? today(),
       hatched: c.hatched ?? Math.max(0, c.eggs - c.infertile - c.broken), infertile: c.infertile, broken: c.broken,
       fosterPairId: c.fosterPairId, note: c.note ?? '',
     };
@@ -377,7 +379,7 @@ export default class Pereche {
     const f = this.cf;
     try {
       await this.api.patch(`/clutches/${c.id}`, {
-        egg1On: f.egg1On, egg2On: f.egg2On || null, eggs: f.eggs, hatchedOn: f.hatchedOn || null, hatched: f.hatchedOn ? f.hatched : null,
+        egg1On: f.egg1On, egg2On: f.egg2On || null, candledOn: f.candledOn || null, eggs: f.eggs, hatchedOn: f.hatchedOn || null, hatched: f.hatchedOn ? f.hatched : null,
         infertile: f.infertile, broken: f.broken, fosterPairId: f.fosterPairId, note: f.note || null,
       });
       this.clutchEdit.set(null);

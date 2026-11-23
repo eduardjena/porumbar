@@ -2607,6 +2607,18 @@
     "text": "Nu mai urmări",
     "sens": "Buton mic pe fiecare rând din bandă: ponta nu mai apare în bandă, fără să se scrie altceva pe ea. Pe fișa perechii se poate da „Urmărește din nou”."
   },
+  "cuib.nu_mai_urmari_titlu": {
+    "text": "Nu mai urmărești ponta?",
+    "sens": "Titlul ferestrei de confirmare după „Nu mai urmări” din banda de cuiburi."
+  },
+  "cuib.nu_mai_urmari_text": {
+    "text": "Ponta iese din bandă și amintirile ei se opresc, inclusiv ultima zi de inelare. Pe fișa perechii se poate da oricând „Urmărește din nou”.",
+    "sens": "Explicația din fereastra de confirmare „Nu mai urmărești ponta?”. „Urmărește din nou” e butonul de pe fișa perechii care pornește la loc urmărirea."
+  },
+  "cuib.nu_mai_urmari_da": {
+    "text": "Da, nu mai urmări",
+    "sens": "Butonul de confirmare din fereastra „Nu mai urmărești ponta?”."
+  },
   "cont.sub_amintiri": {
     "text": "Amintiri",
     "sens": "Eticheta din banda Cont: setările pentru amintiri (notificări pe telefon și email)."

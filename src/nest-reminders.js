@@ -14,10 +14,24 @@ export const NEST_KIND_ORDER = { ou2: 0, mirare: 1, eclozare: 2, inelare: 3, ine
 // Momentul din calendar căruia îi aparține amintirea (ultima zi de inelare e tot inelarea).
 const baseKind = (kind) => (kind.startsWith('inelare') ? 'inelare' : kind);
 
-/** Rândul unei amintiri de cuib, în limba contului: „Mâine pot ieși puii: cuibul 7”. */
-function line(kind, o, lang) {
-  const cuib = o.nest ? t(lang, 'amintire.cuibul', { n: o.nest }) : o.label;
-  return t(lang, `amintire.cuib_${kind}`, { cuib });
+/** Cuibul (sau perechea, fără număr de cuib) al unei amintiri. */
+const place = (o) => ({ nest: o.nest ?? null, label: o.label ?? null });
+
+/**
+ * Rândurile unei amintiri, în limba contului, câte unul pe fel de moment, cu toate cuiburile lui:
+ * „Mâine pot ieși puii: cuibul 3, 5, 7”. Perechile fără număr de cuib se adaugă după cuiburile cu număr.
+ * @param {{ kind: string, nest: string|null, label: string|null }[]} items
+ */
+export function groupNestItems(items, lang) {
+  const byKind = new Map();
+  for (const i of items) addTo(byKind, i.kind, i);
+  return [...byKind].map(([kind, list]) => {
+    const nests = [...new Set(list.filter((i) => i.nest).map((i) => String(i.nest)))]
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    const labels = [...new Set(list.filter((i) => !i.nest).map((i) => i.label))].sort((a, b) => a.localeCompare(b));
+    const parts = [...(nests.length ? [t(lang, 'amintire.cuibul', { n: nests.join(', ') })] : []), ...labels];
+    return { kind, text: t(lang, `amintire.cuib_${kind}`, { cuib: parts.join(', ') }) };
+  }).sort(byNestKind);
 }
 
 /** Pontele deschise ale conturilor cu abonament activ (cele „doar citire” nu primesc amintiri de cuib), cu limba. */
@@ -42,7 +56,7 @@ function addTo(map, key, value) {
  * Amintirile de cuib sosite la `now`, pe cont: momentul a venit (cel mult 3 ore în urmă), după ultima schimbare a pontei,
  * și e încă de făcut. „Mâine e ultima zi de inelare” nu intră: cine are telefonul primește ultima zi la 07:00, iar
  * emailul de seară o ia din `nestEveningLines`.
- * @returns {Promise<Map<number, { clutchId: number, kind: string, onDate: string, text: string }[]>>}
+ * @returns {Promise<Map<number, { clutchId: number, kind: string, onDate: string, lang: string, nest: string|null, label: string|null }[]>>}
  */
 export async function nestDueItems(now, today) {
   const out = new Map();
@@ -53,7 +67,7 @@ export async function nestDueItems(now, today) {
       if (m.kind === 'inelare_ultima_maine') continue;
       if (!(m.at <= now && now - m.at <= WINDOW && m.at >= changedAt)) continue;
       if (!todo.has(baseKind(m.kind))) continue;
-      addTo(out, o.accountId, { clutchId: o.clutchId, kind: m.kind, onDate: m.onDate, text: line(m.kind, o, o.lang) });
+      addTo(out, o.accountId, { clutchId: o.clutchId, kind: m.kind, onDate: m.onDate, lang: o.lang, ...place(o) });
     }
   }
   return out;
@@ -97,9 +111,10 @@ export async function nestEveningLines(today, evening) {
     for (const m of reminderMoments(o.clutch)) {
       if (m.onDate !== today || m.at.getTime() !== evening.getTime()) continue;
       if (!todo.has(baseKind(m.kind)) || sentElsewhere.has(`${o.clutchId}|${m.kind}`)) continue;
-      addTo(out, o.accountId, { kind: m.kind, text: line(m.kind, o, o.lang) });
+      addTo(out, o.accountId, { kind: m.kind, lang: o.lang, ...place(o) });
     }
   }
+  for (const [accountId, items] of out) out.set(accountId, groupNestItems(items, items[0].lang));
   return out;
 }
 

@@ -29,8 +29,8 @@ const awaitsEgg2 = (c) => c.eggs === 2 && !c.egg2On;
 // Zilele de început ale fiecărui moment încă de făcut: { kind, from, to }.
 function pending(c) {
   const out = [];
-  if (awaitsEgg2(c)) out.push({ kind: 'ou2', from: addDays(c.egg1On, SECOND_EGG[0]), to: null });
-  if (!c.candledOn && !c.hatchedOn) {
+  if (awaitsEgg2(c) && !c.hatchedOn && goodEggs(c) > 0) out.push({ kind: 'ou2', from: addDays(c.egg1On, SECOND_EGG[0]), to: null });
+  if (!c.candledOn && !c.hatchedOn && goodEggs(c) > 0) {
     const base = c.eggs === 2 ? (c.egg2On ?? addDays(c.egg1On, SECOND_EGG[0])) : c.egg1On;
     out.push({ kind: 'mirare', from: addDays(base, CANDLE_DAY), to: null });
   }

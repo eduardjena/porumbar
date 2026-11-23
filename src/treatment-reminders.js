@@ -10,7 +10,7 @@ import { pushToAccount } from './push.js';
 import { sendMail } from './mail.js';
 import { addDays, freezeTreatment, recipientIds, treatmentLabel } from './treatments.js';
 import { atBucharest, bucharestNow, dueMoments } from './treatment-schedule.js';
-import { byNestKind, claimNestNotices, nestDueItems, nestEveningLines } from './nest-reminders.js';
+import { claimNestNotices, groupNestItems, nestDueItems, nestEveningLines } from './nest-reminders.js';
 
 const HOUR = 3600e3;
 const WINDOW = 3 * HOUR; // ca în treatment-schedule.js: un moment ratat se mai trimite cel mult 3 ore
@@ -158,7 +158,7 @@ async function dueNestLines(now, today) {
   for (const [accountId, items] of due) {
     try {
       const claimed = await claimNestNotices(items);
-      if (claimed.length) out.set(accountId, claimed.map((i) => ({ kind: i.kind, text: i.text })).sort(byNestKind));
+      if (claimed.length) out.set(accountId, groupNestItems(claimed, claimed[0].lang));
     } catch (e) {
       console.error(`[porumbar] Amintirile de cuib ale contului ${accountId} nu au rulat:`, e.message); // i18n: ro
     }
@@ -249,7 +249,7 @@ async function sendEveningEmails(today, evening, pushResults, gapMs) {
         lines.push({ kind, text: line(kind, tr, count, lang) });
       }
       lines.sort(byKindAndText);
-      const nest = [...(nests.get(accountId) ?? [])].sort(byNestKind);
+      const nest = nests.get(accountId) ?? [];
       if (!lines.length && !nest.length) continue;
       const claimed = await one(
         'INSERT INTO email_digests (account_id, on_date, sent_at) VALUES (?, ?, now()) ON CONFLICT DO NOTHING RETURNING account_id',

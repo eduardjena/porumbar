@@ -89,7 +89,7 @@ interface Choice {
                         }
                       }
                     }
-                    <button type="button" class="link stop" [disabled]="locked()" (click)="save(i, { calendarClosedOn: today() })">{{ 'cuib.nu_mai_urmari' | t }}</button>
+                    <button type="button" class="link stop" [disabled]="locked()" (click)="stopFollowing(i)">{{ 'cuib.nu_mai_urmari' | t }}</button>
                   }
                 </div>
               </li>
@@ -236,6 +236,16 @@ export class CuiburiBanda {
       confirmLabel: t('cuib.nu_inelez_da'),
     });
     if (ok) await this.save(i, { hatched: i.young });
+  }
+
+  /** „Nu mai urmări”: ponta iese din bandă și amintirile ei se opresc; cere confirmare (o atingere greșită ar închide totul). */
+  protected async stopFollowing(i: CalendarItem) {
+    const ok = await this.confirm.ask({
+      title: t('cuib.nu_mai_urmari_titlu'),
+      lines: [this.who(i), t('cuib.nu_mai_urmari_text')],
+      confirmLabel: t('cuib.nu_mai_urmari_da'),
+    });
+    if (ok) await this.save(i, { calendarClosedOn: this.today() });
   }
 
   protected async save(i: CalendarItem, body: object) {

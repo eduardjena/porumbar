@@ -110,6 +110,17 @@ test('seara: în ajunul eclozării, o notificare cu cuibul; a doua rulare din fe
   assert.equal(mailsTo(a).length, 0, 'are un dispozitiv care a primit: fără email');
 });
 
+test('trei ponte de același fel în aceeași seară: un singur rând care numește toate cuiburile', async () => {
+  const d = nextDay();
+  const a = await account('Grupat');
+  const ep = await device(a);
+  for (const nest of ['7', '3', '5']) await clutch(a, nest, { egg1On: d, egg2On: d });
+  await run(at(addDays(d, 16), 19));
+  const got = pushesTo(ep);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].payload.body, 'Mâine pot ieși puii: cuibul 3, 5, 7');
+});
+
 test('un singur mesaj: tratamentul și cuibul în aceeași notificare; fără dispozitiv, în același email', async () => {
   const d = nextDay();
   const a = await account('UnMesaj');

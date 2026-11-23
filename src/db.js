@@ -409,6 +409,22 @@ const MIGRATIONS = [
   );
   CREATE INDEX ix_excel_import_items_pigeon ON excel_import_items (pigeon_id);
   `,
+
+  // 24: calendarul cuibului: data mirării și „nu mai urmări” pe pontă, ora ultimei schimbări (amintirile „contează doar
+  // după ultima schimbare”) și amintirile deja trimise (o singură dată pe moment și zi).
+  `
+  ALTER TABLE clutches ADD COLUMN candled_on DATE, ADD COLUMN calendar_closed_on DATE, ADD COLUMN updated_at TIMESTAMPTZ;
+  UPDATE clutches SET updated_at = created_at;
+  ALTER TABLE clutches ALTER COLUMN updated_at SET NOT NULL;
+
+  CREATE TABLE nest_notices (
+    clutch_id BIGINT NOT NULL REFERENCES clutches(id) ON DELETE CASCADE,
+    kind      TEXT NOT NULL,
+    on_date   DATE NOT NULL,
+    sent_at   TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (clutch_id, kind, on_date)
+  );
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

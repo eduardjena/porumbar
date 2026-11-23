@@ -65,7 +65,12 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   treatment-schedule.js  momentele amintirilor în ora României (modul pur)
   treatment-reminders.js rulantul pe oră (pornit din server.js): fixează momentele, trimite push + rezumatul de seară pe
                   email (cel mult unul pe seară); deduplicare în `treatment_notices` / `email_digests`;
-                  `REMINDER_EMAILS_PER_MINUTE` limitează emailurile
+                  `REMINDER_EMAILS_PER_MINUTE` limitează emailurile. Trimite și amintirile cuibului, în aceeași
+                  notificare și același email cu tratamentele
+  nest-reminders.js  amintirile cuibului (sursa pentru rulant): momentele sosite ale pontelor deschise (doar conturile
+                  cu abonament activ), rezervate în `nest_notices` (o dată pe pontă și moment), rândurile emailului de seară
+  nest-schedule.js  calendarul cuibului (modul pur): momentele rămase ale unei ponte și când se amintesc (vezi
+                  „Calendarul cuibului” mai jos); breeding.js `openClutches` / `calendar` + ruta `GET /api/breeding/calendar`
   push.js, routes/push.js  notificările pe telefon (`/api/auth/push`): abonarea, trimiterea prin `web-push` (versiune
                   fixată 4.0.0), doar către gazdele de push cunoscute; fără chei VAPID nu pleacă nimic pe telefon
   routes/treatments.js  API-ul `/api/treatments`
@@ -97,7 +102,10 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   scaneaza, pedigree-hartie, public (/p/:token), auth (intră, cont, parole), admin (consola /vanzator),
                   concurs, rezultate (vezi mai sus), tratamente (/tratamente: În curs · Urmează · Gata, fișa nou / modifică
                   în tratament-form.ts, detaliul cu porumbeii; banda „În curs / Urmează” de pe Panou e
-                  panou/tratamente-banda.ts; intrarea din jurnal scrisă de un tratament n-are „Șterge”, trimite la el). Fișa porumbelului se editează pe loc, pe secțiuni
+                  panou/tratamente-banda.ts; intrarea din jurnal scrisă de un tratament n-are „Șterge”, trimite la el),
+                  banda „Cuiburile” (panou/cuiburi-banda.ts, sub banda tratamentelor, doar pe Grilă: butoane de o
+                  atingere pe pontă, prin `PATCH /api/clutches/:id`; „Inelează” duce la `/perechi/:id?inelare=<ponta>`,
+                  care pe perechi/pereche.ts derulează ponta și deschide inelarea cu inelul propus). Fișa porumbelului se editează pe loc, pe secțiuni
                   (porumbel/fisa-editabila.ts, butonul „Schimbă”); câmpurile, lista „Ce se schimbă” și corpul trimis la
                   server sunt comune cu „Porumbel nou” (porumbel-form/pigeon-draft.ts). Filele Rezultate și Rezultat nou
                   ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul
@@ -181,6 +189,23 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
   (implicit 3 $). Prețurile modelelor sunt în `src/pedigree-reader.js`; `PEDIGREE_PRICE_INPUT` / `PEDIGREE_PRICE_OUTPUT`
   le înlocuiesc pe ale modelului ales.
   Altă firmă decât Anthropic = schimbare de cod, doar în `src/pedigree-reader.js` (funcția `claudeModel`).
+
+## Calendarul cuibului
+
+Design: `docs/superpowers/specs/2026-11-23-calendar-cuib-design.md`. Migrarea **24**: `clutches.candled_on`,
+`clutches.calendar_closed_on`, `clutches.updated_at` și tabelul `nest_notices` (momentele trimise). Dacă
+feat/plata-paddle intră după, migrările ei se renumerotează după cele din `main`.
+
+- O pontă e urmărită cât primul ou e din ultimele 45 de zile și omul n-a apăsat „Nu mai urmări”
+  (`calendar_closed_on`; pe fișa perechii „Urmărește din nou”). Ponta la doică apare la cuibul doicii.
+- Momentele (constante în `src/nest-schedule.js`, zilele în ora României): al doilea ou de la +2 („Doar un ou?” de la +4);
+  mirarea în ziua a 5-a după al doilea ou (după primul, la un singur ou), de verificat cu un crescător; ieșirea puilor
+  zilele 17–19 de la primul ou; inelarea zilele 6–8 de la ieșire (ziua 8 = ultima, cu roșu; după ea, „întârziată”).
+- Butoanele benzii scriu câmpurile existente: „N-au ieșit” = ouăle rămase trecute ca limpezi (`infertile`), „Nu inelez”
+  = `hatched` cât puii inelați; contul „doar citire” vede banda cu butoanele oprite (serverul dă 402).
+- **O singură notificare**: amintirile cuibului intră în aceeași notificare cu tratamentele (seara la 19:00 ce începe
+  mâine, dimineața la 07:00 ultima zi de inelare) și în același email de seară (unul pe cont și zi, `email_digests`);
+  fiecare moment se trimite o singură dată (`nest_notices`). Conturile „doar citire” nu primesc amintiri de cuib.
 
 ## Regulile vânzătorului (de respectat mereu)
 

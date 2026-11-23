@@ -6,7 +6,7 @@ import { Component, input } from '@angular/core';
  */
 export type IconName =
   | 'panou' | 'retea' | 'plus' | 'cont' | 'lista' | 'cautare' | 'editeaza' | 'arbore' | 'jurnal' | 'poze' | 'rude'
-  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou' | 'calendar' | 'tratament' | 'vaccin' | 'clopot' | 'tabel';
+  | 'fisa' | 'minus' | 'ramificare' | 'rotire' | 'mutare' | 'iesire' | 'sterge' | 'inainte' | 'inapoi' | 'alerta' | 'porumbel' | 'inchide' | 'bifa' | 'copac' | 'qr' | 'tipar' | 'trimite' | 'ordonare' | 'grupare' | 'filtru' | 'jos' | 'copie' | 'vinde' | 'cupa' | 'ou' | 'calendar' | 'tratament' | 'vaccin' | 'clopot' | 'tabel' | 'cuib';
 
 @Component({
   selector: 'app-icon',
@@ -57,6 +57,8 @@ export type IconName =
         @case ('clopot') { <path d="M10.3 21a1.9 1.9 0 0 0 3.4 0M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /> }
         <!-- Tabelul (foaia Excel): chenar cu rânduri și coloane. -->
         @case ('tabel') { <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M3 15h18M9 9v12M15 9v12" /> }
+        <!-- Cuibul: un culcuș rotund, cu două ouă în el. -->
+        @case ('cuib') { <ellipse cx="9.5" cy="8" rx="2.6" ry="3.4" /><ellipse cx="14.7" cy="8.6" rx="2.6" ry="3.4" /><path d="M2 12h20a10 7.5 0 0 1-20 0z" /><path d="M5.5 15.2l4.5 1.3M18.5 15.2 14 16.5M8.5 18.6h7" /> }
         @case ('vinde') { <path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z" /><circle cx="7.5" cy="7.5" r=".5" /> }
       }
     </svg>

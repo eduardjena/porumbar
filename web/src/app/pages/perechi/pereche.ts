@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, Injector, afterNextRender, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
@@ -29,6 +29,7 @@ function boldParts(key: string, bold: Record<string, unknown>, plain: Record<str
 interface ClutchForm {
   egg1On: string;
   egg2On: string;
+  candledOn: string;
   eggs: number;
   hatchedOn: string;
   hatched: number;
@@ -41,6 +42,7 @@ interface ClutchForm {
 /*
  * O pereche: datele ei, pontele (ouă → eclozare așteptată → eclozare → inelare) și puii inelați din fiecare pontă.
  * La inelare se propune inelul următor din seriile de inele; puiul devine porumbel cu tatăl și mama perechii.
+ * Din banda „Cuiburile” se vine cu `?inelare=<ponta>`: ponta se derulează în vedere, cu pasul de inelare deschis.
  */
 @Component({
   selector: 'app-pereche',
@@ -104,12 +106,17 @@ interface ClutchForm {
 
       <ul class="clutches">
         @for (c of p.clutches ?? []; track c.id) {
-          <li class="card stack">
+          <li class="card stack ponta" [id]="'ponta-' + c.id">
             <div class="row between">
               <strong>{{ c.egg2On ? ('perechi.oua_doua' | t: { data1: date(c.egg1On), data2: date(c.egg2On) }) : ('perechi.oua_una' | t: { data: date(c.egg1On) }) }}<span class="muted"> {{ 'perechi.n_oua' | t: { count: c.eggs } }}</span></strong>
               <button type="button" class="link" (click)="removeClutch(c)">{{ 'actiune.sterge' | t }}</button>
             </div>
             @if (c.foster) { <p class="muted">{{ 'perechi.clocite_de_doica' | t: { pereche: ring(c.foster.cock) + ' × ' + ring(c.foster.hen) } }}</p> }
+            @if (c.candledOn) { <p class="step">{{ 'perechi.mirat_pe' | t: { data: date(c.candledOn) } }}</p> }
+            @if (c.calendarClosedOn) {
+              <p class="step closed"><span class="muted">{{ 'perechi.inchisa_calendar' | t }}</span>
+                <button type="button" class="link" (click)="followAgain(c)">{{ 'perechi.urmareste_din_nou' | t }}</button></p>
+            }
             @if (c.expectedHatch; as h) {
               <p class="step">@for (x of parts('perechi.ies_intre', { de: date(h.from), pana: date(h.to) }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}</p>
             }
@@ -137,6 +144,7 @@ interface ClutchForm {
                 <div class="row">
                   <label class="field grow">{{ 'perechi.primul_ou' | t }} <app-date name="cegg1" [(ngModel)]="cf.egg1On" /></label>
                   <label class="field grow">{{ 'perechi.al_doilea_ou' | t }} <app-date name="cegg2" [(ngModel)]="cf.egg2On" /></label>
+                  <label class="field grow">{{ 'camp.data_mirarii' | t }} <span class="hint">{{ 'perechi.daca_e' | t }}</span><app-date name="ccandled" [(ngModel)]="cf.candledOn" /></label>
                   <label class="field grow">{{ 'camp.cate_oua' | t }}
                     <select name="eggs" [(ngModel)]="cf.eggs">@for (n of [1, 2, 3]; track n) { <option [ngValue]="n">{{ n }}</option> }</select>
                   </label>
@@ -217,6 +225,9 @@ interface ClutchForm {
     .between { justify-content: space-between; }
     .clutches { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
     .step { margin: 0; }
+    .closed { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; }
+    .closed .link { min-height: 48px; }
+    .ponta { scroll-margin-top: 16px; }
     .sub { border-top: 1px solid var(--border); padding-top: 12px; }
     h3, h4 { margin: 0; }
     .young { margin: 0; padding-left: 20px; }
@@ -230,7 +241,12 @@ export default class Pereche {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
+  private readonly injector = inject(Injector);
   readonly id = input.required<string>();
+  /** `?inelare=<ponta>` (din banda „Cuiburile”): deschide inelarea acelei ponte. */
+  readonly inelare = input<string | undefined>();
+  /** Ponta din `?inelare` deja deschisă (o singură dată, nu la fiecare reîncărcare). */
+  private ringOpened: string | null = null;
   readonly pair = signal<Pair | null>(null);
   readonly fosters = signal<Pair[]>([]);
   readonly error = signal('');
@@ -243,7 +259,7 @@ export default class Pereche {
   readonly suggested = signal(false);
   readonly busy = signal(false);
   e = { pairedOn: '', separatedOn: '', nest: '', note: '' };
-  cf: ClutchForm = { egg1On: '', egg2On: '', eggs: 2, hatchedOn: '', hatched: 2, infertile: 0, broken: 0, fosterPairId: null, note: '' };
+  cf: ClutchForm = { egg1On: '', egg2On: '', candledOn: '', eggs: 2, hatchedOn: '', hatched: 2, infertile: 0, broken: 0, fosterPairId: null, note: '' };
   egg1On = today();
   egg2On = '';
   yRing = '';
@@ -275,6 +291,7 @@ export default class Pereche {
       const pair = (await this.api.get<{ pair: Pair }>(`/pairs/${id}`)).pair;
       this.pair.set(pair);
       this.error.set('');
+      this.openRingFromLink(pair);
       const others = await this.api.get<{ pairs: Pair[] }>(`/pairs?season=${pair.season}`);
       this.fosters.set(others.pairs.filter((x) => x.id !== pair.id && x.status !== 'planificata'));
     } catch (e) {
@@ -284,6 +301,27 @@ export default class Pereche {
 
   private reload() {
     return this.load(this.id());
+  }
+
+  /** Venit din banda „Cuiburile”: ponta cerută se derulează în vedere și, dacă mai are pui de inelat, se deschide inelarea. */
+  private openRingFromLink(pair: Pair) {
+    const wanted = this.inelare();
+    if (!wanted || wanted === this.ringOpened) return;
+    this.ringOpened = wanted;
+    const c = pair.clutches?.find((x) => String(x.id) === wanted);
+    if (!c) return;
+    if (c.hatchedOn && c.young.length < (c.hatched ?? c.eggs)) void this.openRing(c);
+    afterNextRender(() => document.getElementById(`ponta-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), { injector: this.injector });
+  }
+
+  /** „Urmărește din nou”: ponta închisă cu „Nu mai urmări” revine în banda „Cuiburile”. */
+  async followAgain(c: Clutch) {
+    try {
+      await this.api.patch(`/clutches/${c.id}`, { calendarClosedOn: null });
+      await this.reload();
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    }
   }
 
   async startPair(p: Pair) {
@@ -329,7 +367,7 @@ export default class Pereche {
   openClutch(c: Clutch) {
     this.clutchError.set('');
     this.cf = {
-      egg1On: c.egg1On, egg2On: c.egg2On ?? '', eggs: c.eggs, hatchedOn: c.hatchedOn ?? today(),
+      egg1On: c.egg1On, egg2On: c.egg2On ?? '', candledOn: c.candledOn ?? '', eggs: c.eggs, hatchedOn: c.hatchedOn ?? today(),
       hatched: c.hatched ?? Math.max(0, c.eggs - c.infertile - c.broken), infertile: c.infertile, broken: c.broken,
       fosterPairId: c.fosterPairId, note: c.note ?? '',
     };
@@ -341,7 +379,7 @@ export default class Pereche {
     const f = this.cf;
     try {
       await this.api.patch(`/clutches/${c.id}`, {
-        egg1On: f.egg1On, egg2On: f.egg2On || null, eggs: f.eggs, hatchedOn: f.hatchedOn || null, hatched: f.hatchedOn ? f.hatched : null,
+        egg1On: f.egg1On, egg2On: f.egg2On || null, candledOn: f.candledOn || null, eggs: f.eggs, hatchedOn: f.hatchedOn || null, hatched: f.hatchedOn ? f.hatched : null,
         infertile: f.infertile, broken: f.broken, fosterPairId: f.fosterPairId, note: f.note || null,
       });
       this.clutchEdit.set(null);

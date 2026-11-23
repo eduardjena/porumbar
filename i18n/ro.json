@@ -89,6 +89,7 @@
   "eroare.pereche_negasita": "Perechea nu a fost găsită.",
   "eroare.pereche_exista": "Perechea aceasta există deja în sezonul {sezon}.",
   "eroare.ou_inainte": "Al doilea ou nu poate fi înaintea primului.",
+  "eroare.mirare_inainte": "Mirarea nu poate fi înaintea primului ou.",
   "eroare.pui_inainte_de_ou": "Puii nu pot ieși înainte de ou (sau în aceeași zi).",
   "eroare.oua_prea_multe": "Puii ieșiți, ouăle limpezi și cele sparte nu pot fi mai multe decât ouăle ({oua}).",
   "eroare.ponta_negasita": "Ponta nu a fost găsită.",
@@ -241,6 +242,8 @@
   "camp.cuibul": "Cuibul",
   "camp.data_primului_ou": "Data primului ou",
   "camp.data_ou_doi": "Data celui de-al doilea ou",
+  "camp.data_mirarii": "Data mirării",
+  "camp.nu_mai_urmaresc": "Data „Nu mai urmări”",
   "camp.desenul_ascuns": "desenul ascuns",
   "camp.uniform_ascuns": "spread ascuns",
   "camp.linie": "linie",
@@ -1547,6 +1550,18 @@
   "perechi.nu_se_stie": "Nu se știe încă",
   "perechi.ineleaza_puiul": "Inelează puiul",
   "perechi.ineleaza_un_pui": "Inelează un pui",
+  "perechi.mirat_pe": {
+    "text": "Mirat pe {data}",
+    "sens": "Pe fișa perechii, la o pontă: ziua în care ouăle au fost privite la lumină (mirarea). {data} = data."
+  },
+  "perechi.inchisa_calendar": {
+    "text": "Închisă în calendar: nu mai apare în banda „Cuiburile” de pe Panou.",
+    "sens": "Pe fișa perechii, la o pontă pentru care omul a apăsat „Nu mai urmări” în banda de pe Panou."
+  },
+  "perechi.urmareste_din_nou": {
+    "text": "Urmărește din nou",
+    "sens": "Buton pe fișa perechii: ponta închisă revine în banda „Cuiburile” de pe Panou."
+  },
   "perechi.nicio_ponta": "Nicio pontă încă.",
   "perechi.stergerea": "Ștergerea perechii",
   "perechi.stergerea_text": "Se șterg perechea și pontele ei. Puii inelați rămân în porumbar, cu tatăl și mama lor.",
@@ -2080,6 +2095,46 @@
     "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Amintiri.\n",
     "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente. „Cont → Amintiri” = meniul Cont, secțiunea Amintiri (unde se pornesc notificările pe telefon și se oprește emailul)."
   },
+  "amintire.cuibul": {
+    "text": "cuibul {n}",
+    "sens": "Cuibul din amintirile pentru cuiburi, când perechea are numărul cuibului pus. {n} = numărul cuibului (de ex. „7”)."
+  },
+  "amintire.cuib_ou2": {
+    "text": "Mâine e așteptat al doilea ou: {cuib}",
+    "sens": "Amintirea de seară (19:00) din ajunul zilei în care e așteptat al doilea ou. {cuib} = „cuibul 7” sau, fără număr de cuib, perechea („Fulger × Vânta”)."
+  },
+  "amintire.cuib_mirare": {
+    "text": "Mâine e mirarea ouălor: {cuib}",
+    "sens": "Amintirea de seară din ajunul mirării (ouăle privite la lumină, să se vadă care sunt limpezi). {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_eclozare": {
+    "text": "Mâine pot ieși puii: {cuib}",
+    "sens": "Amintirea de seară din ajunul primei zile în care pot ieși puii din ouă. {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_inelare": {
+    "text": "Mâine începe inelarea puilor: {cuib}",
+    "sens": "Amintirea de seară din ajunul primei zile de inelare a puilor. {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_inelare_ultima_maine": {
+    "text": "Mâine e ultima zi de inelare: {cuib}",
+    "sens": "Rând în emailul de seară: mâine e ultima zi în care puii se mai pot inela. {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_inelare_ultima": {
+    "text": "Azi e ultima zi de inelare: {cuib}",
+    "sens": "Notificarea de dimineață (07:00) din ultima zi în care puii se mai pot inela. {cuib} = cuibul sau perechea."
+  },
+  "amintire.email_subiect_cuiburi": {
+    "text": "Porumbar: amintire pentru cuiburi",
+    "sens": "Subiectul emailului de seară când are doar amintiri pentru cuiburi (al doilea ou, mirare, eclozare, inelare)."
+  },
+  "amintire.email_subiect_toate": {
+    "text": "Porumbar: amintire pentru tratamente și cuiburi",
+    "sens": "Subiectul emailului de seară când are și tratamente, și cuiburi."
+  },
+  "amintire.email_text_cuib": {
+    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nPanoul: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Amintirile pentru tratamente și cuiburi le pornești pe telefon, iar emailul îl oprești, din Cont → Amintiri.\n",
+    "sens": "Emailul de seară (cel mult unul pe zi) când are și amintiri pentru cuiburi. {nume} = numele omului, {lista} = rândurile (tratamentele, apoi cuiburile), câte unul pe rând, {link} = adresa Panoului. Ultimul rând spune unde se pornesc notificările și unde se oprește emailul („Cont → Amintiri” = meniul Cont, secțiunea Amintiri)."
+  },
   "meniu.tratamente": {
     "text": "Tratamente",
     "sens": "Butonul din banda Panoului și numele paginii cu tratamentele și vaccinurile date la tot porumbarul."
@@ -2411,6 +2466,158 @@
   "tratamente.toate": {
     "text": "Toate tratamentele",
     "sens": "Legătura de pe Panou către pagina Tratamente."
+  },
+  "cuib.titlu": {
+    "text": "Cuiburile",
+    "sens": "Titlul benzii de pe Panou cu ce e de făcut la cuiburi azi și în următoarele zile (al doilea ou, mirarea ouălor, ieșirea puilor, inelarea)."
+  },
+  "cuib.intarziate": {
+    "text": "Întârziate",
+    "sens": "Secțiunea din banda „Cuiburile” de pe Panou cu ce trebuia făcut deja (de ex. puii de inelat după ultima zi). Apare prima, cu roșu."
+  },
+  "cuib.azi": {
+    "text": "Azi",
+    "sens": "Secțiunea din banda „Cuiburile” de pe Panou cu ce e de făcut azi."
+  },
+  "cuib.maine": {
+    "text": "Mâine",
+    "sens": "Secțiunea din banda „Cuiburile” de pe Panou cu ce e de făcut mâine."
+  },
+  "cuib.urmatoarele": {
+    "text": "Următoarele zile",
+    "sens": "Secțiunea din banda „Cuiburile” de pe Panou cu ce urmează peste 2–3 zile; fiecare rând are data la capăt."
+  },
+  "cuib.cuibul": {
+    "text": "Cuibul {n}",
+    "sens": "Începutul unui rând din banda „Cuiburile” de pe Panou, când perechea are numărul cuibului pus. {n} = numărul cuibului (de ex. „7”). Fără număr, rândul începe cu perechea („Fulger × Vânta”)."
+  },
+  "cuib.doica": {
+    "text": "ouă de la {pereche}",
+    "sens": "Pe un rând din bandă: ouăle din cuib sunt ale altei perechi (cuibul e al doicii, care le clocește). {pereche} = „cuibul 3” sau „Fulger × Vânta”."
+  },
+  "cuib.ou2": {
+    "text": "al doilea ou",
+    "sens": "Ce e de făcut pe un rând din bandă: e așteptat al doilea ou (se scrie după „Cuibul 7 · ”)."
+  },
+  "cuib.ou2_intrebare": {
+    "text": "doar un ou?",
+    "sens": "Al doilea ou n-a venit nici după 4 zile de la primul: poate ponta are doar un ou."
+  },
+  "cuib.mirare": {
+    "text": "mirarea ouălor (la lumină)",
+    "sens": "Ce e de făcut pe un rând din bandă: ouăle se privesc la lumină, să se vadă care sunt limpezi (nefecundate)."
+  },
+  "cuib.eclozare": {
+    "text": "pot ieși puii (până pe {pana})",
+    "sens": "Ce e de făcut pe un rând din bandă: zilele în care pot ieși puii din ouă. {pana} = ultima zi așteptată (ziua 19 de la primul ou)."
+  },
+  "cuib.eclozare_intrebare": {
+    "text": "au ieșit puii?",
+    "sens": "A trecut ziua 19 de la primul ou și ieșirea puilor nu e trecută."
+  },
+  "cuib.inelare": {
+    "one": "inelează {count} pui",
+    "few": "inelează {count} pui",
+    "other": "inelează {count} de pui",
+    "sens": "Ce e de făcut pe un rând din bandă: puii ieșiți care încă n-au inel. {count} = câți."
+  },
+  "cuib.ultima_zi": {
+    "text": "ultima zi!",
+    "sens": "Azi e ultima zi în care puii se mai pot inela (ziua 8 de la ieșire); scris cu roșu."
+  },
+  "cuib.intarziat": {
+    "text": "întârziat",
+    "sens": "Eticheta roșie pe un rând din bandă: zilele momentului au trecut și nu e trecut nimic."
+  },
+  "cuib.a_venit_azi": {
+    "text": "A venit azi",
+    "sens": "Buton: al doilea ou a venit azi (se scrie data de azi; se poate schimba pe fișa perechii)."
+  },
+  "cuib.doar_unul": {
+    "text": "Doar unul",
+    "sens": "Buton: ponta are doar un ou (al doilea nu mai vine)."
+  },
+  "cuib.toate_bune": {
+    "text": "Toate bune",
+    "sens": "Buton după mirare: toate ouăle sunt bune (fecundate)."
+  },
+  "cuib.limpezi": {
+    "text": "Limpezi…",
+    "sens": "Buton după mirare: unele ouă sunt limpezi (nefecundate); deschide alegerea numărului."
+  },
+  "cuib.limpezi_n": {
+    "text": "Limpezi: {n}",
+    "sens": "Buton după mirare: {n} ouă limpezi (când e un singur ou de ales, se apasă direct)."
+  },
+  "cuib.cate_limpezi": {
+    "text": "Câte ouă sunt limpezi?",
+    "sens": "Întrebarea de deasupra butoanelor cu numere (1, 2 …), după „Limpezi…”."
+  },
+  "cuib.au_iesit": {
+    "text": "Au ieșit puii…",
+    "sens": "Buton: au ieșit puii azi; deschide alegerea numărului."
+  },
+  "cuib.au_iesit_n": {
+    "text": "Au ieșit: {n}",
+    "sens": "Buton: azi au ieșit {n} pui (când e un singur ou bun, se apasă direct)."
+  },
+  "cuib.cati_pui": {
+    "text": "Câți pui au ieșit?",
+    "sens": "Întrebarea de deasupra butoanelor cu numere (1, 2 …), după „Au ieșit puii…”."
+  },
+  "cuib.n_au_iesit": {
+    "text": "N-au ieșit",
+    "sens": "Buton: puii n-au ieșit; ouăle rămase se trec ca limpezi și ieșirea puilor nu mai e așteptată."
+  },
+  "cuib.n_au_iesit_titlu": {
+    "text": "N-au ieșit puii?",
+    "sens": "Titlul ferestrei de confirmare după „N-au ieșit”."
+  },
+  "cuib.n_au_iesit_text": {
+    "one": "Oul rămas se trece ca limpede (din el n-a ieșit pui). Se poate schimba pe fișa perechii.",
+    "few": "Cele {count} ouă rămase se trec ca limpezi (din ele n-au ieșit pui). Se poate schimba pe fișa perechii.",
+    "other": "Cele {count} de ouă rămase se trec ca limpezi (din ele n-au ieșit pui). Se poate schimba pe fișa perechii.",
+    "sens": "Explicația din fereastra de confirmare „N-au ieșit”. {count} = câte ouă au rămas."
+  },
+  "cuib.n_au_iesit_da": {
+    "text": "Da, n-au ieșit",
+    "sens": "Butonul de confirmare din fereastra „N-au ieșit puii?”."
+  },
+  "cuib.ineleaza": {
+    "text": "Inelează",
+    "sens": "Buton: deschide inelarea puilor pe fișa perechii, cu inelul următor propus."
+  },
+  "cuib.nu_inelez": {
+    "text": "Nu inelez",
+    "sens": "Buton: puii rămași nu se mai inelează (de ex. au murit)."
+  },
+  "cuib.nu_inelez_titlu": {
+    "text": "Nu mai inelezi puii?",
+    "sens": "Titlul ferestrei de confirmare după „Nu inelez”."
+  },
+  "cuib.nu_inelez_text": {
+    "text": "Puii neinelați se scot din pontă (de ex. au murit) și inelarea nu mai apare în bandă. Se poate schimba pe fișa perechii.",
+    "sens": "Explicația din fereastra de confirmare „Nu inelez”."
+  },
+  "cuib.nu_inelez_da": {
+    "text": "Da, nu-i inelez",
+    "sens": "Butonul de confirmare din fereastra „Nu mai inelezi puii?”."
+  },
+  "cuib.nu_mai_urmari": {
+    "text": "Nu mai urmări",
+    "sens": "Buton mic pe fiecare rând din bandă: ponta nu mai apare în bandă, fără să se scrie altceva pe ea. Pe fișa perechii se poate da „Urmărește din nou”."
+  },
+  "cuib.nu_mai_urmari_titlu": {
+    "text": "Nu mai urmărești ponta?",
+    "sens": "Titlul ferestrei de confirmare după „Nu mai urmări” din banda de cuiburi."
+  },
+  "cuib.nu_mai_urmari_text": {
+    "text": "Ponta iese din bandă și amintirile ei se opresc, inclusiv ultima zi de inelare. Pe fișa perechii se poate da oricând „Urmărește din nou”.",
+    "sens": "Explicația din fereastra de confirmare „Nu mai urmărești ponta?”. „Urmărește din nou” e butonul de pe fișa perechii care pornește la loc urmărirea."
+  },
+  "cuib.nu_mai_urmari_da": {
+    "text": "Da, nu mai urmări",
+    "sens": "Butonul de confirmare din fereastra „Nu mai urmărești ponta?”."
   },
   "cont.sub_amintiri": {
     "text": "Amintiri",

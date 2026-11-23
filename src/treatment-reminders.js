@@ -1,7 +1,8 @@
-// Amintirile tratamentelor: verificarea de pe oră (fixarea tratamentelor începute, notificările pe telefon și
-// rezumatul de seară pe email). Fiecare amintire se „rezervă” în bază înainte de trimitere (INSERT … ON CONFLICT DO
-// NOTHING RETURNING): pleacă doar ce a rezervat rularea aceasta, deci două rulări simultane (o publicare nouă pornită
-// peste cea veche) nu trimit de două ori. Nimic nu se reîncearcă: mai bine o amintire pierdută decât spam.
+// Amintirile tratamentelor și ale cuibului: verificarea de pe oră (fixarea tratamentelor începute, notificările pe
+// telefon și rezumatul de seară pe email). Tratamentele și cuiburile pleacă împreună: o singură notificare pe cont și
+// moment, un singur email pe cont și seară (cuiburile: nest-reminders.js). Fiecare amintire se „rezervă” în bază
+// înainte de trimitere (INSERT … ON CONFLICT DO NOTHING RETURNING): pleacă doar ce a rezervat rularea aceasta, deci
+// două rulări simultane (o publicare nouă pornită peste cea veche) nu trimit de două ori. Nimic nu se reîncearcă: mai bine o amintire pierdută decât spam.
 import { all, one } from './db.js';
 import { config } from './config.js';
 import { t, ref, localeOf } from './i18n.js';
@@ -9,6 +10,7 @@ import { pushToAccount } from './push.js';
 import { sendMail } from './mail.js';
 import { addDays, freezeTreatment, recipientIds, treatmentLabel } from './treatments.js';
 import { atBucharest, bucharestNow, dueMoments } from './treatment-schedule.js';
+import { claimNestNotices, groupNestItems, nestDueItems, nestEveningLines } from './nest-reminders.js';
 
 const HOUR = 3600e3;
 const WINDOW = 3 * HOUR; // ca în treatment-schedule.js: un moment ratat se mai trimite cel mult 3 ore
@@ -106,8 +108,8 @@ async function claimNotices(items) {
   return items.filter((i) => won.has(`${i.tr.id}|${i.kind}|${i.onDate}`));
 }
 
-/** 2–3. Momentele sosite se rezervă și pleacă într-o singură notificare pe cont. Întoarce rezultatele pe cont. */
-async function sendDuePushes(now, today) {
+/** 2. Momentele tratamentelor sosite, rezervate, pe cont: `{ lang, lines, ids }` (ids = tratamentele din rânduri). */
+async function dueTreatmentLines(now, today) {
   const rows = await all(
     `SELECT t.*, a.lang FROM treatments t JOIN accounts a ON a.id = t.account_id
       WHERE t.cancelled_on IS NULL
@@ -115,7 +117,7 @@ async function sendDuePushes(now, today) {
       ORDER BY t.account_id, t.id`,
     today, today, today, today,
   );
-  const results = new Map();
+  const out = new Map();
   for (const [accountId, list] of groupBy(rows, 'account_id')) {
     try {
       const items = [];
@@ -131,12 +133,65 @@ async function sendDuePushes(now, today) {
       const claimed = await claimNotices(items);
       if (!claimed.length) continue;
       const lang = list[0].lang;
-      const lines = claimed.map((i) => ({ kind: i.kind, text: line(i.kind, i.tr, i.count, lang) })).sort(byKindAndText);
-      const ids = new Set(claimed.map((i) => i.tr.id));
+      out.set(accountId, {
+        lang,
+        lines: claimed.map((i) => ({ kind: i.kind, text: line(i.kind, i.tr, i.count, lang) })).sort(byKindAndText),
+        ids: new Set(claimed.map((i) => i.tr.id)),
+      });
+    } catch (e) {
+      console.error(`[porumbar] Amintirile contului ${accountId} nu au rulat:`, e.message); // i18n: ro
+    }
+  }
+  return out;
+}
+
+/** 3. Momentele cuibului sosite, rezervate, pe cont: rândurile lor. */
+async function dueNestLines(now, today) {
+  const out = new Map();
+  let due;
+  try {
+    due = await nestDueItems(now, today);
+  } catch (e) {
+    console.error('[porumbar] Amintirile cuibului nu au rulat:', e.message); // i18n: ro
+    return out;
+  }
+  for (const [accountId, items] of due) {
+    try {
+      const claimed = await claimNestNotices(items);
+      if (claimed.length) out.set(accountId, groupNestItems(claimed, claimed[0].lang));
+    } catch (e) {
+      console.error(`[porumbar] Amintirile de cuib ale contului ${accountId} nu au rulat:`, e.message); // i18n: ro
+    }
+  }
+  return out;
+}
+
+/** Datele conturilor `ids` de care au nevoie notificarea și emailul (limba, adresa, numele, emailul pornit). */
+async function accountInfo(ids) {
+  if (!ids.length) return new Map();
+  const rows = await all('SELECT id, lang, email, name, reminder_email FROM accounts WHERE id = ANY(?::bigint[])', ids);
+  return new Map(rows.map((r) => [r.id, r]));
+}
+
+/**
+ * 2–3. Momentele sosite (tratamente și cuiburi) pleacă într-o singură notificare pe cont; linkul: tratamentul, când e
+ * unul singur și nimic de la cuiburi, altfel Panoul. Întoarce rezultatele pe cont.
+ */
+async function sendDuePushes(now, today) {
+  const treatments = await dueTreatmentLines(now, today);
+  const nests = await dueNestLines(now, today);
+  const info = await accountInfo([...nests.keys()].filter((id) => !treatments.has(id)));
+  const results = new Map();
+  for (const accountId of new Set([...treatments.keys(), ...nests.keys()])) {
+    try {
+      const tr = treatments.get(accountId);
+      const nest = nests.get(accountId) ?? [];
+      const lang = tr?.lang ?? info.get(accountId)?.lang;
+      const lines = [...(tr?.lines ?? []), ...nest];
       const payload = {
         title: t(lang, 'push.titlu'),
         body: lines.map((l) => l.text).join('\n'),
-        url: ids.size === 1 ? `/tratamente/${[...ids][0]}` : '/panou',
+        url: !nest.length && tr.ids.size === 1 ? `/tratamente/${[...tr.ids][0]}` : '/panou',
       };
       let result;
       try {
@@ -154,49 +209,62 @@ async function sendDuePushes(now, today) {
 }
 
 /**
- * 4. Rezumatul de seară: conturile cu ceva pentru mâine (început, ultima zi) sau o repetare peste 3 zile, cu emailul
- * pornit și fără dispozitiv care să fi primit notificarea serii. `pushResults`: notificările trimise de rularea asta
- * (în fereastra serii toate sunt ale serii: momentele de 07:00 nu pot fi sosite atunci).
+ * 4. Rezumatul de seară: conturile cu ceva pentru mâine (început, ultima zi, un moment al cuibului) sau o repetare peste
+ * 3 zile, cu emailul pornit și fără dispozitiv care să fi primit notificarea serii. Tratamentele și cuiburile într-un
+ * singur email. `pushResults`: notificările trimise de rularea asta (în fereastra serii toate sunt ale serii: momentele
+ * de 07:00 nu pot fi sosite atunci).
  */
 async function sendEveningEmails(today, evening, pushResults, gapMs) {
   const tomorrow = addDays(today, 1);
   const rows = await all(
-    `SELECT t.*, a.lang, a.email, a.name AS account_name FROM treatments t JOIN accounts a ON a.id = t.account_id
+    `SELECT t.*, a.lang FROM treatments t JOIN accounts a ON a.id = t.account_id
       WHERE a.reminder_email AND t.cancelled_on IS NULL AND t.updated_at <= ?
         AND (t.start_date = ?::date OR (t.days >= 2 AND t.start_date + t.days - 1 = ?::date)
              OR (t.parent_id IS NOT NULL AND t.start_date = ?::date))
       ORDER BY t.account_id, t.id`,
     evening.toISOString(), tomorrow, tomorrow, addDays(today, 3),
   );
+  const treatments = groupBy(rows, 'account_id');
+  let nests = new Map();
+  try {
+    nests = await nestEveningLines(today, evening);
+  } catch (e) {
+    console.error('[porumbar] Rândurile de cuib ale rezumatului de seară nu au rulat:', e.message); // i18n: ro
+  }
+  const accountIds = [...new Set([...treatments.keys(), ...nests.keys()])];
+  const info = await accountInfo(accountIds);
   let emails = 0;
-  for (const [accountId, list] of groupBy(rows, 'account_id')) {
+  for (const accountId of accountIds) {
     try {
+      const acc = info.get(accountId);
+      if (!acc?.reminder_email) continue;
       const push = pushResults.get(accountId);
       if (push ? push.sent > 0 : (await one('SELECT count(*) AS n FROM push_subscriptions WHERE account_id = ?', accountId)).n > 0) continue;
-      const lang = list[0].lang;
+      const lang = acc.lang;
       const lines = [];
-      for (const tr of list) {
+      for (const tr of treatments.get(accountId) ?? []) {
         const count = (await recipientIds(tr)).length;
         if (!count) continue;
         const kind = tr.start_date === tomorrow ? 'inainte' : tr.start_date === addDays(today, 3) ? 'repetare' : 'ultima_zi_maine';
         lines.push({ kind, text: line(kind, tr, count, lang) });
       }
-      if (!lines.length) continue;
+      lines.sort(byKindAndText);
+      const nest = nests.get(accountId) ?? [];
+      if (!lines.length && !nest.length) continue;
       const claimed = await one(
         'INSERT INTO email_digests (account_id, on_date, sent_at) VALUES (?, ?, now()) ON CONFLICT DO NOTHING RETURNING account_id',
         accountId, today,
       );
       if (!claimed) continue;
-      lines.sort(byKindAndText);
-      enqueueMail({
-        to: list[0].email,
-        subject: t(lang, 'amintire.email_subiect'),
-        text: t(lang, 'amintire.email_text', {
-          nume: list[0].account_name,
-          lista: lines.map((l) => `- ${l.text}`).join('\n'),
-          link: `${config.publicBaseUrl}/tratamente`,
-        }),
-      }, gapMs);
+      const lista = [...lines, ...nest].map((l) => `- ${l.text}`).join('\n');
+      // Doar tratamente: emailul de până acum; cu cuiburi: subiectul spune ce are și linkul duce la Panou.
+      const mail = !nest.length
+        ? { subject: t(lang, 'amintire.email_subiect'), text: t(lang, 'amintire.email_text', { nume: acc.name, lista, link: `${config.publicBaseUrl}/tratamente` }) }
+        : {
+          subject: t(lang, lines.length ? 'amintire.email_subiect_toate' : 'amintire.email_subiect_cuiburi'),
+          text: t(lang, 'amintire.email_text_cuib', { nume: acc.name, lista, link: `${config.publicBaseUrl}/panou` }),
+        };
+      enqueueMail({ to: acc.email, ...mail }, gapMs);
       emails += 1;
     } catch (e) {
       console.error(`[porumbar] Rezumatul de seară al contului ${accountId} nu a rulat:`, e.message); // i18n: ro

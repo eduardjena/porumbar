@@ -2083,6 +2083,46 @@
     "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Amintiri.\n",
     "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente. „Cont → Amintiri” = meniul Cont, secțiunea Amintiri (unde se pornesc notificările pe telefon și se oprește emailul)."
   },
+  "amintire.cuibul": {
+    "text": "cuibul {n}",
+    "sens": "Cuibul din amintirile pentru cuiburi, când perechea are numărul cuibului pus. {n} = numărul cuibului (de ex. „7”)."
+  },
+  "amintire.cuib_ou2": {
+    "text": "Mâine e așteptat al doilea ou: {cuib}",
+    "sens": "Amintirea de seară (19:00) din ajunul zilei în care e așteptat al doilea ou. {cuib} = „cuibul 7” sau, fără număr de cuib, perechea („Fulger × Vânta”)."
+  },
+  "amintire.cuib_mirare": {
+    "text": "Mâine e mirarea ouălor: {cuib}",
+    "sens": "Amintirea de seară din ajunul mirării (ouăle privite la lumină, să se vadă care sunt limpezi). {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_eclozare": {
+    "text": "Mâine pot ieși puii: {cuib}",
+    "sens": "Amintirea de seară din ajunul primei zile în care pot ieși puii din ouă. {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_inelare": {
+    "text": "Mâine începe inelarea puilor: {cuib}",
+    "sens": "Amintirea de seară din ajunul primei zile de inelare a puilor. {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_inelare_ultima_maine": {
+    "text": "Mâine e ultima zi de inelare: {cuib}",
+    "sens": "Rând în emailul de seară: mâine e ultima zi în care puii se mai pot inela. {cuib} = cuibul sau perechea."
+  },
+  "amintire.cuib_inelare_ultima": {
+    "text": "Azi e ultima zi de inelare: {cuib}",
+    "sens": "Notificarea de dimineață (07:00) din ultima zi în care puii se mai pot inela. {cuib} = cuibul sau perechea."
+  },
+  "amintire.email_subiect_cuiburi": {
+    "text": "Porumbar: amintire pentru cuiburi",
+    "sens": "Subiectul emailului de seară când are doar amintiri pentru cuiburi (al doilea ou, mirare, eclozare, inelare)."
+  },
+  "amintire.email_subiect_toate": {
+    "text": "Porumbar: amintire pentru tratamente și cuiburi",
+    "sens": "Subiectul emailului de seară când are și tratamente, și cuiburi."
+  },
+  "amintire.email_text_cuib": {
+    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nPanoul: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Amintirile pentru tratamente și cuiburi le pornești pe telefon, iar emailul îl oprești, din Cont → Amintiri.\n",
+    "sens": "Emailul de seară (cel mult unul pe zi) când are și amintiri pentru cuiburi. {nume} = numele omului, {lista} = rândurile (tratamentele, apoi cuiburile), câte unul pe rând, {link} = adresa Panoului. Ultimul rând spune unde se pornesc notificările și unde se oprește emailul („Cont → Amintiri” = meniul Cont, secțiunea Amintiri)."
+  },
   "meniu.tratamente": {
     "text": "Tratamente",
     "sens": "Butonul din banda Panoului și numele paginii cu tratamentele și vaccinurile date la tot porumbarul."

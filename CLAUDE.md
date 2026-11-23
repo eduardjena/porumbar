@@ -65,7 +65,10 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   treatment-schedule.js  momentele amintirilor în ora României (modul pur)
   treatment-reminders.js rulantul pe oră (pornit din server.js): fixează momentele, trimite push + rezumatul de seară pe
                   email (cel mult unul pe seară); deduplicare în `treatment_notices` / `email_digests`;
-                  `REMINDER_EMAILS_PER_MINUTE` limitează emailurile
+                  `REMINDER_EMAILS_PER_MINUTE` limitează emailurile. Trimite și amintirile cuibului, în aceeași
+                  notificare și același email cu tratamentele
+  nest-reminders.js  amintirile cuibului (sursa pentru rulant): momentele sosite ale pontelor deschise (doar conturile
+                  cu abonament activ), rezervate în `nest_notices` (o dată pe pontă și moment), rândurile emailului de seară
   push.js, routes/push.js  notificările pe telefon (`/api/auth/push`): abonarea, trimiterea prin `web-push` (versiune
                   fixată 4.0.0), doar către gazdele de push cunoscute; fără chei VAPID nu pleacă nimic pe telefon
   routes/treatments.js  API-ul `/api/treatments`

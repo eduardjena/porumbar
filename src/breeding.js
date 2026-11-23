@@ -237,7 +237,8 @@ const nestLabel = (pair, pigeons) => pair.nest || `${pigeonName(pigeons.get(pair
 
 /**
  * Pontele deschise (primul ou de mai puțin de 45 de zile, neînchise cu „Nu mai urmări”) ale unui cont sau, fără
- * `accountId`, ale tuturor conturilor: `{ accountId, clutchId, pairId, label, fosterLabel, clutch, updatedAt }`.
+ * `accountId`, ale tuturor conturilor: `{ accountId, clutchId, pairId, label, nest, fosterLabel, clutch, updatedAt }`
+ * (`nest`: numărul cuibului pus de crescător, altfel null).
  * Ponta cu doică stă la cuibul doicii (`pairId`, `label`), cu perechea proprie la `fosterLabel`.
  * `clutch` are forma din `nest-schedule.js`.
  */
@@ -263,6 +264,7 @@ export async function openClutches({ accountId = null, today }) {
       clutchId: r.id,
       pairId: (foster ?? own).id,
       label: nestLabel(foster ?? own, pigeons),
+      nest: (foster ?? own).nest || null,
       fosterLabel: foster ? nestLabel(own, pigeons) : null,
       clutch: {
         id: r.id, egg1On: r.egg1_on, egg2On: r.egg2_on, eggs: r.eggs, candledOn: r.candled_on, infertile: r.infertile, broken: r.broken,

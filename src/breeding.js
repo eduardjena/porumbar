@@ -4,6 +4,7 @@ import { HttpError, badRequest, notFound, text, realDate } from './http.js';
 import { createPigeon, getPigeon, getPigeonRow, loadNodes, toSummary } from './pigeons.js';
 import { wrightCoi } from './genealogy.js';
 import { parseRing, formatRing, ringKey } from './rings.js';
+import { HATCH_DAYS, RING_DAYS } from './nest-schedule.js';
 import { cleanFactors, factorsFromColor, inferHidden, predictColors } from './color-genetics.js';
 
 /*
@@ -11,8 +12,6 @@ import { cleanFactors, factorsFromColor, inferHidden, predictColors } from './co
  * puilor (devin porumbei cu părinții completați) și seriile de inele ale anului, din care se propune inelul următor.
  */
 
-const HATCH_DAYS = [17, 19]; // de la primul ou
-const RING_DAYS = [6, 8]; // de la eclozare
 const MAX_SERIES = 1000;
 
 const addDays = (date, n) => {

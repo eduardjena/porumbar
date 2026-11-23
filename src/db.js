@@ -407,6 +407,7 @@ const MIGRATIONS = [
     fields    JSONB NOT NULL DEFAULT '{}',
     PRIMARY KEY (import_id, pigeon_id)
   );
+  CREATE INDEX ix_excel_import_items_pigeon ON excel_import_items (pigeon_id);
   `,
 ];
 

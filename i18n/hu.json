@@ -1474,6 +1474,7 @@
     "other": "{count} sor"
   },
   "excel.primul_rand_titlu": "Az első sor fejléc",
+  "excel.rand_titlu": "A(z) {n}. sor fejléc",
   "excel.coloana": "{litera} oszlop",
   "excel.goala": "(üres)",
   "excel.ce_este": "Mi ez",

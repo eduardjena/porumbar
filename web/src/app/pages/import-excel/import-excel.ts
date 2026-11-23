@@ -10,7 +10,7 @@ import { formatDateTime, localeOf, t, TPipe } from '../../core/i18n';
 import { ImportProblem, ImportSummary, ImportUndo, LastImport } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import {
-  Field, ImportRow, buildRows, canContinue, guessColumns, looksLikeHeader, parsePasted,
+  Field, ImportRow, buildRows, canContinue, findHeader, guessColumns, parsePasted,
 } from '../../shared/tabel-coloane';
 import type { Sheet } from '../../shared/tabel-fisier';
 import { PorumbarState } from '../panou/porumbar-state';
@@ -42,6 +42,14 @@ const FIELDS: Field[] = [
 ];
 const PROBLEM_KINDS: ImportProblem['kind'][] = ['inel_necitit', 'fara_inel', 'dublura', 'conflict', 'parinte_necitit'];
 const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
+/** O valoare cu cifre și fără nicio literă: un inel fără țară (24-0117345). */
+const noCountry = (v: string | undefined) => !!v && /\d/.test(v) && !/\p{L}/u.test(v);
+/** Extensiile și tipurile fișierelor (pe Android, alegătorul de fișiere se uită la tip). */
+const ACCEPT = [
+  '.xlsx', '.xls', '.csv', '.txt',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel',
+  'text/csv', 'text/comma-separated-values', 'text/plain',
+].join(',');
 
 @Component({
   selector: 'app-import-excel',
@@ -70,7 +78,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
         @case ('tabel') {
           <section class="card stack">
             <h2 #stepHead tabindex="-1">{{ 'excel.pas1' | t }}</h2>
-            <input #file class="vh" type="file" accept=".xlsx,.xls,.csv,.txt" tabindex="-1" aria-hidden="true" (change)="pickFile($event)" />
+            <input #file class="vh" type="file" [accept]="accept" tabindex="-1" aria-hidden="true" (change)="pickFile($event)" />
             <div>
               <button type="button" class="primary big" [disabled]="!!busy()" (click)="file.click()">
                 <app-icon name="tabel" />{{ busy() === 'citire' ? ('excel.se_citeste' | t) : ('excel.alege_fisier' | t) }}
@@ -102,7 +110,8 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
             }
             <p class="source"><strong>{{ source() || ('excel.sursa_lipit' | t) }}</strong> · {{ 'excel.randuri' | t: { count: dataRows() } }}</p>
             <label class="check">
-              <input type="checkbox" [ngModel]="hasHeader()" (ngModelChange)="setHeader($event)" />{{ 'excel.primul_rand_titlu' | t }}
+              <input type="checkbox" [ngModel]="hasHeader()" (ngModelChange)="setHeader($event)" />
+              {{ titleAt() === 0 ? ('excel.primul_rand_titlu' | t) : ('excel.rand_titlu' | t: { n: titleAt() + 1 }) }}
             </label>
             @if (tooWide()) { <div class="warning">{{ 'excel.doar_20' | t: { max: maxCols } }}</div> }
 
@@ -172,7 +181,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
               @if (r.problems.length) { <ng-container [ngTemplateOutlet]="problemList" [ngTemplateOutletContext]="{ $implicit: r }" /> }
               <div class="actions">
                 <a class="btn primary big" routerLink="/porumbar"><app-icon name="lista" />{{ 'excel.vezi_porumbeii' | t }}</a>
-                @if (last()) {
+                @if (r.importId && last()?.id === r.importId) {
                   <button type="button" class="danger" [disabled]="!!busy()" (click)="undo()">
                     <app-icon name="rotire" />{{ busy() === 'anulare' ? ('excel.se_anuleaza' | t) : ('excel.anuleaza' | t) }}
                   </button>
@@ -200,7 +209,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
       <h3>{{ 'excel.probleme_titlu' | t }}</h3>
       <ol class="problems">
         @for (p of showAll() ? s.problems : s.problems.slice(0, firstProblems); track $index) {
-          <li><strong class="line">{{ 'excel.rand_n' | t: { n: p.line } }}</strong> <span>{{ p.message }}</span></li>
+          <li><strong class="line">{{ 'excel.rand_n' | t: { n: p.line } }}</strong>&ngsp;<span>{{ p.message }}</span></li>
         }
       </ol>
       @if (!showAll() && s.problems.length > firstProblems) {
@@ -256,6 +265,7 @@ export default class ImportExcel {
   protected readonly fieldList = FIELDS;
   protected readonly firstProblems = FIRST_PROBLEMS;
   protected readonly maxCols = MAX_COLS;
+  protected readonly accept = ACCEPT;
 
   readonly step = signal<Step>('tabel');
   readonly busy = signal<Busy>('');
@@ -268,7 +278,11 @@ export default class ImportExcel {
   /** Numele fișierului; gol = tabelul lipit. */
   readonly source = signal('');
   readonly rows = signal<string[][]>([]);
-  readonly hasHeader = signal(false);
+  /** Rândul de antet (indicele în `rows`) sau -1 fără antet; rândurile de deasupra lui nu pleacă la server. */
+  readonly headerRow = signal(-1);
+  /** Rândul care devine antet când omul bifează „e titlu” (cel găsit sau primul rând nevid). */
+  readonly titleAt = signal(0);
+  protected readonly hasHeader = computed(() => this.headerRow() >= 0);
   readonly fields = signal<Field[]>([]);
   /** Țara pusă în față inelelor care nu se citesc fără ea: implicit România, la conturile maghiare Ungaria. */
   readonly country = signal(this.auth.account()?.lang === 'hu' ? 'HU' : 'RO');
@@ -279,21 +293,24 @@ export default class ImportExcel {
   /** Ce s-a trimis la previzualizare; salvarea trimite exact aceleași rânduri. */
   private sent: Body | null = null;
 
-  /** Rândurile cu date (fără titlu și fără rândurile goale). */
-  protected readonly dataRows = computed(() => this.rows().slice(this.hasHeader() ? 1 : 0).filter(hasText).length);
+  /** Rândurile cu date (fără antet, fără ce e deasupra lui și fără rândurile goale). */
+  protected readonly dataRows = computed(() => this.rows().slice(this.headerRow() + 1).filter(hasText).length);
   protected readonly tooWide = computed(() => this.rows().some((r) => r.length > MAX_COLS));
   protected readonly canGo = computed(() => canContinue(this.fields()));
-  protected readonly built = computed(() => buildRows(this.rows(), this.fields(), this.hasHeader()));
-  /** Lista de țări apare doar dacă printre primele 50 de inele e unul fără nicio literă (de ex. 24-0117345). */
+  protected readonly built = computed(() => buildRows(this.rows(), this.fields(), this.headerRow()));
+  /**
+   * Lista de țări apare dacă vreun inel, al porumbelului sau al unui părinte, n-are nicio literă (de ex. 24-0117345):
+   * serverul pune țara aleasă tuturor acestor inele.
+   */
   protected readonly needsCountry = computed(() =>
-    this.built().slice(0, 50).some((r) => r.ring.trim() !== '' && !/\p{L}/u.test(r.ring)));
+    this.built().some((r) => noCountry(r.ring) || noCountry(r.father) || noCountry(r.mother)));
   protected readonly nothing = computed(() => {
     const s = this.summary();
     return !!s && !s.created && !s.existing && !s.ancestors;
   });
-  /** Primele 3 celule nevide din fiecare coloană (fără titlu). */
+  /** Primele 3 celule nevide din fiecare coloană (de sub antet). */
   protected readonly examples = computed(() => {
-    const data = this.rows().slice(this.hasHeader() ? 1 : 0);
+    const data = this.rows().slice(this.headerRow() + 1);
     return this.fields().map((_, i) => {
       const out: string[] = [];
       for (const r of data) {
@@ -336,7 +353,7 @@ export default class ImportExcel {
   }
 
   protected header(i: number) {
-    return (this.rows()[0]?.[i] ?? '').trim();
+    return (this.rows()[this.headerRow()]?.[i] ?? '').trim();
   }
 
   /** Problemele pe feluri; dacă lista e tăiată (peste 100), doar totalul, ca cifrele să nu mintă. */
@@ -400,13 +417,14 @@ export default class ImportExcel {
   }
 
   /**
-   * Tabelul nou: titlul și coloanele ghicite, apoi pasul 2. Rândurile goale rămân pe loc, ca numărul rândului din
-   * rezumat să fie cel din Excel (buildRows le sare).
+   * Tabelul nou: antetul (căutat în primele 5 rânduri nevide, sub titlul tabelului) și coloanele ghicite, apoi pasul 2.
+   * Rândurile goale rămân pe loc, ca numărul rândului din rezumat să fie cel din Excel (buildRows le sare).
    */
   private useTable(rows: string[][], stay = false) {
-    const header = looksLikeHeader(rows);
+    const header = findHeader(rows);
     this.rows.set(rows);
-    this.hasHeader.set(header);
+    this.headerRow.set(header);
+    this.titleAt.set(header >= 0 ? header : Math.max(0, rows.findIndex(hasText)));
     this.fields.set(guessColumns(rows, header));
     this.summary.set(null);
     if (!this.dataRows()) {
@@ -417,8 +435,9 @@ export default class ImportExcel {
   }
 
   setHeader(v: boolean) {
-    this.hasHeader.set(v);
-    this.fields.set(guessColumns(this.rows(), v));
+    const header = v ? this.titleAt() : -1;
+    this.headerRow.set(header);
+    this.fields.set(guessColumns(this.rows(), header));
   }
 
   /** Fiecare câmp cel mult o dată: coloana care îl avea înainte devine „nu iau”. */

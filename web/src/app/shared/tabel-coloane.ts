@@ -67,7 +67,7 @@ function looksLikeSex(cell: string): boolean {
 function looksLikeDate(cell: string): boolean {
   const c = cell.trim();
   return /^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}(\s+\d{1,2}:\d{2}(:\d{2})?)?$/.test(c)
-    || /^\d{4}[./-]\d{1,2}[./-]\d{1,2}(\.|\s+\d{1,2}:\d{2}(:\d{2})?|T[\d:.Z+-]+)?$/.test(c);
+    || /^\d{4}[./-] ?\d{1,2}[./-] ?\d{1,2}\.?(\s+\d{1,2}:\d{2}(:\d{2})?|T[\d:.Z+-]+)?$/.test(c);
 }
 
 // Forma unui inel, fără rings.js: cel puțin 5 cifre și doar litere, cifre, spațiu, - / . (nu și data).
@@ -78,11 +78,18 @@ export function looksLikeRing(cell: string): boolean {
   return (c.match(/\d/g) || []).length >= 5;
 }
 
-export function looksLikeHeader(rows: string[][]): boolean {
-  const first = rows[0];
-  if (!first) return false;
-  if (first.some(looksLikeRing)) return false;
-  return first.some(c => titleField(c) !== null);
+// Câte rânduri nevide de sus pot fi deasupra antetului (titlul tabelului, un rând gol, o notă).
+const RANDURI_ANTET = 5;
+
+// Indicele rândului de antet sau -1. Printre primele 5 rânduri nevide: primul cu cel puțin 2 titluri cunoscute și
+// niciun inel; altfel primul rând nevid, dacă are măcar un titlu și niciun inel (tabelul cu o singură coloană „Inel”).
+// Rândurile de deasupra antetului nu pleacă la server.
+export function findHeader(rows: string[][]): number {
+  const sus = rows.map((r, i) => ({ r, i })).filter(({ r }) => r.some(c => c.trim() !== '')).slice(0, RANDURI_ANTET);
+  const titluri = (r: string[]) => (r.some(looksLikeRing) ? 0 : r.filter(c => titleField(c) !== null).length);
+  const gasit = sus.find(({ r }) => titluri(r) >= 2);
+  if (gasit) return gasit.i;
+  return sus.length && titluri(sus[0].r) >= 1 ? sus[0].i : -1;
 }
 
 // Împarte textul lipit (sau un .csv) în rânduri și celule.
@@ -143,22 +150,24 @@ function numaraInAfaraGhilimelelor(linie: string, d: string): number {
   return n;
 }
 
-export function guessColumns(rows: string[][], hasHeader: boolean): Field[] {
+// `header` = indicele rândului de antet (findHeader) sau -1 fără antet; rândurile de deasupra lui nu se uită.
+export function guessColumns(rows: string[][], header: number): Field[] {
   const lat = Math.min(MAX_COLOANE, rows.reduce((m, r) => Math.max(m, r.length), 0));
   const fields: Field[] = new Array(lat).fill('ignor');
   const luat = new Set<Field>();
   const pune = (i: number, f: Field) => { fields[i] = f; luat.add(f); };
-  const date = hasHeader ? rows.slice(1) : rows;
+  const antet = header >= 0 ? rows[header] : undefined;
+  const date = rows.slice(header + 1);
 
-  if (hasHeader && rows[0]) {
+  if (antet) {
     for (let i = 0; i < lat; i++) {
-      const f = titleField(rows[0][i] ?? '');
+      const f = titleField(antet[i] ?? '');
       if (f && !luat.has(f)) pune(i, f);
     }
   }
 
-  if (hasHeader && rows[0] && !luat.has('inel_numar') && !luat.has('inel') && (luat.has('inel_tara') || luat.has('inel_an') || luat.has('inel_club'))) {
-    const i = rows[0].slice(0, lat).findIndex((c, k) => fields[k] === 'ignor' && NUMAR_AMBIGUU.has(fold(c)));
+  if (antet && !luat.has('inel_numar') && !luat.has('inel') && (luat.has('inel_tara') || luat.has('inel_an') || luat.has('inel_club'))) {
+    const i = antet.slice(0, lat).findIndex((c, k) => fields[k] === 'ignor' && NUMAR_AMBIGUU.has(fold(c)));
     if (i >= 0) pune(i, 'inel_numar');
   }
 
@@ -166,7 +175,7 @@ export function guessColumns(rows: string[][], hasHeader: boolean): Field[] {
   for (let i = 0; i < lat; i++) {
     if (fields[i] !== 'ignor') continue;
     // titlul spune ceva, dar câmpul e deja luat: coloana rămâne „nu iau”
-    if (hasHeader && titleField(rows[0]?.[i] ?? '')) continue;
+    if (antet && titleField(antet[i] ?? '')) continue;
     const celule = date.map(r => (r[i] ?? '').trim()).filter(c => c !== '');
     if (!celule.length) continue;
     const parte = (test: (c: string) => boolean) => celule.filter(test).length / celule.length;
@@ -191,10 +200,14 @@ const IN_RAND: Partial<Record<Field, keyof ImportRow>> = {
   crescator: 'breeder', stare: 'status', tata: 'father', mama: 'mother', observatii: 'notes',
 };
 
-export function buildRows(rows: string[][], fields: Field[], hasHeader: boolean): ImportRow[] {
+// Bucățile inelului unite cu „-”; anul întreg (2024) devine 24, ca rings.js să-l citească (HU-24-0123-12345).
+const BUCATI_INEL: Field[] = ['inel_tara', 'inel_an', 'inel_club', 'inel_numar'];
+
+// Rândurile de după antet (`header` ca la guessColumns); `line` = numărul rândului din Excel, cu tot cu cele sărite.
+export function buildRows(rows: string[][], fields: Field[], header: number): ImportRow[] {
   const out: ImportRow[] = [];
   const nr = Math.min(fields.length, MAX_COLOANE);
-  for (let i = hasHeader ? 1 : 0; i < rows.length; i++) {
+  for (let i = Math.max(header + 1, 0); i < rows.length; i++) {
     const val = new Map<Field, string>();
     for (let c = 0; c < nr; c++) {
       const f = fields[c];
@@ -204,7 +217,10 @@ export function buildRows(rows: string[][], fields: Field[], hasHeader: boolean)
     }
     if (!val.size) continue;
     const ring = val.get('inel')
-      ?? (['inel_tara', 'inel_an', 'inel_club', 'inel_numar'] as Field[]).map(f => val.get(f)).filter(Boolean).join('-');
+      ?? BUCATI_INEL.map(f => {
+        const v = val.get(f);
+        return f === 'inel_an' && v && /^\d{4}$/.test(v) ? v.slice(2) : v;
+      }).filter(Boolean).join('-');
     const r: ImportRow = { line: i + 1, ring };
     for (const [f, k] of Object.entries(IN_RAND) as [Field, keyof ImportRow][]) {
       const v = val.get(f);

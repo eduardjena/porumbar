@@ -174,6 +174,20 @@ test('doar ultimul import', async () => {
   assert.equal((await pigeons(a)).length, 1);
 });
 
+test('un import care nu schimbă nimic nu ia anularea celui adevărat', async () => {
+  const a = await newAccount(call, 'A');
+  const body = { rows: rows({ ring: 'RO-24-460001', name: 'Unu' }, { ring: 'RO-24-460002' }) };
+  const first = await imported(a, body);
+  const again = await imported(a, body);
+  assert.equal(again.importId, undefined);
+  assert.equal(again.existing, 2);
+  assert.equal((await last(a)).id, first.importId);
+  const u = await undo(a);
+  assert.equal(u.status, 200, JSON.stringify(u.data));
+  assert.deepEqual(u.data, { deleted: 2, kept: 0, cleared: 0, reverted: 0 });
+  assert.equal((await pigeons(a)).length, 0);
+});
+
 test('7 zile', async () => {
   const { run, one } = await import('../src/db.js');
   const { pruneImports } = await import('../src/table-import.js');

@@ -53,13 +53,35 @@ export function readLines(text) {
     .slice(0, 10);
 }
 
-/** Data ca AAAA-LL-ZZ din AAAA-LL-ZZ, ZZ.LL.AAAA, ZZ/LL/AAAA; un an singur sau o dată inexistentă → null. */
-export function readDate(text) {
-  const s = String(text ?? '').trim();
-  let y, m, d;
-  let x = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (x) [, y, m, d] = x;
-  else if ((x = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/))) [, d, m, y] = x;
+// Ora de după dată, lăsată deoparte: „05.04.2024 00:00”, „2024-04-05T00:00:00Z”, „4/5/2024 12:00 AM”.
+const TIME = /(?:\s+|T)\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?\s*(?:[AP]M)?\s*(?:Z|[+-]\d{2}:?\d{2})?$/i;
+const SLASH = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+
+/**
+ * Ordinea zilei și a lunii în datele cu „/” ale unei coloane: dacă o valoare are prima parte peste 12, 'dm'; altfel,
+ * dacă una are a doua parte peste 12, 'md' (fișierele americane); altfel 'dm' (ca în România).
+ */
+export function slashOrder(values) {
+  let md = false;
+  for (const v of values) {
+    const x = String(v ?? '').trim().replace(TIME, '').match(SLASH);
+    if (!x) continue;
+    if (Number(x[1]) > 12) return 'dm';
+    if (Number(x[2]) > 12) md = true;
+  }
+  return md ? 'md' : 'dm';
+}
+
+/**
+ * Data ca AAAA-LL-ZZ din AAAA-LL-ZZ, AAAA.LL.ZZ, „AAAA. LL. ZZ.” (maghiar), ZZ.LL.AAAA și ZZ/LL/AAAA (LL/ZZ/AAAA cu
+ * `order` = 'md', vezi slashOrder), cu sau fără oră după ea; un an singur sau o dată inexistentă → null.
+ */
+export function readDate(text, order = 'dm') {
+  const s = String(text ?? '').trim().replace(TIME, '');
+  let y, m, d, x;
+  if ((x = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) || s.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.?$/))) [, y, m, d] = x;
+  else if ((x = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))) [, d, m, y] = x;
+  else if ((x = s.match(SLASH))) [, d, m, y] = order === 'md' ? [x[0], x[2], x[1], x[3]] : x;
   else return null;
   const [Y, M, D] = [Number(y), Number(m), Number(d)];
   const dt = new Date(Date.UTC(Y, M - 1, D));

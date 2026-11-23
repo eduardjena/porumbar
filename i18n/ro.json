@@ -2644,6 +2644,10 @@
     "text": "Primul rând e titlu",
     "sens": "Bifa: primul rând din tabel are numele coloanelor, nu un porumbel."
   },
+  "excel.rand_titlu": {
+    "text": "Rândul {n} e titlu",
+    "sens": "Bifa: rândul {n} din tabel (numărul din Excel) are numele coloanelor; rândurile de deasupra lui (titlul tabelului) nu se iau."
+  },
   "excel.coloana": {
     "text": "Coloana {litera}",
     "sens": "Pe cardul unei coloane: litera coloanei ca în Excel (A, B, C …)."

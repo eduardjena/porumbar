@@ -42,6 +42,31 @@ function dateFormat(ws: XLSX.WorkSheet): XLSX.WorkSheet {
   return ws;
 }
 
+// Rândurile foii, cu rândurile goale păstrate și cu rânduri goale în față cât începe foaia mai jos de rândul 1, ca
+// indicele + 1 să fie numărul rândului din Excel. Zona citită se oprește la ultima celulă cu ceva în ea (o zonă
+// formatată până la capătul foii, A1:XFD1048576, nu face un milion de rânduri).
+function sheetRows(ws: XLSX.WorkSheet): string[][] {
+  if (!ws['!ref']) return [];
+  const start = XLSX.utils.decode_range(ws['!ref']).s;
+  let lastRow = -1;
+  let lastCol = -1;
+  for (const key of Object.keys(ws)) {
+    if (key[0] === '!') continue;
+    const cell = ws[key] as XLSX.CellObject;
+    if (cell.v == null || String(cell.w ?? cell.v).trim() === '') continue;
+    const at = XLSX.utils.decode_cell(key);
+    if (at.r > lastRow) lastRow = at.r;
+    if (at.c > lastCol) lastCol = at.c;
+  }
+  if (lastRow < start.r || lastCol < start.c) return [];
+  const rows = XLSX.utils.sheet_to_json<string[]>(ws, {
+    header: 1, raw: false, defval: '', blankrows: true, dateNF: 'dd.mm.yyyy',
+    range: { s: start, e: { r: lastRow, c: lastCol } },
+  });
+  const above: string[][] = Array.from({ length: start.r }, () => []);
+  return trim([...above, ...rows]);
+}
+
 export function readWorkbook(data: ArrayBuffer, fileName: string, parseText: (text: string) => string[][]): Sheet[] {
   if (data.byteLength > MAX_FILE_BYTES) throw new Error('fisier_mare');
   try {
@@ -49,12 +74,7 @@ export function readWorkbook(data: ArrayBuffer, fileName: string, parseText: (te
       return [{ name: fileName, rows: trim(parseText(decodeText(data))) }];
     }
     const wb = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'dd.mm.yyyy' });
-    return wb.SheetNames.map((name) => ({
-      name,
-      rows: trim(XLSX.utils.sheet_to_json<string[]>(dateFormat(wb.Sheets[name]), {
-        header: 1, raw: false, defval: '', blankrows: false, dateNF: 'dd.mm.yyyy',
-      })),
-    }));
+    return wb.SheetNames.map((name) => ({ name, rows: sheetRows(dateFormat(wb.Sheets[name])) }));
   } catch {
     throw new Error('fisier_necitit');
   }

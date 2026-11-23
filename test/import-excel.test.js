@@ -4,6 +4,7 @@ import { performance } from 'node:perf_hooks';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
 import { newAccount } from './helpers/accounts.js';
+import { buildRows } from '../web/src/app/shared/tabel-coloane.ts';
 
 // Adu porumbeii din Excel: motorul de import (previzualizare și salvare). Inelele și numele sunt inventate.
 let server;
@@ -265,7 +266,110 @@ test('jurnalul importului: creat, completat, făcut propriu', async () => {
   const imp = await all('SELECT account_id, undone_at, summary FROM excel_imports WHERE id = ?', r.data.importId);
   assert.equal(imp[0].account_id, await accountId(a));
   assert.equal(imp[0].undone_at, null);
-  assert.equal(imp[0].summary.created, 1);
+  assert.deepEqual(imp[0].summary, { created: 1, existing: 2, ancestors: 0, problemCount: 0 });
+});
+
+test('evidența ține doar cifrele, nu și inelele cu probleme', async () => {
+  const { one } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  const r = await save(a, { rows: rows({ ring: 'RO-24-810001', father: 'XYZ' }, { ring: '??' }, { ring: 'MASCULI' }) });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.problemCount, 3);
+  assert.equal(r.data.problems.length, 3, 'lista rămâne în răspuns');
+  const imp = await one('SELECT summary FROM excel_imports WHERE id = ?', r.data.importId);
+  assert.deepEqual(imp.summary, { created: 1, existing: 0, ancestors: 0, problemCount: 3 });
+});
+
+test('rândul de titlu și rândurile de secțiune nu devin porumbei', async () => {
+  const a = await newAccount(call, 'A');
+  const r = await save(a, {
+    rows: rows(
+      { ring: 'Inel', name: 'Nume', sex: 'Sex' },
+      { ring: 'MASCULI' },
+      { ring: 'RO-24-110001', sex: 'M' },
+      { ring: 'FEMELE' },
+      { ring: 'RO-24-110002', sex: 'F', father: 'Tata' },
+    ),
+  });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.created, 2);
+  assert.deepEqual(r.data.problems.map((p) => [p.line, p.kind]), [[2, 'inel_necitit'], [3, 'inel_necitit'], [5, 'inel_necitit'], [6, 'parinte_necitit']]);
+  assert.equal(r.data.problems[1].ring, 'MASCULI');
+  assert.deepEqual((await pigeons(a)).map((p) => p.ring.display).sort(), ['RO-24-110001', 'RO-24-110002']);
+});
+
+test('inelul maghiar în coloane, cu anul întreg: e porumbelul existent', async () => {
+  const a = await newAccount(call, 'A');
+  const made = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: 'HU-24-0123-12345' } });
+  assert.equal(made.status, 201, JSON.stringify(made.data));
+  const table = [['Ország', 'Év', 'Egyesület', 'Szám', 'Név'], ['HU', '2024', '0123', '12345', 'Villám']];
+  const built = buildRows(table, ['inel_tara', 'inel_an', 'inel_club', 'inel_numar', 'nume'], 0);
+  const r = await save(a, { rows: built });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.existing, 1);
+  assert.equal(r.data.created, 0);
+  assert.equal(r.data.problemCount, 0, JSON.stringify(r.data.problems));
+  assert.equal((await pigeons(a)).length, 1);
+  assert.equal((await pigeon(a, made.data.pigeon.id)).name, 'Villám');
+});
+
+test('țara implicită se pune și inelelor părinților', async () => {
+  const a = await newAccount(call, 'A');
+  const r = await save(a, {
+    defaultCountry: 'RO',
+    rows: rows(
+      { ring: 'RO-24-120001', father: '24-0117345', mother: '23-0117999' },
+      { ring: 'RO-24-0117345', sex: 'M' },
+    ),
+  });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.created, 2);
+  assert.equal(r.data.ancestors, 1);
+  assert.equal(r.data.problemCount, 0, JSON.stringify(r.data.problems));
+  const child = await pigeon(a, (await byRing(a, 'RO-24-120001')).id);
+  assert.equal(child.fatherId, (await byRing(a, 'RO-24-117345')).id);
+  const mother = await pigeon(a, child.motherId);
+  assert.equal(mother.ring.display, 'RO-23-117999');
+  assert.equal(mother.kind, 'external');
+});
+
+test('datele cu „/”: ordinea zilei și a lunii se hotărăște pe toată coloana', async () => {
+  const a = await newAccount(call, 'A');
+  const us = await save(a, { rows: rows({ ring: 'RO-24-130001', hatchedOn: '04/05/2024' }, { ring: 'RO-24-130002', hatchedOn: '04/25/2024 00:00' }) });
+  assert.equal(us.status, 201, JSON.stringify(us.data));
+  const hatched = async (cookie, ring) => (await pigeon(cookie, (await byRing(cookie, ring)).id)).hatchedOn;
+  assert.equal(await hatched(a, 'RO-24-130001'), '2024-04-05');
+  assert.equal(await hatched(a, 'RO-24-130002'), '2024-04-25');
+  const b = await newAccount(call, 'B');
+  const ro = await save(b, {
+    rows: rows(
+      { ring: 'RO-24-130001', hatchedOn: '04/05/2024' },
+      { ring: 'RO-24-130002', hatchedOn: '2024. 04. 06.' },
+      { ring: 'RO-24-130003', hatchedOn: '2024-04-07T00:00' },
+      { ring: 'RO-24-130004', hatchedOn: '08.04.2024 00:00' },
+    ),
+  });
+  assert.equal(ro.status, 201, JSON.stringify(ro.data));
+  assert.equal(await hatched(b, 'RO-24-130001'), '2024-05-04', 'nehotărât: ziua întâi');
+  assert.equal(await hatched(b, 'RO-24-130002'), '2024-04-06');
+  assert.equal(await hatched(b, 'RO-24-130003'), '2024-04-07');
+  assert.equal(await hatched(b, 'RO-24-130004'), '2024-04-08');
+});
+
+test('un import care nu schimbă nimic nu se ține minte', async () => {
+  const { one } = await import('../src/db.js');
+  const a = await newAccount(call, 'A');
+  const body = { rows: rows({ ring: 'RO-24-140001', name: 'Unu', father: 'RO-20-140100' }) };
+  const first = await save(a, body);
+  assert.equal(first.status, 201, JSON.stringify(first.data));
+  assert.ok(Number.isInteger(first.data.importId));
+  const again = await save(a, body);
+  assert.equal(again.status, 201, JSON.stringify(again.data));
+  assert.equal(again.data.existing, 1);
+  assert.equal(again.data.created, 0);
+  assert.equal(again.data.importId, undefined);
+  const n = await one('SELECT count(*)::int AS n FROM excel_imports WHERE account_id = ?', await accountId(a));
+  assert.equal(n.n, 1);
 });
 
 test('limite', async () => {

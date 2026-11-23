@@ -52,6 +52,8 @@ Vânzătorul a ales A.
    Un fișier cu mai multe foi: se alege foaia (implicit prima care are date).
 3. **Pasul 2 – coloanele:** pentru fiecare coloană, titlul ei, un exemplu din primele rânduri și o listă „ce este”
    cu valoarea ghicită. Pe telefon, câte un card pe coloană, unul sub altul. Bifă „Primul rând e titlu” (ghicită).
+   Antetul se caută în primele 5 rânduri nevide (primul cu cel puțin 2 titluri cunoscute și niciun inel); rândurile
+   de deasupra lui (titlul tabelului) nu pleacă la server, iar bifa spune atunci „Rândul N e titlu”.
 4. **Pasul 3 – rezumatul:** de ex. „142 de porumbei noi · 5 există deja (completez doar ce lipsește) · 38 de părinți
    care nu sunt în tabel → îi trec ca strămoși · 3 rânduri cu inel necitit · 2 nepotriviri (nu schimb nimic la ele)”,
    cu lista rândurilor cu probleme (numărul rândului din Excel și motivul). Buton mare „Adaugă porumbeii”.
@@ -86,7 +88,8 @@ Vânzătorul a ales A.
      `voiajor` dacă celula e goală, altfel `alta`, și se pune doar la porumbeii noi (la cei existenți rasa are mereu o
      valoare, deci nu e „câmp gol”; decizia constructorului); starea necunoscută → fără stare;
    - linii: despărțite de `,` `;` `/`, cel mult 10, ca în fișă;
-   - data eclozării: dată întreagă (și datele Excel ca număr); un an singur nu se pune ca dată;
+   - data eclozării: dată întreagă (și datele Excel ca număr; zz.ll.aaaa, aaaa-ll-zz, aaaa.ll.zz, „aaaa. ll. zz.”, cu
+     sau fără oră; cu „/” ziua întâi, afară de coloana în care doar a doua parte trece de 12); un an singur nu se pune ca dată;
    - observații: în textul de pe fișă (`pedigree_text`), doar dacă e gol;
    - celulele se taie la lungimile din fișă (nume 80, text 2000 ș.a.m.d.).
 4. **Ce devine fiecare rând:** porumbel **propriu** al contului (`kind = 'own'`), cu starea din tabel dacă o are.
@@ -94,7 +97,8 @@ Vânzătorul a ales A.
    - rândurile fără inel se sar și apar în rezumat („fără inel: îl poți adăuga de mână”); cele complet goale se sar
      fără să apară;
    - un inel scris, dar necitit, se adaugă așa cum e scris doar dacă are cheie de rezervă (ca rădăcina importului de
-     pedigree); altfel rândul se sare. Ambele apar în rezumat la „inel necitit”.
+     pedigree); altfel rândul se sare. Un inel fără nicio cifră (antetul „Inel”, rânduri de secțiune ca „MASCULI”)
+     se sare mereu. Toate apar în rezumat la „inel necitit”.
 5. **Același inel de două ori în tabel:** primul rând câștigă, al doilea apare în rezumat și se sare.
 6. **Porumbel care există deja în cont** (după cheia inelului): se completează doar câmpurile goale; unul „din alt
    porumbar” devine propriu (ca la importul de pedigree). Ce era scris nu se schimbă.
@@ -106,6 +110,8 @@ Vânzătorul a ales A.
 8. **Previzualizarea și salvarea folosesc același cod:** `POST /api/import/excel/preview` rulează importul într-o
    tranzacție pe care o anulează și întoarce rezumatul; `POST /api/import/excel` îl rulează și îl păstrează. Aceleași
    rânduri, același rezultat. Rezumatul listează cel mult 100 de rânduri cu probleme (numărul rândului din tabel).
+   Un import care n-a creat, completat și n-a făcut propriu nimic nu se ține minte (nu ia anularea celui de dinainte);
+   în evidență rămân doar cifrele rezumatului, nu și lista problemelor.
 9. **Limite:** cel mult 3.000 de rânduri și 20 de coloane pe import; fișierul cel mult 10 MB (verificat în browser);
    cererea JSON cel mult 2 MB. Previzualizarea: cel mult 30 pe minut pe cont. Salvarea ține contul blocat (`lockAccount`)
    cât durează, ca două importuri să nu se calce.

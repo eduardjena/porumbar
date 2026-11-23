@@ -5,7 +5,7 @@ import { matchColor } from './catalog.js';
 import { ancestorIds } from './genealogy.js';
 import { insertPigeons, loadNodes, ringOf, updatePigeon, validNewPigeon } from './pigeons.js';
 import { fallbackKey, formatRing, parseRing, ringKey } from './rings.js';
-import { cut, readBreed, readDate, readEyeColor, readLines, readSex, readStatus, ringWithCountry } from './table-values.js';
+import { cut, readBreed, readDate, readEyeColor, readLines, readSex, readStatus, ringWithCountry, slashOrder } from './table-values.js';
 
 /*
  * „Adu porumbeii din Excel”: rândurile unui tabel (doar celulele coloanelor alese, citite în browser) devin porumbei
@@ -83,6 +83,8 @@ function readBody(body) {
  */
 function readRing(text, country) {
   if (!text) return { state: 'empty' };
+  // Fără nicio cifră nu e un inel: titlul tabelului („Inel”), un rând de secțiune („MASCULI”), un cuvânt.
+  if (!/\d/.test(text)) return { state: 'bad', label: text.slice(0, MAX_RING) };
   if (text.length > MAX_RING) return { state: 'bad', label: text.slice(0, MAX_RING) };
   const raw = ringWithCountry(text, country);
   const parsed = parseRing(raw);
@@ -102,8 +104,8 @@ function readRing(text, country) {
 
 const realDay = (d) => (d && d >= '1900-01-01' && d <= '2100-12-31' ? d : null);
 
-/** Câmpurile fișei din celulele rândului (fără inel, rasă și părinți). */
-function rowFields(row) {
+/** Câmpurile fișei din celulele rândului (fără inel, rasă și părinți); `dateOrder` = ordinea datelor cu „/” (slashOrder). */
+function rowFields(row, dateOrder) {
   const color = row.color ? matchColor(row.color) : null;
   const lines = [];
   for (const l of readLines(row.lines)) {
@@ -119,7 +121,7 @@ function rowFields(row) {
     colorText: color?.code && !color.rest ? null : cut(row.color, 120),
     eyeColor: readEyeColor(row.eyeColor),
     status: readStatus(row.status),
-    hatchedOn: realDay(readDate(row.hatchedOn)),
+    hatchedOn: realDay(readDate(row.hatchedOn, dateOrder)),
     breederText: cut(row.breeder, 200),
     pedigreeText: cut(row.notes, 2000),
     lines,
@@ -133,6 +135,9 @@ const SELECT_COLUMNS = `id, kind, ring_raw, ring_key, ring_country, ring_year, r
 /**
  * Importul tabelului. `save: false` = previzualizarea (nimic nu rămâne în baza de date). Întoarce rezumatul:
  * { created, existing, ancestors, problems: [{ line, ring, kind, message }] (cel mult 100), problemCount, importId? }.
+ * Un import care n-a creat, completat și n-a făcut propriu nimic nu se ține minte (fără `importId`): altfel ar lua
+ * locul ultimului import adevărat și, cu el, anularea lui. În evidență rămân doar cifrele, nu și lista problemelor
+ * (inelele din tabel; regula 11).
  */
 export async function importTable(accountId, body, { save }) {
   const { rows, country } = readBody(body);
@@ -141,7 +146,9 @@ export async function importTable(accountId, body, { save }) {
       await lockAccount(accountId); // importurile și legăturile aceluiași cont, una după alta
       const { summary, log } = await runImport(accountId, rows, country);
       if (!save) throw new Preview(summary);
-      const importId = await insert('INSERT INTO excel_imports (account_id, created_at, summary) VALUES (?, ?, ?)', accountId, nowIso(), JSON.stringify(summary));
+      if (!log.size) return summary;
+      const counts = { created: summary.created, existing: summary.existing, ancestors: summary.ancestors, problemCount: summary.problemCount };
+      const importId = await insert('INSERT INTO excel_imports (account_id, created_at, summary) VALUES (?, ?, ?)', accountId, nowIso(), JSON.stringify(counts));
       await writeLog(importId, log);
       return { ...summary, importId };
     });
@@ -197,6 +204,7 @@ async function runImport(accountId, rows, country) {
   const refused = (err) => tr('import_excel.rand_refuzat', { motiv: tr(err.message, err.vars) });
 
   // Prima trecere: fiecare rând devine un porumbel propriu (nou, existent completat sau strămoș făcut propriu).
+  const dateOrder = slashOrder(rows.map((r) => r.hatchedOn)); // ziua sau luna întâi, pe toată coloana
   const seen = new Map();
   const placed = [];
   const pendingOwn = [];
@@ -217,7 +225,7 @@ async function runImport(accountId, rows, country) {
       continue;
     }
     for (const k of ring.keys) seen.set(k, row.line);
-    const f = rowFields(row);
+    const f = rowFields(row, dateOrder);
     let rec = find(ring);
     try {
       if (!rec) {
@@ -356,7 +364,6 @@ async function runImport(accountId, rows, country) {
 
 /** Jurnalul importului pentru anulare: valorile scrise, citite înapoi din baza de date (exact cum stau acolo). */
 async function writeLog(importId, log) {
-  if (!log.size) return;
   const ids = [...log.keys()];
   const now = new Map((await all(`SELECT id, ${CREATED_COLUMNS.join(', ')} FROM pigeons WHERE id = ANY(?::bigint[])`, ids)).map((r) => [r.id, r]));
   const pick = (row, cols) => Object.fromEntries(cols.map((c) => [c, row[c]]));

@@ -1434,5 +1434,19 @@
   "amintiri.refuzat": "Letiltottad a Porumbar értesítéseit. A telefon beállításaiban (Értesítések, vagy a böngésző webhelybeállításai) kapcsold vissza, majd nyisd meg újra ezt az oldalt.",
   "amintiri.telefoane": "Az emlékeztetők {count} telefonra mennek.",
   "amintiri.email": "Kérek emlékeztetőt e-mailben",
-  "amintiri.email_explicatie": "Esténként egy összefoglaló arról, mi következik."
+  "amintiri.email_explicatie": "Esténként egy összefoglaló arról, mi következik.",
+  "eroare.import_randuri": "A táblázatnak legalább egy és legfeljebb {max} sora lehet.",
+  "import_excel.fara_inel": "A sorban nincs gyűrűszám. A galambot kézzel veheted fel.",
+  "import_excel.inel_necitit": "A(z) {inel} gyűrűszám nem olvasható. A sort kihagytuk.",
+  "import_excel.inel_necitit_pus": "A(z) {inel} gyűrűszám nem olvasható. Úgy vettük fel, ahogy le van írva.",
+  "import_excel.inel_hu_asociatie": "A(z) {inel} magyar gyűrűről hiányzik a szervezet száma (pl. HU-2024-29-12345). A sort kihagytuk.",
+  "import_excel.dublura": "A(z) {inel} gyűrű már szerepel a táblázatban, a(z) {rand}. sorban. Az első sort tartottuk meg.",
+  "import_excel.parinte_necitit_tata": "Az apa gyűrűszáma ({parinte}) nem olvasható. Nem kapcsoltuk össze.",
+  "import_excel.parinte_necitit_mama": "Az anya gyűrűszáma ({parinte}) nem olvasható. Nem kapcsoltuk össze.",
+  "import_excel.conflict_sex_mascul": "{inel} a programban hím, a táblázatban viszont más szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_sex_femela": "{inel} a programban tojó, a táblázatban viszont más szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_alt_tata": "{inel} apja a programban már {are}, a táblázatban viszont {tabel} szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_alta_mama": "{inel} anyja a programban már {are}, a táblázatban viszont {tabel} szerepel. Megtartottuk, ami volt.",
+  "import_excel.conflict_ciclu": "{parinte} nem lehet {copil} szülője: saját őse lenne. Nem kapcsoltuk össze.",
+  "import_excel.rand_refuzat": "A sort nem sikerült felvenni: {motiv}"
 }

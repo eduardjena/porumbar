@@ -2497,5 +2497,61 @@
   "amintiri.email_explicatie": {
     "text": "Un rezumat seara, cu ce urmează.",
     "sens": "Explicația bifei pentru email."
+  },
+  "eroare.import_randuri": {
+    "text": "Tabelul trebuie să aibă cel puțin un rând și cel mult {max} de rânduri.",
+    "sens": "Importul din Excel: tabel gol sau prea mare. {max} = numărul maxim de rânduri (3000)."
+  },
+  "import_excel.fara_inel": {
+    "text": "Rândul nu are inel. Porumbelul îl poți adăuga de mână.",
+    "sens": "Rezumatul importului din Excel: rând sărit pentru că nu are inel."
+  },
+  "import_excel.inel_necitit": {
+    "text": "Inelul {inel} nu poate fi citit. Am sărit rândul.",
+    "sens": "Rezumatul importului din Excel: inelul nu se citește și nici nu se poate păstra cum e scris. {inel} = textul din celulă."
+  },
+  "import_excel.inel_necitit_pus": {
+    "text": "Inelul {inel} nu poate fi citit. L-am trecut așa cum e scris.",
+    "sens": "Rezumatul importului din Excel: inelul nu se citește, dar porumbelul s-a adăugat cu inelul scris ca în tabel."
+  },
+  "import_excel.inel_hu_asociatie": {
+    "text": "La inelul unguresc {inel} lipsește numărul asociației (de ex. HU-2024-29-12345). Am sărit rândul.",
+    "sens": "Rezumatul importului din Excel: inel maghiar fără numărul organizatorului regional (cifrele după an)."
+  },
+  "import_excel.dublura": {
+    "text": "Inelul {inel} apare deja în tabel, pe rândul {rand}. Am păstrat primul rând.",
+    "sens": "Rezumatul importului din Excel: același inel de două ori în tabel. {rand} = numărul rândului din Excel unde apare prima dată."
+  },
+  "import_excel.parinte_necitit_tata": {
+    "text": "Inelul tatălui, {parinte}, nu poate fi citit. Nu l-am legat.",
+    "sens": "Rezumatul importului din Excel: inelul din coloana Tată nu se citește. {parinte} = textul din celulă."
+  },
+  "import_excel.parinte_necitit_mama": {
+    "text": "Inelul mamei, {parinte}, nu poate fi citit. Nu l-am legat.",
+    "sens": "Rezumatul importului din Excel: inelul din coloana Mamă nu se citește. {parinte} = textul din celulă."
+  },
+  "import_excel.conflict_sex_mascul": {
+    "text": "{inel} e în program mascul, iar în tabel scrie altfel. Am păstrat ce era.",
+    "sens": "Rezumatul importului din Excel: sexul din tabel diferă de cel din program."
+  },
+  "import_excel.conflict_sex_femela": {
+    "text": "{inel} e în program femelă, iar în tabel scrie altfel. Am păstrat ce era.",
+    "sens": "Rezumatul importului din Excel: sexul din tabel diferă de cel din program."
+  },
+  "import_excel.conflict_alt_tata": {
+    "text": "La {inel} programul are deja tată {are}, iar în tabel scrie {tabel}. Am păstrat ce era.",
+    "sens": "Rezumatul importului din Excel: porumbelul are deja alt tată. {are} = inelul tatălui din program, {tabel} = inelul din tabel."
+  },
+  "import_excel.conflict_alta_mama": {
+    "text": "La {inel} programul are deja mamă {are}, iar în tabel scrie {tabel}. Am păstrat ce era.",
+    "sens": "Rezumatul importului din Excel: porumbelul are deja altă mamă. {are} = inelul mamei din program, {tabel} = inelul din tabel."
+  },
+  "import_excel.conflict_ciclu": {
+    "text": "{parinte} nu poate fi părintele lui {copil}: ar ajunge propriul lui strămoș. Nu l-am legat.",
+    "sens": "Rezumatul importului din Excel: legătura ar face un cerc în arbore (un porumbel strămoș al lui însuși)."
+  },
+  "import_excel.rand_refuzat": {
+    "text": "Rândul nu a putut fi adăugat: {motiv}",
+    "sens": "Rezumatul importului din Excel: fișa porumbelului a fost refuzată. {motiv} = mesajul de eroare al fișei."
   }
 }

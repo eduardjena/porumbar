@@ -18,6 +18,7 @@ import { publicRouter } from './routes/public.js';
 import { transfersRouter } from './routes/transfers.js';
 import { adminRouter } from './routes/admin.js';
 import { treatmentsRouter } from './routes/treatments.js';
+import { importsRouter } from './routes/imports.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
 const WEB_INDEX = path.join(WEB_DIR, 'index.html');
@@ -80,6 +81,8 @@ export function createApp() {
   // Poza / PDF-ul unui pedigree vine ca JSON (base64), deci aici limita e mai mare; restul rămâne la 1 MB. Corpul mare
   // se citește doar după ce se știe cine e omul, iar conținutul arhivat (gzip) nu se dezarhivează nicăieri.
   app.use('/api/pedigrees/read', requireAccount, express.json({ limit: '17mb', inflate: false }));
+  // Tabelul adus din Excel (cel mult 3.000 de rânduri): cel mult 2 MB, tot după ce se știe cine e omul.
+  app.use('/api/import/excel', requireAccount, express.json({ limit: '2mb', inflate: false }));
   app.use(express.json({ limit: '1mb', inflate: false }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -97,6 +100,7 @@ export function createApp() {
   app.use('/api', publicRouter());
   app.use('/api', transfersRouter());
   app.use('/api', treatmentsRouter());
+  app.use('/api/import/excel', importsRouter());
   app.use('/api/admin', adminRouter());
   app.use('/api/pigeons', pigeonsRouter());
 

@@ -62,10 +62,16 @@ Vânzătorul a ales A.
 
 ## Reguli detaliate
 
-1. **Coloane recunoscute** (fiecare cel mult o dată): inel; *sau* inelul în bucăți: țara, anul, numărul (se lipesc
-   în „țară-an-număr” și trec prin citirea obișnuită a inelelor); nume; sex; culoare; culoarea ochilor; rasă; linii;
+1. **Coloane recunoscute** (fiecare cel mult o dată): inel; *sau* inelul în bucăți: țara, anul, asociația / clubul,
+   numărul (se lipesc în ordinea pe care o citește `rings.js`, de ex. „HU-24-0123-12345”, și trec prin citirea
+   obișnuită a inelelor); nume; sex; culoare; culoarea ochilor; rasă; linii;
    data eclozării; crescător; stare; tată; mamă; observații; „nu iau”. Fără coloană „inel” sau „număr”, butonul de
    continuare nu e activ.
+1a. **Țara lipsă** (decizia constructorului): dacă inelele dintr-o coloană nu se citesc fără țară (de ex. doar
+   „12345” cu anul în altă coloană, sau „24-12345”), pasul 2 întreabă o singură dată „Inelele fără țară sunt din:”,
+   cu o listă de țări; implicit România pentru contul în română și Ungaria pentru contul în maghiară. Țara aleasă se
+   pune în față doar inelelor care nu se citesc altfel; cele care se citesc singure rămân neatinse. Inelele maghiare
+   cer asociația (regula din `rings.js`): fără ea, rândul apare la „inel necitit” și se sare.
 2. **Ghicirea după titlu**, fără diacritice și litere mici, în română, maghiară, engleză, olandeză, germană, franceză
    (de ex. inel / gyűrű / ring / ringnummer / ring nr / bague; tată / apa / vader / vater / sire / father / père;
    mamă / anya / moeder / mutter / dam / mother / mère; sex / ivar / geslacht / geschlecht / sexe; culoare / szín /
@@ -77,14 +83,18 @@ Vânzătorul a ales A.
      ♂ / ♀; altceva → necunoscut;
    - culoare: `matchColor` din catalog; ce nu se potrivește rămâne text (`color_text`);
    - culoarea ochilor, rasa, starea: potrivire după codurile și numele din catalog (RO + HU); rasa necunoscută →
-     `voiajor` dacă celula e goală, altfel `alta`; starea necunoscută → fără stare;
+     `voiajor` dacă celula e goală, altfel `alta`, și se pune doar la porumbeii noi (la cei existenți rasa are mereu o
+     valoare, deci nu e „câmp gol”; decizia constructorului); starea necunoscută → fără stare;
    - linii: despărțite de `,` `;` `/`, cel mult 10, ca în fișă;
    - data eclozării: dată întreagă (și datele Excel ca număr); un an singur nu se pune ca dată;
    - observații: în textul de pe fișă (`pedigree_text`), doar dacă e gol;
    - celulele se taie la lungimile din fișă (nume 80, text 2000 ș.a.m.d.).
 4. **Ce devine fiecare rând:** porumbel **propriu** al contului (`kind = 'own'`), cu starea din tabel dacă o are.
-   Rândurile fără inel și fără nume se sar. Un rând cu inel necitit se adaugă cu inelul așa cum e scris (cheia de
-   rezervă, ca rădăcina importului de pedigree) și apare în rezumat la „inel necitit”.
+   Un porumbel propriu are mereu inel (regula din `pigeons.js` rămâne), deci (decizia constructorului):
+   - rândurile fără inel se sar și apar în rezumat („fără inel: îl poți adăuga de mână”); cele complet goale se sar
+     fără să apară;
+   - un inel scris, dar necitit, se adaugă așa cum e scris doar dacă are cheie de rezervă (ca rădăcina importului de
+     pedigree); altfel rândul se sare. Ambele apar în rezumat la „inel necitit”.
 5. **Același inel de două ori în tabel:** primul rând câștigă, al doilea apare în rezumat și se sare.
 6. **Porumbel care există deja în cont** (după cheia inelului): se completează doar câmpurile goale; unul „din alt
    porumbar” devine propriu (ca la importul de pedigree). Ce era scris nu se schimbă.
@@ -99,12 +109,17 @@ Vânzătorul a ales A.
 9. **Limite:** cel mult 3.000 de rânduri și 20 de coloane pe import; fișierul cel mult 10 MB (verificat în browser);
    cererea JSON cel mult 2 MB. Previzualizarea: cel mult 30 pe minut pe cont. Salvarea ține contul blocat (`lockAccount`)
    cât durează, ca două importuri să nu se calce.
-10. **Anularea:** fiecare import salvat se ține minte (ce porumbei a creat; ce câmpuri și legături a completat, cu
-    valoarea pusă). „Anulează importul” merge doar pentru **ultimul** import al contului și doar **7 zile**:
-    - șterge porumbeii creați atunci, cu excepția celor pe care omul i-a schimbat de mână după import sau care au
-      primit între timp jurnal, poze, rezultate, perechi ori copii adăugați de mână – aceștia rămân și sunt numărați
-      în mesaj („3 porumbei au rămas, pentru că i-ai schimbat după import”);
-    - golește câmpurile și legăturile completate atunci, doar dacă au încă valoarea pusă de import;
+10. **Anularea** (detaliile sunt decizia constructorului): fiecare import salvat se ține minte: ce porumbei a creat,
+    cu o copie a câmpurilor puse; ce câmpuri și legături a completat la porumbei existenți, cu valoarea pusă; ce
+    strămoși a făcut proprii (felul de dinainte). „Anulează importul” merge doar pentru **ultimul import din Excel**
+    al contului și doar **7 zile**, oricâte alte lucruri s-ar fi făcut între timp:
+    - un porumbel creat atunci se șterge doar dacă e neschimbat: câmpurile lui sunt încă cele puse de import și nimic
+      nu trimite la el în afară de legăturile făcute de același import (niciun rând în tabelele care trimit la
+      porumbei – jurnal, poze, rezultate, perechi, tratamente, transferuri, linkuri publice ș.a. – și niciun copil
+      legat altfel). Se verifică după conținut, nu după `updated_at`. Ceilalți rămân și sunt numărați în mesaj
+      („3 porumbei au rămas, pentru că i-ai folosit după import”);
+    - câmpurile și legăturile completate atunci se golesc doar dacă au încă valoarea pusă de import;
+    - un strămoș făcut propriu redevine „din alt porumbar”, dacă e încă propriu și neschimbat;
     - totul într-o tranzacție; după anulare, butonul dispare.
 11. **Confidențialitate:** fișierul se citește în browser și nu pleacă nicăieri; la server ajung doar celulele
     coloanelor alese. Nu se păstrează tabelul, doar porumbeii și evidența pentru anulare (ștearsă după 7 zile sau la

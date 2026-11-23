@@ -76,6 +76,8 @@ function readBody(body) {
 /**
  * Inelul dintr-o celulă, cu țara implicită pusă doar dacă altfel nu se citește (regula 1a).
  * state: 'empty' (fără inel), 'ok', 'fallback' (necitit, dar cu cheie de rezervă), 'hu' (maghiar fără asociație), 'bad'.
+ * `keys`: cheia inelului și, când țara a fost pusă de import, și cheia de rezervă a textului scris fără ea: un porumbel
+ * trecut de mână ca „24-0117345” (cheia „?|240117345”) e același cu „24-0117345” + RO, deci nu se dublează.
  */
 function readRing(text, country) {
   if (!text) return { state: 'empty' };
@@ -84,11 +86,16 @@ function readRing(text, country) {
   const parsed = parseRing(raw);
   if (parsed.ok && parsed.unringed) return { state: 'empty' };
   if (raw.length > MAX_RING) return { state: 'bad', label: text };
-  if (parsed.ok) return { state: 'ok', raw, parsed, key: ringKey(parsed), label: formatRing(parsed) };
+  const written = raw !== text ? fallbackKey(parseRing(text)) : null;
+  const keysOf = (key) => (written && written !== key ? [key, written] : [key]);
+  if (parsed.ok) {
+    const key = ringKey(parsed);
+    return { state: 'ok', raw, parsed, key, keys: keysOf(key), label: formatRing(parsed) };
+  }
   // Maghiar fără asociație, scris așa sau devenit maghiar prin țara implicită: numerele se repetă între asociații.
   if (parsed.needsClub || (country && parseRing(`${country} ${text}`).needsClub)) return { state: 'hu', label: text };
   const key = fallbackKey(parsed);
-  return key ? { state: 'fallback', raw, parsed, key, label: text } : { state: 'bad', label: text };
+  return key ? { state: 'fallback', raw, parsed, key, keys: [key], label: text } : { state: 'bad', label: text };
 }
 
 const realDay = (d) => (d && d >= '1900-01-01' && d <= '2100-12-31' ? d : null);
@@ -161,6 +168,8 @@ async function runImport(accountId, rows, country) {
   }
   // Sexul de fapt: cel scris sau, fără el, cel care reiese din legături (tatăl cuiva e mascul).
   const sexOf = (p) => p.sex ?? (fathers.has(p.id) ? 'M' : mothers.has(p.id) ? 'F' : null);
+  /** Porumbelul contului (sau din tabel) cu una dintre cheile inelului, cea recunoscută întâi. */
+  const find = (ring) => ring.keys.map((k) => byKey.get(k)).find(Boolean);
   const labelOf = (p) => p.label ?? ringOf(p)?.display ?? tr('text.fara_inel');
 
   /** Ce a făcut importul fiecărui porumbel: id → { action, cols } (pentru jurnalul anulării). */
@@ -200,13 +209,14 @@ async function runImport(accountId, rows, country) {
       problem(row.line, ring.label, 'inel_necitit', tr(ring.state === 'hu' ? 'import_excel.inel_hu_asociatie' : 'import_excel.inel_necitit', { inel: ring.label }));
       continue;
     }
-    if (seen.has(ring.key)) {
-      problem(row.line, ring.label, 'dublura', tr('import_excel.dublura', { inel: ring.label, rand: seen.get(ring.key) }));
+    const first = ring.keys.find((k) => seen.has(k));
+    if (first) {
+      problem(row.line, ring.label, 'dublura', tr('import_excel.dublura', { inel: ring.label, rand: seen.get(first) }));
       continue;
     }
-    seen.set(ring.key, row.line);
+    for (const k of ring.keys) seen.set(k, row.line);
     const f = rowFields(row);
-    let rec = byKey.get(ring.key);
+    let rec = find(ring);
     try {
       if (!rec) {
         // Nou: fișa se validează acum (ca la „Porumbel nou”) și se scrie după trecere, împreună cu celelalte.
@@ -267,7 +277,7 @@ async function runImport(accountId, rows, country) {
   for (const { row, rec } of placed) {
     for (const [side, parentSex, col] of SIDES) {
       const pr = parentRing(row, side);
-      if (pr?.state !== 'ok' || rec[col] || byKey.has(pr.key) || pendingAncestors.has(pr.key)) continue;
+      if (pr?.state !== 'ok' || rec[col] || find(pr) || pendingAncestors.has(pr.key)) continue;
       try {
         const pigeon = validNewPigeon({ kind: 'external', ring: pr.raw, sex: parentSex });
         pendingAncestors.set(pr.key, { rec: newRec(pigeon, pr.key, pr.label), pigeon });
@@ -293,12 +303,12 @@ async function runImport(accountId, rows, country) {
       const current = rec[col] ? byId.get(rec[col]) : null;
       if (current) {
         // Aceeași legătură: nimic de făcut; alta decât în tabel: nu se schimbă.
-        if (current.ring_key !== pr.key) {
+        if (!pr.keys.includes(current.ring_key)) {
           problem(row.line, label, 'conflict', tr(word === 'tata' ? 'import_excel.conflict_alt_tata' : 'import_excel.conflict_alta_mama', { inel: label, are: labelOf(current), tabel: pr.label }));
         }
         continue;
       }
-      const parent = byKey.get(pr.key);
+      const parent = find(pr);
       if (!parent) {
         problem(row.line, label, 'parinte_necitit', tr(`import_excel.parinte_necitit_${word}`, { parinte: pr.label }));
         continue;

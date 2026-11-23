@@ -169,6 +169,34 @@ test('țara implicită', async () => {
   assert.deepEqual(x.data.problems.map((p) => p.kind), ['inel_necitit']);
 });
 
+test('țara implicită nu dublează un inel scris fără țară', async () => {
+  const a = await newAccount(call, 'A');
+  const made = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: '24-0117345' } });
+  assert.equal(made.status, 201, JSON.stringify(made.data));
+  const id = made.data.pigeon.id;
+  // (a) același rând, cu țara implicită: e porumbelul existent.
+  const r = await save(a, { defaultCountry: 'RO', rows: rows({ ring: '24-0117345', name: 'Ion' }) });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.existing, 1);
+  assert.equal(r.data.created, 0);
+  const own = (await pigeons(a)).filter((p) => p.kind === 'own');
+  assert.equal(own.length, 1);
+  assert.equal((await pigeon(a, id)).name, 'Ion');
+  // (b) ca părinte: se leagă de el, fără strămoș nou.
+  const c = await save(a, { defaultCountry: 'RO', rows: rows({ ring: 'RO-25-117346', father: '24-0117345' }) });
+  assert.equal(c.status, 201, JSON.stringify(c.data));
+  assert.equal(c.data.ancestors, 0);
+  assert.equal(c.data.problemCount, 0, JSON.stringify(c.data.problems));
+  assert.equal((await pigeon(a, (await byRing(a, 'RO-25-117346')).id)).fatherId, id);
+  assert.equal((await pigeons(a)).length, 2);
+  // (c) în tabel: scris fără țară și cu țară e același inel.
+  const b = await newAccount(call, 'B');
+  const d = await save(b, { defaultCountry: 'RO', rows: rows({ ring: '24-0117345' }, { ring: 'RO-24-0117345' }) });
+  assert.equal(d.status, 201, JSON.stringify(d.data));
+  assert.equal(d.data.created, 1);
+  assert.deepEqual(d.data.problems.map((p) => [p.line, p.kind]), [[3, 'dublura']]);
+});
+
 test('dubluri în tabel', async () => {
   const a = await newAccount(call, 'A');
   const r = await save(a, { rows: rows({ ring: 'RO-24-600001', name: 'Primul' }, { ring: 'RO 24 600001', name: 'Al doilea' }) });

@@ -100,3 +100,10 @@ test('„Nr. crt.” e ignorat, inelul rămâne la „Inel”', () => {
 test('inelul în bucăți după titlu: Țara, An, Nr', () => {
   assert.deepEqual(guessColumns([['Țara', 'An', 'Nr'], ['RO', '24', '0117345']], true), ['inel_tara', 'inel_an', 'inel_numar']);
 });
+
+test('„Nr.” lângă „Inel” și „An”: contorul rămâne ignorat, inelul vine din „Inel”', () => {
+  const rows = [['Nr.', 'Inel', 'An'], ['1', 'RO-24-0117345', '24']];
+  const f = guessColumns(rows, true);
+  assert.equal(f[0], 'ignor');
+  assert.equal(buildRows(rows, f, true)[0].ring, 'RO-24-0117345');
+});

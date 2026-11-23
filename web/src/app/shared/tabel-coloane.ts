@@ -157,7 +157,7 @@ export function guessColumns(rows: string[][], hasHeader: boolean): Field[] {
     }
   }
 
-  if (hasHeader && rows[0] && !luat.has('inel_numar') && (luat.has('inel_tara') || luat.has('inel_an') || luat.has('inel_club'))) {
+  if (hasHeader && rows[0] && !luat.has('inel_numar') && !luat.has('inel') && (luat.has('inel_tara') || luat.has('inel_an') || luat.has('inel_club'))) {
     const i = rows[0].slice(0, lat).findIndex((c, k) => fields[k] === 'ignor' && NUMAR_AMBIGUU.has(fold(c)));
     if (i >= 0) pune(i, 'inel_numar');
   }

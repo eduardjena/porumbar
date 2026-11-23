@@ -1,5 +1,5 @@
-import { all, insert, lockAccount, nowIso, run, tx } from './db.js';
-import { HttpError, badRequest } from './http.js';
+import { all, insert, lockAccount, nowIso, one, run, tx } from './db.js';
+import { HttpError, badRequest, notFound } from './http.js';
 import { tr } from './i18n.js';
 import { matchColor } from './catalog.js';
 import { ancestorIds } from './genealogy.js';
@@ -25,6 +25,8 @@ import { cut, readBreed, readDate, readEyeColor, readLines, readSex, readStatus,
  *   created   – porumbel creat de import; `fields` = toate coloanele puse (CREATED_COLUMNS), cu părinții legați;
  *   filled    – porumbel existent; `fields` = doar coloanele completate (și legăturile), cu valoarea pusă;
  *   converted – strămoș „din alt porumbar” făcut propriu; ca `filled`, plus `kind` și `prev_kind`.
+ * Doar ultimul import al contului se poate anula, 7 zile (regula 10, undoLastImport); evidența mai veche se șterge
+ * (pruneImports, la fiecare 6 ore).
  */
 
 export const MAX_ROWS = 3000;
@@ -369,4 +371,186 @@ async function writeLog(importId, log) {
      SELECT ?, x.pigeon_id, x.action, x.fields FROM jsonb_to_recordset(?::jsonb) AS x(pigeon_id bigint, action text, fields jsonb)`,
     importId, JSON.stringify(items),
   );
+}
+
+/* ---------- Anularea ultimului import (regula 10) ---------- */
+
+/** Cât se poate anula un import; tot atât se ține și evidența lui (regula 11). */
+const UNDO_MS = 7 * 24 * 3600 * 1000;
+
+/** Coloanele pe care importul le completează la un porumbel existent → câmpul fișei și valoarea „gol” (NOT NULL: false, {}). */
+const CLEAR = {
+  sex: ['sex', null], name: ['name', null], color: ['color', null], color_pa: ['colorPa', false], color_text: ['colorText', null],
+  eye_color: ['eyeColor', null], status: ['status', null], hatched_on: ['hatchedOn', null], breeder_text: ['breederText', null],
+  pedigree_text: ['pedigreeText', null], lines: ['lines', []],
+};
+
+/** Aceeași valoare, așa cum o dau `pg` (rândul) și jsonb (evidența): text, număr, boolean, dată „YYYY-MM-DD”, listă. */
+const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
+/** Ultimul import din Excel al contului, dacă se mai poate anula (neanulat și mai nou de 7 zile); altfel null. */
+export async function lastImport(accountId) {
+  const row = await one('SELECT id, created_at, undone_at, summary FROM excel_imports WHERE account_id = ? ORDER BY created_at DESC, id DESC LIMIT 1', accountId);
+  if (!row || row.undone_at) return null;
+  const until = Date.parse(row.created_at) + UNDO_MS;
+  if (until <= Date.now()) return null;
+  return { id: row.id, createdAt: row.created_at, created: row.summary?.created ?? 0, undoUntil: new Date(until).toISOString() };
+}
+
+/**
+ * Porumbeii din listă la care trimite un rând din altă tabelă (jurnal, poze, rezultate, perechi, tratamente, transferuri…).
+ * Tabelele se află din catalog (toate cheile străine spre pigeons(id)), deci și cele de mâine intră singure. Lipsesc:
+ * pigeons (legăturile părinților se judecă separat) și evidența importului însăși.
+ */
+async function referencedIds(ids) {
+  if (!ids.length) return new Set();
+  const refs = await all(
+    `SELECT c.conrelid::regclass::text AS tbl, quote_ident(a.attname) AS col
+       FROM pg_constraint c JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey)
+      WHERE c.contype = 'f' AND c.confrelid = 'pigeons'::regclass
+        AND c.conrelid NOT IN ('pigeons'::regclass, 'excel_import_items'::regclass)
+      ORDER BY 1, 2`,
+  );
+  if (!refs.length) return new Set();
+  const sql = refs.map((r) => `SELECT ${r.col} AS id FROM ${r.tbl} WHERE ${r.col} = ANY(?::bigint[])`).join(' UNION ');
+  return new Set((await all(sql, ...refs.map(() => ids))).map((r) => r.id));
+}
+
+/**
+ * „Anulează importul”: doar ultimul import din Excel al contului, 7 zile, într-o tranzacție, cu contul blocat.
+ * Totul se judecă după conținut (valorile din evidență față de cele de acum), nu după `updated_at`:
+ *   - porumbelul creat se șterge doar dacă e neschimbat (coloanele din evidență; fără link public, cuib, notă de
+ *     proveniență sau evaluare puse după), nu e în nicio altă tabelă și niciun porumbel nu-l are ca părinte în afara
+ *     legăturilor făcute de același import care pleacă și ele; altfel rămâne (`kept`);
+ *   - câmpurile și legăturile completate se golesc doar unde au încă valoarea pusă (`cleared` = porumbei atinși);
+ *   - strămoșul făcut propriu redevine „din alt porumbar” dacă e încă propriu, neschimbat și nefolosit (`reverted`);
+ *     cel folosit rămâne al tău, cu tot ce are (`kept`).
+ * Întoarce { deleted, kept, cleared, reverted }; 404 când nu e nimic de anulat.
+ */
+export async function undoLastImport(accountId) {
+  return tx(async () => {
+    await lockAccount(accountId);
+    const imp = await lastImport(accountId);
+    if (!imp) throw notFound('eroare.import_fara_anulare');
+    const out = { deleted: 0, kept: 0, cleared: 0, reverted: 0 };
+
+    const items = await all(
+      `SELECT i.pigeon_id AS id, i.action, i.fields FROM excel_import_items i JOIN pigeons p ON p.id = i.pigeon_id AND p.account_id = ?
+        WHERE i.import_id = ? ORDER BY i.pigeon_id`,
+      accountId, imp.id,
+    );
+    const rows = new Map((await all(
+      `SELECT id, ${CREATED_COLUMNS.join(', ')}, public_token, clutch_id, source_note, evaluation FROM pigeons WHERE id = ANY(?::bigint[])`,
+      items.map((i) => i.id),
+    )).map((r) => [r.id, r]));
+    const byId = new Map(items.map((i) => [i.id, i]));
+    const used = await referencedIds(items.filter((i) => i.action !== 'filled').map((i) => i.id));
+    const unchanged = (it) => Object.entries(it.fields).every(([col, v]) => col === 'prev_kind' || same(rows.get(it.id)[col], v));
+    const hasChildren = async (id) => Boolean(await one('SELECT 1 FROM pigeons WHERE father_id = ? OR mother_id = ? LIMIT 1', id, id));
+    /** Golirea coloanelor completate care au încă valoarea pusă; sexul rămâne cât timp porumbelul e părintele cuiva. */
+    const clearPatch = async (it) => {
+      const row = rows.get(it.id);
+      const patch = {};
+      for (const [col, v] of Object.entries(it.fields)) if (CLEAR[col] && same(row[col], v)) patch[CLEAR[col][0]] = CLEAR[col][1];
+      if ('sex' in patch && (await hasChildren(it.id))) delete patch.sex;
+      return patch;
+    };
+
+    // 1. Strămoșii făcuți proprii: înapoi „din alt porumbar”, cu câmpurile completate golite (înaintea legăturilor, ca
+    //    un refuz aici să lase porumbelul întreg, cu tot cu legături).
+    const reverted = new Set();
+    for (const it of items.filter((i) => i.action === 'converted')) {
+      const row = rows.get(it.id);
+      if (row.kind !== 'own' || !unchanged(it) || used.has(it.id) || row.public_token != null) {
+        out.kept++;
+        continue;
+      }
+      try {
+        await updatePigeon(accountId, it.id, { ...(await clearPatch(it)), kind: 'external' });
+        reverted.add(it.id);
+        out.reverted++;
+      } catch (err) {
+        if (!(err instanceof HttpError)) throw err;
+        out.kept++;
+      }
+    }
+
+    // 2. Legăturile completate (la porumbei existenți și la strămoșii de mai sus) care au încă valoarea pusă.
+    const links = new Map(); // id → { f, m }: ce legături se golesc
+    for (const it of items) {
+      if (it.action === 'created' || (it.action === 'converted' && !reverted.has(it.id))) continue;
+      const row = rows.get(it.id);
+      const f = 'father_id' in it.fields && same(row.father_id, it.fields.father_id);
+      const m = 'mother_id' in it.fields && same(row.mother_id, it.fields.mother_id);
+      if (f || m) links.set(it.id, { f, m });
+    }
+
+    // 3. Porumbeii creați care pleacă: neschimbați, nefolosiți, iar fiecare copil legat de ei fie pleacă și el, fie își
+    //    pierde legătura la pasul 2. Un copil care rămâne (folosit) își păstrează părinții, deci și pe ei.
+    const doomed = new Set();
+    for (const it of items.filter((i) => i.action === 'created')) {
+      const row = rows.get(it.id);
+      const extra = row.public_token != null || row.clutch_id != null || row.source_note != null || Object.keys(row.evaluation ?? {}).length > 0;
+      if (unchanged(it) && !extra && !used.has(it.id)) doomed.add(it.id);
+    }
+    const children = doomed.size
+      ? await all('SELECT id, father_id, mother_id FROM pigeons WHERE father_id = ANY(?::bigint[]) OR mother_id = ANY(?::bigint[])', [...doomed], [...doomed])
+      : [];
+    const linkGoes = (child, col) => (byId.get(child.id)?.action === 'created' ? doomed.has(child.id) : Boolean(links.get(child.id)?.[col === 'father_id' ? 'f' : 'm']));
+    for (let changed = true; changed; ) {
+      changed = false;
+      for (const child of children) {
+        for (const col of ['father_id', 'mother_id']) {
+          if (doomed.has(child[col]) && !linkGoes(child, col)) {
+            doomed.delete(child[col]);
+            changed = true;
+          }
+        }
+      }
+    }
+    out.deleted = doomed.size;
+    out.kept += items.filter((i) => i.action === 'created').length - doomed.size;
+
+    if (links.size) {
+      const ids = [...links.keys()];
+      await run(
+        `UPDATE pigeons p SET father_id = CASE WHEN v.f THEN NULL ELSE p.father_id END, mother_id = CASE WHEN v.m THEN NULL ELSE p.mother_id END, updated_at = ?
+           FROM unnest(?::bigint[], ?::boolean[], ?::boolean[]) AS v(id, f, m)
+          WHERE p.id = v.id AND p.account_id = ?`,
+        nowIso(), ids, ids.map((id) => links.get(id).f), ids.map((id) => links.get(id).m), accountId,
+      );
+    }
+    // Porumbeii șterși n-au poze (pozele trimit la porumbel, deci l-ar fi păstrat): nimic de curățat în afara bazei.
+    if (doomed.size) await run('DELETE FROM pigeons WHERE id = ANY(?::bigint[]) AND account_id = ?', [...doomed], accountId);
+
+    // 4. Câmpurile completate la porumbeii existenți (după legături și ștergeri: sexul se golește doar dacă nu mai e părinte).
+    for (const it of items.filter((i) => i.action === 'filled')) {
+      let touched = links.has(it.id);
+      const patch = await clearPatch(it);
+      if (Object.keys(patch).length) {
+        try {
+          await updatePigeon(accountId, it.id, patch);
+          touched = true;
+        } catch (err) {
+          if (!(err instanceof HttpError)) throw err;
+        }
+      }
+      if (touched) out.cleared++;
+    }
+
+    await run('UPDATE excel_imports SET undone_at = ? WHERE id = ?', nowIso(), imp.id);
+    return out;
+  });
+}
+
+/** Șterge evidența importurilor mai vechi de 7 zile (porumbeii rămân). Întoarce câte importuri a șters. */
+export async function pruneImports() {
+  return (await run('DELETE FROM excel_imports WHERE created_at < ?', new Date(Date.now() - UNDO_MS).toISOString())).changes;
+}
+
+/** Curățarea evidenței: la 30 s după pornire, apoi la fiecare 6 ore. */
+export function startImportCleanup() {
+  const tick = () => pruneImports().catch((e) => console.error('[porumbar] Curățarea importurilor din Excel nu a rulat:', e.message)); // i18n: ro
+  setTimeout(tick, 30_000).unref();
+  setInterval(tick, 6 * 3600 * 1000).unref();
 }

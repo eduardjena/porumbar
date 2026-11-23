@@ -2502,6 +2502,10 @@
     "text": "Tabelul trebuie să aibă cel puțin un rând și cel mult {max} de rânduri.",
     "sens": "Importul din Excel: tabel gol sau prea mare. {max} = numărul maxim de rânduri (3000)."
   },
+  "eroare.import_fara_anulare": {
+    "text": "Nu mai e niciun import de anulat. Se poate anula doar ultimul import din Excel, cel mult 7 zile.",
+    "sens": "Importul din Excel: „Anulează importul” când ultimul import a fost deja anulat, e mai vechi de 7 zile sau nu există."
+  },
   "import_excel.fara_inel": {
     "text": "Rândul nu are inel. Porumbelul îl poți adăuga de mână.",
     "sens": "Rezumatul importului din Excel: rând sărit pentru că nu are inel."

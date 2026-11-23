@@ -1436,6 +1436,7 @@
   "amintiri.email": "Kérek emlékeztetőt e-mailben",
   "amintiri.email_explicatie": "Esténként egy összefoglaló arról, mi következik.",
   "eroare.import_randuri": "A táblázatnak legalább egy és legfeljebb {max} sora lehet.",
+  "eroare.import_fara_anulare": "Nincs visszavonható importálás. Csak az utolsó Excel-importálás vonható vissza, legfeljebb 7 napig.",
   "import_excel.fara_inel": "A sorban nincs gyűrűszám. A galambot kézzel veheted fel.",
   "import_excel.inel_necitit": "A(z) {inel} gyűrűszám nem olvasható. A sort kihagytuk.",
   "import_excel.inel_necitit_pus": "A(z) {inel} gyűrűszám nem olvasható. Úgy vettük fel, ahogy le van írva.",

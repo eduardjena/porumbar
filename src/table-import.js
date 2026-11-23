@@ -424,7 +424,8 @@ async function referencedIds(ids) {
  *     legăturilor făcute de același import care pleacă și ele; altfel rămâne (`kept`);
  *   - câmpurile și legăturile completate se golesc doar unde au încă valoarea pusă (`cleared` = porumbei atinși);
  *   - strămoșul făcut propriu redevine „din alt porumbar” dacă e încă propriu, neschimbat și nefolosit (`reverted`);
- *     cel folosit rămâne al tău, cu tot ce are (`kept`).
+ *     cel schimbat sau folosit rămâne propriu (`kept`), dar și la el se golesc câmpurile și legăturile completate care
+ *     au încă valoarea pusă (`cleared`, dacă s-a golit ceva): ce a scris omul rămâne, ce a pus importul pleacă.
  * Întoarce { deleted, kept, cleared, reverted }; 404 când nu e nimic de anulat.
  */
 export async function undoLastImport(accountId) {
@@ -457,7 +458,7 @@ export async function undoLastImport(accountId) {
     };
 
     // 1. Strămoșii făcuți proprii: înapoi „din alt porumbar”, cu câmpurile completate golite (înaintea legăturilor, ca
-    //    un refuz aici să lase porumbelul întreg, cu tot cu legături).
+    //    un refuz aici să lase legăturile pe seama pasului 2). Cei care rămân proprii se golesc la pasul 4, ca cei completați.
     const reverted = new Set();
     for (const it of items.filter((i) => i.action === 'converted')) {
       const row = rows.get(it.id);
@@ -475,10 +476,10 @@ export async function undoLastImport(accountId) {
       }
     }
 
-    // 2. Legăturile completate (la porumbei existenți și la strămoșii de mai sus) care au încă valoarea pusă.
+    // 2. Legăturile completate (la porumbei existenți și la strămoșii făcuți proprii) care au încă valoarea pusă.
     const links = new Map(); // id → { f, m }: ce legături se golesc
     for (const it of items) {
-      if (it.action === 'created' || (it.action === 'converted' && !reverted.has(it.id))) continue;
+      if (it.action === 'created') continue;
       const row = rows.get(it.id);
       const f = 'father_id' in it.fields && same(row.father_id, it.fields.father_id);
       const m = 'mother_id' in it.fields && same(row.mother_id, it.fields.mother_id);
@@ -523,8 +524,9 @@ export async function undoLastImport(accountId) {
     // Porumbeii șterși n-au poze (pozele trimit la porumbel, deci l-ar fi păstrat): nimic de curățat în afara bazei.
     if (doomed.size) await run('DELETE FROM pigeons WHERE id = ANY(?::bigint[]) AND account_id = ?', [...doomed], accountId);
 
-    // 4. Câmpurile completate la porumbeii existenți (după legături și ștergeri: sexul se golește doar dacă nu mai e părinte).
-    for (const it of items.filter((i) => i.action === 'filled')) {
+    // 4. Câmpurile completate la porumbeii existenți și la strămoșii rămași proprii (după legături și ștergeri: sexul se
+    //    golește doar dacă nu mai e părinte). Un strămoș rămas propriu e numărat și în `kept`.
+    for (const it of items.filter((i) => i.action === 'filled' || (i.action === 'converted' && !reverted.has(i.id)))) {
       let touched = links.has(it.id);
       const patch = await clearPatch(it);
       if (Object.keys(patch).length) {

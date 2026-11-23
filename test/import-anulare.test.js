@@ -199,20 +199,57 @@ test('strămoș făcut propriu', async () => {
   await imported(a, { rows: rows({ ring: 'RO-20-470100', name: 'Tatăl' }, { ring: 'RO-20-470200', color: 'albastru' }) });
   assert.equal((await pigeon(a, dad.id)).kind, 'own');
   assert.equal((await pigeon(a, mom.id)).kind, 'own');
-  // Mama e folosită ca porumbel propriu după import (jurnal): rămâne a ta, cu tot ce are.
+  // Mama e folosită ca porumbel propriu după import (jurnal): rămâne a ta, dar culoarea pusă de import se golește.
   assert.equal((await call(`/api/pigeons/${mom.id}/journal`, { method: 'POST', cookie: a, body: { date: '2026-03-01', type: 'nota', text: 'x' } })).status, 201);
 
   const u = await undo(a);
   assert.equal(u.status, 200, JSON.stringify(u.data));
-  assert.deepEqual(u.data, { deleted: 0, kept: 1, cleared: 0, reverted: 1 });
+  assert.deepEqual(u.data, { deleted: 0, kept: 1, cleared: 1, reverted: 1 });
   const d = await pigeon(a, dad.id);
   assert.equal(d.kind, 'external');
   assert.equal(d.name, null);
   assert.equal(d.sex, 'M', 'sexul strămoșului (pus la primul import) rămâne');
   const m = await pigeon(a, mom.id);
   assert.equal(m.kind, 'own');
-  assert.equal(m.color, 'albastru');
+  assert.equal(m.color, null);
   assert.equal((await pigeon(a, (await byRing(a, 'RO-24-470001')).id)).fatherId, dad.id, 'legătura copilului rămâne');
+});
+
+test('strămoș făcut propriu și schimbat de mână: rămâne propriu, dar ce a pus importul se golește', async () => {
+  const a = await newAccount(call, 'A');
+  await imported(a, { rows: rows({ ring: 'RO-24-471001', father: 'RO-20-471100', mother: 'RO-20-471200' }) });
+  const x = await byRing(a, 'RO-20-471100');
+  const y = await byRing(a, 'RO-20-471200');
+  // Al doilea import face proprii ambii strămoși, le completează numele și culoarea și le dă câte un tată nou.
+  await imported(a, {
+    rows: rows(
+      { ring: 'RO-20-471100', name: 'A', color: 'albastru', father: 'RO-18-471900' },
+      { ring: 'RO-20-471200', name: 'B', color: 'albastru', father: 'RO-18-471901' },
+    ),
+  });
+  const xi = await pigeon(a, x.id);
+  assert.equal(xi.kind, 'own');
+  assert.ok(xi.fatherId, 'tatăl lui X pus de import');
+  // X: culoarea corectată de mână. Y: folosit după import (jurnal).
+  assert.equal((await call(`/api/pigeons/${x.id}`, { method: 'PATCH', cookie: a, body: { color: 'solzat' } })).status, 200);
+  assert.equal((await call(`/api/pigeons/${y.id}/journal`, { method: 'POST', cookie: a, body: { date: '2026-03-01', type: 'nota', text: 'x' } })).status, 201);
+
+  const u = await undo(a);
+  assert.equal(u.status, 200, JSON.stringify(u.data));
+  // Rămân proprii (kept), cu numele și legătura puse de import golite (cleared); tații aduși de import pleacă.
+  assert.deepEqual(u.data, { deleted: 2, kept: 2, cleared: 2, reverted: 0 });
+  const xb = await pigeon(a, x.id);
+  assert.equal(xb.kind, 'own');
+  assert.equal(xb.name, null, 'numele pus de import se golește');
+  assert.equal(xb.color, 'solzat', 'culoarea scrisă de mână rămâne');
+  assert.equal(xb.fatherId, null, 'legătura pusă de import se golește');
+  const yb = await pigeon(a, y.id);
+  assert.equal(yb.kind, 'own');
+  assert.equal(yb.name, null);
+  assert.equal(yb.color, null);
+  assert.equal(yb.fatherId, null);
+  assert.equal(await byRing(a, 'RO-18-471900'), undefined);
+  assert.equal(await byRing(a, 'RO-18-471901'), undefined);
 });
 
 test('separare', async () => {

@@ -4,7 +4,7 @@ import { HttpError, badRequest, notFound, text, realDate } from './http.js';
 import { createPigeon, getPigeon, getPigeonRow, loadNodes, toSummary } from './pigeons.js';
 import { wrightCoi } from './genealogy.js';
 import { parseRing, formatRing, ringKey } from './rings.js';
-import { HATCH_DAYS, RING_DAYS } from './nest-schedule.js';
+import { HATCH_DAYS, RING_DAYS, OPEN_DAYS, isOpen, nestMoments } from './nest-schedule.js';
 import { cleanFactors, factorsFromColor, inferHidden, predictColors } from './color-genetics.js';
 
 /*
@@ -150,6 +150,7 @@ const toClutch = (row, youngByClutch = new Map(), pairs = new Map()) => ({
   egg1On: row.egg1_on,
   egg2On: row.egg2_on,
   eggs: row.eggs,
+  candledOn: row.candled_on,
   infertile: row.infertile,
   broken: row.broken,
   hatchedOn: row.hatched_on,
@@ -157,6 +158,8 @@ const toClutch = (row, youngByClutch = new Map(), pairs = new Map()) => ({
   fosterPairId: row.foster_pair_id,
   foster: row.foster_pair_id ? (pairs.get(row.foster_pair_id) ?? null) : null,
   note: row.note,
+  calendarClosedOn: row.calendar_closed_on,
+  updatedAt: row.updated_at,
   expectedHatch: row.hatched_on ? null : { from: addDays(row.egg1_on, HATCH_DAYS[0]), to: addDays(row.egg1_on, HATCH_DAYS[1]) },
   ringFrom: row.hatched_on ? addDays(row.hatched_on, RING_DAYS[0]) : null,
   ringTo: row.hatched_on ? addDays(row.hatched_on, RING_DAYS[1]) : null,
@@ -168,6 +171,9 @@ function parseClutch(body, existing = null) {
   const egg1On = realDate(pick('egg1On', existing?.egg1_on), 'camp.data_primului_ou');
   const egg2On = optDate(pick('egg2On', existing?.egg2_on ?? null), 'camp.data_ou_doi');
   if (egg2On && egg2On < egg1On) throw badRequest('eroare.ou_inainte');
+  const candledOn = optDate(pick('candledOn', existing?.candled_on ?? null), 'camp.data_mirarii');
+  if (candledOn && candledOn < egg1On) throw badRequest('eroare.mirare_inainte');
+  const calendarClosedOn = optDate(pick('calendarClosedOn', existing?.calendar_closed_on ?? null), 'camp.nu_mai_urmaresc');
   const eggs = count(pick('eggs', existing?.eggs ?? null), 'camp.cate_oua', { min: 1, max: 3, fallback: egg2On ? 2 : existing?.eggs ?? 2 });
   const hatchedOn = optDate(pick('hatchedOn', existing?.hatched_on ?? null), 'camp.data_eclozarii');
   if (hatchedOn && hatchedOn <= egg1On) throw badRequest('eroare.pui_inainte_de_ou');
@@ -175,7 +181,7 @@ function parseClutch(body, existing = null) {
   const infertile = count(pick('infertile', existing?.infertile ?? 0), 'camp.oua_limpezi', { max: 3, fallback: 0 });
   const broken = count(pick('broken', existing?.broken ?? 0), 'camp.oua_sparte', { max: 3, fallback: 0 });
   if ((hatched ?? 0) + infertile + broken > eggs) throw badRequest('eroare.oua_prea_multe', { oua: eggs });
-  return { egg1On, egg2On, eggs, hatchedOn, hatched, infertile, broken, note: text(pick('note', existing?.note ?? null), 'camp.nota', { max: 1000, optional: true }) };
+  return { egg1On, egg2On, eggs, candledOn, calendarClosedOn, hatchedOn, hatched, infertile, broken, note: text(pick('note', existing?.note ?? null), 'camp.nota', { max: 1000, optional: true }) };
 }
 
 const getClutchRow = async (accountId, id) => {
@@ -195,11 +201,12 @@ async function fosterId(accountId, value, ownPairId) {
 export async function createClutch(accountId, pairId, body) {
   const pair = await getPairRow(accountId, pairId);
   const c = parseClutch(body);
+  const now = nowIso();
   const foster = (await fosterId(accountId, body?.fosterPairId, pair.id)) ?? null;
   const id = await insert(
-    `INSERT INTO clutches (account_id, pair_id, egg1_on, egg2_on, eggs, hatched_on, hatched, infertile, broken, foster_pair_id, note, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    accountId, pair.id, c.egg1On, c.egg2On, c.eggs, c.hatchedOn, c.hatched, c.infertile, c.broken, foster, c.note, nowIso(),
+    `INSERT INTO clutches (account_id, pair_id, egg1_on, egg2_on, eggs, candled_on, calendar_closed_on, hatched_on, hatched, infertile, broken, foster_pair_id, note, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    accountId, pair.id, c.egg1On, c.egg2On, c.eggs, c.candledOn, c.calendarClosedOn, c.hatchedOn, c.hatched, c.infertile, c.broken, foster, c.note, now, now,
   );
   return toClutch(await getClutchRow(accountId, id));
 }
@@ -211,8 +218,8 @@ export async function updateClutch(accountId, id, body) {
   if (c.hatched != null && c.hatched < young) throw badRequest('eroare.deja_inelati', { numar: young });
   const foster = await fosterId(accountId, body?.fosterPairId, row.pair_id);
   await run(
-    `UPDATE clutches SET egg1_on = ?, egg2_on = ?, eggs = ?, hatched_on = ?, hatched = ?, infertile = ?, broken = ?, note = ?, foster_pair_id = ? WHERE id = ?`,
-    c.egg1On, c.egg2On, c.eggs, c.hatchedOn, c.hatched, c.infertile, c.broken, c.note, foster === undefined ? row.foster_pair_id : foster, row.id,
+    `UPDATE clutches SET egg1_on = ?, egg2_on = ?, eggs = ?, candled_on = ?, calendar_closed_on = ?, hatched_on = ?, hatched = ?, infertile = ?, broken = ?, note = ?, foster_pair_id = ?, updated_at = ? WHERE id = ?`,
+    c.egg1On, c.egg2On, c.eggs, c.candledOn, c.calendarClosedOn, c.hatchedOn, c.hatched, c.infertile, c.broken, c.note, foster === undefined ? row.foster_pair_id : foster, nowIso(), row.id,
   );
   return toClutch(await getClutchRow(accountId, row.id));
 }
@@ -220,6 +227,78 @@ export async function updateClutch(accountId, id, body) {
 export async function deleteClutch(accountId, id) {
   const row = await getClutchRow(accountId, id);
   await run('DELETE FROM clutches WHERE id = ? AND account_id = ?', row.id, accountId);
+}
+
+// ——— Calendarul cuibului ———
+
+const pigeonName = (p) => p?.name || p?.ring || '?';
+// Textul unui cuib: numărul pus de crescător, altfel „mascul × femelă”.
+const nestLabel = (pair, pigeons) => pair.nest || `${pigeonName(pigeons.get(pair.cock_id))} × ${pigeonName(pigeons.get(pair.hen_id))}`;
+
+/**
+ * Pontele deschise (primul ou de mai puțin de 45 de zile, neînchise cu „Nu mai urmări”) ale unui cont sau, fără
+ * `accountId`, ale tuturor conturilor: `{ accountId, clutchId, pairId, label, fosterLabel, clutch, updatedAt }`.
+ * Ponta cu doică stă la cuibul doicii (`pairId`, `label`), cu perechea proprie la `fosterLabel`.
+ * `clutch` are forma din `nest-schedule.js`.
+ */
+export async function openClutches({ accountId = null, today }) {
+  const rows = await all(
+    `SELECT c.*, (SELECT count(*)::int FROM pigeons y WHERE y.clutch_id = c.id) AS young_count
+       FROM clutches c
+      WHERE c.calendar_closed_on IS NULL AND c.egg1_on > ?::date - ?::int AND (?::bigint IS NULL OR c.account_id = ?::bigint)
+      ORDER BY c.id`,
+    today, OPEN_DAYS, accountId, accountId,
+  );
+  const open = rows.filter((r) => isOpen({ egg1On: r.egg1_on, calendarClosedOn: r.calendar_closed_on }, today));
+  if (!open.length) return [];
+  const pairIds = [...new Set(open.flatMap((r) => [r.pair_id, r.foster_pair_id]).filter(Boolean))];
+  const pairs = new Map((await all('SELECT * FROM pairs WHERE id = ANY(?::bigint[])', pairIds)).map((p) => [p.id, p]));
+  const pigeonIds = [...new Set([...pairs.values()].flatMap((p) => [p.cock_id, p.hen_id]))];
+  const pigeons = new Map((await all('SELECT * FROM pigeons WHERE id = ANY(?::bigint[])', pigeonIds)).map((r) => [r.id, toSummary(r)]));
+  return open.map((r) => {
+    const own = pairs.get(r.pair_id);
+    const foster = r.foster_pair_id ? pairs.get(r.foster_pair_id) : null;
+    return {
+      accountId: r.account_id,
+      clutchId: r.id,
+      pairId: (foster ?? own).id,
+      label: nestLabel(foster ?? own, pigeons),
+      fosterLabel: foster ? nestLabel(own, pigeons) : null,
+      clutch: {
+        id: r.id, egg1On: r.egg1_on, egg2On: r.egg2_on, eggs: r.eggs, candledOn: r.candled_on, infertile: r.infertile, broken: r.broken,
+        hatchedOn: r.hatched_on, hatched: r.hatched, young: r.young_count, calendarClosedOn: r.calendar_closed_on,
+      },
+      updatedAt: r.updated_at,
+    };
+  });
+}
+
+/** Ce are de făcut crescătorul cu cuiburile: momentele de azi și cele din următoarele zile, întârziatele întâi. */
+export async function calendar(accountId, today) {
+  const items = [];
+  for (const o of await openClutches({ accountId, today })) {
+    const c = o.clutch;
+    for (const m of nestMoments(c, today)) {
+      items.push({
+        clutchId: o.clutchId,
+        pairId: o.pairId,
+        label: o.label,
+        fosterLabel: o.fosterLabel,
+        kind: m.kind,
+        from: m.from,
+        to: m.to,
+        state: m.state,
+        ...(m.last ? { last: true } : {}),
+        ...(m.question ? { question: true } : {}),
+        eggs: c.eggs,
+        eggsLeft: c.eggs - c.infertile - c.broken,
+        hatched: c.hatched,
+        young: c.young,
+      });
+    }
+  }
+  const late = (i) => (i.state === 'intarziat' ? 0 : 1);
+  return { today, items: items.sort((x, y) => late(x) - late(y) || x.from.localeCompare(y.from) || x.label.localeCompare(y.label, 'ro')) };
 }
 
 /** Perechea cu pontele ei (cele mai noi întâi), puii inelați din fiecare și consangvinizarea puilor. */

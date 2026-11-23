@@ -46,7 +46,7 @@ const PIGEON_TABS: { id: string; label: string; icon: IconName }[] = [
 
 const NAV: NavItem[] = [
   // Panoul: Grilă / Listă / Rezultate, fișa unui porumbel și ce se deschide din panou (rezultate concurs, scanare, tratamente).
-  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|concursuri|scaneaza|tratamente|porumbei\/(\d+|pedigree))(\/|\?|$)/ },
+  { path: '/panou', label: 'meniu.panou', icon: 'panou', also: /^\/(porumbar|concursuri|scaneaza|tratamente|porumbei\/(\d+|pedigree|excel))(\/|\?|$)/ },
   { path: '/arbore', label: 'meniu.arbore', icon: 'copac' },
   { path: '/perechi', label: 'meniu.perechi', icon: 'ou' },
   { path: '/porumbei/nou', label: 'meniu.adauga', icon: 'plus', exact: true },
@@ -234,6 +234,7 @@ export class App {
       ['/porumbar', 'vedere.lista', 'lista', path === '/porumbar'],
       ['/concursuri', 'panou.rezultate_concurs', 'cupa', path.startsWith('/concursuri')],
       ['/porumbei/pedigree', 'panou.importa_pedigree', 'fisa', path === '/porumbei/pedigree'],
+      ['/porumbei/excel', 'panou.din_excel', 'tabel', path === '/porumbei/excel'],
       ['/scaneaza', 'panou.scaneaza_qr', 'qr', path === '/scaneaza'],
       ['/tratamente', 'meniu.tratamente', 'tratament', path === '/tratamente' || path.startsWith('/tratamente/')],
     ];

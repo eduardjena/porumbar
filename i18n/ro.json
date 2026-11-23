@@ -2557,5 +2557,349 @@
   "import_excel.rand_refuzat": {
     "text": "Rândul nu a putut fi adăugat: {motiv}",
     "sens": "Rezumatul importului din Excel: fișa porumbelului a fost refuzată. {motiv} = mesajul de eroare al fișei."
+  },
+  "titlu.excel": {
+    "text": "Adu porumbeii din Excel · Porumbar",
+    "sens": "Titlul ferestrei pe pagina de import din Excel."
+  },
+  "panou.din_excel": {
+    "text": "Adu porumbeii din Excel",
+    "sens": "Submeniul Panoului, după „Importă pedigree”: pagina care aduce porumbeii dintr-un tabel Excel."
+  },
+  "excel.intro": {
+    "text": "Ai porumbeii într-un tabel Excel sau în alt program? Adu-i aici pe toți odată. Inelele pe care le ai deja nu se dublează, iar arborele se leagă singur după tată și mamă.",
+    "sens": "Rândul de sub titlul Panoului pe pagina „Adu porumbeii din Excel”."
+  },
+  "excel.pas1": {
+    "text": "1. Tabelul",
+    "sens": "Importul din Excel, titlul pasului 1 (alegerea fișierului sau lipirea tabelului)."
+  },
+  "excel.alege_fisier": {
+    "text": "Alege fișierul (.xlsx, .xls, .csv)",
+    "sens": "Butonul mare care deschide alegerea fișierului Excel / CSV."
+  },
+  "excel.fisier_ajutor": {
+    "text": "Fișierul se citește aici, pe telefonul sau calculatorul tău, și nu se trimite nicăieri.",
+    "sens": "Sub butonul de alegere a fișierului: liniștește omul că fișierul nu pleacă de pe dispozitiv."
+  },
+  "excel.se_citeste": {
+    "text": "Citesc fișierul…",
+    "sens": "Butonul de alegere a fișierului cât timp se citește fișierul."
+  },
+  "excel.sau_lipeste": {
+    "text": "sau lipește aici tabelul copiat din Excel",
+    "sens": "Eticheta casetei în care omul lipește tabelul copiat (varianta de pe calculator)."
+  },
+  "excel.lipeste_ph": {
+    "text": "Selectează tabelul în Excel, copiază-l (Ctrl+C) și lipește-l aici (Ctrl+V).",
+    "sens": "Textul gri din caseta goală de lipire."
+  },
+  "excel.mai_departe": {
+    "text": "Mai departe",
+    "sens": "Butonul care trece la pasul următor al importului din Excel."
+  },
+  "excel.inapoi": {
+    "text": "Înapoi",
+    "sens": "Butonul care se întoarce la pasul de dinainte al importului din Excel."
+  },
+  "excel.fisier_mare": {
+    "text": "Fișierul e prea mare (cel mult 10 MB). Salvează în Excel doar foaia cu porumbeii și încearcă din nou.",
+    "sens": "Eroare: fișierul ales are peste 10 MB."
+  },
+  "excel.fisier_necitit": {
+    "text": "Nu am putut citi fișierul. Încearcă un fișier .xlsx, .xls sau .csv, sau copiază tabelul din Excel și lipește-l aici.",
+    "sens": "Eroare: fișierul ales nu se poate citi ca tabel."
+  },
+  "excel.tabel_gol": {
+    "text": "Nu am găsit niciun rând cu porumbei în tabel.",
+    "sens": "Eroare: tabelul lipit sau foaia aleasă nu are rânduri cu date."
+  },
+  "excel.prea_multe_randuri": {
+    "text": "Tabelul are {n} rânduri; se pot aduce cel mult {max} odată. Împarte-l în mai multe bucăți.",
+    "sens": "Eroare: prea multe rânduri. {n} = câte are tabelul, {max} = limita (3.000)."
+  },
+  "excel.pas2": {
+    "text": "2. Ce este în fiecare coloană",
+    "sens": "Importul din Excel, titlul pasului 2 (alegerea coloanelor)."
+  },
+  "excel.pas2_ajutor": {
+    "text": "Am ghicit ce e în fiecare coloană. Verifică și schimbă unde nu e bine.",
+    "sens": "Explicația pasului 2: programul a ghicit coloanele, omul le verifică."
+  },
+  "excel.foaia": {
+    "text": "Foaia din fișier",
+    "sens": "Lista foilor, când fișierul Excel are mai multe foi."
+  },
+  "excel.sursa_lipit": {
+    "text": "Tabelul lipit",
+    "sens": "În locul numelui fișierului, când omul a lipit tabelul."
+  },
+  "excel.randuri": {
+    "one": "{count} rând",
+    "few": "{count} rânduri",
+    "other": "{count} de rânduri",
+    "sens": "Câte rânduri cu date are tabelul (fără titlu)."
+  },
+  "excel.primul_rand_titlu": {
+    "text": "Primul rând e titlu",
+    "sens": "Bifa: primul rând din tabel are numele coloanelor, nu un porumbel."
+  },
+  "excel.coloana": {
+    "text": "Coloana {litera}",
+    "sens": "Pe cardul unei coloane: litera coloanei ca în Excel (A, B, C …)."
+  },
+  "excel.goala": {
+    "text": "(goală)",
+    "sens": "Pe cardul unei coloane fără nicio valoare."
+  },
+  "excel.ce_este": {
+    "text": "Ce este",
+    "sens": "Eticheta listei din care omul alege ce conține coloana."
+  },
+  "excel.doar_20": {
+    "text": "Am luat doar primele {max} coloane.",
+    "sens": "Avertisment: tabelul are mai mult de 20 de coloane. {max} = 20."
+  },
+  "excel.tara_fara": {
+    "text": "Inelele fără țară sunt din:",
+    "sens": "Lista de țări: apare când inelele din tabel nu au țara scrisă (de ex. 24-0117345)."
+  },
+  "excel.tara_ajutor": {
+    "text": "Pun țara doar la inelele care nu se citesc altfel.",
+    "sens": "Sub lista de țări: inelele care au deja țara rămân neatinse."
+  },
+  "excel.lipseste_inel": {
+    "text": "Alege la o coloană „Inelul (întreg)” sau „Inel – numărul” ca să poți merge mai departe.",
+    "sens": "Pasul 2: fără coloana inelului butonul „Mai departe” nu merge. Numele din ghilimele sunt cele din „excel.camp.inel” și „excel.camp.inel_numar”."
+  },
+  "excel.camp.inel": {
+    "text": "Inelul (întreg)",
+    "sens": "Ce conține coloana: inelul scris întreg (de ex. RO-24-0117345)."
+  },
+  "excel.camp.inel_tara": {
+    "text": "Inel – țara",
+    "sens": "Ce conține coloana: doar țara inelului (inelul scris în bucăți)."
+  },
+  "excel.camp.inel_an": {
+    "text": "Inel – anul",
+    "sens": "Ce conține coloana: doar anul inelului."
+  },
+  "excel.camp.inel_club": {
+    "text": "Inel – asociația / clubul",
+    "sens": "Ce conține coloana: doar asociația sau clubul din inel."
+  },
+  "excel.camp.inel_numar": {
+    "text": "Inel – numărul",
+    "sens": "Ce conține coloana: doar numărul inelului."
+  },
+  "excel.camp.nume": {
+    "text": "Nume",
+    "sens": "Ce conține coloana: numele porumbelului."
+  },
+  "excel.camp.sex": {
+    "text": "Sex",
+    "sens": "Ce conține coloana: sexul."
+  },
+  "excel.camp.culoare": {
+    "text": "Culoare",
+    "sens": "Ce conține coloana: culoarea penajului."
+  },
+  "excel.camp.ochi": {
+    "text": "Culoarea ochilor",
+    "sens": "Ce conține coloana: culoarea ochilor."
+  },
+  "excel.camp.rasa": {
+    "text": "Rasă",
+    "sens": "Ce conține coloana: rasa."
+  },
+  "excel.camp.linii": {
+    "text": "Linii",
+    "sens": "Ce conține coloana: liniile de sânge."
+  },
+  "excel.camp.eclozare": {
+    "text": "Data eclozării",
+    "sens": "Ce conține coloana: data eclozării."
+  },
+  "excel.camp.crescator": {
+    "text": "Crescător",
+    "sens": "Ce conține coloana: crescătorul (de unde vine porumbelul)."
+  },
+  "excel.camp.stare": {
+    "text": "Stare",
+    "sens": "Ce conține coloana: starea porumbelului (activ, vândut …)."
+  },
+  "excel.camp.tata": {
+    "text": "Tată (inelul)",
+    "sens": "Ce conține coloana: inelul tatălui."
+  },
+  "excel.camp.mama": {
+    "text": "Mamă (inelul)",
+    "sens": "Ce conține coloana: inelul mamei."
+  },
+  "excel.camp.observatii": {
+    "text": "Observații",
+    "sens": "Ce conține coloana: observații (merg în textul de pe fișă)."
+  },
+  "excel.camp.ignor": {
+    "text": "Nu iau coloana",
+    "sens": "Coloana nu se aduce în program."
+  },
+  "excel.pas3": {
+    "text": "3. Ce se va întâmpla",
+    "sens": "Importul din Excel, titlul pasului 3 (rezumatul exact înainte de salvare)."
+  },
+  "excel.se_verifica": {
+    "text": "Verific tabelul…",
+    "sens": "Cât timp serverul face rezumatul."
+  },
+  "excel.noi": {
+    "one": "{count} porumbel nou",
+    "few": "{count} porumbei noi",
+    "other": "{count} de porumbei noi",
+    "sens": "Rezumat: câți porumbei noi se vor adăuga."
+  },
+  "excel.exista": {
+    "one": "{count} porumbel există deja (completez doar ce lipsește)",
+    "few": "{count} porumbei există deja (completez doar ce lipsește)",
+    "other": "{count} de porumbei există deja (completez doar ce lipsește)",
+    "sens": "Rezumat: porumbei care sunt deja în cont; la ei se completează doar câmpurile goale."
+  },
+  "excel.stramosi": {
+    "one": "{count} părinte care nu e în tabel → îl trec ca strămoș",
+    "few": "{count} părinți care nu sunt în tabel → îi trec ca strămoși",
+    "other": "{count} de părinți care nu sunt în tabel → îi trec ca strămoși",
+    "sens": "Rezumat: părinții din coloanele Tată / Mamă care nu sunt nici în tabel, nici în cont, devin strămoși („din alt porumbar”)."
+  },
+  "excel.pb.fara_inel": {
+    "one": "{count} rând fără inel (îl sar)",
+    "few": "{count} rânduri fără inel (le sar)",
+    "other": "{count} de rânduri fără inel (le sar)",
+    "sens": "Rezumat: rânduri sărite pentru că nu au inel."
+  },
+  "excel.pb.inel_necitit": {
+    "one": "{count} rând cu inel necitit",
+    "few": "{count} rânduri cu inel necitit",
+    "other": "{count} de rânduri cu inel necitit",
+    "sens": "Rezumat: rânduri al căror inel nu poate fi citit."
+  },
+  "excel.pb.dublura": {
+    "one": "{count} inel scris de două ori (iau primul rând)",
+    "few": "{count} inele scrise de două ori (iau primul rând)",
+    "other": "{count} de inele scrise de două ori (iau primul rând)",
+    "sens": "Rezumat: același inel apare de mai multe ori în tabel; contează primul rând."
+  },
+  "excel.pb.conflict": {
+    "one": "{count} nepotrivire (nu schimb nimic la ea)",
+    "few": "{count} nepotriviri (nu schimb nimic la ele)",
+    "other": "{count} de nepotriviri (nu schimb nimic la ele)",
+    "sens": "Rezumat: tabelul spune altceva decât programul (alt părinte, alt sex); programul păstrează ce era."
+  },
+  "excel.pb.parinte_necitit": {
+    "one": "{count} părinte cu inel necitit (nu-l leg)",
+    "few": "{count} părinți cu inel necitit (nu-i leg)",
+    "other": "{count} de părinți cu inel necitit (nu-i leg)",
+    "sens": "Rezumat: inelul din coloana Tată / Mamă nu se citește, deci părintele nu se leagă."
+  },
+  "excel.pb.total": {
+    "one": "{count} rând cu probleme",
+    "few": "{count} rânduri cu probleme",
+    "other": "{count} de rânduri cu probleme",
+    "sens": "Rezumat: totalul rândurilor cu probleme, când sunt mai mult de 100 (atunci nu le mai numărăm pe feluri)."
+  },
+  "excel.probleme_titlu": {
+    "text": "Rândurile cu probleme",
+    "sens": "Titlul listei de rânduri cu probleme din rezumat."
+  },
+  "excel.rand_n": {
+    "text": "Rândul {n}",
+    "sens": "În lista de probleme: numărul rândului, ca în Excel."
+  },
+  "excel.arata_toate": {
+    "text": "Arată toate ({n})",
+    "sens": "Butonul care arată toată lista de probleme (la început se văd primele 10)."
+  },
+  "excel.lista_primele": {
+    "text": "Lista arată primele {n} din {total}.",
+    "sens": "Sub lista de probleme, când sunt mai mult de 100: {n} = câte se văd, {total} = câte sunt."
+  },
+  "excel.nimic_de_adaugat": {
+    "text": "Din acest tabel nu e nimic de adăugat.",
+    "sens": "Rezumat: niciun porumbel nou, existent sau strămoș."
+  },
+  "excel.adauga": {
+    "text": "Adaugă porumbeii",
+    "sens": "Butonul mare care salvează importul după rezumat."
+  },
+  "excel.se_adauga": {
+    "text": "Adaug porumbeii…",
+    "sens": "Butonul „Adaugă porumbeii” cât timp se salvează."
+  },
+  "excel.gata": {
+    "one": "Gata: am adus {count} porumbel",
+    "few": "Gata: am adus {count} porumbei",
+    "other": "Gata: am adus {count} de porumbei",
+    "sens": "Titlul ecranului de după salvare: câți porumbei noi din tabel au intrat."
+  },
+  "excel.gata_stramosi": {
+    "one": "Am trecut și {count} strămoș (un părinte care nu era în tabel).",
+    "few": "Am trecut și {count} strămoși (părinți care nu erau în tabel).",
+    "other": "Am trecut și {count} de strămoși (părinți care nu erau în tabel).",
+    "sens": "După salvare: câți strămoși noi s-au făcut din coloanele Tată / Mamă."
+  },
+  "excel.gata_existau": {
+    "one": "{count} porumbel era deja în program; la el am completat doar ce lipsea.",
+    "few": "{count} porumbei erau deja în program; la ei am completat doar ce lipsea.",
+    "other": "{count} de porumbei erau deja în program; la ei am completat doar ce lipsea.",
+    "sens": "După salvare: porumbeii care existau și la care s-au completat doar câmpurile goale."
+  },
+  "excel.vezi_porumbeii": {
+    "text": "Vezi porumbeii",
+    "sens": "După salvare: duce la lista porumbeilor."
+  },
+  "excel.alt_tabel": {
+    "text": "Alt tabel",
+    "sens": "După salvare: o ia de la capăt cu alt tabel."
+  },
+  "excel.anuleaza": {
+    "text": "Anulează importul",
+    "sens": "Butonul care anulează ultimul import din Excel (7 zile)."
+  },
+  "excel.se_anuleaza": {
+    "text": "Anulez…",
+    "sens": "Butonul „Anulează importul” cât timp se anulează."
+  },
+  "excel.banda": {
+    "one": "Ultimul import din Excel ({data}): {count} porumbel adus.",
+    "few": "Ultimul import din Excel ({data}): {count} porumbei aduși.",
+    "other": "Ultimul import din Excel ({data}): {count} de porumbei aduși.",
+    "sens": "Banda de sus a paginii de import: ultimul import care se mai poate anula. {data} = ziua și ora importului."
+  },
+  "excel.banda_pana": {
+    "text": "Îl poți anula până pe {data}.",
+    "sens": "Banda de sus: până când se poate anula importul (7 zile). {data} = ziua și ora."
+  },
+  "excel.anulezi_titlu": {
+    "text": "Anulezi ultimul import din Excel?",
+    "sens": "Întrebarea de confirmare înainte de anularea importului."
+  },
+  "excel.anulezi_text": {
+    "text": "Șterg porumbeii aduși atunci, dacă nu i-ai schimbat și nu i-ai folosit între timp, și golesc ce a completat importul. Ce ai scris tu rămâne.",
+    "sens": "Confirmarea anulării: ce se șterge și ce rămâne."
+  },
+  "excel.anulezi_da": {
+    "text": "Da, anulează importul",
+    "sens": "Butonul care confirmă anularea importului."
+  },
+  "excel.anulat": {
+    "one": "Am anulat importul: am șters {count} porumbel.",
+    "few": "Am anulat importul: am șters {count} porumbei.",
+    "other": "Am anulat importul: am șters {count} de porumbei.",
+    "sens": "După anulare: câți porumbei s-au șters (cu tot cu strămoșii făcuți de import)."
+  },
+  "excel.anulat_ramas": {
+    "one": "{count} porumbel a rămas, pentru că l-ai folosit după import.",
+    "few": "{count} porumbei au rămas, pentru că i-ai folosit după import.",
+    "other": "{count} de porumbei au rămas, pentru că i-ai folosit după import.",
+    "sens": "După anulare: porumbeii păstrați pentru că omul i-a schimbat sau folosit după import (jurnal, rezultate, perechi …)."
   }
 }

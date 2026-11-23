@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -69,7 +69,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
       @switch (step()) {
         @case ('tabel') {
           <section class="card stack">
-            <h2>{{ 'excel.pas1' | t }}</h2>
+            <h2 #stepHead tabindex="-1">{{ 'excel.pas1' | t }}</h2>
             <input #file class="vh" type="file" accept=".xlsx,.xls,.csv,.txt" tabindex="-1" aria-hidden="true" (change)="pickFile($event)" />
             <div>
               <button type="button" class="primary big" [disabled]="!!busy()" (click)="file.click()">
@@ -91,7 +91,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
 
         @case ('coloane') {
           <section class="card stack">
-            <h2>{{ 'excel.pas2' | t }}</h2>
+            <h2 #stepHead tabindex="-1">{{ 'excel.pas2' | t }}</h2>
             <p class="muted">{{ 'excel.pas2_ajutor' | t }}</p>
             @if (sheets().length > 1) {
               <label class="field">{{ 'excel.foaia' | t }}
@@ -145,7 +145,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
 
         @case ('rezumat') {
           <section class="card stack" aria-live="polite">
-            <h2>{{ 'excel.pas3' | t }}</h2>
+            <h2 #stepHead tabindex="-1">{{ 'excel.pas3' | t }}</h2>
             @if (busy() === 'verificare') { <p>{{ 'excel.se_verifica' | t }}</p> }
             @if (summary(); as s) {
               <ng-container [ngTemplateOutlet]="counts" [ngTemplateOutletContext]="{ $implicit: s }" />
@@ -158,7 +158,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
                   <app-icon name="bifa" />{{ busy() === 'salvare' ? ('excel.se_adauga' | t) : ('excel.adauga' | t) }}
                 </button>
               }
-              <button type="button" class="link" [disabled]="busy() === 'salvare'" (click)="go('coloane')">{{ 'excel.inapoi' | t }}</button>
+              <button type="button" class="link" [disabled]="busy() === 'salvare' || busy() === 'verificare'" (click)="go('coloane')">{{ 'excel.inapoi' | t }}</button>
             </div>
           </section>
         }
@@ -166,7 +166,7 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
         @case ('gata') {
           @if (result(); as r) {
             <section class="card stack done" role="status">
-              <h2><app-icon name="bifa" />{{ 'excel.gata' | t: { count: r.created } }}</h2>
+              <h2 #stepHead tabindex="-1"><app-icon name="bifa" />{{ 'excel.gata' | t: { count: r.created } }}</h2>
               @if (r.ancestors) { <p>{{ 'excel.gata_stramosi' | t: { count: r.ancestors } }}</p> }
               @if (r.existing) { <p>{{ 'excel.gata_existau' | t: { count: r.existing } }}</p> }
               @if (r.problems.length) { <ng-container [ngTemplateOutlet]="problemList" [ngTemplateOutletContext]="{ $implicit: r }" /> }
@@ -220,6 +220,8 @@ const hasText = (r: string[]) => r.some((c) => c.trim() !== '');
     .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
     .card h2 { margin: 0; display: flex; align-items: center; gap: 10px; }
     .card h3 { margin: 4px 0 0; }
+    /* Titlul pasului primește focusul la schimbarea pasului; conturul doar pentru tastatură. */
+    .card h2:focus:not(:focus-visible) { outline: none; }
     .source { margin: 0; overflow-wrap: anywhere; }
     /* Câte un card pe coloană: unul sub altul pe telefon, mai multe pe rând pe ecran lat. */
     .cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
@@ -248,6 +250,9 @@ export default class ImportExcel {
   private readonly confirm = inject(ConfirmService);
   private readonly state = inject(PorumbarState);
   private readonly auth = inject(AuthService);
+  private readonly injector = inject(Injector);
+  /** Titlul pasului de pe ecran (unul singur odată). */
+  private readonly stepHead = viewChild<ElementRef<HTMLElement>>('stepHead');
   protected readonly fieldList = FIELDS;
   protected readonly firstProblems = FIRST_PROBLEMS;
   protected readonly maxCols = MAX_COLS;
@@ -341,10 +346,15 @@ export default class ImportExcel {
     return PROBLEM_KINDS.map((kind) => ({ kind, count: s.problems.filter((p) => p.kind === kind).length })).filter((k) => k.count);
   }
 
+  /**
+   * Alt pas: sus pe pagină, iar focusul pe titlul pasului nou (butonul apăsat dispare; cititorul de ecran și tastatura
+   * pornesc de la titlu).
+   */
   go(step: Step) {
     this.error.set('');
     this.step.set(step);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    afterNextRender(() => this.stepHead()?.nativeElement.focus({ preventScroll: true }), { injector: this.injector });
   }
 
   private clear() {
@@ -431,11 +441,13 @@ export default class ImportExcel {
     this.go('rezumat');
     this.busy.set('verificare');
     try {
-      this.summary.set(await this.api.post<ImportSummary>('/import/excel/preview', body));
+      const summary = await this.api.post<ImportSummary>('/import/excel/preview', body);
+      // Un răspuns întârziat la o cerere mai veche nu are voie să ia locul rezumatului celei noi.
+      if (this.sent === body) this.summary.set(summary);
     } catch (e) {
-      this.error.set(errorMessage(e));
+      if (this.sent === body) this.error.set(errorMessage(e));
     } finally {
-      this.busy.set('');
+      if (this.sent === body) this.busy.set('');
     }
   }
 

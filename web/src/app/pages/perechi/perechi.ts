@@ -5,7 +5,7 @@ import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { percent, ringText } from '../../core/catalog';
 import { formatDay, t, TPipe } from '../../core/i18n';
-import { Pair, PigeonSummary, RingSeries } from '../../core/models';
+import { CalendarItem, Pair, PigeonSummary, RingSeries } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { DateField } from '../../shared/date-field';
 
@@ -85,6 +85,9 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
             </span>
             <span class="meta">
               <span class="badge" [class]="'badge st-' + p.status">{{ status(p.status) }}</span>
+              @if (nestDue().get(p.id); as st) {
+                <span class="badge cuib" [class.cuib-late]="st === 'intarziat'"><app-icon name="cuib" [size]="18" />{{ (st === 'intarziat' ? 'perechi.cuib_intarziat' : 'perechi.cuib_azi') | t }}</span>
+              }
               @if (p.nest) { <span>{{ 'perechi.cuibul' | t: { n: p.nest } }}</span> }
               @if (p.pairedOn) { <span>{{ 'perechi.din_data' | t: { data: date(p.pairedOn) } }}</span> }
               <span>{{ 'perechi.ponte' | t: { count: p.clutchCount } }} · {{ 'perechi.pui_inelati' | t: { n: p.youngCount } }}</span>
@@ -134,6 +137,8 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
     .sx { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.75rem; color: #fff; }
     .sx.sM { background: var(--male); }
     .sx.sF { background: var(--female); }
+    .badge.cuib { gap: 6px; background: var(--accent-soft); color: var(--accent-strong); }
+    .badge.cuib-late { background: var(--danger); color: #fff; }
     .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--muted); font-size: 0.95rem; align-items: center; }
     .warn { color: var(--danger, #b3261e); font-weight: 700; }
     .st-activa { background: var(--accent-soft); color: var(--accent-strong); }
@@ -154,6 +159,8 @@ export default class Perechi {
   readonly season = signal(new Date().getFullYear());
   readonly seasons = signal<number[]>([new Date().getFullYear()]);
   readonly pairs = signal<Pair[]>([]);
+  /** Perechile cu ceva de făcut azi la cuib (banda „Cuiburile” de pe Panou): azi sau întârziat. */
+  readonly nestDue = signal<Map<number, 'azi' | 'intarziat'>>(new Map());
   readonly series = signal<RingSeries[]>([]);
   readonly allPigeons = signal<PigeonSummary[]>([]);
   readonly loaded = signal(false);
@@ -201,6 +208,7 @@ export default class Perechi {
       });
     });
     this.loadSeries();
+    this.loadNestDue();
   }
 
   private async load() {
@@ -214,6 +222,21 @@ export default class Perechi {
       this.error.set(errorMessage(e));
     } finally {
       this.loaded.set(true);
+    }
+  }
+
+  /** Semnul „la cuib azi” din listă: aceleași momente ca banda „Cuiburile”, pe perechea pontei. */
+  private async loadNestDue() {
+    try {
+      const { items } = await this.api.get<{ items: CalendarItem[] }>('/breeding/calendar');
+      const due = new Map<number, 'azi' | 'intarziat'>();
+      for (const i of items) {
+        if (i.state === 'intarziat') due.set(i.ownPairId, 'intarziat');
+        else if (i.state === 'azi' && !due.has(i.ownPairId)) due.set(i.ownPairId, 'azi');
+      }
+      this.nestDue.set(due);
+    } catch {
+      // semnul nu e esențial
     }
   }
 

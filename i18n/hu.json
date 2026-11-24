@@ -1032,6 +1032,8 @@
   "perechi.mirat_pe": "Átvilágítva: {data}",
   "perechi.inchisa_calendar": "Lezárva a naptárban: már nem jelenik meg a „Fészkek” sávban.",
   "perechi.urmareste_din_nou": "Újra követem",
+  "perechi.cuib_azi": "Ma a fészeknél",
+  "perechi.cuib_intarziat": "Fészek: késésben",
   "perechi.nicio_ponta": "Még nincs fészekalj.",
   "perechi.stergerea": "A pár törlése",
   "perechi.stergerea_text": "Törlődik a pár és a fészekaljai. A meggyűrűzött fiókák a dúcban maradnak, az apjukkal és anyjukkal együtt.",

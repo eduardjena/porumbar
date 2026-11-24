@@ -1558,6 +1558,14 @@
     "text": "Închisă în calendar: nu mai apare în banda „Cuiburile” de pe Panou.",
     "sens": "Pe fișa perechii, la o pontă pentru care omul a apăsat „Nu mai urmări” în banda de pe Panou."
   },
+  "perechi.cuib_azi": {
+    "text": "La cuib azi",
+    "sens": "Semn în lista perechilor: perechea are azi ceva de făcut la cuib (al doilea ou, mirare, eclozare, inelare), ca în banda „Cuiburile” de pe Panou."
+  },
+  "perechi.cuib_intarziat": {
+    "text": "La cuib: întârziat",
+    "sens": "Semn roșu în lista perechilor: la cuibul perechii a rămas ceva nefăcut după zilele lui (de ex. inelarea), ca rândurile „Întârziate” din banda de pe Panou."
+  },
   "perechi.urmareste_din_nou": {
     "text": "Urmărește din nou",
     "sens": "Buton pe fișa perechii: ponta închisă revine în banda „Cuiburile” de pe Panou."

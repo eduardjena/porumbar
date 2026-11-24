@@ -106,7 +106,7 @@ interface ClutchForm {
 
       <ul class="clutches">
         @for (c of p.clutches ?? []; track c.id) {
-          <li class="card stack ponta" [id]="'ponta-' + c.id">
+          <li class="card stack ponta" [id]="'ponta-' + c.id" [class.tinta]="target() === c.id">
             <div class="row between">
               <strong>{{ c.egg2On ? ('perechi.oua_doua' | t: { data1: date(c.egg1On), data2: date(c.egg2On) }) : ('perechi.oua_una' | t: { data: date(c.egg1On) }) }}<span class="muted"> {{ 'perechi.n_oua' | t: { count: c.eggs } }}</span></strong>
               <button type="button" class="link" (click)="removeClutch(c)">{{ 'actiune.sterge' | t }}</button>
@@ -228,6 +228,7 @@ interface ClutchForm {
     .closed { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; }
     .closed .link { min-height: 48px; }
     .ponta { scroll-margin-top: 16px; }
+    .ponta.tinta { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
     .sub { border-top: 1px solid var(--border); padding-top: 12px; }
     h3, h4 { margin: 0; }
     .young { margin: 0; padding-left: 20px; }
@@ -245,8 +246,12 @@ export default class Pereche {
   readonly id = input.required<string>();
   /** `?inelare=<ponta>` (din banda „Cuiburile”): deschide inelarea acelei ponte. */
   readonly inelare = input<string | undefined>();
-  /** Ponta din `?inelare` deja deschisă (o singură dată, nu la fiecare reîncărcare). */
+  /** `?ponta=<id>` (din numele perechii în banda „Cuiburile”): ponta se derulează în vedere și se evidențiază. */
+  readonly ponta = input<string | undefined>();
+  /** Ponta din link deja derulată (o singură dată, nu la fiecare reîncărcare). */
   private ringOpened: string | null = null;
+  /** Ponta evidențiată, venită din bandă. */
+  readonly target = signal<number | null>(null);
   readonly pair = signal<Pair | null>(null);
   readonly fosters = signal<Pair[]>([]);
   readonly error = signal('');
@@ -303,14 +308,19 @@ export default class Pereche {
     return this.load(this.id());
   }
 
-  /** Venit din banda „Cuiburile”: ponta cerută se derulează în vedere și, dacă mai are pui de inelat, se deschide inelarea. */
+  /**
+   * Venit din banda „Cuiburile”: ponta cerută se derulează în vedere și se evidențiază; cu `?inelare`, dacă mai are pui
+   * de inelat, se deschide și inelarea.
+   */
   private openRingFromLink(pair: Pair) {
-    const wanted = this.inelare();
+    const ring = this.inelare();
+    const wanted = ring ?? this.ponta();
     if (!wanted || wanted === this.ringOpened) return;
     this.ringOpened = wanted;
     const c = pair.clutches?.find((x) => String(x.id) === wanted);
     if (!c) return;
-    if (c.hatchedOn && c.young.length < (c.hatched ?? c.eggs)) void this.openRing(c);
+    this.target.set(c.id);
+    if (ring && c.hatchedOn && c.young.length < (c.hatched ?? c.eggs)) void this.openRing(c);
     afterNextRender(() => document.getElementById(`ponta-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), { injector: this.injector });
   }
 

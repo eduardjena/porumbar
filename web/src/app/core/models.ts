@@ -183,6 +183,8 @@ export interface TreeNode {
   father: TreeNode | null;
   mother: TreeNode | null;
   repeat: number | null;
+  /** Apare și la tată, și la mamă (cel mai apropiat): „T+M”. */
+  both: boolean;
 }
 
 export interface CoiResult {

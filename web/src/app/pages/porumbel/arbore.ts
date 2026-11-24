@@ -55,12 +55,14 @@ interface Cell {
             <div class="cell" [class.root]="c.depth === 0" [class.f]="c.side === 'father'" [class.m]="c.side === 'mother'" [class.has-parents]="c.node && c.depth < gen()"
                  [style.grid-column]="c.depth + 1" [style.grid-row]="c.row">
               @if (c.node; as node) {
-                <div class="box" [class]="'box g' + (c.depth > 5 ? 5 : c.depth)" [style.background]="node.repeat ? color(node.repeat) : null"
+                <div class="box" [class]="'box g' + (c.depth > 5 ? 5 : c.depth)" [style.background]="node.repeat && node.both ? color(node.repeat) : null"
+                     [style.border]="node.repeat && !node.both ? '3px solid ' + color(node.repeat) : null"
                      (dblclick)="openPigeon(node.id)" [title]="'arbore.dublu_clic' | t">
                   @if (pigeons()[node.id]; as p) {
                     <div class="line1">
                       @if (p.sex) { <span class="sx" [class]="'sx s' + p.sex">{{ sex(p.sex) }}</span> }
                       <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
+                      @if (node.both) { <span class="tm" [title]="'arbore.tm_lung' | t">{{ 'arbore.tm' | t }}</span> }
                     </div>
                     @if (p.name) { <div class="nm">„{{ p.name }}”</div> }
                     @if (p.sheet?.color; as col) { <div class="meta">{{ col }}</div> }
@@ -80,7 +82,7 @@ interface Cell {
       @if (legend().length) {
         <p class="muted legend">
           @for (l of legend(); track l.group) {
-            <span class="swatch" [style.background]="color(l.group)"></span><span class="mono">{{ l.ring }}</span> {{ 'arbore.apare_de' | t: { count: l.count } }}
+            <span class="swatch" [style.background]="l.both ? color(l.group) : null" [style.border]="l.both ? null : '3px solid ' + color(l.group)"></span><span class="mono">{{ l.ring }}</span> {{ 'arbore.apare_de' | t: { count: l.count } }}@if (l.both) { {{ 'arbore.tm_lung' | t }}}
           }
         </p>
       }
@@ -117,6 +119,8 @@ interface Cell {
     .sx { flex: none; width: 1.3em; height: 1.3em; margin-top: 0.05em; border-radius: 50%; display: grid; place-items: center; font-size: 0.75em; font-weight: 700; color: #fff; background: var(--muted); }
     .sx.sM { background: var(--male); }
     .sx.sF { background: var(--female); }
+    /* „T+M”: nu se micșorează și nu acoperă inelul; semnul nu e doar culoare. */
+    .tm { flex: none; margin-left: auto; font-weight: 700; font-size: 0.85em; color: #2b2117; border: 1px solid #2b2117; border-radius: 4px; padding: 0 3px; line-height: 1.2; }
     .nm { font-weight: 700; }
     .txt { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     .g0 .txt { -webkit-line-clamp: 10; }
@@ -147,7 +151,7 @@ export class Arbore {
   readonly tree = signal<TreeNode | null>(null);
   readonly pigeons = signal<Record<number, PigeonSummary>>({});
   readonly coi = signal<CoiResult | null>(null);
-  readonly legend = signal<{ group: number; ring: string; count: number }[]>([]);
+  readonly legend = signal<{ group: number; ring: string; count: number; both: boolean }[]>([]);
   readonly error = signal('');
   protected readonly pct = percent;
   protected readonly ring = ringText;
@@ -205,19 +209,21 @@ export class Arbore {
       this.pigeons.set(t.pigeons);
       this.tree.set(t.tree);
       this.coi.set(c);
-      const counts = new Map<number, { group: number; ring: string; count: number }>();
+      const counts = new Map<number, { group: number; ring: string; count: number; both: boolean }>();
       const walk = (n: TreeNode | null) => {
         if (!n) return;
         if (n.repeat) {
-          const e = counts.get(n.repeat) ?? { group: n.repeat, ring: ringText(t.pigeons[n.id]), count: 0 };
+          const e = counts.get(n.repeat) ?? { group: n.repeat, ring: ringText(t.pigeons[n.id]), count: 0, both: false };
           e.count++;
+          if (n.both) e.both = true;
           counts.set(n.repeat, e);
         }
         walk(n.father);
         walk(n.mother);
       };
       walk(t.tree);
-      this.legend.set([...counts.values()]);
+      // Cele „T+M” primele (sortare stabilă: restul rămân în ordinea de azi).
+      this.legend.set([...counts.values()].sort((a, b) => Number(b.both) - Number(a.both)));
       this.error.set('');
     } catch (e) {
       this.error.set(errorMessage(e));

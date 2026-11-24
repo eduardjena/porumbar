@@ -883,7 +883,7 @@
   "text.de_verificat": "Ellenőrizendő ({n}):",
   "text.nume": "Név",
   "text.se_salveaza": "Mentés…",
-  "retea.intro": "Minden galamb csak egyszer szerepel. A vastag keret a közös ősöket jelöli, ahol a vonalak találkoznak. Érints meg egy galambot, hogy lásd az ágait.",
+  "retea.intro": "Minden galamb csak egyszer szerepel. Vastag keret: több leszármazottal rendelkező galamb itt, ahol a vonalak találkoznak. Érints meg egy galambot, hogy lásd az ágait.",
   "retea.tot_porumbarul": "Az egész dúc",
   "retea.doar_cei_mai_tineri": "Csak a {n} legfiatalabb galambot mutatom. Válassz egy galambot, hogy lásd a rokonait.",
   "retea.adauga_primul": "Add hozzá az első galambot, és itt látod majd az őseivel és utódaival együtt.",

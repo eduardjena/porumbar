@@ -12,8 +12,8 @@ import { lastRoot, rememberRoot } from './arbore-data';
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 /*
- * Rețeaua de rudenie: fiecare porumbel apare o singură dată, cu linii de la părinți la pui. Strămoșii comuni (cu mai
- * mulți urmași aici) au chenar gros: acolo se întâlnesc liniile genealogice. Cytoscape (mărire / mutare cu degetele,
+ * Rețeaua de rudenie: fiecare porumbel apare o singură dată, cu linii de la părinți la pui. Porumbeii cu mai
+ * mulți urmași aici (nu neapărat T+M) au chenar gros: acolo se întâlnesc liniile genealogice. Cytoscape (mărire / mutare cu degetele,
  * atingere pe noduri) și așezarea dagre se încarcă doar pe această pagină.
  */
 @Component({

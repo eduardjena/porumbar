@@ -132,6 +132,8 @@ export interface Network {
   nodes: NetworkNode[];
   edges: { from: number; to: number; role: 'father' | 'mother' }[];
   truncated: boolean;
+  /** Strămoșii „T+M”: și la tată, și la mamă (doar cu rădăcină). */
+  common: number[];
 }
 
 export interface Evaluation {

@@ -1326,6 +1326,10 @@
     "sens": "Vine după inelul porumbelului de pornire."
   },
   "retea.graf_gol": "Niciun porumbel de arătat încă.",
+  "retea.legenda_tm": {
+    "text": "T+M = strămoș al porumbelului, și la tată, și la mamă",
+    "sens": "Legenda de sub graful rudelor; „T+M” e semnul din casetă (tată + mamă)."
+  },
   "retea.arata_tot": "Arată tot arborele",
   "arbore.vedere_carduri": {
     "text": "Carduri",

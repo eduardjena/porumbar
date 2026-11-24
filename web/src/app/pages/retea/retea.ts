@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import type { Core, ElementDefinition, NodeSingular } from 'cytoscape';
 import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
-import { TPipe } from '../../core/i18n';
+import { t, TPipe } from '../../core/i18n';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { lastRoot, rememberRoot } from './arbore-data';
@@ -54,6 +54,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
         <button type="button" [attr.aria-label]="'retea.arata_tot' | t" [title]="'retea.arata_tot' | t" (click)="fit()"><app-icon name="panou" /></button>
       </div>
     </div>
+    @if (net()?.common?.length) { <p class="muted tm-legend">{{ 'retea.legenda_tm' | t }}</p> }
 
     @if (selected(); as s) {
       <aside class="selected card" aria-live="polite">
@@ -233,12 +234,13 @@ export default class Retea implements OnDestroy {
     const outgoing = new Map<number, number>();
     for (const e of net.edges) outgoing.set(e.from, (outgoing.get(e.from) ?? 0) + 1);
     const byId = new Map(net.nodes.map((n) => [n.id, n]));
+    const common = new Set(net.common ?? []);
 
     const elements: ElementDefinition[] = [
       ...net.nodes.map((n) => ({
         data: {
           id: String(n.id),
-          label: `${n.ring}${n.year ? `\n${n.year}` : ''}${n.name ? `\n${n.name.slice(0, 18)}` : ''}`,
+          label: `${n.ring}${n.year ? `\n${n.year}` : ''}${n.name ? `\n${n.name.slice(0, 18)}` : ''}${common.has(n.id) ? `\n${t('arbore.tm')}` : ''}`,
           band: n.kind === 'own' ? n.band : -1,
         },
         classes: [
@@ -246,6 +248,7 @@ export default class Retea implements OnDestroy {
           n.kind === 'external' ? 'external' : '',
           (outgoing.get(n.id) ?? 0) >= 2 ? 'hub' : '',
           n.id === rootId ? 'root' : '',
+          common.has(n.id) ? 'tm' : '',
         ].join(' '),
       })),
       ...net.edges.map((e) => ({ data: { id: `${e.from}-${e.to}`, source: String(e.from), target: String(e.to), role: e.role } })),
@@ -289,6 +292,8 @@ export default class Retea implements OnDestroy {
         { selector: 'node.external', style: { 'border-style': 'dashed' } },
         { selector: 'node.hub', style: { 'border-width': 5 } },
         { selector: 'node.root', style: { 'outline-width': 4, 'outline-color': css('--accent'), 'outline-offset': 4 } as never },
+        // Strămoș „T+M”: contur turcoaz, deosebit de celelalte semne; textul „T+M” din etichetă îl face vizibil și fără culoare.
+        { selector: 'node.tm', style: { 'outline-width': 4, 'outline-color': css('--tm'), 'outline-offset': 4 } as never },
         {
           selector: 'edge',
           style: {

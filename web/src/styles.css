@@ -26,6 +26,8 @@
   --ok-soft: #eaf0da;
   --male: #2b5a86;
   --female: #8c357f;
+  /* Strămoșul „T+M” din graf: turcoaz, deosebit de note, sex, accent și haloul porumbelului ales. */
+  --tm: #00727f;
 
   /* Valoarea porumbelului: 5 = cei mai valoroși … 1, 0 = fără date. */
   --band-5: #33501a;

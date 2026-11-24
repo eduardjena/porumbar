@@ -60,11 +60,16 @@ for (const c of cazuri) {
   });
 }
 test('both: frate × soră, doar bunicii; părinții nu', () => {
-  const t = buildTree(7, g([1], [2], [3, 1, 2], [4, 1, 2], [5], [6], [7, 3, 4]), 3);
+  const t = buildTree(7, g([1, 8, 9], [2, 10, 11], [3, 1, 2], [4, 1, 2], [8], [9], [10], [11], [7, 3, 4]), 3);
   assert.equal(t.father.father.both, true);
   assert.equal(t.mother.mother.both, true);
   assert.equal(t.father.both, false);
   assert.equal(t.both, false);
+  // străbunicii: repetați (apar pe ambele părți), dar nu T+M (îi acoperă bunicii)
+  for (const n of [t.father.father.father, t.father.father.mother, t.mother.mother.father, t.mother.mother.mother]) {
+    assert.notEqual(n.repeat, null);
+    assert.equal(n.both, false);
+  }
 });
 test('both: tată × fiică', () => {
   const t = buildTree(4, g([1], [2], [3, 1, 2], [4, 1, 3]), 3);
@@ -72,8 +77,10 @@ test('both: tată × fiică', () => {
   assert.equal(t.mother.father.both, true);
 });
 test('both: un singur părinte, niciun T+M', () => {
-  const t = buildTree(3, g([1], [3, 1, null]), 3);
+  // 1 și 2 se repetă pe partea cunoscută, dar mama lipsește: nimic nu e T+M
+  const t = buildTree(9, g([1], [2], [5, 1, 2], [6, 1, 2], [7, 5, 6], [9, 7, null]), 4);
   const toate = (n) => (n ? [n, ...toate(n.father), ...toate(n.mother)] : []);
+  for (const id of [1, 2]) assert.ok(toate(t).some((n) => n.id === id && n.repeat != null));
   assert.equal(toate(t).some((n) => n.both), false);
 });
 test('commonOf: frați buni → [1, 2]', () => {

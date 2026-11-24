@@ -135,6 +135,11 @@ Separarea UI / backend: interfața vorbește cu serverul doar prin `/api/*` (JSO
 cererile care schimbă date trebuie să fie JSON și de pe același site). Formatul pedigree-ului e „porumbar-pedigree” v1
 (`src/pedigree-format.js`), același pentru link public, QR, vânzare și preluare.
 
+Tiparul fișei: o singură pagină de tipar, `pages/porumbel/tiparire.ts` – un porumbel (`/porumbei/:id/tiparire`) sau
+mai mulți (`/porumbei/tiparire?ids=…`, butonul „Tipărește fișele (N)” de pe Panou / Listă, cel mult 200, câte o fișă pe
+A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/public.js`). PDF-ul îl face browserul
+(„Salvează ca PDF”); „Trimite” (`core/share-pdf.ts`) rămâne pentru un singur porumbel.
+
 ## Limbi (i18n)
 
 - Dicționarele: `i18n/languages.json` (lista: cod, nume, locale, `public`), `i18n/ro.json` (sursa, cu `sens` pentru

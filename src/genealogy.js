@@ -10,6 +10,44 @@ const parentsOf = (nodes, id) => {
 };
 
 /**
+ * Regula „T+M”: cheile care apar și în jumătatea tatălui, și în a mamei, doar cele mai apropiate.
+ * `positions`: Map<poziție heap ≥ 2, cheie> (tatăl = 2, mama = 3, părinții lui i = 2i și 2i+1; rădăcina nu intră).
+ * O poziție e acoperită dacă un strămoș dintre ea și rădăcină are o cheie comună; o cheie e „T+M” dacă are
+ * o poziție neacoperită în fiecare jumătate.
+ */
+export function tmKeys(positions) {
+  const half = (i) => {
+    while (i > 3) i = Math.floor(i / 2);
+    return i;
+  };
+  const sides = new Map();
+  for (const [i, k] of positions) sides.set(k, (sides.get(k) ?? new Set()).add(half(i)));
+  const common = new Set([...sides].filter(([, s]) => s.size === 2).map(([k]) => k));
+  const covered = (p) => {
+    for (let q = Math.floor(p / 2); q >= 2; q = Math.floor(q / 2)) if (common.has(positions.get(q))) return true;
+    return false;
+  };
+  const open = new Map();
+  for (const [i, k] of positions) {
+    if (common.has(k) && !covered(i)) open.set(k, (open.get(k) ?? new Set()).add(half(i)));
+  }
+  return new Set([...open].filter(([, s]) => s.size === 2).map(([k]) => k));
+}
+
+/** ID-urile cu `both` din arbore, în ordinea primei apariții (tată înaintea mamei). */
+export function commonOf(tree) {
+  const out = [];
+  const walk = (t) => {
+    if (!t) return;
+    if (t.both && !out.includes(t.id)) out.push(t.id);
+    walk(t.father);
+    walk(t.mother);
+  };
+  walk(tree);
+  return out;
+}
+
+/**
  * Arborele cu `generations` niveluri sub rădăcină. Strămoșii care apar de mai multe ori primesc același număr
  * de grup în `repeat` (1, 2, … în ordinea primei apariții); ceilalți au `repeat: null`.
  */
@@ -20,7 +58,7 @@ export function buildTree(rootId, nodes, generations) {
     if (id == null || path.has(id)) return null;
     if (!seen.has(id)) order.push(id);
     seen.set(id, (seen.get(id) ?? 0) + 1);
-    const node = { id, father: null, mother: null, repeat: null };
+    const node = { id, father: null, mother: null, repeat: null, both: false };
     if (depth < generations) {
       const n = nodes.get(id);
       const next = new Set(path).add(id);
@@ -39,6 +77,23 @@ export function buildTree(rootId, nodes, generations) {
     mark(t.mother);
   };
   mark(tree);
+  // Pozițiile heap (rădăcina = 1) → regula T+M, apoi `both` pe toate casetele cheilor găsite
+  const positions = new Map();
+  const place = (t, i) => {
+    if (!t) return;
+    if (i >= 2) positions.set(i, t.id);
+    place(t.father, 2 * i);
+    place(t.mother, 2 * i + 1);
+  };
+  place(tree, 1);
+  const tm = tmKeys(positions);
+  const flag = (t) => {
+    if (!t) return;
+    t.both = tm.has(t.id);
+    flag(t.father);
+    flag(t.mother);
+  };
+  flag(tree);
   return tree;
 }
 

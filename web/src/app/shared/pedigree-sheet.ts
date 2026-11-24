@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { PedigreeV1Node } from '../core/models';
 import { currentLang, tIn } from '../core/i18n';
+import { ringCompareKey, tmKeys } from './stramosi-comuni';
 
 const REPEAT = ['#c2410c', '#0f766e', '#7c3aed', '#b45309', '#be185d', '#1d4ed8'];
 const HEADS = ['fisa.cap_porumbel', 'fisa.cap_parinti', 'fisa.cap_bunici', 'fisa.cap_strabunici', 'fisa.cap_rastrabunici'];
@@ -19,12 +20,14 @@ export function colorOf(n: Pick<PedigreeV1Node, 'color' | 'colorLabel' | 'colorP
   return label ? `${label}${n.colorPa ? ` ${tIn(lang, 'fisa.pene_albe')}` : ''}` : (n.colorText ?? '');
 }
 
-interface Box {
+export interface Box {
   i: number;
   gen: number;
   node: PedigreeV1Node | null;
   row: string;
   repeat: string | null;
+  /** Strămoș „T+M”: și pe partea tatălui, și pe a mamei (cel mai apropiat). */
+  both: boolean;
 }
 
 /*
@@ -39,11 +42,12 @@ interface Box {
     <div class="sheet" [style.grid-template-columns]="'repeat(' + generations() + ', minmax(0, 1fr))'" [style.grid-template-rows]="'repeat(' + rows() + ', auto)'">
       @for (b of boxes(); track b.i) {
         <div class="box" [class]="'box g' + b.gen" [style.grid-column]="b.gen + 1" [style.grid-row]="b.row"
-             [style.border-color]="b.repeat" [style.box-shadow]="b.repeat ? 'inset 4px 0 0 ' + b.repeat : null">
+             [class.both]="b.both" [class.rep]="!!b.repeat" [style.border-color]="b.repeat" [style.--rc]="b.repeat">
           @if (b.node; as n) {
             <div class="line1">
               @if (n.sex) { <span class="sx" [class]="'sx s' + n.sex">{{ tx(n.sex === 'M' ? 'sex.m' : 'sex.f') }}</span> }
               <strong class="mono">{{ n.ring ?? tx('text.fara_inel') }}</strong>
+              @if (b.both) { <span class="tm" [title]="tx('arbore.tm_lung')">{{ tx('arbore.tm') }}</span> }
             </div>
             @if (n.name) { <div class="nm">„{{ n.name }}”</div> }
             @if (color(n); as c) { <div class="meta">{{ c }}</div> }
@@ -61,6 +65,11 @@ interface Box {
     .heads { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 6px; font-weight: 800; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.04em; color: var(--muted); }
     .sheet { display: grid; gap: 5px 8px; }
     .box { align-self: center; border: 1px solid var(--border); border-radius: 10px; padding: 6px 8px; background: var(--surface); font-size: 0.86rem; min-width: 0; break-inside: avoid; }
+    /* Repetat: chenar colorat; T+M: chenar gros și dungă în culoarea grupului (nu doar culoare: și eticheta). */
+    .box.rep { border-width: 1.5px; box-shadow: inset 4px 0 0 var(--rc); }
+    .box.both { border-width: 3px; box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 5px var(--rc); }
+    /* „T+M”: text și chenar închise, fără fundal (se citește și când browserul nu tipărește fundalurile, și alb-negru). */
+    .tm { flex: none; margin-left: auto; padding: 0 4px; border: 1px solid #2b2117; border-radius: 4px; background: transparent; font-size: 0.66rem; font-weight: 800; line-height: 1.3; color: #2b2117; }
     .box.g0 { border: 2px solid var(--accent); font-size: 1rem; }
     .line1 { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .line1 strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -97,6 +106,10 @@ interface Box {
     :host(.paper) .box.g1 { font-size: 8.2pt; }
     :host(.paper) .box.g2 { font-size: 7.7pt; }
     :host(.paper) .box.g4 { font-size: 6.8pt; padding: 0.6mm 1.1mm; }
+    :host(.paper) .box.rep { border-width: 0.4mm; box-shadow: inset 1mm 0 0 var(--rc); }
+    :host(.paper) .box.both { border-width: 0.8mm; box-shadow: inset 0 0 0 0.5mm #fff, inset 0 0 0 1.3mm var(--rc); }
+    /* Semnul e mai scund decât rândul inelului (5,5 pt × 1,2 + chenar < 6,8 pt × 1,05 × 1,22): nu adaugă înălțime. */
+    :host(.paper) .tm { font-size: 5.5pt; padding: 0 0.8mm; border-width: 0.2mm; border-radius: 0.6mm; line-height: 1.2; }
     /* Pe hârtie inelul nu se taie niciodată: dacă nu încape, trece pe rândul următor. */
     :host(.paper) .line1 { align-items: flex-start; }
     :host(.paper) .line1 strong { color: #a33d1c; font-size: 1.05em; white-space: normal; overflow-wrap: anywhere; }
@@ -138,31 +151,49 @@ export class PedigreeSheet {
     return colorOf(n, this.lang() ?? currentLang()) || null;
   }
 
-  protected readonly boxes = computed<Box[]>(() => {
-    const gens = this.generations();
-    const rows = 2 ** (gens - 1);
-    const out: Box[] = [];
-    const walk = (n: PedigreeV1Node | null, i: number) => {
-      const gen = Math.floor(Math.log2(i));
-      if (gen >= gens) return;
-      const span = rows / 2 ** gen;
-      const start = (i - 2 ** gen) * span + 1;
-      out.push({ i, gen, node: n, row: `${start} / span ${span}`, repeat: null });
-      if (!n && gen >= 2) return;
-      walk(n?.father ?? null, 2 * i);
-      walk(n?.mother ?? null, 2 * i + 1);
-    };
-    walk(this.root(), 1);
-    // Strămoșii care se repetă (același inel): aceeași culoare.
-    const count = new Map<string, number>();
-    for (const b of out) if (b.node?.ring && b.i > 1) count.set(b.node.ring, (count.get(b.node.ring) ?? 0) + 1);
-    const colors = new Map<string, string>();
-    for (const b of out) {
-      const r = b.node?.ring;
-      if (!r || (count.get(r) ?? 0) < 2) continue;
-      if (!colors.has(r)) colors.set(r, REPEAT[colors.size % REPEAT.length]);
-      b.repeat = colors.get(r)!;
-    }
-    return out;
-  });
+  protected readonly boxes = computed<Box[]>(() => sheetBoxes(this.root(), this.generations()));
 }
+
+/**
+ * Căsuțele foii (heap: porumbelul 1, tatăl lui i = 2i, mama = 2i + 1), cu repetările și „T+M” calculate pe ce se vede.
+ * Exportată ca pagina de tipar și pagina publică să știe dacă foaia are „T+M” (rândul de explicație de sub foaie).
+ */
+export function sheetBoxes(root: PedigreeV1Node, gens: number): Box[] {
+  const rows = 2 ** (gens - 1);
+  const out: Box[] = [];
+  const walk = (n: PedigreeV1Node | null, i: number) => {
+    const gen = Math.floor(Math.log2(i));
+    if (gen >= gens) return;
+    const span = rows / 2 ** gen;
+    const start = (i - 2 ** gen) * span + 1;
+    out.push({ i, gen, node: n, row: `${start} / span ${span}`, repeat: null, both: false });
+    if (!n && gen >= 2) return;
+    walk(n?.father ?? null, 2 * i);
+    walk(n?.mother ?? null, 2 * i + 1);
+  };
+  walk(root, 1);
+  // Strămoșii care se repetă (același inel, comparat normalizat): aceeași culoare; fără inel nu se compară.
+  const keyOf = (b: Box) => (b.i > 1 ? ringCompareKey(b.node?.ring) : null);
+  const count = new Map<string, number>();
+  for (const b of out) {
+    const k = keyOf(b);
+    if (k) count.set(k, (count.get(k) ?? 0) + 1);
+  }
+  const colors = new Map<string, string>();
+  const positions = new Map<number, string>();
+  for (const b of out) {
+    const k = keyOf(b);
+    if (!k) continue;
+    positions.set(b.i, k);
+    if ((count.get(k) ?? 0) < 2) continue;
+    if (!colors.has(k)) colors.set(k, REPEAT[colors.size % REPEAT.length]);
+    b.repeat = colors.get(k)!;
+  }
+  // „T+M”: același strămoș și la tată, și la mamă (cel mai apropiat); toate casetele lui primesc semnul.
+  const tm = tmKeys(positions);
+  for (const b of out) b.both = tm.has(positions.get(b.i) ?? '');
+  return out;
+}
+
+/** Are foaia (cu `gens` generații, implicit 5 ca la tipar) vreun strămoș „T+M”? */
+export const sheetHasTm = (root: PedigreeV1Node, gens = 5) => sheetBoxes(root, gens).some((b) => b.both);

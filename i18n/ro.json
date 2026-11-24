@@ -408,6 +408,10 @@
   },
   "fisa.tel": "Tel.:",
   "fisa.repetati": "Strămoșii colorați la fel apar de mai multe ori.",
+  "fisa.tm": {
+    "text": "T+M = la tată și la mamă",
+    "sens": "Explicația semnului „T+M” de pe foaia de pedigree (jos pe foaia tipărită și sub pedigree-ul public), doar când foaia are un astfel de strămoș: apare și la tată, și la mamă. „T+M” trebuie să fie scris ca în „arbore.tm”."
+  },
   "fisa.tiparit_pe": {
     "text": "Tipărit pe",
     "sens": "Urmat de data tipăririi."
@@ -1163,13 +1167,21 @@
     "text": "— strămoși comuni:",
     "sens": "Urmat de inelele strămoșilor comuni ai tatălui și mamei."
   },
+  "arbore.tm": {
+    "text": "T+M",
+    "sens": "Semn mic în colțul unei căsuțe din pedigree: strămoșul apare și la tată, și la mamă (tată + mamă)."
+  },
+  "arbore.tm_lung": {
+    "text": "la tată și la mamă",
+    "sens": "Explicația semnului T+M (la trecerea cursorului): același strămoș pe ambele părți ale pedigree-ului."
+  },
   "arbore.aria": "Arborele genealogic; se poate derula în lateral",
   "arbore.dublu_clic": "Dublu clic: deschide fișa",
   "arbore.adauga_tatal": "+ Adaugă tatăl",
   "arbore.adauga_mama": "+ Adaugă mama",
   "arbore.apare_de": {
-    "text": "apare de {count} ori.",
-    "sens": "După inelul unui strămoș repetat în arbore."
+    "text": "apare de {count} ori",
+    "sens": "În legenda de sub arbore, după inelul unui strămoș repetat; fără punct: la cei de la tată și de la mamă urmează „ · T+M la tată și la mamă”."
   },
   "vanzare.titlu": "Vinde porumbelul",
   "vanzare.vandut": "Vândut: {email} l-a primit pe {data}. La tine rămâne cu tot ce știai despre el.",
@@ -1305,7 +1317,7 @@
   },
   "text.nume": "Nume",
   "text.se_salveaza": "Se salvează…",
-  "retea.intro": "Fiecare porumbel apare o singură dată. Chenarul gros arată strămoșii comuni, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.",
+  "retea.intro": "Fiecare porumbel apare o singură dată. Chenarul gros: porumbel cu mai mulți urmași aici, unde se întâlnesc liniile. Atinge un porumbel ca să-i vezi ramurile.",
   "retea.tot_porumbarul": "Tot porumbarul",
   "retea.doar_cei_mai_tineri": "Arăt doar cei mai tineri {n} porumbei. Alege un porumbel ca să vezi rudele lui.",
   "retea.adauga_primul": "Adaugă primul porumbel, apoi îl vezi aici cu strămoșii și urmașii lui.",
@@ -1318,6 +1330,10 @@
     "sens": "Vine după inelul porumbelului de pornire."
   },
   "retea.graf_gol": "Niciun porumbel de arătat încă.",
+  "retea.legenda_tm": {
+    "text": "T+M = strămoș al porumbelului, și la tată, și la mamă",
+    "sens": "Legenda de sub graful rudelor; „T+M” e semnul din casetă (tată + mamă)."
+  },
   "retea.arata_tot": "Arată tot arborele",
   "arbore.vedere_carduri": {
     "text": "Carduri",

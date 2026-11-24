@@ -4,6 +4,7 @@ import { all } from '../db.js';
 import { badRequest } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow, toSummary } from '../pigeons.js';
+import { buildTree, commonOf } from '../genealogy.js';
 import { pigeonValue } from '../value.js';
 import { COLORS } from '../catalog.js';
 import { formatRing, parseRing } from '../rings.js';
@@ -157,6 +158,7 @@ export function viewsRouter() {
     const { rows, byId, children } = await accountRows(req.account.id);
     let ids = new Set();
     let truncated = false;
+    let common = [];
 
     if (req.query.rootId !== undefined && req.query.rootId !== '') {
       const root = await getPigeonRow(req.account.id, req.query.rootId);
@@ -178,6 +180,9 @@ export function viewsRouter() {
       };
       walk(root.id, up, (id) => [byId.get(id)?.father_id, byId.get(id)?.mother_id]);
       walk(root.id, down, (id) => children.get(id) ?? []);
+      // Strămoșii „T+M” (și la tată, și la mamă): din rândurile contului, fără altă interogare.
+      const treeNodes = new Map([...byId].map(([id, row]) => [id, { id, fatherId: row.father_id ?? null, motherId: row.mother_id ?? null }]));
+      common = commonOf(buildTree(root.id, treeNodes, up)).filter((id) => ids.has(id));
     } else {
       const limit = networkLimit();
       const sorted = [...rows].sort((x, y) => (toSummary(y).year ?? -1) - (toSummary(x).year ?? -1) || x.id - y.id);
@@ -198,7 +203,7 @@ export function viewsRouter() {
       if (row.father_id != null && ids.has(row.father_id)) edges.push({ from: row.father_id, to: id, role: 'father' });
       if (row.mother_id != null && ids.has(row.mother_id)) edges.push({ from: row.mother_id, to: id, role: 'mother' });
     }
-    res.json({ nodes, edges, truncated });
+    res.json({ nodes, edges, truncated, common });
   });
 
   return r;

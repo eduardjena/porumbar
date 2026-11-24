@@ -7,7 +7,7 @@ import { ArboreData, generationName, REPEAT_COLORS, roleName, repeatCounts, Tree
 /*
  * Vederea „Carduri moderne” (macheta 1): pedigree-ul ca pe hârtie, dar modern. Coloane pe generații (porumbelul în
  * stânga, ca pe fișă, strămoșii spre dreapta), cât e lățimea paginii; carduri cu M/F, inel, text, an, notă; „nu e al tău” scris; strămoșii repetați
- * cu insigna „×N” în aceeași culoare; legături curbe; porumbelul ales cu halou pastel.
+ * cu insigna „×N” în aceeași culoare, iar cei de la tată și de la mamă cu semnul „T+M” lângă an; legături curbe; porumbelul ales cu halou pastel.
  */
 
 const LEVELS = 4; // generații deasupra porumbelului: părinți … răstrăbunici
@@ -41,6 +41,7 @@ interface Card {
   y: number;
   w: number;
   repeat: number | null;
+  both: boolean;
 }
 
 @Component({
@@ -73,7 +74,7 @@ interface Card {
               @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
             </span>
             @if (c.gen <= 3 && (p.name || p.text)) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
-            <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
+            <span class="meta">{{ p.year ?? '' }}@if (c.both) { <span class="tm" [title]="'arbore.tm_lung' | t">{{ 'arbore.tm' | t }}</span> }@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
           </button>
         } @else if (c.gen <= 2) {
           <div class="card-p empty" [style.left.px]="c.x" [style.top.px]="c.y" [style.width.px]="c.w">{{ 'arbore.rol_necunoscut' | t: { rol: role(c.path) } }}</div>
@@ -97,7 +98,7 @@ interface Card {
                   @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                 </span>
                 @if (p.name || p.text) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
-                <span class="meta">{{ p.year ?? '' }}@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
+                <span class="meta">{{ p.year ?? '' }}@if (c.both) { <span class="tm" [title]="'arbore.tm_lung' | t">{{ 'arbore.tm' | t }}</span> }@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
               </button>
             } @else if (g <= 2) {
               <div class="m-card empty">{{ 'arbore.rol_necunoscut' | t: { rol: role(c.path) } }}</div>
@@ -130,15 +131,20 @@ interface Card {
     .av { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.72rem; color: #fff !important; flex: none; background: var(--muted); }
     .av.sex-M { background: var(--male); }
     .av.sex-F { background: var(--female); }
-    .ring { font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Inelul se poate scurta, dar nu mai mult de ~8 caractere (insigna și nota nu-l mai strâng până la „R…”). */
+    .ring { min-width: 8ch; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .g0 .ring { font-size: 1.05rem; }
     .rep { color: #fff; font-size: 0.72rem; font-weight: 800; padding: 1px 6px; border-radius: 999px; flex: none; }
     .val { margin-left: auto; font-size: 0.78rem; font-weight: 800; padding: 2px 7px; border-radius: 8px; flex: none; }
     .txt { font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .g0 .txt, .g1 .txt { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+    .meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 6px; align-items: center; min-width: 0; }
+    /* Pe cardurile înguste (răstrăbunici) se scurtează „nu e al tău” / „al tău”, nu semnul „T+M” și nici cardul. */
     .tag { background: var(--surface-2); border-radius: 999px; padding: 0 7px; font-weight: 700; }
     .mine { color: var(--ok); font-weight: 700; }
+    .tag, .mine { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* „T+M”: semn scris (nu doar culoare), ca pe fișa porumbelului: text și chenar închise, fără fundal. */
+    .tm { flex: none; font-weight: 700; font-size: 0.72rem; color: var(--text); border: 1px solid var(--text); border-radius: 4px; padding: 0 4px; line-height: 1.2; background: transparent; }
     .gens { display: none; }
     @media (max-width: 767px) {
       :host { overflow: visible; }
@@ -192,7 +198,7 @@ export class VedereCarduri {
       if (gen > LEVELS) return;
       const col = this.cols()[gen];
       const y = (i + 0.5) * SLOT * 2 ** (LEVELS - gen);
-      out.push({ key: path.join('') || 'root', id: node?.id ?? null, gen, path, x: col.x, y, w: col.w, repeat: node?.repeat ?? null });
+      out.push({ key: path.join('') || 'root', id: node?.id ?? null, gen, path, x: col.x, y, w: col.w, repeat: node?.repeat ?? null, both: !!node?.both });
       if (!node && gen >= 2) return;
       place(node?.father ?? null, gen + 1, 2 * i, [...path, 'F']);
       place(node?.mother ?? null, gen + 1, 2 * i + 1, [...path, 'M']);

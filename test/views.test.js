@@ -136,3 +136,29 @@ test('panoul are pentru fiecare porumbel ce trebuie la ordonare și grupare: rez
   assert.equal(f(tata).colorLabel, 'Albastru');
   assert.ok(f(tata).createdAt);
 });
+
+test('rețeaua: strămoșii comuni (T+M) pentru un pui din frați buni', async () => {
+  const mk = async (ring, sex) => (await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring, sex } })).data.pigeon;
+  const par = (id, fatherId, motherId) => call(`/api/pigeons/${id}/parents`, { method: 'PUT', cookie: a, body: { fatherId, motherId } });
+  const bunic = await mk('RO-10-770001', 'M');
+  const bunica = await mk('RO-10-770002', 'F');
+  const frate = await mk('RO-14-770003', 'M');
+  const sora = await mk('RO-14-770004', 'F');
+  const pui = await mk('RO-18-770005', 'M');
+  const orfan = await mk('RO-18-770006', 'F');
+  await par(frate.id, bunic.id, bunica.id);
+  await par(sora.id, bunic.id, bunica.id);
+  await par(pui.id, frate.id, sora.id);
+  await par(orfan.id, frate.id, null);
+
+  let r = await call(`/api/network?rootId=${pui.id}&up=4&down=0`, { cookie: a });
+  assert.deepEqual([...r.data.common].sort((x, y) => x - y), [bunic.id, bunica.id].sort((x, y) => x - y));
+  const ids = new Set(r.data.nodes.map((n) => n.id));
+  assert.ok(r.data.common.every((id) => ids.has(id)));
+
+  r = await call('/api/network', { cookie: a });
+  assert.deepEqual(r.data.common, []);
+
+  r = await call(`/api/network?rootId=${orfan.id}&up=4&down=0`, { cookie: a });
+  assert.deepEqual(r.data.common, []);
+});

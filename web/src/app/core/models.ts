@@ -132,6 +132,8 @@ export interface Network {
   nodes: NetworkNode[];
   edges: { from: number; to: number; role: 'father' | 'mother' }[];
   truncated: boolean;
+  /** Strămoșii „T+M”: și la tată, și la mamă (doar cu rădăcină). */
+  common: number[];
 }
 
 export interface Evaluation {
@@ -183,6 +185,8 @@ export interface TreeNode {
   father: TreeNode | null;
   mother: TreeNode | null;
   repeat: number | null;
+  /** Apare și la tată, și la mamă (cel mai apropiat): „T+M”. */
+  both: boolean;
 }
 
 export interface CoiResult {

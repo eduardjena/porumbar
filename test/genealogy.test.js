@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTree, wrightCoi, coiOf, ancestorIds } from '../src/genealogy.js';
+import { readFileSync } from 'node:fs';
+import { buildTree, wrightCoi, coiOf, ancestorIds, tmKeys, commonOf } from '../src/genealogy.js';
 
 /** g([id, father, mother], …) → Nodes */
 const g = (...rows) => new Map(rows.map(([id, fatherId = null, motherId = null]) => [id, { id, fatherId, motherId }]));
@@ -48,4 +49,41 @@ test('arborele se oprește la numărul de generații și la cicluri', () => {
 });
 test('strămoșii unui porumbel', () => {
   assert.deepEqual([...ancestorIds(5, g([1], [2], [3, 1, 2], [4], [5, 3, 4]))].sort(), [1, 2, 3, 4]);
+});
+
+// Regula T+M: fixtura comună cu foaia de pedigree (test/fixtures/stramosi-comuni.json)
+const cazuri = JSON.parse(readFileSync(new URL('./fixtures/stramosi-comuni.json', import.meta.url), 'utf8'));
+for (const c of cazuri) {
+  test(`tmKeys: ${c.nume}`, () => {
+    const poz = new Map(Object.entries(c.pozitii).map(([i, k]) => [Number(i), k]));
+    assert.deepEqual([...tmKeys(poz)].sort(), [...c.tm].sort());
+  });
+}
+test('both: frate × soră, doar bunicii; părinții nu', () => {
+  const t = buildTree(7, g([1, 8, 9], [2, 10, 11], [3, 1, 2], [4, 1, 2], [8], [9], [10], [11], [7, 3, 4]), 3);
+  assert.equal(t.father.father.both, true);
+  assert.equal(t.mother.mother.both, true);
+  assert.equal(t.father.both, false);
+  assert.equal(t.both, false);
+  // străbunicii: repetați (apar pe ambele părți), dar nu T+M (îi acoperă bunicii)
+  for (const n of [t.father.father.father, t.father.father.mother, t.mother.mother.father, t.mother.mother.mother]) {
+    assert.notEqual(n.repeat, null);
+    assert.equal(n.both, false);
+  }
+});
+test('both: tată × fiică', () => {
+  const t = buildTree(4, g([1], [2], [3, 1, 2], [4, 1, 3]), 3);
+  assert.equal(t.father.both, true);
+  assert.equal(t.mother.father.both, true);
+});
+test('both: un singur părinte, niciun T+M', () => {
+  // 1 și 2 se repetă pe partea cunoscută, dar mama lipsește: nimic nu e T+M
+  const t = buildTree(9, g([1], [2], [5, 1, 2], [6, 1, 2], [7, 5, 6], [9, 7, null]), 4);
+  const toate = (n) => (n ? [n, ...toate(n.father), ...toate(n.mother)] : []);
+  for (const id of [1, 2]) assert.ok(toate(t).some((n) => n.id === id && n.repeat != null));
+  assert.equal(toate(t).some((n) => n.both), false);
+});
+test('commonOf: frați buni → [1, 2]', () => {
+  const t = buildTree(5, g([1], [2], [3, 1, 2], [4, 1, 2], [5, 3, 4]), 3);
+  assert.deepEqual(commonOf(t), [1, 2]);
 });

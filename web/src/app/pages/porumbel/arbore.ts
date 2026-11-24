@@ -9,6 +9,8 @@ import { TPipe } from '../../core/i18n';
 
 // Culori deschise pentru strămoșii care se repetă (textul negru rămâne lizibil pe toate).
 const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#ffd6b0'];
+// Aceleași nuanțe, închise, pentru chenare (contrast cel puțin 3:1 pe alb și pe fundalul paginii; pastelul ar avea ~1,3:1).
+const REPEAT_BORDERS = ['#9a6f00', '#2b5a86', '#8c357f', '#567a28', '#6d4bb3', '#a33d1c'];
 
 interface Cell {
   key: string;
@@ -56,7 +58,7 @@ interface Cell {
                  [style.grid-column]="c.depth + 1" [style.grid-row]="c.row">
               @if (c.node; as node) {
                 <div class="box" [class]="'box g' + (c.depth > 5 ? 5 : c.depth)" [style.background]="node.repeat && node.both ? color(node.repeat) : null"
-                     [style.border]="node.repeat && !node.both ? '3px solid ' + color(node.repeat) : null"
+                     [style.border]="node.repeat ? '2px solid ' + border(node.repeat) : null"
                      (dblclick)="openPigeon(node.id)" [title]="'arbore.dublu_clic' | t">
                   @if (pigeons()[node.id]; as p) {
                     <div class="line1">
@@ -82,7 +84,10 @@ interface Cell {
       @if (legend().length) {
         <p class="muted legend">
           @for (l of legend(); track l.group) {
-            <span class="swatch" [style.background]="l.both ? color(l.group) : null" [style.border]="l.both ? null : '3px solid ' + color(l.group)"></span><span class="mono">{{ l.ring }}</span> {{ 'arbore.apare_de' | t: { count: l.count } }}@if (l.both) { {{ 'arbore.tm_lung' | t }}}
+            <span class="item">
+              <span class="swatch" [style.background]="l.both ? color(l.group) : null" [style.border]="'2px solid ' + border(l.group)"></span><span class="mono">{{ l.ring }}</span>
+              {{ 'arbore.apare_de' | t: { count: l.count } }}@if (l.both) { · <span class="tm">{{ 'arbore.tm' | t }}</span> {{ 'arbore.tm_lung' | t }}}
+            </span>
           }
         </p>
       }
@@ -134,6 +139,8 @@ interface Cell {
       font-weight: 400; min-height: 34px; justify-content: center; align-items: flex-start; font-size: 0.8rem;
     }
     .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+    /* Un grup pe element: textul curge și se rupe pe rânduri înăuntru (la 320 px nu iese în lateral). */
+    .legend .item { min-width: 0; }
     .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; margin-right: 4px; }
   `,
 })
@@ -157,6 +164,7 @@ export class Arbore {
   protected readonly ring = ringText;
   protected readonly sex = sexShort;
   protected readonly color = (g: number) => REPEAT_COLORS[(g - 1) % REPEAT_COLORS.length];
+  protected readonly border = (g: number) => REPEAT_BORDERS[(g - 1) % REPEAT_BORDERS.length];
 
   /** Câte rânduri are grila: câți strămoși încap în ultima generație. */
   protected readonly rows = computed(() => 2 ** this.gen());

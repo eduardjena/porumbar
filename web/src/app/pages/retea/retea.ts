@@ -293,7 +293,8 @@ export default class Retea implements OnDestroy {
         { selector: 'node.hub', style: { 'border-width': 5 } },
         { selector: 'node.root', style: { 'outline-width': 4, 'outline-color': css('--accent'), 'outline-offset': 4 } as never },
         // Strămoș „T+M”: contur turcoaz, deosebit de celelalte semne; textul „T+M” din etichetă îl face vizibil și fără culoare.
-        { selector: 'node.tm', style: { 'outline-width': 4, 'outline-color': css('--tm'), 'outline-offset': 4 } as never },
+        // Nodul e mai înalt (86 în loc de 66): eticheta are un rând în plus (inel, an, nume, T+M), iar dagre așază după mărime.
+        { selector: 'node.tm', style: { height: 86, 'outline-width': 4, 'outline-color': css('--tm'), 'outline-offset': 4 } as never },
         {
           selector: 'edge',
           style: {

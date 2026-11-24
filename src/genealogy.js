@@ -49,7 +49,8 @@ export function commonOf(tree) {
 
 /**
  * Arborele cu `generations` niveluri sub rădăcină. Strămoșii care apar de mai multe ori primesc același număr
- * de grup în `repeat` (1, 2, … în ordinea primei apariții); ceilalți au `repeat: null`.
+ * de grup în `repeat` (1, 2, … în ordinea primei apariții); ceilalți au `repeat: null`. `both: true` = strămoș
+ * „T+M”: apare și în jumătatea tatălui, și în a mamei, cel mai apropiat (`tmKeys`, pe generațiile din arbore).
  */
 export function buildTree(rootId, nodes, generations) {
   const seen = new Map();

@@ -3,6 +3,7 @@ import { TreeNode } from '../../core/models';
 import { t, TPipe } from '../../core/i18n';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
 import { tmRaza } from './tm-incape';
+import { tmKeys } from '../../shared/stramosi-comuni';
 
 /*
  * Vederea „Evantai” (macheta 2): pedigree circular. Porumbelul în centru, tatăl în stânga, mama în dreapta; spre
@@ -135,6 +136,18 @@ export class VedereEvantai {
   protected readonly slices = computed<Slice[]>(() => {
     const { pigeons, values } = this.data();
     const out: Slice[] = [];
+    // „T+M” pe generațiile desenate (pe telefon 3, deși arborele adus are 4): aceeași regulă ca pe server, pe pozițiile
+    // heap (tatăl 2, mama 3, părinții lui i = 2i și 2i+1) → id; altfel un strămoș ar primi semnul de la o felie nedesenată.
+    const positions = new Map<number, string>();
+    const place = (node: TreeNode | null, heap: number, gen: number) => {
+      if (!node || gen > this.maxGen()) return;
+      if (gen > 0) positions.set(heap, String(node.id));
+      place(node.father, 2 * heap, gen + 1);
+      place(node.mother, 2 * heap + 1, gen + 1);
+    };
+    place(this.data().tree, 1, 0);
+    const tm = tmKeys(positions);
+    const tmText = t('arbore.tm');
     const walk = (node: TreeNode | null, gen: number, i: number, key: string) => {
       if (gen > this.maxGen()) return;
       if (gen > 0) {
@@ -155,12 +168,12 @@ export class VedereEvantai {
         const rot = gen <= 2 ? 90 - mid : mid > 90 ? 180 - mid : -mid;
         const ring = p?.ring?.display ?? (node ? t('text.fara_inel') : '');
         const label = gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, '').replace(/^(\d+)\s*\/.*$/, '$1');
-        const both = !!node?.both;
+        const both = !!node && tm.has(String(node.id));
         const tmFont = this.narrow() ? 14 : 12;
         // Jumătatea din lungimea scrisului numărului, pe rază: pe rază la inelele exterioare (≈0,62 din corp per caracter), pe arc la cele interioare (+20 pentru rândul de dedesubt, nume / an).
         const fontEticheta = this.fontFor(gen);
         const jumEticheta = gen <= 2 ? fontEticheta / 2 + 20 : (label.length * 0.62 * fontEticheta) / 2;
-        const tmR = tmRaza(r1, r2, rm, jumEticheta, span, tmFont);
+        const tmR = tmRaza(r1, r2, rm, jumEticheta, span, tmFont, tmText.length);
         const [mx, my] = tmR == null ? [0, 0] : pt(tmR, mid);
         out.push({
           key: key || 'r',

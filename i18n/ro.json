@@ -408,6 +408,10 @@
   },
   "fisa.tel": "Tel.:",
   "fisa.repetati": "Strămoșii colorați la fel apar de mai multe ori.",
+  "fisa.tm": {
+    "text": "T+M = la tată și la mamă",
+    "sens": "Explicația semnului „T+M” de pe foaia de pedigree (jos pe foaia tipărită și sub pedigree-ul public), doar când foaia are un astfel de strămoș: apare și la tată, și la mamă. „T+M” trebuie să fie scris ca în „arbore.tm”."
+  },
   "fisa.tiparit_pe": {
     "text": "Tipărit pe",
     "sens": "Urmat de data tipăririi."
@@ -1176,8 +1180,8 @@
   "arbore.adauga_tatal": "+ Adaugă tatăl",
   "arbore.adauga_mama": "+ Adaugă mama",
   "arbore.apare_de": {
-    "text": "apare de {count} ori.",
-    "sens": "După inelul unui strămoș repetat în arbore."
+    "text": "apare de {count} ori",
+    "sens": "În legenda de sub arbore, după inelul unui strămoș repetat; fără punct: la cei de la tată și de la mamă urmează „ · T+M la tată și la mamă”."
   },
   "vanzare.titlu": "Vinde porumbelul",
   "vanzare.vandut": "Vândut: {email} l-a primit pe {data}. La tine rămâne cu tot ce știai despre el.",

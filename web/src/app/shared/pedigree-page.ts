@@ -1,6 +1,6 @@
-import { Component, DestroyRef, ElementRef, effect, inject, input, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { PedigreeV1 } from '../core/models';
-import { PedigreeSheet, colorOf } from './pedigree-sheet';
+import { PedigreeSheet, colorOf, sheetHasTm } from './pedigree-sheet';
 import { currentLang, localeOf, tIn } from '../core/i18n';
 import { QrCode } from './qr-code';
 
@@ -41,6 +41,8 @@ import { QrCode } from './qr-code';
           </div>
           <div class="stamp">
             <span>{{ tx('fisa.repetati') }}</span>
+            <!-- Doar dacă foaia are „T+M”; un rând de 7 pt în coloana de jos, care rămâne sub cei 18 mm ai subsolului. -->
+            @if (hasTm()) { <span>{{ tx('fisa.tm') }}</span> }
             <span class="made">{{ tx('fisa.tiparit_pe') }} {{ today() }} · <img src="/icon.svg" alt="" width="12" height="12" />Porumbar</span>
             <span class="site">www.porumbar.ro</span>
           </div>
@@ -94,6 +96,8 @@ export class PedigreePage {
     return tIn(this.L(), key);
   }
   protected readonly today = () => new Date().toLocaleDateString(localeOf(this.L()));
+  /** Foaia (5 generații) are strămoși „T+M”? Atunci jos se explică semnul. */
+  protected readonly hasTm = computed(() => sheetHasTm(this.data().root));
 
   /** Datele crescătorului de jos: cum le dă serverul (numele de pe fișă pus de vânzător + ce a bifat omul pentru fișă). */
   protected owner() {

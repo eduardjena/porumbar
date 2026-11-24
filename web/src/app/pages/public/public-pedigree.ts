@@ -5,7 +5,7 @@ import { AuthService, rememberAfterLogin } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
 import { PedigreeV1 } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { PedigreeSheet, colorOf } from '../../shared/pedigree-sheet';
+import { PedigreeSheet, colorOf, sheetHasTm } from '../../shared/pedigree-sheet';
 import { LangSwitch } from '../../shared/lang-switch';
 import { TPipe, currentLang, formatDate, t } from '../../core/i18n';
 import { sexLabel } from '../../core/catalog';
@@ -50,6 +50,7 @@ import { sexLabel } from '../../core/catalog';
         }
         @if (error()) { <div class="error no-print" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
         <app-pedigree-sheet [root]="d.root" [lang]="lang()" />
+        @if (hasTm()) { <p class="tm-note">{{ 'fisa.tm' | t }}</p> }
         <p class="muted foot">{{ 'public.generat' | t: { data: when(d.generatedAt) } }}</p>
       } @else if (error()) {
         <section class="card gone">
@@ -69,6 +70,7 @@ import { sexLabel } from '../../core/catalog';
     h1 { margin: 2px 0; }
     .sub { margin: 0; }
     .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tm-note { margin: 10px 0 0; }
     .foot { margin-top: 12px; font-size: 0.85rem; }
     .gone { max-width: 560px; }
     @media (max-width: 767px) { .wide { width: 100%; margin-left: 0; } }
@@ -91,6 +93,11 @@ export default class PublicPedigree {
   protected readonly lang = currentLang;
   protected readonly when = (iso: string) => formatDate(iso);
   protected readonly sex = (s: string | null) => sexLabel(s);
+  /** Pedigree-ul are strămoși „T+M”? Atunci sub foaie se explică semnul. */
+  protected readonly hasTm = computed(() => {
+    const r = this.data()?.root;
+    return r ? sheetHasTm(r) : false;
+  });
   protected readonly color = computed(() => {
     const r = this.data()?.root;
     return r ? colorOf(r, this.lang()) : '';

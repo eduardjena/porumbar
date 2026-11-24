@@ -35,6 +35,9 @@ export function authRouter() {
     key: (req) => `register|${req.ip}`,
   });
   const mailLimit = rateLimit({ windowMs: 15 * 60_000, max: 5, key: (req) => `forgot|${req.ip}` });
+  // Ghicitul token-urilor de resetare (fiecare greșit = 400): se numără doar încercările eșuate, ca o resetare
+  // reușită să nu blocheze omul. Token-ul e oricum de 256 de biți; limita e o apărare în plus.
+  const resetLimit = rateLimit({ windowMs: 15 * 60_000, max: 20, failuresOnly: true, key: (req) => `reset|${req.ip}` });
 
   r.post('/register', registerLimit, async (req, res) => {
     const email = emailOf(req.body?.email);
@@ -170,7 +173,7 @@ export function authRouter() {
     res.json({ ok: true });
   });
 
-  r.post('/reset', async (req, res) => {
+  r.post('/reset', resetLimit, async (req, res) => {
     const password = validatePassword(req.body?.password);
     const hash = sha256(String(req.body?.token ?? ''));
     const accountId = await tx(async () => {

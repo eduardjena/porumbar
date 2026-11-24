@@ -584,6 +584,21 @@ test('resetarea parolei: după schimbarea parolei, celelalte linkuri încă nefo
   assert.equal(old.status, 400, 'un link mai vechi (de ex. un email interceptat) încă schimbă parola după ce omul și-a ales-o pe a lui');
 });
 
+test('limită: ghicitul token-urilor de resetare se oprește (429 de la același IP; resetările reușite nu se numără)', async () => {
+  // Token-uri inventate la rând de la același IP: după prea multe greșeli vine 429. failuresOnly → doar cele eșuate se numără.
+  let limited = false;
+  let tried = 0;
+  for (let i = 0; i < 40 && !limited; i++) {
+    const r = await call('/api/auth/reset', { method: 'POST', auth: 'none', body: { token: `inventat-${i}-${'x'.repeat(40)}`, password: 'parola-noua-1234' } });
+    if (r.status === 429) limited = true;
+    else {
+      assert.equal(r.status, 400, `încercarea ${i}: ${r.status}`);
+      tried++;
+    }
+  }
+  assert.ok(limited, `ghicitul token-urilor de resetare trebuie limitat (a mers de ${tried} ori)`);
+});
+
 test('sesiune: fixarea nu merge (token nou la intrare), ieșirea închide sesiunea pe server', async () => {
   const planted = 'porumbar_session=FIXAT-de-atacator-0123456789';
   const login = await call('/api/auth/login', { method: 'POST', cookie: planted, body: { email: emails.B, password: PASSWORD } });

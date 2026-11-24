@@ -56,7 +56,10 @@ arătate, X apare cel puțin o dată în jumătatea tatălui (tatăl inclusiv) *
 apropiată spre cea mai depărtată: odată ce Y e „la tată și la mamă”, casetele de deasupra lui Y (strămoșii lui Y, în
 acele locuri) nu mai contează pentru „T+M”. Un strămoș X primește „T+M” doar dacă apare în ambele jumătăți **în casete
 care nu stau deasupra unui „T+M” mai apropiat**. Strămoșii lui Y care se repetă păstrează conturul discret de „se
-repetă”. (Ca lista de lângă procentul de consangvinizare, care arată tot strămoșii comuni cei mai apropiați.)
+repetă”. (Seamănă cu lista de lângă procentul de consangvinizare, dar nu e aceeași: lista merge pe drumuri, așa că
+poate arăta și un strămoș de deasupra unui „T+M” care ajunge pe cealaltă parte și pe un drum independent, nu doar prin
+el – vezi cazul `mai_aproape_si_independent` din `test/fixtures/stramosi-comuni.json`. Foaia rămâne la regula de mai
+sus.)
 
 Un strămoș care apare de mai multe ori, dar nu e „T+M”, e **„repetat”** (contur discret): fie se repetă doar pe o
 parte, fie stă deasupra unui „T+M” mai apropiat.
@@ -81,21 +84,29 @@ Cazuri (deciziile mele, după verificarea designului):
 
 ### Arborele de pe fișa porumbelului (`pages/porumbel/arbore.ts`)
 
-- „La tată și la mamă”: fundalul colorat de azi (culoarea grupului) + un semn mic „T+M” în colțul casetei.
-- „Repetat”: fără fundal, doar chenar gros în culoarea grupului.
-- Legenda de sub arbore: fiecare grup cu inelul, „apare de N ori” și, la cei de pe ambele părți, „la tată și la mamă”;
-  aceștia primii.
+- „La tată și la mamă”: fundalul pastel de azi (culoarea grupului) + chenar de 2px în aceeași nuanță, închisă + un semn
+  mic „T+M” (text și chenar închise, fără fundal) în rândul inelului.
+- „Repetat”: fără fundal, doar chenar de 2px în nuanța închisă a grupului (paleta închisă are contrast ≥ 3:1 pe alb și
+  pe fundalul paginii; pastelul ar fi avut ~1,3:1).
+- Legenda de sub arbore: fiecare grup cu inelul, „apare de N ori” și, la cei de pe ambele părți, „ · [T+M] la tată și
+  la mamă” (același semn ca în casete); aceștia primii.
 
 ### Foaia de pedigree (tipar, PDF, pedigree-ul public prin cod QR – `shared/pedigree-sheet.ts`)
 
-- „La tată și la mamă”: chenarul și dunga din stânga de azi, în culoarea grupului, mai groase + semnul „T+M”.
-- „Repetat”: doar chenar subțire colorat, fără dungă.
+- „Repetat”: chenar subțire în culoarea grupului + dungă în stânga, în aceeași culoare.
+- „La tată și la mamă”: chenar mai gros + un al doilea inel colorat înăuntru (dublu contur, în locul dungii) + semnul
+  „T+M” în rândul inelului (text și chenar închise, fără fundal; nu acoperă inelul, nu adaugă înălțime).
+- Când foaia are măcar un „T+M”, se explică: „T+M = la tată și la mamă” (`fisa.tm`) – pe foaia tipărită jos, în
+  coloana din dreapta, sub „Strămoșii colorați la fel…” (încape în subsolul de 18 mm), pe pagina publică sub foaie.
 - Se tipărește (`print-color-adjust`), iar „T+M” se citește și alb-negru. Foaia A4 nu are voie să crească peste o pagină.
 
 ### Rețea → vederile Arbore (`vedere-evantai.ts`, `vedere-carduri.ts`)
 
-- Evantai: „la tată și la mamă” = contur gros (de azi) + un punct / semn „T+M” pe felie; „repetat” = contur subțire.
-- Carduri: eticheta colorată „×N” devine „×N · T+M” la cei de pe ambele părți; „repetat” rămâne „×N”.
+- Evantai: „la tată și la mamă” = contur gros (de azi) + semnul „T+M” pe felie, unde încape (după lungimea textului în
+  limba ecranului; altfel doar conturul); „repetat” = contur subțire. „T+M” se socotește pe generațiile desenate (pe
+  telefon 3, din arborele de 4), cu aceeași regulă (`tmKeys`), ca să nu vină de la o felie nedesenată.
+- Carduri: eticheta colorată „×N” rămâne la toți cei repetați; cei de pe ambele părți primesc în plus semnul „T+M” în
+  rândul de jos (anul, „al tău”), ca să nu strângă inelul.
 
 ### Graful rudelor (Rețea, pornit de la un porumbel – `retea.ts`)
 

@@ -744,6 +744,9 @@
     "text": "Porumbarul meu",
     "sens": "Titlul panoului și al listei de porumbei."
   },
+  "panou.tipareste_fisele": "Tipărește fișele ({count})",
+  "panou.tipareste_fisele_aria": "Tipărește fișele porumbeilor care se văd acum, câte una pe pagină",
+  "panou.prea_multe_fise": "Sunt {count} porumbei; tipărește cel mult {max} deodată – pune un filtru (de exemplu anul).",
   "panou.importa_pedigree": "Importă pedigree",
   "panou.scaneaza_qr": "Scanează cod QR",
   "panou.gol_titlu": "Porumbarul e gol deocamdată",

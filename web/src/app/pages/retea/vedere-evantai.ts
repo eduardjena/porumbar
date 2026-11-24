@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { TreeNode } from '../../core/models';
 import { t, TPipe } from '../../core/i18n';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
-import { tmIncape } from './tm-incape';
+import { tmRaza } from './tm-incape';
 
 /*
  * Vederea „Evantai” (macheta 2): pedigree circular. Porumbelul în centru, tatăl în stânga, mama în dreapta; spre
@@ -154,10 +154,14 @@ export class VedereEvantai {
         // cele exterioare (feliile sunt înguste); niciodată cu capul în jos, niciodată peste felia vecină.
         const rot = gen <= 2 ? 90 - mid : mid > 90 ? 180 - mid : -mid;
         const ring = p?.ring?.display ?? (node ? t('text.fara_inel') : '');
+        const label = gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, '').replace(/^(\d+)\s*\/.*$/, '$1');
         const both = !!node?.both;
         const tmFont = this.narrow() ? 14 : 12;
-        const tmR = r2 - 10;
-        const [mx, my] = pt(tmR, mid);
+        // Jumătatea din lungimea scrisului numărului, pe rază: pe rază la inelele exterioare (≈0,62 din corp per caracter), pe arc la cele interioare (+20 pentru rândul de dedesubt, nume / an).
+        const fontEticheta = this.fontFor(gen);
+        const jumEticheta = gen <= 2 ? fontEticheta / 2 + 20 : (label.length * 0.62 * fontEticheta) / 2;
+        const tmR = tmRaza(r1, r2, rm, jumEticheta, span, tmFont);
+        const [mx, my] = tmR == null ? [0, 0] : pt(tmR, mid);
         out.push({
           key: key || 'r',
           id: node?.id ?? null,
@@ -169,9 +173,9 @@ export class VedereEvantai {
           sexColor: p?.sex === 'M' ? MALE : p?.sex === 'F' ? FEMALE : 'transparent',
           repeat: node?.repeat ?? null,
           both,
-          tm: both && tmIncape(tmR, span, tmFont) ? { x: mx, y: my, rot: 90 - mid, font: tmFont } : null,
+          tm: both && tmR != null ? { x: mx, y: my, rot: 90 - mid, font: tmFont } : null,
           // Inelele exterioare scurtate la număr (încap în felie), și cele scrise ca „6008107/08 BELG M”.
-          label: gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, '').replace(/^(\d+)\s*\/.*$/, '$1'),
+          label,
           sub: p?.name ? `„${p.name}”` : p?.year ? String(p.year) : '',
           tx,
           ty,

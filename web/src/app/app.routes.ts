@@ -41,6 +41,7 @@ export const routes: Routes = [
   { path: 'porumbei/nou', canActivate: [authGuard], title: title('titlu.porumbel_nou'), loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/editeaza', canActivate: [authGuard], title: title('titlu.editeaza'), loadComponent: () => import('./pages/porumbel-form/porumbel-form') },
   { path: 'porumbei/:id/tiparire', canActivate: [authGuard], title: title('titlu.tiparire'), loadComponent: () => import('./pages/porumbel/tiparire') },
+  { path: 'porumbei/tiparire', canActivate: [authGuard], title: title('titlu.tiparire'), loadComponent: () => import('./pages/porumbel/tiparire') },
   { path: 'porumbei/:id', canActivate: [authGuard], title: title('titlu.porumbel'), loadComponent: () => import('./pages/porumbel/porumbel') },
   // Tratamentele pe tot porumbarul (lista În curs / Urmează / Gata, fișa, detaliul cu porumbeii).
   { path: 'tratamente', canActivate: [authGuard], title: title('titlu.tratamente'), loadComponent: () => import('./pages/tratamente/tratamente') },

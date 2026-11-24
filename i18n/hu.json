@@ -824,6 +824,19 @@
   "tiparire.tipareste_pdf": "Nyomtatás / Mentés PDF-be",
   "tiparire.se_pregateste": "Készül a származási lap…",
   "tiparire.porniti_rand": "A lapon lévő QR-kód a galamb származási lapjára visz. Bárki, aki beolvassa a kódot, látja (értékelés és napló nélkül).",
+  "tiparire.fise_numar": {
+    "one": "{count} lap",
+    "other": "{count} lap"
+  },
+  "tiparire.se_pregatesc": "A lapok készülnek ({count})…",
+  "tiparire.fara_qr": {
+    "one": "{count} lap QR-kód nélkül",
+    "other": "{count} lap QR-kód nélkül"
+  },
+  "tiparire.pune_qr_toate": "QR-kód mindegyikre",
+  "tiparire.porniti_toate_rand": "{count} galamb linkje indul el.",
+  "tiparire.inapoi_porumbei": "Vissza a galambokhoz",
+  "tiparire.nicio_fisa": "Nincs nyomtatandó lap.",
   "form.titlu_editeaza": "Galamb szerkesztése",
   "form.porumbel": "Galamb",
   "form.import_titlu": "Származási lap importálása: papíron, PDF-ben vagy fényképen van meg?",

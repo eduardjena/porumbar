@@ -41,6 +41,7 @@ interface Card {
   y: number;
   w: number;
   repeat: number | null;
+  both: boolean;
 }
 
 @Component({
@@ -69,7 +70,7 @@ interface Card {
             <span class="line1">
               <span class="av" [class]="'av sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
               <span class="mono ring">{{ p.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
-              @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
+              @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)" [title]="c.both ? ('arbore.tm_lung' | t) : ''">×{{ counts().get(c.repeat) }}@if (c.both) { · {{ 'arbore.tm' | t }} }</span> }
               @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
             </span>
             @if (c.gen <= 3 && (p.name || p.text)) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
@@ -93,7 +94,7 @@ interface Card {
                 <span class="line1">
                   <span class="av" [class]="'av sex-' + (p.sex ?? '')">{{ sex(p.sex) }}</span>
                   <span class="mono ring">{{ p.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
-                  @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
+                  @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)" [title]="c.both ? ('arbore.tm_lung' | t) : ''">×{{ counts().get(c.repeat) }}@if (c.both) { · {{ 'arbore.tm' | t }} }</span> }
                   @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                 </span>
                 @if (p.name || p.text) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
@@ -192,7 +193,7 @@ export class VedereCarduri {
       if (gen > LEVELS) return;
       const col = this.cols()[gen];
       const y = (i + 0.5) * SLOT * 2 ** (LEVELS - gen);
-      out.push({ key: path.join('') || 'root', id: node?.id ?? null, gen, path, x: col.x, y, w: col.w, repeat: node?.repeat ?? null });
+      out.push({ key: path.join('') || 'root', id: node?.id ?? null, gen, path, x: col.x, y, w: col.w, repeat: node?.repeat ?? null, both: !!node?.both });
       if (!node && gen >= 2) return;
       place(node?.father ?? null, gen + 1, 2 * i, [...path, 'F']);
       place(node?.mother ?? null, gen + 1, 2 * i + 1, [...path, 'M']);

@@ -2,6 +2,7 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { TreeNode } from '../../core/models';
 import { t, TPipe } from '../../core/i18n';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
+import { tmIncape } from './tm-incape';
 
 /*
  * Vederea „Evantai” (macheta 2): pedigree circular. Porumbelul în centru, tatăl în stânga, mama în dreapta; spre
@@ -28,6 +29,9 @@ interface Slice {
   ink: string;
   sexColor: string;
   repeat: number | null;
+  both: boolean;
+  /** Locul semnului „T+M” (null = felia e prea mică, rămâne doar conturul). */
+  tm: { x: number; y: number; rot: number; font: number } | null;
   label: string;
   sub: string;
   tx: number;
@@ -56,7 +60,12 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
         <g class="slice" [class.sel]="s.id != null && s.id === selectedId()" (click)="s.id != null && select.emit(s.id)" (dblclick)="s.id != null && open.emit(s.id)">
           <path [attr.d]="s.d" [attr.fill]="s.fill" stroke="#fffdf9" stroke-width="2" />
           <path [attr.d]="s.stripe" [attr.fill]="s.sexColor" />
-          @if (s.repeat) { <path [attr.d]="s.d" fill="none" [attr.stroke]="repeatColor(s.repeat)" stroke-width="4" /> }
+          @if (s.repeat) { <path [attr.d]="s.d" fill="none" [attr.stroke]="repeatColor(s.repeat)" [attr.stroke-width]="s.both ? 4 : 2" /> }
+          @if (s.both) { <title>{{ 'arbore.tm_lung' | t }}</title> }
+          @if (s.tm; as m) {
+            <text [attr.x]="m.x" [attr.y]="m.y" [attr.transform]="'rotate(' + m.rot + ' ' + m.x + ' ' + m.y + ')'" [attr.fill]="s.ink"
+                  text-anchor="middle" dominant-baseline="middle" [attr.font-size]="m.font" font-weight="800">{{ 'arbore.tm' | t }}</text>
+          }
           @if (s.id != null && s.id === selectedId()) { <path [attr.d]="s.d" fill="none" stroke="#a33d1c" stroke-width="5" /> }
           @if (s.label) {
             <text [attr.x]="s.tx" [attr.y]="s.ty" [attr.transform]="'rotate(' + s.rot + ' ' + s.tx + ' ' + s.ty + ')'" [attr.fill]="s.ink"
@@ -145,6 +154,10 @@ export class VedereEvantai {
         // cele exterioare (feliile sunt înguste); niciodată cu capul în jos, niciodată peste felia vecină.
         const rot = gen <= 2 ? 90 - mid : mid > 90 ? 180 - mid : -mid;
         const ring = p?.ring?.display ?? (node ? t('text.fara_inel') : '');
+        const both = !!node?.both;
+        const tmFont = this.narrow() ? 14 : 12;
+        const tmR = r2 - 10;
+        const [mx, my] = pt(tmR, mid);
         out.push({
           key: key || 'r',
           id: node?.id ?? null,
@@ -155,6 +168,8 @@ export class VedereEvantai {
           ink: own && band >= 4 ? '#ffffff' : '#2b2117',
           sexColor: p?.sex === 'M' ? MALE : p?.sex === 'F' ? FEMALE : 'transparent',
           repeat: node?.repeat ?? null,
+          both,
+          tm: both && tmIncape(tmR, span, tmFont) ? { x: mx, y: my, rot: 90 - mid, font: tmFont } : null,
           // Inelele exterioare scurtate la număr (încap în felie), și cele scrise ca „6008107/08 BELG M”.
           label: gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, '').replace(/^(\d+)\s*\/.*$/, '$1'),
           sub: p?.name ? `„${p.name}”` : p?.year ? String(p.year) : '',

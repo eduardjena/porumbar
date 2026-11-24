@@ -172,6 +172,7 @@
   "eroare.intrare_negasita": "A bejegyzés nem található.",
   "eroare.link_doar_proprii": "Csak a saját dúcod galambjainak lehet nyilvános linkje.",
   "eroare.link_invalid": "A link már nem érvényes. Kérj újat a tenyésztőtől.",
+  "eroare.prea_multe_fise": "Egyszerre legfeljebb {max} lap.",
   "eroare.deja_al_tau": "A galamb már a dúcodban van.",
   "eroare.vanzare_negasita": "Az eladás nem található.",
   "eroare.vanzare_primita": "Az eladást már átvették.",

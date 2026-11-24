@@ -43,11 +43,11 @@ interface Box {
       @for (b of boxes(); track b.i) {
         <div class="box" [class]="'box g' + b.gen" [style.grid-column]="b.gen + 1" [style.grid-row]="b.row"
              [class.both]="b.both" [class.rep]="!!b.repeat" [style.border-color]="b.repeat" [style.--rc]="b.repeat">
-          @if (b.both) { <span class="tm" [style.background]="b.repeat" [title]="tx('arbore.tm_lung')">{{ tx('arbore.tm') }}</span> }
           @if (b.node; as n) {
             <div class="line1">
               @if (n.sex) { <span class="sx" [class]="'sx s' + n.sex">{{ tx(n.sex === 'M' ? 'sex.m' : 'sex.f') }}</span> }
               <strong class="mono">{{ n.ring ?? tx('text.fara_inel') }}</strong>
+              @if (b.both) { <span class="tm" [style.background]="b.repeat" [title]="tx('arbore.tm_lung')">{{ tx('arbore.tm') }}</span> }
             </div>
             @if (n.name) { <div class="nm">„{{ n.name }}”</div> }
             @if (color(n); as c) { <div class="meta">{{ c }}</div> }
@@ -67,8 +67,8 @@ interface Box {
     .box { align-self: center; border: 1px solid var(--border); border-radius: 10px; padding: 6px 8px; background: var(--surface); font-size: 0.86rem; min-width: 0; break-inside: avoid; }
     /* Repetat: chenar colorat; T+M: chenar gros și dungă în culoarea grupului (nu doar culoare: și eticheta). */
     .box.rep { border-width: 1.5px; box-shadow: inset 4px 0 0 var(--rc); }
-    .box.both { position: relative; border-width: 3px; box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 5px var(--rc); }
-    .tm { position: absolute; top: 0; right: 0; padding: 0 5px; border-radius: 0 6px 0 6px; font-size: 0.66rem; font-weight: 800; line-height: 1.5; color: #fff; }
+    .box.both { border-width: 3px; box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 5px var(--rc); }
+        .tm { flex: none; margin-left: auto; padding: 0 5px; border-radius: 4px; font-size: 0.66rem; font-weight: 800; line-height: 1.5; color: #fff; }
     .box.g0 { border: 2px solid var(--accent); font-size: 1rem; }
     .line1 { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .line1 strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -108,7 +108,7 @@ interface Box {
     /* Pe hârtie inelul nu se taie niciodată: dacă nu încape, trece pe rândul următor. */
     :host(.paper) .box.rep { border-width: 0.4mm; box-shadow: inset 1mm 0 0 var(--rc); }
     :host(.paper) .box.both { border-width: 0.8mm; box-shadow: inset 0 0 0 0.5mm #fff, inset 0 0 0 1.3mm var(--rc); }
-    :host(.paper) .tm { font-size: 5.5pt; padding: 0 1mm; border-radius: 0 0.8mm 0 0.8mm; }
+    :host(.paper) .tm { font-size: 5.5pt; padding: 0 1mm; border-radius: 0.6mm; line-height: 1.3; }
     :host(.paper) .line1 { align-items: flex-start; }
     :host(.paper) .line1 strong { color: #a33d1c; font-size: 1.05em; white-space: normal; overflow-wrap: anywhere; }
     :host(.paper) .sx { width: 3.3mm; height: 3.3mm; font-size: 5.5pt; }

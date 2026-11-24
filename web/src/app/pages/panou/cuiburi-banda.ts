@@ -42,7 +42,7 @@ interface Choice {
               <li class="r" [class.late]="i.state === 'intarziat'" [class.last]="i.last">
                 <p class="txt">
                   @if (i.state === 'intarziat') { <app-icon name="alerta" class="warn-icon" [size]="22" /> }
-                  <strong>{{ who(i) }}</strong>
+                  <a class="who" [routerLink]="['/perechi', i.ownPairId]" [queryParams]="{ ponta: i.clutchId }">{{ who(i) }}</a>
                   @if (i.fosterLabel) { <span class="muted"> · {{ foster(i) }}</span> }
                   <span> · {{ what(i) }}</span>
                   @if (i.last) { <strong class="red"> ({{ 'cuib.ultima_zi' | t }})</strong> }
@@ -114,6 +114,7 @@ interface Choice {
     .r.late { background: var(--danger-soft); border-color: #e7b4ae; border-left: 5px solid var(--danger); }
     .r.last { border-left: 5px solid var(--danger); }
     .txt { flex: 1 1 260px; min-width: 0; margin: 0; overflow-wrap: anywhere; line-height: 1.4; }
+    .who { font-weight: 800; color: inherit; text-decoration: underline; text-underline-offset: 3px; padding: 10px 0; }
     .warn-icon { color: var(--danger); vertical-align: -4px; margin-right: 4px; }
     .red { color: var(--danger); }
     .tag {

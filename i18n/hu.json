@@ -790,6 +790,8 @@
   "arbore.generatii": "generáció",
   "arbore.consangvinizare": "Beltenyésztettség:",
   "arbore.stramosi_comuni": "— közös ősök:",
+  "arbore.tm": "apa+anya",
+  "arbore.tm_lung": "apai és anyai ágon is",
   "arbore.aria": "Családfa; oldalra görgethető",
   "arbore.dublu_clic": "Dupla kattintás: megnyitja az adatlapot",
   "arbore.adauga_tatal": "+ Apa hozzáadása",

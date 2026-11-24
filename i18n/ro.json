@@ -1163,6 +1163,14 @@
     "text": "— strămoși comuni:",
     "sens": "Urmat de inelele strămoșilor comuni ai tatălui și mamei."
   },
+  "arbore.tm": {
+    "text": "T+M",
+    "sens": "Semn mic în colțul unei căsuțe din pedigree: strămoșul apare și la tată, și la mamă (tată + mamă)."
+  },
+  "arbore.tm_lung": {
+    "text": "la tată și la mamă",
+    "sens": "Explicația semnului T+M (la trecerea cursorului): același strămoș pe ambele părți ale pedigree-ului."
+  },
   "arbore.aria": "Arborele genealogic; se poate derula în lateral",
   "arbore.dublu_clic": "Dublu clic: deschide fișa",
   "arbore.adauga_tatal": "+ Adaugă tatăl",

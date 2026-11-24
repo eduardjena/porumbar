@@ -42,7 +42,7 @@ const tabOf = (url: string): Tab => {
         </button>
       }
     </div>
-    @if (tooMany() && s.shownCount() > MAX) { <div class="muted" role="status">{{ 'panou.prea_multe_fise' | t: { count: s.shownCount(), max: MAX } }}</div> }
+    @if (tooMany() && (tab() === 'grila' || tab() === 'lista') && s.shownCount() > MAX) { <div class="notice" role="status">{{ 'panou.prea_multe_fise' | t: { count: s.shownCount(), max: MAX } }}</div> }
 
     <!-- Pe Panou (Grilă), sus: tratamentele în curs și cele care urmează în 30 de zile, apoi cuiburile (ce e de făcut
          azi și în următoarele zile); fără nimic de arătat, nicio bandă. -->
@@ -122,7 +122,7 @@ export default class PorumbarCadru {
   constructor() {
     this.s.load();
     const sub = this.router.events.subscribe((e) => {
-      if (e instanceof NavigationEnd) this.tab.set(tabOf(e.urlAfterRedirects));
+      if (e instanceof NavigationEnd) { this.tab.set(tabOf(e.urlAfterRedirects)); this.tooMany.set(false); }
     });
     inject(DestroyRef).onDestroy(() => sub.unsubscribe());
   }

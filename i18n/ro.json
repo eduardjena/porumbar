@@ -225,7 +225,7 @@
   "eroare.intrare_negasita": "Intrarea nu a fost găsită.",
   "eroare.link_doar_proprii": "Doar porumbeii din porumbarul tău pot avea link public.",
   "eroare.link_invalid": "Linkul nu mai este valabil. Cere-i crescătorului unul nou.",
-  "eroare.prea_multe_fise": "Cel mult {max} fișe deodată.",
+  "eroare.prea_multe_fise": "Cel mult {max} de fișe deodată.",
   "eroare.deja_al_tau": "Porumbelul este deja în porumbarul tău.",
   "eroare.vanzare_negasita": "Vânzarea nu a fost găsită.",
   "eroare.vanzare_primita": "Vânzarea a fost deja primită.",
@@ -746,7 +746,7 @@
   },
   "panou.tipareste_fisele": "Tipărește fișele ({count})",
   "panou.tipareste_fisele_aria": "Tipărește fișele porumbeilor care se văd acum, câte una pe pagină",
-  "panou.prea_multe_fise": "Sunt {count} porumbei; tipărește cel mult {max} deodată – pune un filtru (de exemplu anul).",
+  "panou.prea_multe_fise": "Sunt {count} de porumbei; tipărește cel mult {max} deodată – pune un filtru (de exemplu anul).",
   "panou.importa_pedigree": "Importă pedigree",
   "panou.scaneaza_qr": "Scanează cod QR",
   "panou.gol_titlu": "Porumbarul e gol deocamdată",
@@ -1239,7 +1239,9 @@
   },
   "tiparire.pune_qr_toate": "Pune cod QR pe toate",
   "tiparire.porniti_toate_rand": {
-    "text": "Se pornește linkul pentru {count} porumbei.",
+    "one": "Se pornește linkul pentru {count} porumbel.",
+    "few": "Se pornește linkul pentru {count} porumbei.",
+    "other": "Se pornește linkul pentru {count} de porumbei.",
     "sens": "Pe pagina cu mai multe fișe, în confirmarea de la „Pune cod QR pe toate”."
   },
   "tiparire.inapoi_porumbei": "Înapoi la porumbei",

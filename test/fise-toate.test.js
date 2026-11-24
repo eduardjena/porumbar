@@ -61,3 +61,12 @@ test('doar citire: fișele se văd, codul QR nu se pornește (402)', async () =>
   assert.deepEqual(g.data.sheets, []);
   assert.equal((await call('/api/sheets/public', { method: 'POST', cookie: c, body: { ids: [p1] } })).status, 402);
 });
+test('fișele: tot pedigree-ul fiecărei fișe e la fel cu cel cerut pe porumbel', async () => {
+  const r = await call(`/api/sheets?ids=${p1},${p2}`, { cookie: a });
+  assert.equal(r.data.sheets.length, 2);
+  for (const s of r.data.sheets) {
+    const one = await call(`/api/pigeons/${s.id}/pedigree`, { cookie: a });
+    const strip = ({ generatedAt, ...rest }) => rest;
+    assert.deepEqual(strip(s.pedigree), strip(one.data));
+  }
+});

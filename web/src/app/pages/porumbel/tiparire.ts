@@ -77,7 +77,7 @@ interface Sheet { id: number; pedigree: PedigreeV1; url: string | null }
     @media print {
       :host { display: block; }
       .no-print { display: none !important; }
-      app-pedigree-page + app-pedigree-page { display: block; break-before: page; }
+      app-pedigree-page + app-pedigree-page { display: block; break-before: page; page-break-before: always; }
     }
   `,
 })

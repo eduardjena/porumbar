@@ -6,7 +6,7 @@ import { badRequest, notFound, rateLimit } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
 import { importPedigree } from '../pedigree-import.js';
-import { pedigreeV1, toImportNode } from '../pedigree-format.js';
+import { pedigreeContext, pedigreeFrom, pedigreeV1, toImportNode } from '../pedigree-format.js';
 
 /*
  * Linkul public / codul QR al unui porumbel (Planul 3, separare totală): singura cale prin care date dintr-un cont
@@ -65,9 +65,10 @@ export function publicRouter() {
     const ids = parseSheetIds(req.query.ids);
     const rows = new Map((await all('SELECT id, public_token FROM pigeons WHERE account_id = ? AND id = ANY(?::bigint[])', req.account.id, ids)).map((x) => [Number(x.id), x]));
     const sheets = [];
+    const ctx = await pedigreeContext(req.account.id, { forPrint: true });
     for (const id of ids) {
       const row = rows.get(id);
-      if (row) sheets.push({ id, pedigree: await pedigreeV1(req.account.id, id, { forPrint: true }), url: urlOf(row.public_token) });
+      if (row) sheets.push({ id, pedigree: pedigreeFrom(ctx, id), url: urlOf(row.public_token) });
     }
     res.json({ sheets });
   });
@@ -79,8 +80,8 @@ export function publicRouter() {
     const sheets = [];
     for (const id of ids) {
       if (!rows.has(id)) continue;
-      const { public_token: token } = await one('UPDATE pigeons SET public_token = COALESCE(public_token, ?) WHERE id = ? AND account_id = ? RETURNING public_token', newToken(), id, req.account.id);
-      sheets.push({ id, url: urlOf(token) });
+      const done = await one("UPDATE pigeons SET public_token = COALESCE(public_token, ?) WHERE id = ? AND account_id = ? AND kind = 'own' RETURNING public_token", newToken(), id, req.account.id);
+      if (done) sheets.push({ id, url: urlOf(done.public_token) });
     }
     res.json({ sheets });
   });

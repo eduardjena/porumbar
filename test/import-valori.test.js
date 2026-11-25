@@ -2,8 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readSex, readBreed, readEyeColor, readStatus, readCode, readLines, readDate, slashOrder, ringWithCountry, cut } from '../src/table-values.js';
+import { __setForTest } from '../src/i18n.js';
 import { parseRing } from '../src/rings.js';
-import { STATUSES } from '../src/catalog.js';
+import { STATUSES, COLORS } from '../src/catalog.js';
 
 test('readSex: cuvinte românești, maghiare și internaționale', () => {
   assert.equal(readSex('Mascul'), 'M');
@@ -32,6 +33,11 @@ test('readCode: stare și ochi după cod sau nume', () => {
   assert.equal(readCode('vandut', STATUSES, 'catalog.stare'), 'vandut');
   assert.equal(readEyeColor('Portocaliu'), 'portocaliu');
   assert.equal(readEyeColor('Narancs'), 'portocaliu');
+});
+
+test('readCode: potrivește și numele japoneze (valoarea pusă de mână, independent de traduceri)', () => {
+  __setForTest('ja', 'catalog.culoare.albastru', 'ブルー');
+  assert.equal(readCode('ブルー', COLORS, 'catalog.culoare'), 'albastru');
 });
 
 test('readLines: separatori, curățare, cel mult 10', () => {

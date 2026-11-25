@@ -1,0 +1,7 @@
+{
+  "test.salut": "Szia, {nume}!",
+  "test.porumbei": {
+    "one": "{count} galamb",
+    "other": "{count} galamb"
+  }
+}

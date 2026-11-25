@@ -109,7 +109,7 @@ rootSex: sexul porumbelului principal dacă e scris, altfel null.
 notes: o frază scurtă, {LIMBA_NOTEI}, despre ce nu s-a putut citi (părți tăiate, scris neclar); șir gol dacă totul e clar. Dacă fișierul nu e un pedigree de porumbel, lași slots gol și spui asta în notes.`;
 
 // Nota („ce nu s-a putut citi”) vine în limba omului.
-const NOTE_LANG = { ro: 'în română', hu: 'în maghiară' };
+const NOTE_LANG = { ro: 'în română', hu: 'în maghiară', ja: 'în japoneză' };
 const instructionsFor = (lang) => INSTRUCTIONS.replace('{LIMBA_NOTEI}', NOTE_LANG[lang] ?? NOTE_LANG.ro);
 
 /** Modelul de citire; testele pun aici unul fals (fără rețea, fără cost). */

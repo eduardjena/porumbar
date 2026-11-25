@@ -5,6 +5,8 @@
  * citire ușoară (Atkinson Hyperlegible Next, găzduită de noi).
  */
 @import '@fontsource-variable/atkinson-hyperlegible-next';
+@import '@fontsource/noto-sans-jp/japanese-400.css';
+@import '@fontsource/noto-sans-jp/japanese-700.css';
 
 :root {
   --bg: #f5f0e8;
@@ -46,7 +48,7 @@
   --radius: 16px;
   --radius-sm: 12px;
   --shadow: 0 1px 2px rgb(16 32 48 / 6%), 0 6px 16px -6px rgb(16 32 48 / 10%);
-  --font: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
+  --font: 'Atkinson Hyperlegible Next Variable', 'Noto Sans JP', system-ui, sans-serif;
   --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: light;
@@ -60,6 +62,10 @@ body {
   margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
+/* Japoneză: rânduri mai aerisite, rupere de rând strictă; inelele și emailurile (șiruri lungi fără spații) se rup oriunde. */
+html[lang="ja"] { line-break: strict; }
+html[lang="ja"] body { line-height: 1.75; }
+html[lang="ja"] .mono, html[lang="ja"] input, html[lang="ja"] td { overflow-wrap: anywhere; }
 ::selection { background: #f3d3c3; color: var(--text); }
 h1 { font-size: 1.75rem; margin: 4px 0 16px; line-height: 1.15; font-weight: 750; letter-spacing: -0.015em; text-wrap: balance; }
 h2 { font-size: 1.25rem; margin: 28px 0 12px; line-height: 1.25; font-weight: 700; text-wrap: balance; }

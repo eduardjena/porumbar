@@ -86,6 +86,15 @@ export function createApp() {
   app.use(express.json({ limit: '1mb', inflate: false }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
+  // DIAGNOSTIC TEMPORAR (de scos): arată lanțul de proxy ca să reglăm TRUST_PROXY pe Railway.
+  app.get('/api/_diag', (req, res) => res.json({
+    ip: req.ip,
+    ips: req.ips,
+    xff: req.headers['x-forwarded-for'] ?? null,
+    socket: req.socket?.remoteAddress ?? null,
+    trustProxy: req.app.get('trust proxy'),
+    pid: process.pid,
+  }));
   app.get('/api/catalog', optionalAccount, (req, res) => res.json(publicCatalog(req.lang)));
   // Înaintea lui /api/auth: sub /api/auth, deci scutit de regula „doar citire” (și fără abonament se pot porni amintirile).
   app.use('/api/auth/push', pushRouter());

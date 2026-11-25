@@ -19,10 +19,13 @@ export const GROUPS = [
 ];
 
 /** Grupele deja traduse (se completează task cu task). */
-export const DONE = ['domeniu'];
+export const DONE = ['domeniu', 'shell'];
 
 /** Chei a căror valoare japoneză poate fi fără kana/kanji (coduri, nume de marcă, doar substituenți, URL-uri). */
-export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 'genetica.doar_desen']);
+export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 'genetica.doar_desen',
+  'cont.de_pe', // doar semnul „：” între stare și dată
+  'push.titlu', // numele aplicației (marcă), la fel în toate limbile
+]);
 
 export const isJapanese = (s) => /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s);
 

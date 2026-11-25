@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
@@ -9,6 +9,10 @@ import { ShareButton } from '../../shared/share-button';
 import { LANGS, TPipe, currentLang, ensureLang, t } from '../../core/i18n';
 import { AuthService } from '../../core/auth';
 import { sheetLang } from '../../core/share-pdf';
+import { allowedSheetLang, sheetLangs } from '../../core/sheet-langs';
+import { loadJapaneseFont } from '../../core/font-ja';
+import { loadSheetFonts } from '../../core/sheet-fonts';
+import { within } from '../../core/within';
 import { parseIds } from '../../shared/fise-toate';
 
 interface Sheet { id: number; pedigree: PedigreeV1; url: string | null }
@@ -33,7 +37,7 @@ interface Sheet { id: number; pedigree: PedigreeV1; url: string | null }
         @if (sheets().length) { <strong class="count">{{ 'tiparire.fise_numar' | t: { count: sheets().length } }}</strong> }
       }
       @if (single() || sheets().length) {
-        <button type="button" class="primary" (click)="print()"><app-icon name="tipar" />{{ 'tiparire.tipareste_pdf' | t }}</button>
+        <button type="button" class="primary" [disabled]="preparing()" (click)="print()"><app-icon name="tipar" />{{ 'tiparire.tipareste_pdf' | t }}</button>
       }
       @if (single()) { <app-share-button [pigeonId]="+id()!" /> }
       @if (langChoices().length > 1) {
@@ -98,16 +102,12 @@ export default class Tiparire {
   readonly loaded = signal(false);
   readonly error = signal('');
   private readonly auth = inject(AuthService);
-  /** Limbile fișei: româna, limbile publice și limba contului (una „în probă” doar la cine o are). */
-  protected readonly langChoices = computed(() => {
-    const mine = this.auth.account()?.lang;
-    return LANGS.filter((l) => l.code === 'ro' || l.public || l.code === mine);
-  });
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  protected readonly langChoices = computed(() => sheetLangs(LANGS, this.auth.account()?.lang));
   /** Limba fișei: cea aleasă aici (ține și pentru PDF-ul de la „Trimite”), altfel limba ecranului. */
-  protected readonly lang = computed(() => {
-    const chosen = sheetLang();
-    return chosen && this.langChoices().some((l) => l.code === chosen) ? chosen : currentLang();
-  });
+  protected readonly lang = computed(() => allowedSheetLang(sheetLang(), LANGS, this.auth.account()?.lang, currentLang()));
+  /** Se așteaptă literele japoneze înainte de tipar. */
+  protected readonly preparing = signal(false);
 
   async pickLang(code: string) {
     await ensureLang(code).catch(() => undefined);
@@ -181,7 +181,19 @@ export default class Tiparire {
     }
   }
 
+  /**
+   * În japoneză așteptăm întâi literele foilor (de obicei sunt deja pe ecran, deci nu se simte), dar cel mult 3 secunde:
+   * fără rețea se tipărește cu fontul sistemului. Celelalte limbi: imediat, direct din apăsare.
+   */
   print() {
-    window.print();
+    if (this.lang() !== 'ja') return window.print();
+    if (this.preparing()) return;
+    this.preparing.set(true);
+    const el = this.host.nativeElement;
+    void within(loadJapaneseFont().then(() => loadSheetFonts(el)), 3000).then(() => {
+      this.preparing.set(false);
+      // Omul poate să fi plecat între timp de pe pagină.
+      if (el.isConnected) window.print();
+    });
   }
 }

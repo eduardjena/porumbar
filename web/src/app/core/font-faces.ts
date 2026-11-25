@@ -45,3 +45,6 @@ export function facesFor(faces: FontFaceInfo[], families: Set<string>, texts: Ma
     .filter((f) => families.has(f.family) && [...texts].some(([w, chars]) => atWeight(f, w) && covers(f, chars)))
     .filter((f, i, all) => all.findIndex((x) => x.url === f.url) === i);
 }
+
+/** CSS-ul fețelor aduse; undefined dacă n-a venit niciuna (html-to-image le caută atunci pe ale lui, nu rămâne fără fonturi). */
+export const joinFontCss = (parts: string[]): string | undefined => parts.join('\n').trim() || undefined;

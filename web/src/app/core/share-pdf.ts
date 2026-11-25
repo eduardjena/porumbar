@@ -1,10 +1,12 @@
 import { ApplicationRef, EnvironmentInjector, Injectable, createComponent, inject, signal } from '@angular/core';
-import { currentLang, ensureLang, t } from './i18n';
+import { LANGS, currentLang, ensureLang, t } from './i18n';
 import { Api } from './api';
+import { AuthService } from './auth';
 import { ConfirmService } from './confirm';
 import { PedigreeV1 } from './models';
 import { loadJapaneseFont } from './font-ja';
 import { loadSheetFonts, sheetFontCss } from './sheet-fonts';
+import { allowedSheetLang } from './sheet-langs';
 import { PedigreePage } from '../shared/pedigree-page';
 
 export type ShareOutcome = 'shared' | 'cancelled' | 'downloaded';
@@ -15,7 +17,7 @@ export type ShareOutcome = 'shared' | 'cancelled' | 'downloaded';
  * într-un PDF A4. Apoi o dăm meniului de partajare al telefonului (Web Share); unde browserul nu poate trimite fișiere
  * (de ex. Firefox pe calculator), PDF-ul se descarcă. Bibliotecile se încarcă doar la prima apăsare.
  */
-/** Limba aleasă pentru fișă (pe pagina de tipărire); `null` = limba ecranului. O folosește și PDF-ul de la „Trimite”. */
+/** Limba aleasă pentru fișă (pe pagina de tipărire); `null` = limba ecranului. Se citește prin `allowedSheetLang`. */
 export const sheetLang = signal<string | null>(null);
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +26,7 @@ export class SharePdfService {
   private readonly appRef = inject(ApplicationRef);
   private readonly env = inject(EnvironmentInjector);
   private readonly confirm = inject(ConfirmService);
+  private readonly auth = inject(AuthService);
   /** Id-ul porumbelului a cărui fișă se pregătește acum (butoanele arată „Se pregătește…”). */
   readonly busy = signal<number | null>(null);
 
@@ -43,7 +46,8 @@ export class SharePdfService {
   }
 
   /** Fișa A4 ca PDF (o pagină, imagine la ~280 dpi). */
-  async makePdf(data: PedigreeV1, url: string | null, lang: string = sheetLang() ?? currentLang()): Promise<File> {
+  async makePdf(data: PedigreeV1, url: string | null): Promise<File> {
+    const lang = allowedSheetLang(sheetLang(), LANGS, this.auth.account()?.lang, currentLang());
     await ensureLang(lang).catch(() => undefined);
     if (lang === 'ja') await loadJapaneseFont();
     const [{ toCanvas }, { jsPDF }] = await Promise.all([import('html-to-image'), import('jspdf')]);

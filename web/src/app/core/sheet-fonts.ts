@@ -1,7 +1,7 @@
-import { FontFaceInfo, facesFor, parseFace } from './font-faces';
+import { FontFaceInfo, facesFor, joinFontCss, parseFace } from './font-faces';
 
 /*
- * Fonturile foii pentru PDF. Foaia se desenează și imediat se face poză: feliile fontului japonez trebuie cerute și
+ * Fonturile foii pentru PDF și tipar. La PDF foaia se desenează și imediat se face poză: feliile fontului japonez trebuie cerute și
  * așteptate (document.fonts.ready singur se poate termina înainte să fie cerute), iar în poză se pun doar ele, căci
  * html-to-image ar încorpora toate feliile familiei.
  */
@@ -56,7 +56,7 @@ export async function sheetFontCss(sheet: HTMLElement): Promise<string | undefin
       /* o foaie de stil care nu se poate citi (de ex. a unei extensii) */
     }
   }
-  return (await Promise.all(facesFor(faces, families, texts).map(embed))).join('\n');
+  return joinFontCss(await Promise.all(facesFor(faces, families, texts).map(embed)));
 }
 
 async function embed(face: FontFaceInfo): Promise<string> {

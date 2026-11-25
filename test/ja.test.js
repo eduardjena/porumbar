@@ -19,7 +19,7 @@ export const GROUPS = [
 ];
 
 /** Grupele deja traduse (se completează task cu task). */
-export const DONE = ['domeniu', 'shell', 'panou', 'porumbel', 'perechi', 'vanzari'];
+export const DONE = ['domeniu', 'shell', 'panou', 'porumbel', 'perechi', 'vanzari', 'excel'];
 
 /** Chei a căror valoare japoneză poate fi fără kana/kanji (coduri, nume de marcă, doar substituenți, URL-uri). */
 export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 'genetica.doar_desen',
@@ -60,4 +60,10 @@ for (const nume of DONE) {
 
 test('japoneză: ja.json e valid și are fixturile test.*', () => {
   assert.ok(ja['test.salut'] && ja['test.porumbei']);
+});
+
+test('japoneză: grupele acoperă toate prefixele din ro.json (afară de test)', () => {
+  const dinGrupe = new Set(GROUPS.flatMap((g) => g.prefixe));
+  const dinRo = new Set(Object.keys(ro).map((k) => k.split('.')[0]).filter((p) => p !== 'test'));
+  assert.deepEqual([...dinGrupe].sort(), [...dinRo].sort());
 });

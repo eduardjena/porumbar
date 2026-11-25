@@ -69,7 +69,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
           @if (pairCoi(); as c) {
             <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
               @if (c.coi > 0) {
-                {{ 'form.coi_pui' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>{{ ' ' | glue }}{{ 'form.coi_stramosi' | t }}{{ ' ' | glue }}@for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : (', ' | glue) }}}{{ ').' | glue }}
+                <span class="flow">{{ 'form.coi_pui' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>{{ ' ' | glue }}{{ 'form.coi_stramosi' | t }}{{ ' ' | glue }}@for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : (', ' | glue) }}}{{ ').' | glue }}</span>
               } @else {
                 {{ 'form.coi_zero' | t }}
               }

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { glueWith } from '../web/src/app/core/glue.ts';
+import { splitLines } from '../web/src/app/pages/porumbel-form/split-lines.ts';
 import { LANGS, glue } from '../src/i18n.js';
 import { journalText } from '../src/treatments.js';
 import { groupNestItems } from '../src/nest-reminders.js';
@@ -70,4 +71,45 @@ test('lipici: semnele de pe ecrane trec prin `glue`', () => {
     });
   }
   assert.deepEqual(found, [], `De trecut prin glue:\n${found.join('\n')}`);
+});
+
+test('câmpul „Linii”: virgula obișnuită și cele japoneze (、 ，) despart; restul rămâne', () => {
+  assert.deepEqual(splitLines('Janssen, Van Loon'), ['Janssen', 'Van Loon']);
+  assert.deepEqual(splitLines('Janssen、Van Loon，Delbar、'), ['Janssen', 'Van Loon', 'Delbar']);
+  assert.deepEqual(splitLines(['Janssen', 'Van Loon'].join(glue('ja', ', '))), ['Janssen', 'Van Loon'], 'ce se arată în japoneză se citește înapoi');
+  assert.deepEqual(splitLines(' a; b / c ,'), ['a; b / c']);
+  assert.deepEqual(splitLines(''), []);
+});
+
+// Cutiile .notice / .warning / .error sunt flex cu gap: o propoziție din mai multe bucăți are un singur înveliș `.flow`,
+// care nu există ca cutie în ro/hu (display: contents) și e un bloc în japoneză (fără goluri de 10px între bucăți).
+test('propozițiile din cutii au învelișul `.flow`', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'web', 'src', 'styles.css'), 'utf8');
+  assert.match(css, /^\.flow \{ display: contents; \}$/m);
+  assert.match(css, /^html\[lang="ja"\] \.flow \{ display: block; flex: 1; min-width: 0; \}$/m);
+  const dir = path.join(ROOT, 'web', 'src', 'app');
+  const box = /<(div|p)\b[^>]*?(?:class="(?:notice|warning|error)(?! stack)[^"]*"|\[class\]="[^"]*'warning' : 'notice'")[^>]*>([\s\S]*?)<\/\1>/g;
+  let found = 0;
+  for (const f of fs.readdirSync(dir, { recursive: true })) {
+    if (!f.endsWith('.ts') || f.startsWith(path.join('pages', 'admin'))) continue;
+    for (const m of fs.readFileSync(path.join(dir, f), 'utf8').matchAll(box)) {
+      if (!/<(strong|b|em)\b|<span class="mono"/.test(m[2])) continue;
+      found += 1;
+      assert.match(m[2], /<span class="flow">/, `${f}: ${m[2].trim().slice(0, 100)}`);
+    }
+  }
+  assert.equal(found, 7);
+});
+
+// Meniul de jos pe telefon, în japoneză: coloane după text, iconiță de 44px. Un semn japonez are lățimea literei (1em).
+test('meniul de jos: etichetele japoneze încap la 320px, cu literele de 14,4 / 16,2px', () => {
+  const app = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'app.ts'), 'utf8');
+  assert.match(app, /:host-context\(html\[lang="ja"\]\) \.bottom-nav \{ grid-auto-columns: auto; \}/);
+  assert.match(app, /:host-context\(html\[lang="ja"\]\) \.bottom-nav a \.ico \{ width: 44px; \}/);
+  const ja = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', 'ja.json'), 'utf8'));
+  const labels = ['panou', 'arbore', 'perechi', 'adauga', 'vanzari', 'cont'].map((k) => [...ja[`meniu.${k}`]].length);
+  for (let on = 0; on < labels.length; on++) {
+    const total = labels.reduce((sum, n, i) => sum + Math.max(44, n * 18 * (i === on ? 0.9 : 0.8)), 0);
+    assert.ok(total <= 320, `${total}px cu butonul ${on} aprins`);
+  }
 });

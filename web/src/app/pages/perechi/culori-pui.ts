@@ -51,7 +51,7 @@ const lower = (list: { v: string; l: string }[], v: string | null) => (v ? list.
           </div>
         </div>
         @if (r.unknown.length) {
-          <p class="notice">{{ 'culori.nu_stim' | t }}{{ ' ' | glue }}<strong>{{ r.unknown.join(', ' | glue) }}</strong>{{ '. ' | glue }}{{ 'culori.nu_stim_rest' | t }}</p>
+          <p class="notice"><span class="flow">{{ 'culori.nu_stim' | t }}{{ ' ' | glue }}<strong>{{ r.unknown.join(', ' | glue) }}</strong>{{ '. ' | glue }}{{ 'culori.nu_stim_rest' | t }}</span></p>
         }
       }
       <details>

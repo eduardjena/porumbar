@@ -44,10 +44,10 @@ export function readBreed(text) {
 export const readEyeColor = (text) => readCode(text, EYE_COLORS, 'catalog.ochi');
 export const readStatus = (text) => readCode(text, STATUSES, 'catalog.stare');
 
-/** Liniile de sânge: despărțite la `,` `;` `/`, cel mult 10. */
+/** Liniile de sânge: despărțite la `,` `;` `/` (și virgulele japoneze `、` `，`), cel mult 10. */
 export function readLines(text) {
   return String(text ?? '')
-    .split(/[,;/]/)
+    .split(/[,、，;/]/)
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 10);

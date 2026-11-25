@@ -43,6 +43,7 @@ test('readCode: potrivește și numele japoneze (valoarea pusă de mână, indep
 test('readLines: separatori, curățare, cel mult 10', () => {
   assert.deepEqual(readLines('Janssen; Van Loon / Delbar'), ['Janssen', 'Van Loon', 'Delbar']);
   assert.deepEqual(readLines(' a,, b ;'), ['a', 'b']);
+  assert.deepEqual(readLines('Janssen、Van Loon，Delbar'), ['Janssen', 'Van Loon', 'Delbar'], 'virgulele japoneze');
   assert.equal(readLines(Array.from({ length: 12 }, (_, i) => `L${i}`).join(',')).length, 10);
 });
 

@@ -14,7 +14,7 @@ import { LangSwitch } from '../../shared/lang-switch';
       <h1>{{ 'parola_uitata.titlu' | t }}</h1>
       @if (sent()) {
         <div class="notice card">
-          {{ 'parola_uitata.trimis_1' | t }}{{ ' ' | glue }}<strong>{{ email }}</strong>{{ 'parola_uitata.trimis_2' | t }}{{ ' ' | glue }}{{ 'parola_uitata.trimis_3' | t }}
+          <span class="flow">{{ 'parola_uitata.trimis_1' | t }}{{ ' ' | glue }}<strong>{{ email }}</strong>{{ 'parola_uitata.trimis_2' | t }}{{ ' ' | glue }}{{ 'parola_uitata.trimis_3' | t }}</span>
         </div>
         <a routerLink="/intra" class="btn wide">{{ 'parola_uitata.inapoi' | t }}</a>
       } @else {

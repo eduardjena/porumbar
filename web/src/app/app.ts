@@ -201,6 +201,9 @@ const NAV: NavItem[] = [
       .bottom-nav a.on { color: var(--text); font-weight: 800; font-size: 0.9rem; }
       .bottom-nav a.add .ico { width: 52px; height: 40px; background: var(--accent); color: #fff; border-radius: 14px; }
       .bottom-nav a.add.on .ico { background: var(--accent-strong); }
+      /* Japoneza: „アカウント” e mai lat decât o șesime de ecran; coloane după text, cu aceeași mărime a literei. */
+      :host-context(html[lang="ja"]) .bottom-nav { grid-auto-columns: auto; }
+      :host-context(html[lang="ja"]) .bottom-nav a .ico { width: 44px; }
     }
   `,
 })

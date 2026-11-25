@@ -154,6 +154,7 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
 - Semnele și spațiile lipite între bucăți traduse („.”, „, ”, „ (”, „„…””, „ – ”) trec prin `glue`: în șabloane `{{ '. ' | glue }}`,
   în cod `glue(', ')` (`glueIn` pe limba foii), pe server `glue(lang, ', ')`. Harta e `semne` din `languages.json` (doar japoneza o
   are: 。、（）「」〜, fără spații); ro/hu rămân cum sunt scrise. „ · ” nu se schimbă. Paza: `test/lipici.test.js`.
+  O propoziție din mai multe bucăți într-o cutie `.notice` / `.warning` / `.error` (flex) stă în `<span class="flow">`.
 - **Regulă:** orice text nou pe care îl vede crescătorul intră în `ro.json`, `hu.json` **și** `ja.json`, în același commit.
   Testul `test/i18n.test.js` cere aceleași chei în toate limbile; `test/texte-ramase.test.js` pică dacă rămâne text cu
   diacritice românești în cod (excepții: comentarii, consola vânzătorului, rânduri marcate `// i18n: ro`).

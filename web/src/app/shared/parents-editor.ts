@@ -17,7 +17,7 @@ import { TPipe, t, GluePipe } from '../core/i18n';
       @if (coi(); as c) {
         <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
           @if (c.coi > 0) {
-            {{ 'parinti.coi' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>{{ '. ' | glue }}{{ 'parinti.stramosi_comuni' | t }}{{ ' ' | glue }}@for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : (', ' | glue) }}}{{ '.' | glue }}
+            <span class="flow">{{ 'parinti.coi' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>{{ '. ' | glue }}{{ 'parinti.stramosi_comuni' | t }}{{ ' ' | glue }}@for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : (', ' | glue) }}}{{ '.' | glue }}</span>
           } @else {
             {{ 'parinti.fara_stramosi_comuni' | t }}
           }

@@ -63,7 +63,7 @@ interface ClutchForm {
         @if (p.nest) { <span>{{ 'perechi.cuibul' | t: { n: p.nest } }}</span> }
       </p>
       <div [class]="p.coi >= 0.125 ? 'warning' : 'notice'" role="status">
-        @if (p.coi > 0) { {{ 'perechi.coi_au' | t }}{{ ' ' | glue }}<strong>{{ pct(p.coi) }}</strong>{{ '.' | glue }} }
+        @if (p.coi > 0) { <span class="flow">{{ 'perechi.coi_au' | t }}{{ ' ' | glue }}<strong>{{ pct(p.coi) }}</strong>{{ '.' | glue }}</span> }
         @else { {{ 'perechi.fara_stramosi_comuni' | t }} }
       </div>
 

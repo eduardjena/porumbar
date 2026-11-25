@@ -41,10 +41,10 @@ interface Cell {
     </div>
     @if (coi(); as c) {
       <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'">
-        {{ 'arbore.consangvinizare' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>
+        <span class="flow">{{ 'arbore.consangvinizare' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>
         @if (c.common.length) {
           <ng-container>{{ ' ' | glue }}{{ 'arbore.stramosi_comuni' | t }}{{ ' ' | glue }}</ng-container>@for (x of c.common; track x.pigeon.id; let last = $last) {<span class="mono">{{ ring(x.pigeon) }}</span>{{ last ? '' : (', ' | glue) }}}
-        }
+        }</span>
       </div>
     }
     @if (error()) { <div class="error">{{ error() }}</div> }

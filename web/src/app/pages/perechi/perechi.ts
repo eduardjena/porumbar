@@ -55,7 +55,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? `${glue(
         @else if (!cocks().length || !hens().length) { <p class="muted">{{ 'perechi.sex_lipsa' | t }}</p> }
         @if (coi() != null) {
           <div [class]="coi()! >= 0.125 ? 'warning' : 'notice'" role="status">
-            @if (coi()! > 0) { {{ 'perechi.coi_ar_avea' | t }}{{ ' ' | glue }}<strong>{{ pct(coi()!) }}</strong>{{ '.' | glue }} }
+            @if (coi()! > 0) { <span class="flow">{{ 'perechi.coi_ar_avea' | t }}{{ ' ' | glue }}<strong>{{ pct(coi()!) }}</strong>{{ '.' | glue }}</span> }
             @else { {{ 'perechi.fara_stramosi_comuni' | t }} }
           </div>
         }

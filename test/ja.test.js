@@ -19,13 +19,14 @@ export const GROUPS = [
 ];
 
 /** Grupele deja traduse (se completează task cu task). */
-export const DONE = ['domeniu', 'shell', 'panou', 'porumbel'];
+export const DONE = ['domeniu', 'shell', 'panou', 'porumbel', 'perechi'];
 
 /** Chei a căror valoare japoneză poate fi fără kana/kanji (coduri, nume de marcă, doar substituenți, URL-uri). */
 export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 'genetica.doar_desen',
   'cont.pana_pe', // doar semnul „〜” între data de început și cea de sfârșit
   'cont.de_pe', // doar semnul „：” între stare și dată
   'push.titlu', // numele aplicației (marcă), la fel în toate limbile
+  'arbore.tm', // semnul „T+M” (tată + mamă), citat identic în retea.legenda_tm
 ]);
 
 export const isJapanese = (s) => /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s);

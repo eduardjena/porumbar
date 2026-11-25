@@ -12,6 +12,8 @@ import { QrCode } from './qr-code';
 @Component({
   selector: 'app-pedigree-page',
   imports: [PedigreeSheet, QrCode],
+  // Foaia poate fi în altă limbă decât ecranul: limba ei alege fontul (styles.css) și ruperea rândurilor.
+  host: { '[attr.lang]': 'L()' },
   template: `
     @let d = data();
     <!-- 186 × 272 mm de conținut (1 mm rezervă ca să nu treacă pe a doua pagină), cu 12 mm margine liberă pe fiecare latură. -->
@@ -55,6 +57,7 @@ import { QrCode } from './qr-code';
     .preview { padding-bottom: 12px; }
     .page {
       box-sizing: content-box; width: 186mm; height: 272mm; padding: 12mm; margin: 0 auto; background: #fff; color: #2b2117;
+      line-height: 1.5; /* la fel în orice limbă (ecranul japonez are rânduri mai înalte), ca foaia să rămână pe o pagină */
       display: flex; flex-direction: column; gap: 3mm; border: 1px solid var(--border); box-shadow: var(--shadow);
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }

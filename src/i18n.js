@@ -14,9 +14,6 @@ const readJson = (file) => JSON.parse(fs.readFileSync(path.join(DIR, file), 'utf
 export const LANGS = readJson('languages.json');
 const BY_CODE = new Map(LANGS.map((l) => [l.code, l]));
 const DICTS = new Map(LANGS.map((l) => [l.code, readJson(`${l.code}.json`)]));
-// Limbi în lucru: dicționarul se încarcă (t() și testele îl folosesc), dar ele nu sunt încă în languages.json,
-// deci isLang() le refuză și nimeni nu le poate alege. Se scoate de aici când limba intră în languages.json.
-for (const code of ['ja']) if (!DICTS.has(code)) DICTS.set(code, readJson(`${code}.json`));
 
 export const isLang = (code) => BY_CODE.has(code);
 export const isPublicLang = (code) => BY_CODE.get(code)?.public === true;
@@ -45,7 +42,7 @@ export const ref = (key, vars) => ({ $t: key, vars });
  * `vars.count` număr se alege forma de plural.
  */
 export function t(lang, key, vars = {}) {
-  const lng = DICTS.has(lang) ? lang : 'ro';
+  const lng = isLang(lang) ? lang : 'ro';
   let v = entry(lng, key);
   if (v === undefined) return key;
   if (typeof v === 'object') {

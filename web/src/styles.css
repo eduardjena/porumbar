@@ -5,8 +5,6 @@
  * citire ușoară (Atkinson Hyperlegible Next, găzduită de noi).
  */
 @import '@fontsource-variable/atkinson-hyperlegible-next';
-@import '@fontsource/noto-sans-jp/japanese-400.css';
-@import '@fontsource/noto-sans-jp/japanese-700.css';
 
 :root {
   --bg: #f5f0e8;
@@ -48,7 +46,7 @@
   --radius: 16px;
   --radius-sm: 12px;
   --shadow: 0 1px 2px rgb(16 32 48 / 6%), 0 6px 16px -6px rgb(16 32 48 / 10%);
-  --font: 'Atkinson Hyperlegible Next Variable', 'Noto Sans JP', system-ui, sans-serif;
+  --font: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
   --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: light;
@@ -62,8 +60,16 @@ body {
   margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
-/* Japoneză: rânduri mai aerisite, rupere de rând strictă; inelele și emailurile (șiruri lungi fără spații) se rup oriunde. */
-html[lang="ja"] { line-break: strict; }
+/*
+ * Japoneză (ecranul sau doar foaia de pedigree): Noto Sans JP pentru ce nu are Atkinson. Feliile fontului sunt în
+ * japoneza.css, adus doar când e nevoie (core/font-ja.ts); în celelalte limbi fontul nu e cerut niciodată.
+ */
+[lang="ja"] {
+  --font: 'Atkinson Hyperlegible Next Variable', 'Noto Sans JP', system-ui, sans-serif;
+  --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace, 'Noto Sans JP';
+  font-family: var(--font); line-break: strict;
+}
+/* Rânduri mai aerisite; inelele și emailurile (șiruri lungi fără spații) se rup oriunde. */
 html[lang="ja"] body { line-height: 1.75; }
 html[lang="ja"] .mono, html[lang="ja"] input, html[lang="ja"] td { overflow-wrap: anywhere; }
 ::selection { background: #f3d3c3; color: var(--text); }

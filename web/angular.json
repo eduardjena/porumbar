@@ -50,7 +50,8 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              { "input": "src/japoneza.css", "bundleName": "japoneza", "inject": false }
             ]
           },
           "configurations": {

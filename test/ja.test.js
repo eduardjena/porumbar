@@ -1,5 +1,5 @@
-// Japoneza (în lucru): pe grupe de chei. O grupă intră în DONE când e tradusă; atunci se verifică prezența,
-// aceleași {…}, nenul și (în afară de ALLOW_NONJA) kana/kanji. `test.*` nu e în nicio grupă (fixturi comune).
+// Japoneza („în probă”): pe grupe de chei, toate traduse. Se verifică prezența, aceleași {…}, nenul și (în afară de
+// ALLOW_NONJA) kana/kanji. `test.*` nu e în nicio grupă (fixturi comune).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,7 +18,7 @@ export const GROUPS = [
   { nume: 'excel', prefixe: ['excel', 'import_excel', 'import', 'scan', 'cititor', 'eroare'] },
 ];
 
-/** Grupele deja traduse (se completează task cu task). */
+/** Grupele deja traduse (toate). */
 export const DONE = ['domeniu', 'shell', 'panou', 'porumbel', 'perechi', 'vanzari', 'excel'];
 
 /** Chei a căror valoare japoneză poate fi fără kana/kanji (coduri, nume de marcă, doar substituenți, URL-uri). */

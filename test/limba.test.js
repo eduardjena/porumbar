@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
 import { adminCookie, newAccount, setLang } from './helpers/accounts.js';
-import { LANGS } from '../src/i18n.js';
+import { LANGS, t } from '../src/i18n.js';
 
 // O limbă „în probă” (nepublică) o pune doar vânzătorul, până o verifică cineva. Maghiara e publică din 2026-11-20;
 // aici o facem din nou „în probă”, ca să rămână verificat felul în care merge o limbă nouă, încă neverificată.
@@ -148,4 +148,50 @@ test('o limbă publică (maghiara, ca acum) se poate alege la înregistrare și 
   } finally {
     hu.public = false;
   }
+});
+
+// Japoneza e chiar „în probă” (public: false în languages.json), nu doar în test.
+test('japoneza în probă: fără cont, telefonul în japoneză primește româna', async () => {
+  const r = await call('/api/auth/login', {
+    method: 'POST', auth: 'none', headers: { 'Accept-Language': 'ja-JP,ja;q=0.9' }, body: { email: 'nimeni@exemplu.test', password: 'gresit-gresit-1' },
+  });
+  assert.equal(r.status, 401);
+  assert.match(r.data.error, /^Email sau parolă greșită/);
+  const reg = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: 'limba-ja@exemplu.test', password: 'parola-de-test-123', name: 'Nou', lang: 'ja' } });
+  assert.equal(reg.status, 400);
+});
+
+test('japoneza în probă: o pune doar vânzătorul, iar mesajele, catalogul și dicționarul vin în japoneză', async () => {
+  const a = await newAccount(call, 'Tanaka');
+  const id = (await me(a)).id;
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { lang: 'ja' } })).status, 403, 'omul nu și-o poate pune singur');
+  assert.equal((await me(a)).lang, 'ro');
+  await setLang(call, id, 'ja');
+  assert.equal((await me(a)).lang, 'ja');
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { lang: 'ja' } })).status, 200, 'rămâne în limba lui');
+  const bad = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'own', ring: '000' } });
+  assert.equal(bad.status, 400);
+  assert.equal(bad.data.error, t('ja', 'eroare.inel_necitit'));
+  assert.match(bad.data.error, /[぀-ヿ]/);
+  const colors = (await call('/api/catalog', { cookie: a })).data.colors;
+  assert.equal(colors.find((c) => c.code === 'solzat').label, t('ja', 'catalog.culoare.solzat'));
+  const dict = await call('/i18n/ja.json', { auth: 'none' });
+  assert.equal(dict.status, 200);
+  assert.equal(dict.data['cont.limba'], t('ja', 'cont.limba'));
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { lang: 'ro' } })).status, 200);
+  assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: a, body: { lang: 'ja' } })).status, 403, 'nu se mai poate întoarce singur');
+});
+
+test('vânzătorul face un cont nou direct în japoneză', async () => {
+  const r = await call('/api/admin/accounts', { method: 'POST', cookie: admin, body: { name: 'Tanaka Ichirō', email: 'tanaka@exemplu.test', lang: 'ja' } });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.account.lang, 'ja');
+});
+
+test('data din textele tratamentelor: ca pe ecran, în forma fiecărei limbi', async () => {
+  const { formatDate } = await import('../src/treatments.js');
+  assert.equal(formatDate('2026-01-05', 'ro'), '05.01.2026');
+  assert.equal(formatDate('2026-01-05', 'hu'), '2026. 01. 05.');
+  assert.equal(formatDate('2026-01-05', 'ja'), '2026/1/5');
+  assert.equal(formatDate('2026-11-25', 'ja'), '2026/11/25');
 });

@@ -3,6 +3,8 @@ import { currentLang, ensureLang, t } from './i18n';
 import { Api } from './api';
 import { ConfirmService } from './confirm';
 import { PedigreeV1 } from './models';
+import { loadJapaneseFont } from './font-ja';
+import { loadSheetFonts, sheetFontCss } from './sheet-fonts';
 import { PedigreePage } from '../shared/pedigree-page';
 
 export type ShareOutcome = 'shared' | 'cancelled' | 'downloaded';
@@ -43,6 +45,7 @@ export class SharePdfService {
   /** Fișa A4 ca PDF (o pagină, imagine la ~280 dpi). */
   async makePdf(data: PedigreeV1, url: string | null, lang: string = sheetLang() ?? currentLang()): Promise<File> {
     await ensureLang(lang).catch(() => undefined);
+    if (lang === 'ja') await loadJapaneseFont();
     const [{ toCanvas }, { jsPDF }] = await Promise.all([import('html-to-image'), import('jspdf')]);
     // Lățimea locului: mai mare decât foaia (210 mm ≈ 794 px), ca foaia să nu fie micșorată.
     const host = document.createElement('div');
@@ -57,7 +60,8 @@ export class SharePdfService {
       ref.setInput('lang', lang);
       this.appRef.attachView(ref.hostView);
       ref.changeDetectorRef.detectChanges();
-      await document.fonts.ready;
+      const page = host.querySelector<HTMLElement>('article.page')!;
+      await loadSheetFonts(page);
       // Codul QR se desenează după ce se încarcă biblioteca lui; așteptăm să fie gata.
       for (let i = 0; i < 40; i++) {
         const qr = host.querySelector('canvas');
@@ -65,9 +69,9 @@ export class SharePdfService {
         await new Promise((r) => setTimeout(r, 50));
       }
       await new Promise((r) => setTimeout(r, 50));
-      const page = host.querySelector<HTMLElement>('article.page')!;
       const canvas = await toCanvas(page, {
         pixelRatio: 3,
+        fontEmbedCSS: await sheetFontCss(page),
         backgroundColor: '#ffffff',
         // Pe foaia trimisă: fără chenarul și umbra de pe ecran.
         style: { border: '0', boxShadow: 'none', margin: '0', zoom: '1' },

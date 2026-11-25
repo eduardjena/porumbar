@@ -19,7 +19,7 @@ export const GROUPS = [
 ];
 
 /** Grupele deja traduse (se completează task cu task). */
-export const DONE = ['domeniu', 'shell', 'panou', 'porumbel', 'perechi'];
+export const DONE = ['domeniu', 'shell', 'panou', 'porumbel', 'perechi', 'vanzari'];
 
 /** Chei a căror valoare japoneză poate fi fără kana/kanji (coduri, nume de marcă, doar substituenți, URL-uri). */
 export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 'genetica.doar_desen',
@@ -27,6 +27,11 @@ export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 
   'cont.de_pe', // doar semnul „：” între stare și dată
   'push.titlu', // numele aplicației (marcă), la fel în toate limbile
   'arbore.tm', // semnul „T+M” (tată + mamă), citat identic în retea.legenda_tm
+  'vanzare.email_exemplu', // adresă de email de exemplu (ASCII), în câmpul gol
+  'tratamente.zile_interval', // doar intervalul „1〜60” (cifre și semnul de interval)
+  'tratament.jurnal_text', // doar substituenți și semne: „{nume}（{mod}、{perioada}）”
+  'tratament.jurnal_nota', // doar „：” și {nota}, lipit de intrarea din jurnal
+  'tratamente.repetare_interval', // doar intervalul „1〜365”
 ]);
 
 export const isJapanese = (s) => /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s);

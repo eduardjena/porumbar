@@ -304,7 +304,7 @@
   "cont.activ": "有効",
   "cont.expirat": "期限切れ",
   "cont.de_pe": "：",
-  "cont.pana_pe": "から",
+  "cont.pana_pe": "〜",
   "cont.zile_ramase": {
     "one": "（あと{count}日）",
     "other": "（あと{count}日）"

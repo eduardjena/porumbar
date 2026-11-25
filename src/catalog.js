@@ -134,20 +134,42 @@ const COLOR_FORMS = COLORS.flatMap((c) => [c.label, ...c.synonyms].map((f) => ({
 );
 const PA = /(^|\s)(p\.?\s?a\.?|pene albe|wf)(?=\s|$)/;
 
+// Japoneza: numele arătate de program, luate din ja.json („ブルーチェック（BC）”): numele cu codul lui din paranteză, apoi
+// numele singur (cele lungi întâi). Codul singur (B, S, G …) rămâne cel citit de COLOR_FORMS.
+const JAPANESE = /[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]/;
+const JA_COLORS = COLORS.map(({ code }) => {
+  const [name, sign] = fold(t('ja', `catalog.culoare.${code}`).normalize('NFKC')).split(/[()]/);
+  return { code, name, sign };
+}).sort((a, b) => b.name.length - a.name.length);
+const JA_FORMS = JA_COLORS.filter((c) => c.sign).map((c) => ({ code: c.code, words: [c.name, c.sign] }));
+const JA_PA = new RegExp(fold(t('ja', 'form.dif_pene_albe')).replace('い', 'い?'), 'g');
+
 /** Culoarea dintr-un text liber de pe pedigree: „Albastra p.a Consangvina” → { code: 'albastru', pa: true, rest: 'consangvina' }. */
 export function matchColor(text) {
   // „Spa” = solzat cu pene albe (abrevierea culorii lipită de „pa”).
-  let s = fold(text).replace(/[,;]/g, ' ').replace(/(^|\s)([asgr])pa(?=\s|$)/g, '$1$2 pa');
-  const pa = PA.test(s);
+  // În textul japonez, semnele late („（”, „Ｂ”, spațiul lat, katakana îngustă) se aduc la forma obișnuită.
+  const ja = JAPANESE.test(String(text ?? ''));
+  let s = fold(ja ? String(text).normalize('NFKC').replace(/[、。・]/g, ' ') : text);
+  const jaPa = ja && s.search(JA_PA) >= 0;
+  if (jaPa) s = s.replace(JA_PA, ' ');
+  s = s.replace(/[,;]/g, ' ').replace(/(^|\s)([asgr])pa(?=\s|$)/g, '$1$2 pa');
+  const pa = jaPa || PA.test(s);
   s = s.replace(PA, ' ').replace(/[.:!?()"„”]/g, ' ').replace(/\s+/g, ' ').trim();
   const words = s ? s.split(' ') : [];
-  for (const form of COLOR_FORMS) {
-    if (form.words.length === 1 && form.words[0].length === 1 && words.length !== 1) continue;
+  for (const form of ja ? [...JA_FORMS, ...COLOR_FORMS] : COLOR_FORMS) {
+    if (form.words.length === 1 && form.words[0].length === 1 && (ja || words.length !== 1)) continue;
     for (let i = 0; i + form.words.length <= words.length; i++) {
       if (form.words.every((w, j) => words[i + j] === w)) {
         const rest = [...words.slice(0, i), ...words.slice(i + form.words.length)].join(' ');
         return { code: form.code, pa, rest };
       }
+    }
+  }
+  // Numele japonez singur, scris și în două cuvinte („ブルー チェック”).
+  for (const { code, name } of ja ? JA_COLORS : []) {
+    for (let i = 0; i < words.length; i++) {
+      const n = words[i] === name ? 1 : words[i] + words[i + 1] === name ? 2 : 0;
+      if (n) return { code, pa, rest: [...words.slice(0, i), ...words.slice(i + n)].join(' ') };
     }
   }
   return { code: null, pa, rest: words.join(' ') };

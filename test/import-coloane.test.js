@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePasted, findHeader, guessColumns, looksLikeRing, canContinue, buildRows } from '../web/src/app/shared/tabel-coloane.ts';
+import { parsePasted, findHeader, guessColumns, looksLikeRing, canContinue, buildRows, ringCountries, defaultRingCountry } from '../web/src/app/shared/tabel-coloane.ts';
 
 test('lipit din Excel (tab)', () => {
   assert.deepEqual(parsePasted('Inel\tNume\nRO-24-0117345\tFulger\n'), [['Inel', 'Nume'], ['RO-24-0117345', 'Fulger']]);
@@ -146,4 +146,14 @@ test('inelul maghiar în bucăți: anul întreg devine două cifre', () => {
   assert.equal(buildRows([['HU', '2024', '0123', '12345']], fields, -1)[0].ring, 'HU-24-0123-12345');
   assert.equal(buildRows([['RO', '2024', '', '0117345']], fields, -1)[0].ring, 'RO-24-0117345');
   assert.equal(buildRows([['RO', '24', '', '0117345']], fields, -1)[0].ring, 'RO-24-0117345');
+});
+
+test('țara inelelor fără țară: japonezii au JP, primul și implicit; româna și maghiara rămân ca înainte', () => {
+  const before = ['RO', 'HU', 'DE', 'NL', 'BE', 'PL', 'CZ', 'SK', 'RS', 'BG', 'MD', 'UA', 'IT', 'FR', 'GB', 'US', 'AT', 'SI', 'HR'];
+  assert.deepEqual(ringCountries('ro'), before);
+  assert.deepEqual(ringCountries('hu'), before);
+  assert.deepEqual(ringCountries(undefined), before);
+  assert.deepEqual(ringCountries('ja'), ['JP', ...before]);
+  assert.deepEqual(['ro', 'hu', 'ja', undefined].map(defaultRingCountry), ['RO', 'HU', 'JP', 'RO']);
+  for (const lang of ['ro', 'hu', 'ja']) assert.ok(ringCountries(lang).includes(defaultRingCountry(lang)), lang);
 });

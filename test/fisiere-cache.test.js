@@ -16,7 +16,7 @@ after(() => server?.close());
 
 test('hasContentHash: js, css și fonturi cu hash da; fără hash nu', () => {
   for (const f of [
-    'main-K2EEPKBT.js', 'chunk--vVLj0Py.js', 'styles-LYQHNXXM.css', 'C:\dist\media\noto-sans-jp-0-400-normal-N6AQLONF.woff2',
+    'main-K2EEPKBT.js', 'chunk--vVLj0Py.js', 'styles-LYQHNXXM.css', 'C:\\dist\\media\\noto-sans-jp-0-400-normal-N6AQLONF.woff2',
     '/app/media/noto-sans-jp-0-400-normal-3OIE2UE6.woff', 'atkinson-hyperlegible-next-latin-wght-normal-VX3WN42K.woff2',
   ]) assert.equal(app.hasContentHash(f), true, f);
   for (const f of [

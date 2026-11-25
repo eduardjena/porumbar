@@ -153,11 +153,12 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   `formatMoney` (nu `toLocale*('ro-RO')`).
 - Semnele și spațiile lipite între bucăți traduse („.”, „, ”, „ (”, „„…””, „ – ”) trec prin `glue`: în șabloane `{{ '. ' | glue }}`,
   în cod `glue(', ')` (`glueIn` pe limba foii), pe server `glue(lang, ', ')`. Harta e `semne` din `languages.json` (doar japoneza o
-  are: 。、（）「」〜, fără spații); ro/hu rămân cum sunt scrise. „ · ” nu se schimbă. Paza: `test/lipici.test.js`.
+  are: 。、：（）「」〜, fără spații); ro/hu rămân cum sunt scrise. „ · ” nu se schimbă. Paza: `test/lipici.test.js`.
   O propoziție din mai multe bucăți într-o cutie `.notice` / `.warning` / `.error` (flex) stă în `<span class="flow">`.
 - **Regulă:** orice text nou pe care îl vede crescătorul intră în `ro.json`, `hu.json` **și** `ja.json`, în același commit.
-  Testul `test/i18n.test.js` cere aceleași chei în toate limbile; `test/texte-ramase.test.js` pică dacă rămâne text cu
-  diacritice românești în cod (excepții: comentarii, consola vânzătorului, rânduri marcate `// i18n: ro`).
+  Un prefix nou de chei intră și în `GROUPS` din `test/ja.test.js` (o valoare japoneză scrisă doar cu litere latine sau semne:
+  în `ALLOW_NONJA`, cu motivul). Testul `test/i18n.test.js` cere aceleași chei în toate limbile; `test/texte-ramase.test.js`
+  pică dacă rămâne text cu diacritice românești în cod (excepții: comentarii, consola vânzătorului, rânduri marcate `// i18n: ro`).
 - Consola vânzătorului (`/vanzator`, `src/routes/admin.js`) rămâne în română. Mailul către vânzător e în română; mailurile
   către crescător sunt în limba contului.
 - Limbile publice: româna și maghiara (publică din 2026-11-20, la cererea vânzătorului): omul și-o alege la înregistrare
@@ -169,6 +170,12 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   `web/src/japoneza.css` → `/japoneza.css` (angular.json, `inject: false`), adus de `core/font-ja.ts` doar când se folosește
   japoneza; stiva de fonturi se schimbă doar sub `[lang="ja"]` (styles.css; foaia de pedigree are `lang` propriu). În PDF,
   `core/sheet-fonts.ts` așteaptă literele foii și încorporează doar feliile de pe ea (test/font-japonez.test.js).
+- Ce nu e gata pentru Japonia: inelele lor (partea A: formele și emitenții japonezi în `rings.js`); citirea din Excel, poze și
+  hârtie cu coduri de culoare goale (B, BCW …; azi B = bălțat, S = solzat, G = gut, ca în română) și cu antete de coloane
+  japoneze (partea B); ora amintirilor (tratamente, cuib) e ora Bucureștiului. Numele japoneze ale culorilor, cum le arată
+  programul, se citesc (`matchColor`, luate din ja.json; test/culori-japoneze.test.js), iar la importul din Excel țara
+  implicită a conturilor japoneze e JP. Ramurile neîmbinate (feat/plata-paddle etc.) au nevoie de textele lor în `ja.json` la
+  rebase.
 - Termenii maghiari ai crescătorilor (culori, H / T pentru sex, „SZÁRMAZÁSI LAP”): `docs/cercetare/termeni-maghiari.md`.
 - O limbă nouă: un fișier `i18n/<cod>.json` cu toate cheile + un rând în `languages.json` (cu `public: false` până e verificată).
 

@@ -100,6 +100,7 @@ test('ringWithCountry: pune țara coloanei doar când ajută', () => {
   assert.equal(ringWithCountry('BE 19 6080187', 'RO'), 'BE 19 6080187');
   assert.equal(ringWithCountry('HU-24-12345', 'HU'), 'HU-24-12345');
   assert.equal(ringWithCountry('24-0117345', null), '24-0117345');
+  assert.equal(ringWithCountry('24-12345', 'JP'), 'JP 24-12345', 'inelul japonez scris fără țară');
 });
 
 test('cut: curăță și taie', () => {

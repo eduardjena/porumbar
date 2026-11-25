@@ -89,7 +89,7 @@ pune doar vânzătorul, din consolă). Orice text nou intră în toate dicționa
 - În consolă: toți crescătorii (fără porumbeii lor), filtre (Neactivați, Activi, Expiră curând, Expirați), căutare;
   **Activează / Prelungește** (un an de la data aleasă, după ce ai primit banii), **Adaugă credit** pentru citirea pozelor
   (în dolari; fiecare citire scade costul ei real), **link de parolă nouă** (24 h; parola o alege doar omul), istoricul.
-- Pe Railway / Render pune și `TRUST_PROXY=1`, altfel limitele de încercări se aplică tuturor utilizatorilor deodată.
+- Pe Railway pune `TRUST_PROXY=2` (sunt două straturi de proxy; verifică numărând intrările din antetul `X-Forwarded-For` — IP-ul real al clientului e primul). Altfel serverul vede IP-ul proxy-ului (care se schimbă de la o cerere la alta) și limitele pe IP — login, resetare, token public — nu funcționează. Pe Render sau alt proxy numărul poate diferi.
 - Cu 30 de zile înainte de expirare pleacă un email de memento (o dată), iar contul apare la „Expiră curând”.
   Emailurile pleacă doar cu `SMTP_URL`; `SELLER_CONTACT` spune crescătorilor cum te contactează pentru plată.
 - La fiecare cont nou făcut din formular pleacă un mail la `ADMIN_EMAIL` (nume, email, link spre consolă), ca să-l

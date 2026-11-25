@@ -225,6 +225,7 @@
   "eroare.intrare_negasita": "Intrarea nu a fost găsită.",
   "eroare.link_doar_proprii": "Doar porumbeii din porumbarul tău pot avea link public.",
   "eroare.link_invalid": "Linkul nu mai este valabil. Cere-i crescătorului unul nou.",
+  "eroare.prea_multe_fise": "Cel mult {max} de fișe deodată.",
   "eroare.deja_al_tau": "Porumbelul este deja în porumbarul tău.",
   "eroare.vanzare_negasita": "Vânzarea nu a fost găsită.",
   "eroare.vanzare_primita": "Vânzarea a fost deja primită.",
@@ -743,6 +744,9 @@
     "text": "Porumbarul meu",
     "sens": "Titlul panoului și al listei de porumbei."
   },
+  "panou.tipareste_fisele": "Tipărește fișele ({count})",
+  "panou.tipareste_fisele_aria": "Tipărește fișele porumbeilor care se văd acum, câte una pe pagină",
+  "panou.prea_multe_fise": "Sunt {count} de porumbei; tipărește cel mult {max} deodată – pune un filtru (de exemplu anul).",
   "panou.importa_pedigree": "Importă pedigree",
   "panou.scaneaza_qr": "Scanează cod QR",
   "panou.gol_titlu": "Porumbarul e gol deocamdată",
@@ -1220,6 +1224,28 @@
   "tiparire.tipareste_pdf": "Tipărește / Salvează PDF",
   "tiparire.se_pregateste": "Se pregătește pedigree-ul…",
   "tiparire.porniti_rand": "Codul QR de pe foaie duce la pedigree-ul porumbelului. Oricine scanează codul îl vede (fără note și jurnal).",
+  "tiparire.fise_numar": {
+    "one": "{count} fișă",
+    "few": "{count} fișe",
+    "other": "{count} de fișe",
+    "sens": "Pe pagina de tipărire cu mai multe fișe, în bară: câte fișe sunt."
+  },
+  "tiparire.se_pregatesc": "Se pregătesc fișele ({count})…",
+  "tiparire.fara_qr": {
+    "one": "{count} fișă fără cod QR",
+    "few": "{count} fișe fără cod QR",
+    "other": "{count} de fișe fără cod QR",
+    "sens": "Pe pagina de tipărire cu mai multe fișe: câte fișe nu au încă linkul public."
+  },
+  "tiparire.pune_qr_toate": "Pune cod QR pe toate",
+  "tiparire.porniti_toate_rand": {
+    "one": "Se pornește linkul pentru {count} porumbel.",
+    "few": "Se pornește linkul pentru {count} porumbei.",
+    "other": "Se pornește linkul pentru {count} de porumbei.",
+    "sens": "Pe pagina cu mai multe fișe, în confirmarea de la „Pune cod QR pe toate”."
+  },
+  "tiparire.inapoi_porumbei": "Înapoi la porumbei",
+  "tiparire.nicio_fisa": "Nu e nicio fișă de tipărit.",
   "form.titlu_editeaza": "Editează porumbelul",
   "form.porumbel": {
     "text": "Porumbel",

@@ -172,6 +172,7 @@
   "eroare.intrare_negasita": "A bejegyzés nem található.",
   "eroare.link_doar_proprii": "Csak a saját dúcod galambjainak lehet nyilvános linkje.",
   "eroare.link_invalid": "A link már nem érvényes. Kérj újat a tenyésztőtől.",
+  "eroare.prea_multe_fise": "Egyszerre legfeljebb {max} lap.",
   "eroare.deja_al_tau": "A galamb már a dúcodban van.",
   "eroare.vanzare_negasita": "Az eladás nem található.",
   "eroare.vanzare_primita": "Az eladást már átvették.",
@@ -529,6 +530,9 @@
   "text.de_exemplu": "pl. {exemplu}",
   "text.nu_se_poate_da_inapoi": "Nem vonható vissza.",
   "panou.titlu": "A dúcom",
+  "panou.tipareste_fisele": "Lapok nyomtatása ({count})",
+  "panou.tipareste_fisele_aria": "A most látható galambok lapjainak nyomtatása, oldalanként egy",
+  "panou.prea_multe_fise": "{count} galamb van; egyszerre legfeljebb {max} nyomtatható – szűrj (például évre).",
   "panou.importa_pedigree": "Származási lap importálása",
   "panou.scaneaza_qr": "QR-kód beolvasása",
   "panou.gol_titlu": "A dúc egyelőre üres",
@@ -823,6 +827,19 @@
   "tiparire.tipareste_pdf": "Nyomtatás / Mentés PDF-be",
   "tiparire.se_pregateste": "Készül a származási lap…",
   "tiparire.porniti_rand": "A lapon lévő QR-kód a galamb származási lapjára visz. Bárki, aki beolvassa a kódot, látja (értékelés és napló nélkül).",
+  "tiparire.fise_numar": {
+    "one": "{count} lap",
+    "other": "{count} lap"
+  },
+  "tiparire.se_pregatesc": "A lapok készülnek ({count})…",
+  "tiparire.fara_qr": {
+    "one": "{count} lap QR-kód nélkül",
+    "other": "{count} lap QR-kód nélkül"
+  },
+  "tiparire.pune_qr_toate": "QR-kód mindegyikre",
+  "tiparire.porniti_toate_rand": "{count} galamb linkje indul el.",
+  "tiparire.inapoi_porumbei": "Vissza a galambokhoz",
+  "tiparire.nicio_fisa": "Nincs nyomtatandó lap.",
   "form.titlu_editeaza": "Galamb szerkesztése",
   "form.porumbel": "Galamb",
   "form.import_titlu": "Származási lap importálása: papíron, PDF-ben vagy fényképen van meg?",

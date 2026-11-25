@@ -56,7 +56,7 @@ function node(row, byId, depth, lines) {
  * (bifele print_*, implicit tot); altfel pentru link, cod QR, preluare și vânzare (bifele show_*, implicit doar numele).
  * Numele de jos e doar numele de pe fișă pus de vânzător (la crescători nu cade pe numele contului).
  */
-export async function pedigreeV1(accountId, rootId, { forPrint = false } = {}) {
+export async function pedigreeContext(accountId, { forPrint = false } = {}) {
   const account = await one(
     `SELECT name, pedigree_name, phone, address, email, show_phone, show_address, show_email, print_phone, print_address, print_email
        FROM accounts WHERE id = ?`,
@@ -70,7 +70,16 @@ export async function pedigreeV1(accountId, rootId, { forPrint = false } = {}) {
   if (shows('phone') && account.phone) owner.phone = account.phone;
   if (shows('address') && account.address) owner.address = account.address;
   if (shows('email')) owner.email = account.email;
-  return { format: FORMAT, version: VERSION, generatedAt: new Date().toISOString(), owner, root: node(byId.get(rootId), byId, 0, await pedigreeLines(accountId)) };
+  return { owner, byId, lines: await pedigreeLines(accountId) };
+}
+
+/** Pedigree-ul unui porumbel dintr-un context încărcat o dată (mai multe fișe deodată). */
+export function pedigreeFrom({ owner, byId, lines }, rootId) {
+  return { format: FORMAT, version: VERSION, generatedAt: new Date().toISOString(), owner: { ...owner }, root: node(byId.get(rootId), byId, 0, lines) };
+}
+
+export async function pedigreeV1(accountId, rootId, opts = {}) {
+  return pedigreeFrom(await pedigreeContext(accountId, opts), rootId);
 }
 
 /** Nodul public → nodul primit de importul de pedigree (src/pedigree-import.js). */

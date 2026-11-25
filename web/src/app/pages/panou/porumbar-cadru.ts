@@ -7,6 +7,7 @@ import { PanouBar } from './panou-bar';
 import { TratamenteBanda } from './tratamente-banda';
 import { CuiburiBanda } from './cuiburi-banda';
 import { PorumbarState } from './porumbar-state';
+import { MAX_SHEETS, idsOfGroups } from '../../shared/fise-toate';
 
 /** Unde e omul în cadru: Grilă, Listă sau pagina „Rezultate concurs” (listarea ori introducerea). */
 type Tab = 'grila' | 'lista' | 'rez-lista' | 'rez-nou' | 'import' | 'excel' | 'scan';
@@ -35,7 +36,13 @@ const tabOf = (url: string): Tab => {
         <h1>{{ 'panou.titlu' | t }}</h1>
         @if (s.loaded()) { <p class="muted count">{{ subtitle() }}</p> }
       </div>
+      @if ((tab() === 'grila' || tab() === 'lista') && s.loaded() && s.all().length) {
+        <button type="button" class="tipar-toate" [disabled]="!s.shownCount()" [attr.title]="'panou.tipareste_fisele_aria' | t" [attr.aria-label]="'panou.tipareste_fisele_aria' | t" (click)="printAll()">
+          <app-icon name="tipar" [size]="20" />{{ 'panou.tipareste_fisele' | t: { count: s.shownCount() } }}
+        </button>
+      }
     </div>
+    @if (tooMany() && (tab() === 'grila' || tab() === 'lista') && s.shownCount() > MAX) { <div class="notice" role="status">{{ 'panou.prea_multe_fise' | t: { count: s.shownCount(), max: MAX } }}</div> }
 
     <!-- Pe Panou (Grilă), sus: tratamentele în curs și cele care urmează în 30 de zile, apoi cuiburile (ce e de făcut
          azi și în următoarele zile); fără nimic de arătat, nicio bandă. -->
@@ -66,6 +73,8 @@ const tabOf = (url: string): Tab => {
     .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
     .head h1 { margin-bottom: 2px; }
     .count { margin: 0; }
+    .tipar-toate { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: normal; }
+    @media (max-width: 767px) { .tipar-toate { width: 100%; } }
     .icon-only { gap: 0; padding: 0 14px 0 10px; min-width: 64px; justify-content: center; }
     .icon-only .plus { margin-right: -1px; }
     /* Submeniurile „Rezultate concurs”: pastile ca în bara de filtre. */
@@ -87,6 +96,8 @@ export default class PorumbarCadru {
   protected readonly catalog = inject(CatalogService);
   private readonly router = inject(Router);
   protected readonly tab = signal<Tab>(tabOf(this.router.url));
+  protected readonly MAX = MAX_SHEETS;
+  protected readonly tooMany = signal(false);
   protected readonly results = computed(() => this.tab() === 'rez-lista' || this.tab() === 'rez-nou');
   protected readonly subtitle = computed(() => {
     switch (this.tab()) {
@@ -99,10 +110,19 @@ export default class PorumbarCadru {
     }
   });
 
+  /** Fișele porumbeilor afișați acum (cu filtrele și ordinea de pe ecran), pe pagina de tipar; peste MAX_SHEETS, doar mesajul. */
+  protected printAll(): void {
+    if (this.s.shownCount() > MAX_SHEETS) { this.tooMany.set(true); return; }
+    this.tooMany.set(false);
+    void this.router.navigate(['/porumbei/tiparire'], {
+      queryParams: { ids: idsOfGroups(this.s.groups()).join(','), inapoi: this.tab() === 'lista' ? 'porumbar' : 'panou' },
+    });
+  }
+
   constructor() {
     this.s.load();
     const sub = this.router.events.subscribe((e) => {
-      if (e instanceof NavigationEnd) this.tab.set(tabOf(e.urlAfterRedirects));
+      if (e instanceof NavigationEnd) { this.tab.set(tabOf(e.urlAfterRedirects)); this.tooMany.set(false); }
     });
     inject(DestroyRef).onDestroy(() => sub.unsubscribe());
   }

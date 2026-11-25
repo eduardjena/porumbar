@@ -5,7 +5,7 @@ import { CatalogService, percent, ringText, sexShort } from '../../core/catalog'
 import { CoiResult, PigeonSummary, TreeNode } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { ShareButton } from '../../shared/share-button';
-import { TPipe } from '../../core/i18n';
+import { TPipe, GluePipe } from '../../core/i18n';
 
 // Culori deschise pentru strămoșii care se repetă (textul negru rămâne lizibil pe toate).
 const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#ffd6b0'];
@@ -29,11 +29,11 @@ interface Cell {
  */
 @Component({
   selector: 'app-arbore',
-  imports: [RouterLink, Icon, ShareButton, TPipe],
+  imports: [RouterLink, Icon, ShareButton, TPipe, GluePipe],
   template: `
     <div class="bar row">
       <button type="button" (click)="setGen(gen() - 1)" [disabled]="gen() <= 1">{{ 'arbore.mai_putine' | t }}</button>
-      <span><strong>{{ gen() + 1 }}</strong> {{ 'arbore.generatii' | t }}</span>
+      <span><strong>{{ gen() + 1 }}</strong>{{ ' ' | glue }}{{ 'arbore.generatii' | t }}</span>
       <button type="button" (click)="setGen(gen() + 1)" [disabled]="gen() >= 5">{{ 'arbore.mai_multe' | t }}</button>
       <!-- Tipărirea pedigree-ului direct de aici (pagina de tipar, foaia A4 cu 5 generații). -->
       <a class="btn print" [routerLink]="['/porumbei', pigeonId(), 'tiparire']" [queryParams]="{ inapoi: 'arbore' }"><app-icon name="tipar" />{{ 'actiune.tipareste' | t }}</a>
@@ -41,9 +41,9 @@ interface Cell {
     </div>
     @if (coi(); as c) {
       <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'">
-        {{ 'arbore.consangvinizare' | t }} <strong>{{ pct(c.coi) }}</strong>
+        {{ 'arbore.consangvinizare' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>
         @if (c.common.length) {
-          {{ 'arbore.stramosi_comuni' | t }} @for (x of c.common; track x.pigeon.id; let last = $last) {<span class="mono">{{ ring(x.pigeon) }}</span>{{ last ? '' : ', ' }}}
+          <ng-container>{{ ' ' | glue }}{{ 'arbore.stramosi_comuni' | t }}{{ ' ' | glue }}</ng-container>@for (x of c.common; track x.pigeon.id; let last = $last) {<span class="mono">{{ ring(x.pigeon) }}</span>{{ last ? '' : (', ' | glue) }}}
         }
       </div>
     }
@@ -66,7 +66,7 @@ interface Cell {
                       <a [routerLink]="['/porumbei', p.id]" class="mono ring">{{ ring(p) }}</a>
                       @if (node.both) { <span class="tm" [title]="'arbore.tm_lung' | t">{{ 'arbore.tm' | t }}</span> }
                     </div>
-                    @if (p.name) { <div class="nm">„{{ p.name }}”</div> }
+                    @if (p.name) { <div class="nm">{{ '„' | glue }}{{ p.name }}{{ '”' | glue }}</div> }
                     @if (p.sheet?.color; as col) { <div class="meta">{{ col }}</div> }
                     @if (p.sheet?.breeder; as br) { <div class="meta br">{{ br }}</div> }
                     @if (p.sheet?.text; as tx) { <div class="txt">{{ tx }}</div> }

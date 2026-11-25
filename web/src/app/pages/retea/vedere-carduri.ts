@@ -1,7 +1,7 @@
 import { Component, DestroyRef, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { sexShort } from '../../core/catalog';
 import { TreeNode } from '../../core/models';
-import { TPipe } from '../../core/i18n';
+import { TPipe, GluePipe } from '../../core/i18n';
 import { ArboreData, generationName, REPEAT_COLORS, roleName, repeatCounts, TreePigeon } from './arbore-data';
 
 /*
@@ -46,7 +46,7 @@ interface Card {
 
 @Component({
   selector: 'app-vedere-carduri',
-  imports: [TPipe],
+  imports: [TPipe, GluePipe],
   template: `
     <div class="heads" [style.width.px]="width()">
       @for (c of cols(); track $index; let g = $index) {
@@ -73,7 +73,7 @@ interface Card {
               @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
               @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
             </span>
-            @if (c.gen <= 3 && (p.name || p.text)) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
+            @if (c.gen <= 3 && (p.name || p.text)) { <span class="txt">{{ p.name ? ('„' | glue) + p.name + ('”' | glue) : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
             <span class="meta">{{ p.year ?? '' }}@if (c.both) { <span class="tm" [title]="'arbore.tm_lung' | t">{{ 'arbore.tm' | t }}</span> }@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
           </button>
         } @else if (c.gen <= 2) {
@@ -97,7 +97,7 @@ interface Card {
                   @if (c.repeat) { <span class="rep" [style.background]="repeatColor(c.repeat)">×{{ counts().get(c.repeat) }}</span> }
                   @if (value(p.id); as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                 </span>
-                @if (p.name || p.text) { <span class="txt">{{ p.name ? '„' + p.name + '”' : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
+                @if (p.name || p.text) { <span class="txt">{{ p.name ? ('„' | glue) + p.name + ('”' | glue) : '' }}{{ p.name && p.text ? ' · ' : '' }}{{ p.text ?? '' }}</span> }
                 <span class="meta">{{ p.year ?? '' }}@if (c.both) { <span class="tm" [title]="'arbore.tm_lung' | t">{{ 'arbore.tm' | t }}</span> }@if (p.kind === 'external') { <span class="tag">{{ 'text.nu_e_al_tau' | t }}</span> } @else { <span class="mine">{{ 'text.al_tau' | t }}</span> }</span>
               </button>
             } @else if (g <= 2) {

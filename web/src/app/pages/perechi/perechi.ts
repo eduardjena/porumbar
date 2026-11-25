@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { percent, ringText } from '../../core/catalog';
-import { formatDay, t, TPipe } from '../../core/i18n';
+import { formatDay, t, TPipe, GluePipe, glue } from '../../core/i18n';
 import { CalendarItem, Pair, PigeonSummary, RingSeries } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { DateField } from '../../shared/date-field';
@@ -12,7 +12,7 @@ import { DateField } from '../../shared/date-field';
 const today = () => new Date().toISOString().slice(0, 10);
 export const statusLabel = (s: Pair['status']) => t(`perechi.status_${s}`);
 // În listă: întâi ai tăi; strămoșii / împrumutații sunt marcați (o pereche se poate face și cu un porumbel împrumutat).
-const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p.name}”` : ''}${p.kind === 'external' ? ` · ${t('text.nu_e_in_porumbarul_meu')}` : ''}` : '—');
+const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? `${glue(' „')}${p.name}${glue('”')}` : ''}${p.kind === 'external' ? ` · ${t('text.nu_e_in_porumbarul_meu')}` : ''}` : '—');
 
 /*
  * Reproducția: perechile sezonului (an), perechea nouă (cu consangvinizarea puilor văzută înainte de salvare) și
@@ -20,7 +20,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
  */
 @Component({
   selector: 'app-perechi',
-  imports: [DateField, FormsModule, RouterLink, Icon, TPipe],
+  imports: [DateField, FormsModule, RouterLink, Icon, TPipe, GluePipe],
   template: `
     <div class="head">
       <h1>{{ 'perechi.titlu' | t }}</h1>
@@ -55,7 +55,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
         @else if (!cocks().length || !hens().length) { <p class="muted">{{ 'perechi.sex_lipsa' | t }}</p> }
         @if (coi() != null) {
           <div [class]="coi()! >= 0.125 ? 'warning' : 'notice'" role="status">
-            @if (coi()! > 0) { {{ 'perechi.coi_ar_avea' | t }} <strong>{{ pct(coi()!) }}</strong>. }
+            @if (coi()! > 0) { {{ 'perechi.coi_ar_avea' | t }}{{ ' ' | glue }}<strong>{{ pct(coi()!) }}</strong>{{ '.' | glue }} }
             @else { {{ 'perechi.fara_stramosi_comuni' | t }} }
           </div>
         }
@@ -108,7 +108,7 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? ` „${p
       <p class="muted">{{ 'perechi.serii_intro' | t }}</p>
       @for (s of series(); track s.id) {
         <div class="row between">
-          <span><strong>{{ s.year }}</strong>: <span class="mono">{{ s.first }}</span> → <span class="mono">{{ s.last }}</span> <span class="muted">{{ 'perechi.n_inele' | t: { n: s.count } }}</span></span>
+          <span><strong>{{ s.year }}</strong>{{ ': ' | glue }}<span class="mono">{{ s.first }}</span> → <span class="mono">{{ s.last }}</span> <span class="muted">{{ 'perechi.n_inele' | t: { n: s.count } }}</span></span>
           <button type="button" class="link" (click)="removeSeries(s)">{{ 'actiune.sterge' | t }}</button>
         </div>
       }

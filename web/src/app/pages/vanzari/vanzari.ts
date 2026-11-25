@@ -2,7 +2,7 @@ import { Component, input, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
-import { formatDate, t, TPipe } from '../../core/i18n';
+import { formatDate, t, TPipe, GluePipe } from '../../core/i18n';
 import { IncomingService } from '../../core/incoming';
 import { Icon } from '../../shared/icon';
 
@@ -26,7 +26,7 @@ interface Outgoing {
 /** Porumbeii primiți (de acceptat) și cei vânduți de tine. */
 @Component({
   selector: 'app-vanzari',
-  imports: [RouterLink, Icon, TPipe],
+  imports: [RouterLink, Icon, TPipe, GluePipe],
   template: `
     <h1>{{ 'vanzari.titlu' | t }}</h1>
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
@@ -46,7 +46,7 @@ interface Outgoing {
     <h2>{{ 'vanzari.vin_la_tine' | t }}</h2>
     @for (tr of incoming(); track tr.id) {
       <section class="card stack in">
-        <div><strong class="mono">{{ tr.ring ?? ('text.fara_inel' | t) }}</strong>@if (tr.name) { „{{ tr.name }}” } · {{ 'vanzari.de_la' | t }} <strong>{{ tr.sellerName }}</strong></div>
+        <div><strong class="mono">{{ tr.ring ?? ('text.fara_inel' | t) }}</strong>@if (tr.name) {<ng-container>{{ ' „' | glue }}{{ tr.name }}{{ '”' | glue }} </ng-container>} · {{ 'vanzari.de_la' | t }}{{ ' ' | glue }}<strong>{{ tr.sellerName }}</strong></div>
         <p class="muted">{{ (tr.includePrivate ? 'vanzari.primesti_tot' : 'vanzari.primesti_pedigree') | t }}</p>
         <div class="row">
           <button type="button" class="primary" (click)="accept(tr)"><app-icon name="bifa" />{{ 'vanzari.primesc' | t }}</button>

@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
-import { formatDateTime, localeOf, t, TPipe } from '../../core/i18n';
+import { formatDateTime, localeOf, t, TPipe, glue } from '../../core/i18n';
 import { ImportProblem, ImportSummary, ImportUndo, LastImport } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import {
@@ -501,7 +501,7 @@ export default class ImportExcel {
     this.busy.set('anulare');
     try {
       const u = await this.api.post<ImportUndo>('/import/excel/undo');
-      const kept = u.kept > 0 ? ` ${t('excel.anulat_ramas', { count: u.kept })}` : '';
+      const kept = u.kept > 0 ? `${glue(' ')}${t('excel.anulat_ramas', { count: u.kept })}` : '';
       this.last.set(null);
       if (this.step() === 'gata') this.startOver();
       this.message.set(`${t('excel.anulat', { count: u.deleted })}${kept}`);

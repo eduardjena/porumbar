@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
-import { TPipe, formatDay, t } from '../../core/i18n';
+import { TPipe, formatDay, t, GluePipe } from '../../core/i18n';
 import { CalendarItem } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { addDays } from '../tratamente/tratament-text';
@@ -29,7 +29,7 @@ interface Choice {
  */
 @Component({
   selector: 'app-cuiburi-banda',
-  imports: [RouterLink, Icon, TPipe],
+  imports: [RouterLink, Icon, TPipe, GluePipe],
   template: `
     @if (sections().length) {
       <section class="banda" [attr.aria-label]="'cuib.titlu' | t">
@@ -45,7 +45,7 @@ interface Choice {
                   <a class="who" [routerLink]="['/perechi', i.ownPairId]" [queryParams]="{ ponta: i.clutchId }">{{ who(i) }}</a>
                   @if (i.fosterLabel) { <span class="muted"> · {{ foster(i) }}</span> }
                   <span> · {{ what(i) }}</span>
-                  @if (i.last) { <strong class="red"> ({{ 'cuib.ultima_zi' | t }})</strong> }
+                  @if (i.last) { <strong class="red">{{ ' (' | glue }}{{ 'cuib.ultima_zi' | t }}{{ ')' | glue }}</strong> }
                   @if (i.state === 'intarziat') { <span class="tag">{{ 'cuib.intarziat' | t }}</span> }
                   @if (s.key === 'urmatoarele') { <span class="muted"> · {{ day(i.from) }}</span> }
                 </p>

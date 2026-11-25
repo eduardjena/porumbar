@@ -4,7 +4,7 @@ import { Api, errorMessage } from '../core/api';
 import { HistoryCard, LookupResult, Pigeon, PigeonSummary, Sex } from '../core/models';
 import { CatalogService } from '../core/catalog';
 import { PigeonChip } from './pigeon-chip';
-import { TPipe } from '../core/i18n';
+import { TPipe, GluePipe } from '../core/i18n';
 
 /*
  * Alegerea unui părinte după inel (cerut de crescător): scrii inelul și vezi imediat istoricul acelui porumbel —
@@ -12,7 +12,7 @@ import { TPipe } from '../core/i18n';
  */
 @Component({
   selector: 'app-pigeon-picker',
-  imports: [FormsModule, PigeonChip, TPipe],
+  imports: [FormsModule, PigeonChip, TPipe, GluePipe],
   template: `
     <div class="picker stack">
       <div class="head">
@@ -33,11 +33,11 @@ import { TPipe } from '../core/i18n';
         @for (c of result()?.matches ?? []; track c.pigeon.id) {
           <div class="history card stack">
             <app-pigeon-chip [pigeon]="c.pigeon" [link]="false" />
-            @if (c.pigeon.lines.length) { <p class="muted">{{ 'parinti.linii' | t: { linii: c.pigeon.lines.join(', ') } }}</p> }
+            @if (c.pigeon.lines.length) { <p class="muted">{{ 'parinti.linii' | t: { linii: c.pigeon.lines.join(', ' | glue) } }}</p> }
             @if (c.pigeon.pedigreeText) { <p class="text">{{ c.pigeon.pedigreeText }}</p> }
-            <p>{{ 'parinti.tata_eticheta' | t }} <app-pigeon-chip [pigeon]="c.father" [link]="false" /></p>
-            <p>{{ 'parinti.mama_eticheta' | t }} <app-pigeon-chip [pigeon]="c.mother" [link]="false" /></p>
-            <p><strong>{{ 'parinti.numar_pui' | t: { count: c.offspringCount } }}</strong> {{ 'parinti.in_porumbar' | t }}</p>
+            <p>{{ 'parinti.tata_eticheta' | t }}{{ ' ' | glue }}<app-pigeon-chip [pigeon]="c.father" [link]="false" /></p>
+            <p>{{ 'parinti.mama_eticheta' | t }}{{ ' ' | glue }}<app-pigeon-chip [pigeon]="c.mother" [link]="false" /></p>
+            <p><strong>{{ 'parinti.numar_pui' | t: { count: c.offspringCount } }}</strong>{{ ' ' | glue }}{{ 'parinti.in_porumbar' | t }}</p>
             @if (c.offspring.length) {
               <ul class="kids">
                 @for (k of c.offspring; track k.id) { <li><app-pigeon-chip [pigeon]="k" [link]="false" /></li> }
@@ -53,11 +53,11 @@ import { TPipe } from '../core/i18n';
         @if (result() && ring.trim() && (!result()!.matches.length || !result()!.ring.ok)) {
           <div class="card stack">
             @if (result()!.ring.unringed) {
-              <p>{{ 'parinti.porumbel' | t }} <strong>{{ 'text.fara_inel' | t }}</strong>{{ 'parinti.notezi_fara_inel' | t }}</p>
+              <p>{{ 'parinti.porumbel' | t }}{{ ' ' | glue }}<strong>{{ 'text.fara_inel' | t }}</strong>{{ 'parinti.notezi_fara_inel' | t }}</p>
             } @else if (result()!.matches.length) {
               <p>{{ 'parinti.alt_porumbel' | t }}</p>
             } @else {
-              <p>{{ 'parinti.inelul' | t }} <strong class="mono">{{ result()!.ring.display }}</strong> {{ 'parinti.nu_e_in_program' | t }}</p>
+              <p>{{ 'parinti.inelul' | t }}{{ ' ' | glue }}<strong class="mono">{{ result()!.ring.display }}</strong>{{ ' ' | glue }}{{ 'parinti.nu_e_in_program' | t }}</p>
             }
             <label class="field">{{ 'parinti.nume' | t }} <span class="hint">{{ 'parinti.optional' | t }}</span>
               <input [name]="'name-' + sex()" [(ngModel)]="newName" />

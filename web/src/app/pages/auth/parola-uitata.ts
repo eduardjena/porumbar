@@ -2,20 +2,19 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
-import { TPipe } from '../../core/i18n';
+import { TPipe, GluePipe } from '../../core/i18n';
 import { LangSwitch } from '../../shared/lang-switch';
 
 @Component({
   selector: 'app-parola-uitata',
-  imports: [FormsModule, RouterLink, LangSwitch, TPipe],
+  imports: [FormsModule, RouterLink, LangSwitch, TPipe, GluePipe],
   template: `
     <div class="auth-page stack">
       <app-lang-switch />
       <h1>{{ 'parola_uitata.titlu' | t }}</h1>
       @if (sent()) {
         <div class="notice card">
-          {{ 'parola_uitata.trimis_1' | t }} <strong>{{ email }}</strong>{{ 'parola_uitata.trimis_2' | t }}
-          {{ 'parola_uitata.trimis_3' | t }}
+          {{ 'parola_uitata.trimis_1' | t }}{{ ' ' | glue }}<strong>{{ email }}</strong>{{ 'parola_uitata.trimis_2' | t }}{{ ' ' | glue }}{{ 'parola_uitata.trimis_3' | t }}
         </div>
         <a routerLink="/intra" class="btn wide">{{ 'parola_uitata.inapoi' | t }}</a>
       } @else {

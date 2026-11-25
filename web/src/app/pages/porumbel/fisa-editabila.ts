@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, sexLabel } from '../../core/catalog';
 import { ConfirmService } from '../../core/confirm';
-import { TPipe, formatDay, t } from '../../core/i18n';
+import { TPipe, formatDay, t, GluePipe } from '../../core/i18n';
 import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { RingInput } from '../../shared/ring-input';
@@ -21,7 +21,7 @@ type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
  */
 @Component({
   selector: 'app-fisa-editabila',
-  imports: [DateField, FormsModule, NgTemplateOutlet, Icon, RingInput, TPipe],
+  imports: [DateField, FormsModule, NgTemplateOutlet, Icon, RingInput, TPipe, GluePipe],
   template: `
     @if (pigeon(); as p) {
       <section class="card stack fisa">
@@ -58,7 +58,7 @@ type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
           <dl class="facts">
             <dt>{{ 'form.al_cui_aria' | t }}</dt><dd>{{ (p.kind === 'own' ? 'porumbel.din_porumbarul_meu' : 'porumbel.nu_e_al_meu') | t }}</dd>
             <dt>{{ 'inel.eticheta' | t }}</dt>
-            <dd><span class="mono">{{ p.ring?.display || '—' }}</span>@if (p.ring && p.ring.raw !== p.ring.display) { <span class="muted"> ({{ 'porumbel.inel_scris' | t }}: <span class="mono">{{ p.ring.raw }}</span>)</span> }</dd>
+            <dd><span class="mono">{{ p.ring?.display || '—' }}</span>@if (p.ring && p.ring.raw !== p.ring.display) { <span class="muted">{{ ' (' | glue }}{{ 'porumbel.inel_scris' | t }}{{ ': ' | glue }}<span class="mono">{{ p.ring.raw }}</span>{{ ')' | glue }}</span> }</dd>
             <dt>{{ 'porumbel.sexul' | t }}</dt><dd>{{ sexLabel(p.sex) }}</dd>
             <dt>{{ 'form.nume' | t }}</dt><dd>{{ p.name || '—' }}</dd>
             <dt>{{ 'camp.data_eclozarii' | t }}</dt><dd>{{ p.hatchedOn ? day(p.hatchedOn) : '—' }}</dd>
@@ -79,7 +79,7 @@ type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
                 @for (b of catalog.catalog()?.breeds ?? []; track b.code) { <option [value]="b.code">{{ b.label }}</option> }
               </select>
             </label>
-            <label class="field">{{ 'form.liniile' | t }} <span class="hint">{{ 'form.liniile_ajutor' | t: { exemplu: '„Janssen, Van Heteren”' } }}</span>
+            <label class="field">{{ 'form.liniile' | t }} <span class="hint">{{ 'form.liniile_ajutor' | t: { exemplu: ('„' | glue) + 'Janssen, Van Heteren' + ('”' | glue) } }}</span>
               <input name="lines" [(ngModel)]="d.lines" />
             </label>
             <ng-container *ngTemplateOutlet="actions" />
@@ -87,7 +87,7 @@ type Section = 'identitate' | 'rasa' | 'culoare' | 'evaluare' | 'text';
         } @else {
           <dl class="facts">
             <dt>{{ 'porumbel.rasa' | t }}</dt><dd>{{ p.breed ? catalog.label('breeds', p.breed) : '—' }}</dd>
-            <dt>{{ 'form.liniile' | t }}</dt><dd>{{ p.lines.length ? p.lines.join(', ') : '—' }}</dd>
+            <dt>{{ 'form.liniile' | t }}</dt><dd>{{ p.lines.length ? p.lines.join(', ' | glue) : '—' }}</dd>
           </dl>
         }
 

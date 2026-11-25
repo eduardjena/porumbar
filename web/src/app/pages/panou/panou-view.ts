@@ -1,5 +1,5 @@
 import { BoardPigeon, Catalog } from '../../core/models';
-import { formatNumber, localeOf, t } from '../../core/i18n';
+import { formatNumber, localeOf, t, glue } from '../../core/i18n';
 
 /*
  * Bara panoului: cum se ordonează, se grupează și se filtrează porumbeii. Totul se face pe telefon, din datele panoului
@@ -55,7 +55,7 @@ export const GROUPS: ViewOption<GroupKey>[] = (
 
 const BAND_RANGE: Record<number, string> = { 5: '80–100', 4: '60–79', 3: '40–59', 2: '20–39' };
 const bandLabel = (band: number) =>
-  BAND_RANGE[band] ? t('panou.grupa.nota', { interval: BAND_RANGE[band] }) : band === 1 ? t('panou.grupa.nota_sub20') : t('panou.grupa.fara_nota');
+  BAND_RANGE[band] ? t('panou.grupa.nota', { interval: glue(BAND_RANGE[band]) }) : band === 1 ? t('panou.grupa.nota_sub20') : t('panou.grupa.fara_nota');
 
 export interface Group {
   key: string;

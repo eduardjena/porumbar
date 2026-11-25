@@ -1,7 +1,7 @@
 import { Component, DestroyRef, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { PedigreeV1 } from '../core/models';
 import { PedigreeSheet, colorOf, sheetHasTm } from './pedigree-sheet';
-import { currentLang, localeOf, tIn } from '../core/i18n';
+import { currentLang, glueIn, localeOf, tIn } from '../core/i18n';
 import { QrCode } from './qr-code';
 
 /*
@@ -21,8 +21,8 @@ import { QrCode } from './qr-code';
       <article class="page" [style.zoom]="zoom()">
         <header>
           <div class="title">
-            <h1>{{ tx('fisa.titlu') }} <span class="mono">{{ d.root.ring ?? tx('text.fara_inel') }}</span>@if (d.root.sex) { {{ tx(d.root.sex === 'M' ? 'sex.m' : 'sex.f') }} }</h1>
-            <p>@if (d.root.name) { <strong>„{{ d.root.name }}”</strong> · }{{ facts() }}</p>
+            <h1>{{ tx('fisa.titlu') }}{{ gl(' ') }}<span class="mono">{{ d.root.ring ?? tx('text.fara_inel') }}</span>@if (d.root.sex) { {{ tx(d.root.sex === 'M' ? 'sex.m' : 'sex.f') }} }</h1>
+            <p>@if (d.root.name) { <strong>{{ gl('„') }}{{ d.root.name }}{{ gl('”') }}</strong> · }{{ facts() }}</p>
           </div>
           @if (url(); as u) {
             <div class="qr">
@@ -38,7 +38,7 @@ import { QrCode } from './qr-code';
           <div class="owner">
             <strong>{{ o.name }}</strong>
             @if (o.address) { <span class="addr">{{ o.address }}</span> }
-            @if (o.phone) { <span>{{ tx('fisa.tel') }} {{ o.phone }}</span> }
+            @if (o.phone) { <span>{{ tx('fisa.tel') }}{{ gl(' ') }}{{ o.phone }}</span> }
             @if (o.email) { <span>{{ o.email }}</span> }
           </div>
           <div class="stamp">
@@ -97,6 +97,10 @@ export class PedigreePage {
   protected readonly L = () => this.lang() ?? currentLang();
   protected tx(key: string) {
     return tIn(this.L(), key);
+  }
+  /** Semnul lipit, în limba foii. */
+  protected gl(text: string) {
+    return glueIn(this.L(), text);
   }
   protected readonly today = () => new Date().toLocaleDateString(localeOf(this.L()));
   /** Foaia (5 generații) are strămoși „T+M”? Atunci jos se explică semnul. */

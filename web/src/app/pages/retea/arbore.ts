@@ -6,7 +6,7 @@ import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
 import { BoardPigeon, CoiResult, Family, PigeonSummary, TreeNode } from '../../core/models';
-import { t, TPipe } from '../../core/i18n';
+import { t, TPipe, GluePipe } from '../../core/i18n';
 import { Icon, IconName } from '../../shared/icon';
 import { ArboreData, Blood, lastRoot, rememberRoot, TreePigeon } from './arbore-data';
 import { ArborePanou } from './arbore-panou';
@@ -31,7 +31,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
  */
 @Component({
   selector: 'app-arbore',
-  imports: [FormsModule, NgTemplateOutlet, Icon, TPipe, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea],
+  imports: [FormsModule, NgTemplateOutlet, Icon, TPipe, GluePipe, ArborePanou, VedereCarduri, VedereEvantai, VedereSange, Retea],
   template: `
     <div [class.wide]="view() !== 'carduri'">
       <!-- Stânga barei: titlul. -->
@@ -63,7 +63,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
                   @if (s.value; as v) { <span class="val" [class]="'val band-' + v.band">{{ v.score ?? '–' }}</span> }
                   <span class="stack">
                     <span class="mono rg">{{ s.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
-                    @if (s.name) { <span class="nm">„{{ s.name }}”</span> }
+                    @if (s.name) { <span class="nm">{{ '„' | glue }}{{ s.name }}{{ '”' | glue }}</span> }
                   </span>
                 </button>
               } @empty {

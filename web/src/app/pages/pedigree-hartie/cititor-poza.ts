@@ -1,7 +1,7 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
-import { formatDay, t, TPipe } from '../../core/i18n';
+import { formatDay, t, TPipe, GluePipe, glue } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 
 /** Un porumbel citit din poză (aceeași formă ca la import). */
@@ -47,16 +47,15 @@ function toBase64(blob: Blob): Promise<string> {
  */
 @Component({
   selector: 'app-cititor-poza',
-  imports: [Icon, TPipe],
+  imports: [Icon, TPipe, GluePipe],
   template: `
     <section class="card reader">
       <div class="text">
         <h2>{{ 'cititor.titlu' | t }}</h2>
-        <p class="muted">{{ 'cititor.intro' | t }}
-          @if (!isAdmin() && reads(); as r) { {{ 'cititor.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>. }</p>
+        <p class="muted">{{ 'cititor.intro' | t }}{{ ' ' | glue }}@if (!isAdmin() && reads(); as r) {<ng-container>{{ ' ' | glue }}{{ 'cititor.citiri' | t }}{{ ' ' | glue }}<strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>{{ '. ' | glue }}</ng-container>}</p>
       </div>
       @if (noReads() && reads()!.fullFrom) {
-        <p class="warning">{{ 'cititor.fara_citiri_inceput' | t: { numar: reads()!.allowed, data: day(reads()!.fullFrom) } }}@if (contact()) { {{ 'cititor.cere_contact' | t: { contact: contact() } }} }</p>
+        <p class="warning">{{ 'cititor.fara_citiri_inceput' | t: { numar: reads()!.allowed, data: day(reads()!.fullFrom) } }}@if (contact()) {<ng-container>{{ ' ' | glue }}{{ 'cititor.cere_contact' | t: { contact: contact() } }}{{ ' ' | glue }}</ng-container>}</p>
       } @else if (noReads()) {
         <p class="warning">{{ contact() ? ('cititor.fara_citiri_contact' | t: { numar: reads()!.allowed, contact: contact() }) : ('cititor.fara_citiri' | t: { numar: reads()!.allowed }) }}</p>
       } @else {
@@ -121,7 +120,7 @@ export class CititorPoza {
     this.read.emit(r.root);
     this.auth.refresh().catch(() => undefined); // contorul de citiri
     this.unclear.set(r.unclear ?? 0);
-    const text = `${t('cititor.completat', { count: r.filled })}${r.notes ? ' ' + r.notes : ''}`;
+    const text = `${t('cititor.completat', { count: r.filled })}${r.notes ? glue(' ') + r.notes : ''}`;
     this.message.set({ kind: r.notes ? 'warning' : 'notice', text });
   }
 }

@@ -5,13 +5,13 @@ import { AuthService } from '../../core/auth';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
 import { PushService } from '../../core/push';
-import { LANGS, TPipe, formatDay, isPublicLang, t } from '../../core/i18n';
+import { LANGS, TPipe, formatDay, isPublicLang, t, GluePipe } from '../../core/i18n';
 
 const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 
 @Component({
   selector: 'app-cont',
-  imports: [FormsModule, TPipe],
+  imports: [FormsModule, TPipe, GluePipe],
   styles: `
     .subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; }
     .h { margin: 0; }
@@ -36,11 +36,11 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
         <section class="card stack subs">
           <h2>{{ 'cont.abonament' | t }}</h2>
           @if (s.start) {
-            <p>{{ (s.active ? 'cont.activ' : 'cont.expirat') | t }}{{ 'cont.de_pe' | t }}<strong>{{ day(s.start) }}</strong>{{ 'cont.pana_pe' | t }}<strong>{{ day(s.end) }}</strong>@if (s.active) { {{ 'cont.zile_ramase' | t: { count: s.daysLeft } }} }.</p>
+            <p>{{ (s.active ? 'cont.activ' : 'cont.expirat') | t }}{{ 'cont.de_pe' | t }}<strong>{{ day(s.start) }}</strong>{{ 'cont.pana_pe' | t }}<strong>{{ day(s.end) }}</strong>@if (s.active) {<ng-container>{{ ' ' | glue }}{{ 'cont.zile_ramase' | t: { count: s.daysLeft } }}{{ ' ' | glue }}</ng-container>}{{ '.' | glue }}</p>
           } @else {
             <p>{{ 'cont.neactivat' | t }}</p>
           }
-          @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }} <strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>&nbsp;<span class="muted">{{ 'cont.citiri_explicatie' | t: { numar: r.perYear } }}</span></p>
+          @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }}{{ ' ' | glue }}<strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>{{ '&nbsp;' | glue }}<span class="muted">{{ 'cont.citiri_explicatie' | t: { numar: r.perYear } }}</span></p>
             @if (r.fullFrom) { <p class="muted">{{ 'cont.citiri_inceput' | t: { total: r.perYear, data: day(r.fullFrom) } }}</p> }
           }
           @if (a.sellerContact) { <p class="muted">{{ 'cont.plata_contact' | t: { contact: a.sellerContact } }}</p> }
@@ -65,7 +65,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
         </label>
       } @else if (section() === 'fisa' && auth.account(); as a) {
         <h2 class="h">{{ 'cont.date_fisa' | t }}</h2>
-        <p class="muted">{{ 'cont.date_fisa_explicatie' | t }}{{ a.sellerContact ? ' (' + a.sellerContact + ')' : '' }}.</p>
+        <p class="muted">{{ 'cont.date_fisa_explicatie' | t }}{{ a.sellerContact ? (' (' | glue) + a.sellerContact + (')' | glue) : '' }}{{ '.' | glue }}</p>
         <div class="sheet">
           <strong>{{ a.pedigreeName || '—' }}</strong>
           <!-- Ca pe foaie: doar ce e bifat la „Pe fișă” (se schimbă pe loc când bifezi). -->

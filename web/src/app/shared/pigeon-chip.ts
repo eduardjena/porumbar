@@ -2,12 +2,12 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PigeonSummary } from '../core/models';
 import { CatalogService, ringText, sexShort } from '../core/catalog';
-import { TPipe } from '../core/i18n';
+import { TPipe, GluePipe } from '../core/i18n';
 
 /** Un porumbel pe scurt: inel, sex, nume, culoare. Cu `link`, duce la fișa lui. */
 @Component({
   selector: 'app-pigeon-chip',
-  imports: [RouterLink, TPipe],
+  imports: [RouterLink, TPipe, GluePipe],
   template: `
     @if (pigeon(); as p) {
       @if (link()) {
@@ -15,7 +15,7 @@ import { TPipe } from '../core/i18n';
           <span class="mono ring">{{ ring() }}</span>
           <span [class]="'sex-' + (p.sex ?? '')">{{ sex() }}</span>
           @if (p.year) { <span class="muted">{{ p.year }}</span> }
-          @if (p.name) { <span class="name">„{{ p.name }}”</span> }
+          @if (p.name) { <span class="name">{{ '„' | glue }}{{ p.name }}{{ '”' | glue }}</span> }
           @if (color()) { <span class="muted">{{ color() }}</span> }
           @if (p.kind === 'external') { <span class="badge">{{ 'cip.extern' | t }}</span> }
         </a>
@@ -23,7 +23,7 @@ import { TPipe } from '../core/i18n';
         <span class="chip plain">
           <span class="mono ring">{{ ring() }}</span>
           <span [class]="'sex-' + (p.sex ?? '')">{{ sex() }}</span>
-          @if (p.name) { <span class="name">„{{ p.name }}”</span> }
+          @if (p.name) { <span class="name">{{ '„' | glue }}{{ p.name }}{{ '”' | glue }}</span> }
           @if (color()) { <span class="muted">{{ color() }}</span> }
         </span>
       }

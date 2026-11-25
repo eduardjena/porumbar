@@ -7,7 +7,7 @@ import { PedigreeV1 } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { PedigreeSheet, colorOf, sheetHasTm } from '../../shared/pedigree-sheet';
 import { LangSwitch } from '../../shared/lang-switch';
-import { TPipe, currentLang, formatDate, t } from '../../core/i18n';
+import { TPipe, currentLang, formatDate, t, GluePipe } from '../../core/i18n';
 import { sexLabel } from '../../core/catalog';
 
 /*
@@ -16,7 +16,7 @@ import { sexLabel } from '../../core/catalog';
  */
 @Component({
   selector: 'app-public-pedigree',
-  imports: [RouterLink, Icon, PedigreeSheet, LangSwitch, TPipe],
+  imports: [RouterLink, Icon, PedigreeSheet, LangSwitch, TPipe, GluePipe],
   template: `
     <div class="wide">
       <div class="no-print"><app-lang-switch /></div>
@@ -24,10 +24,10 @@ import { sexLabel } from '../../core/catalog';
         <header class="top-line">
           <div>
             <p class="kicker">{{ 'public.kicker' | t }}</p>
-            <h1><span class="mono">{{ d.root.ring ?? ('text.fara_inel' | t) }}</span>@if (d.root.name) { „{{ d.root.name }}” }</h1>
+            <h1><span class="mono">{{ d.root.ring ?? ('text.fara_inel' | t) }}</span>@if (d.root.name) {<ng-container>{{ ' „' | glue }}{{ d.root.name }}{{ '” ' | glue }}</ng-container>}</h1>
             <p class="muted sub">
               {{ sex(d.root.sex) }}@if (d.root.year) { · {{ d.root.year }} }@if (color(); as c) { · {{ c }} }
-              · {{ 'public.crescator' | t }} <strong>{{ d.owner.name }}</strong>@if (d.owner.phone) { · {{ d.owner.phone }} }@if (d.owner.email) { · {{ d.owner.email }} }
+              · {{ 'public.crescator' | t }}{{ ' ' | glue }}<strong>{{ d.owner.name }}</strong>@if (d.owner.phone) { · {{ d.owner.phone }} }@if (d.owner.email) { · {{ d.owner.email }} }
               @if (d.owner.address) { <br />{{ d.owner.address }} }
             </p>
           </div>

@@ -10,7 +10,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 const DIR = path.join(import.meta.dirname, '..', 'i18n');
 const readJson = (file) => JSON.parse(fs.readFileSync(path.join(DIR, file), 'utf8'));
 
-/** @type {{ code: string, name: string, locale: string, public: boolean }[]} */
+/** @type {{ code: string, name: string, locale: string, public: boolean, semne?: Record<string, string> }[]} */
 export const LANGS = readJson('languages.json');
 const BY_CODE = new Map(LANGS.map((l) => [l.code, l]));
 const DICTS = new Map(LANGS.map((l) => [l.code, readJson(`${l.code}.json`)]));
@@ -57,6 +57,15 @@ export function t(lang, key, vars = {}) {
     if (x === undefined || x === null) return m;
     return typeof x === 'object' && x.$t ? t(lng, x.$t, x.vars) : String(x);
   });
+}
+
+/**
+ * Semnele lipite între bucăți traduse (`glue(lang, ', ')`), după `semne` din languages.json: japoneza are 、。（）「」〜 și
+ * fără spații; celelalte limbi le lasă cum sunt. La fel ca `glue` din interfață (web/src/app/core/glue.ts).
+ */
+export function glue(lang, text) {
+  const signs = BY_CODE.get(lang)?.semne;
+  return signs ? Array.from(text, (c) => signs[c] ?? c).join('') : text;
 }
 
 /** Dicționarul fără sensuri, pentru interfață. */

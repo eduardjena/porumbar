@@ -4,7 +4,7 @@ import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
-import { TPipe, formatDate, t } from '../../core/i18n';
+import { TPipe, formatDate, t, GluePipe } from '../../core/i18n';
 
 interface Outgoing {
   id: number;
@@ -22,14 +22,14 @@ interface Outgoing {
  */
 @Component({
   selector: 'app-vanzare',
-  imports: [FormsModule, Icon, TPipe],
+  imports: [FormsModule, Icon, TPipe, GluePipe],
   template: `
     <section class="card stack sale">
       <h2><app-icon name="vinde" />{{ 'vanzare.titlu' | t }}</h2>
       @if (sold(); as s) {
         <p class="ok">{{ 'vanzare.vandut' | t: { email: s.buyerEmail, data: date(s.decidedAt) } }}</p>
       } @else if (pending(); as s) {
-        <p>{{ 'vanzare.asteapta' | t }} <strong>{{ s.buyerEmail }}</strong> {{ 'vanzare.trimis_pe' | t: { data: date(s.createdAt) } }}{{ s.includePrivate ? ('vanzare.cu_notele' | t) : '' }}.</p>
+        <p>{{ 'vanzare.asteapta' | t }}{{ ' ' | glue }}<strong>{{ s.buyerEmail }}</strong>{{ ' ' | glue }}{{ 'vanzare.trimis_pe' | t: { data: date(s.createdAt) } }}{{ s.includePrivate ? ('vanzare.cu_notele' | t) : '' }}{{ '.' | glue }}</p>
         <div class="row"><button type="button" (click)="cancel(s)">{{ 'vanzare.anuleaza' | t }}</button></div>
       } @else {
         <p class="muted">{{ 'vanzare.explicatie' | t }}</p>

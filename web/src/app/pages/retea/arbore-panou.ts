@@ -1,14 +1,14 @@
 import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { percent, sexLabel } from '../../core/catalog';
-import { formatNumber, t, TPipe } from '../../core/i18n';
+import { formatNumber, t, TPipe, GluePipe, glue } from '../../core/i18n';
 import { ArboreData, lineColor } from './arbore-data';
 import { Icon } from '../../shared/icon';
 
 /** Panoul din dreapta al vederilor Arborelui: porumbelul ales, strămoșii comuni, consangvinizarea, sângele, puii. */
 @Component({
   selector: 'app-arbore-panou',
-  imports: [RouterLink, Icon, TPipe],
+  imports: [RouterLink, Icon, TPipe, GluePipe],
   template: `
     @if (pigeon(); as p) {
       <section class="card stack">
@@ -34,13 +34,13 @@ import { Icon } from '../../shared/icon';
       @for (c of data().coi.common; track c.pigeon.id) {
         <button type="button" class="common" (click)="select.emit(c.pigeon.id)">
           <span class="mono">{{ c.pigeon.ring?.display ?? ('text.fara_inel_mare' | t) }}</span>
-          @if (c.pigeon.name) { <span class="muted">„{{ c.pigeon.name }}”</span> }
+          @if (c.pigeon.name) { <span class="muted">{{ '„' | glue }}{{ c.pigeon.name }}{{ '”' | glue }}</span> }
           <span class="badge">{{ pct(c.contribution) }}</span>
         </button>
       } @empty {
         <p class="muted">{{ 'arbore.niciunul_comun' | t }}</p>
       }
-      <p>{{ 'arbore.consangvinizare' | t }} <strong>{{ pct(data().coi.coi) }}</strong></p>
+      <p>{{ 'arbore.consangvinizare' | t }}{{ ' ' | glue }}<strong>{{ pct(data().coi.coi) }}</strong></p>
     </section>
 
     <section class="card stack">
@@ -105,5 +105,5 @@ export class ArborePanou {
     const r = this.data().pigeons[this.data().rootId];
     return r?.name || r?.ring?.display || t('arbore.porumbelului');
   });
-  protected readonly bloodText = computed(() => this.data().blood.lines.map((l) => `${l.name} ${l.percent}%`).join(', '));
+  protected readonly bloodText = computed(() => this.data().blood.lines.map((l) => `${l.name} ${l.percent}%`).join(glue(', ')));
 }

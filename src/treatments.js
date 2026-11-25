@@ -1,7 +1,7 @@
 import { one, all, run, insert, nowIso, tx } from './db.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { ringOf } from './pigeons.js';
-import { ref, t } from './i18n.js';
+import { glue, ref, t } from './i18n.js';
 import { TREATMENT_METHODS, TREATMENT_TARGETS, TREATMENT_SUGGESTIONS, codes } from './catalog.js';
 
 const MS_DAY = 86400_000;
@@ -60,7 +60,7 @@ export const treatmentLabel = (name, lang) => (SUGGESTIONS.has(name) ? t(lang, `
 /** Textul intrării din jurnal (în limba dată). */
 export function journalText(tr, lang) {
   const start = formatDate(tr.start_date, lang);
-  const period = tr.days === 1 ? start : `${start} – ${formatDate(endDate(tr), lang)}`;
+  const period = tr.days === 1 ? start : `${start}${glue(lang, ' – ')}${formatDate(endDate(tr), lang)}`;
   let out = t(lang, 'tratament.jurnal_text', {
     nume: treatmentLabel(tr.name, lang),
     mod: t(lang, `catalog.tratament_mod.${tr.method}`),

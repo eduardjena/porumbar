@@ -10,7 +10,7 @@ import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { PigeonPicker } from '../../shared/pigeon-picker';
 import { ConfirmService } from '../../core/confirm';
 import { Draft, draftBody, draftChanges, draftOf, emptyDraft } from './pigeon-draft';
-import { TPipe, t } from '../../core/i18n';
+import { TPipe, t, GluePipe } from '../../core/i18n';
 import { DateField } from '../../shared/date-field';
 
 const empty = emptyDraft;
@@ -37,7 +37,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
 
 @Component({
   selector: 'app-porumbel-form',
-  imports: [DateField, FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker, TPipe],
+  imports: [DateField, FormsModule, RouterLink, RingInput, Breadcrumbs, PigeonPicker, TPipe, GluePipe],
   template: `
     <app-breadcrumbs [items]="crumbs()" />
     <h1>{{ (id() ? 'form.titlu_editeaza' : 'porumbel.nou') | t }}</h1>
@@ -69,8 +69,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
           @if (pairCoi(); as c) {
             <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
               @if (c.coi > 0) {
-                {{ 'form.coi_pui' | t }} <strong>{{ pct(c.coi) }}</strong> {{ 'form.coi_stramosi' | t }}
-                @for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : ', ' }}}).
+                {{ 'form.coi_pui' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>{{ ' ' | glue }}{{ 'form.coi_stramosi' | t }}{{ ' ' | glue }}@for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : (', ' | glue) }}}{{ ').' | glue }}
               } @else {
                 {{ 'form.coi_zero' | t }}
               }
@@ -92,13 +91,13 @@ function writeDraft(id: string | undefined, d: Draft | null) {
             <label class="check"><input type="radio" name="sex" value="F" [(ngModel)]="f.sex" /> {{ 'sex.femela' | t }}</label>
             <label class="check"><input type="radio" name="sex" value="" [(ngModel)]="f.sex" /> {{ 'form.sex_nu_stiu' | t }}</label>
           </fieldset>
-          <label class="field">{{ 'form.nume' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: '„DE 546”, „Super Velden”' } }}</span>
+          <label class="field">{{ 'form.nume' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: ('„' | glue) + 'DE 546' + ('”, „' | glue) + 'Super Velden' + ('”' | glue) } }}</span>
             <input name="name" [(ngModel)]="f.name" />
           </label>
           <label class="field">{{ 'camp.data_eclozarii' | t }} <span class="hint">{{ 'text.optional' | t }}</span>
             <app-date name="hatchedOn" [(ngModel)]="f.hatchedOn" />
           </label>
-          <label class="field">{{ 'form.crescator_origine' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: '„Van Heteren”, „Comb. Den Haan”' } }}</span>
+          <label class="field">{{ 'form.crescator_origine' | t }} <span class="hint">{{ 'text.de_exemplu' | t: { exemplu: ('„' | glue) + 'Van Heteren' + ('”, „' | glue) + 'Comb. Den Haan' + ('”' | glue) } }}</span>
             <input name="breederText" [(ngModel)]="f.breederText" />
           </label>
           <label class="field">{{ 'porumbel.starea' | t }}
@@ -116,7 +115,7 @@ function writeDraft(id: string | undefined, d: Draft | null) {
               @for (b of cat()?.breeds ?? []; track b.code) { <option [value]="b.code">{{ b.label }}</option> }
             </select>
           </label>
-          <label class="field">{{ 'form.liniile' | t }} <span class="hint">{{ 'form.liniile_ajutor' | t: { exemplu: '„Janssen, Van Heteren”' } }}</span>
+          <label class="field">{{ 'form.liniile' | t }} <span class="hint">{{ 'form.liniile_ajutor' | t: { exemplu: ('„' | glue) + 'Janssen, Van Heteren' + ('”' | glue) } }}</span>
             <input name="lines" [(ngModel)]="f.lines" />
           </label>
         </section>

@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { percent, ringText, sexShort } from '../../core/catalog';
-import { formatDay, t, TPipe } from '../../core/i18n';
+import { formatDay, t, TPipe, GluePipe } from '../../core/i18n';
 import { Clutch, Pair, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { Breadcrumbs } from '../../shared/breadcrumbs';
@@ -46,7 +46,7 @@ interface ClutchForm {
  */
 @Component({
   selector: 'app-pereche',
-  imports: [DateField, FormsModule, RouterLink, Icon, TPipe, Breadcrumbs, CuloriPui],
+  imports: [DateField, FormsModule, RouterLink, Icon, TPipe, GluePipe, Breadcrumbs, CuloriPui],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (pair(); as p) {
@@ -63,7 +63,7 @@ interface ClutchForm {
         @if (p.nest) { <span>{{ 'perechi.cuibul' | t: { n: p.nest } }}</span> }
       </p>
       <div [class]="p.coi >= 0.125 ? 'warning' : 'notice'" role="status">
-        @if (p.coi > 0) { {{ 'perechi.coi_au' | t }} <strong>{{ pct(p.coi) }}</strong>. }
+        @if (p.coi > 0) { {{ 'perechi.coi_au' | t }}{{ ' ' | glue }}<strong>{{ pct(p.coi) }}</strong>{{ '.' | glue }} }
         @else { {{ 'perechi.fara_stramosi_comuni' | t }} }
       </div>
 
@@ -121,7 +121,7 @@ interface ClutchForm {
               <p class="step">@for (x of parts('perechi.ies_intre', { de: date(h.from), pana: date(h.to) }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}</p>
             }
             @if (c.hatchedOn) {
-              <p class="step">@for (x of parts('perechi.au_iesit', { data: date(c.hatchedOn) }, { n: c.hatched ?? '?' }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}@if (c.infertile) { · {{ 'perechi.n_limpezi' | t: { n: c.infertile } }}}@if (c.broken) { · {{ 'perechi.n_sparte' | t: { n: c.broken } }}}.</p>
+              <p class="step">@for (x of parts('perechi.au_iesit', { data: date(c.hatchedOn) }, { n: c.hatched ?? '?' }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}@if (c.infertile) { · {{ 'perechi.n_limpezi' | t: { n: c.infertile } }}}@if (c.broken) { · {{ 'perechi.n_sparte' | t: { n: c.broken } }}}{{ '.' | glue }}</p>
               <p class="step">@for (x of parts('perechi.se_ineleaza', { de: date(c.ringFrom), pana: date(c.ringTo) }); track $index) {@if (x.bold) {<strong>{{ x.text }}</strong>} @else {<ng-container>{{ x.text }}</ng-container>}}</p>
             }
 
@@ -153,7 +153,7 @@ interface ClutchForm {
                   <label class="field">{{ 'perechi.doica' | t }} <span class="hint">{{ 'perechi.doica_hint' | t }}</span>
                     <select name="foster" [(ngModel)]="cf.fosterPairId">
                       <option [ngValue]="null">{{ 'perechi.fara_doica' | t }}</option>
-                      @for (f of fosters(); track f.id) { <option [ngValue]="f.id">{{ ring(f.cock) }} × {{ ring(f.hen) }}@if (f.nest) { ({{ 'perechi.cuibul' | t: { n: f.nest } }})}</option> }
+                      @for (f of fosters(); track f.id) { <option [ngValue]="f.id">{{ ring(f.cock) }} × {{ ring(f.hen) }}@if (f.nest) {<ng-container>{{ ' (' | glue }}{{ 'perechi.cuibul' | t: { n: f.nest } }}{{ ')' | glue }}</ng-container>}</option> }
                     </select>
                   </label>
                 }
@@ -174,7 +174,7 @@ interface ClutchForm {
               <h4>{{ 'perechi.puii_inelati' | t }}</h4>
               <ul class="young">
                 @for (y of c.young; track y.id) {
-                  <li><a [routerLink]="['/porumbei', y.id]" class="mono">{{ ring(y) }}</a><span class="muted"> · {{ sex(y.sex) }}@if (y.name) { · „{{ y.name }}”}</span></li>
+                  <li><a [routerLink]="['/porumbei', y.id]" class="mono">{{ ring(y) }}</a><span class="muted"> · {{ sex(y.sex) }}@if (y.name) { · {{ '„' | glue }}{{ y.name }}{{ '”' | glue }}}</span></li>
                 }
               </ul>
             }

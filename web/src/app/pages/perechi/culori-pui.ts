@@ -1,7 +1,7 @@
 import { Component, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
-import { TPipe } from '../../core/i18n';
+import { TPipe, GluePipe } from '../../core/i18n';
 
 /** Factorii de culoare ai unui părinte (ca în src/color-genetics.js). */
 interface Factors {
@@ -30,7 +30,7 @@ const lower = (list: { v: string; l: string }[], v: string | null) => (v ? list.
  */
 @Component({
   selector: 'app-culori-pui',
-  imports: [FormsModule, TPipe],
+  imports: [FormsModule, TPipe, GluePipe],
   template: `
     <section class="card stack">
       <h2>{{ 'culori.titlu' | t }}</h2>
@@ -40,18 +40,18 @@ const lower = (list: { v: string; l: string }[], v: string | null) => (v ? list.
           <div>
             <h3><span class="sx sM">{{ 'sex.m' | t }}</span> {{ 'culori.pui_masculi' | t }}</h3>
             @for (y of r.cocks; track y.name + y.carries.join()) {
-              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · {{ 'culori.poarta_ascuns_lista' | t: { lista: y.carries.join(', ') } }}</span>}</span></div>
+              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · {{ 'culori.poarta_ascuns_lista' | t: { lista: y.carries.join(', ' | glue) } }}</span>}</span></div>
             }
           </div>
           <div>
             <h3><span class="sx sF">{{ 'sex.f' | t }}</span> {{ 'culori.pui_femele' | t }}</h3>
             @for (y of r.hens; track y.name + y.carries.join()) {
-              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · {{ 'culori.poarta_ascuns_lista' | t: { lista: y.carries.join(', ') } }}</span>}</span></div>
+              <div class="bar"><span class="fill" [style.width.%]="y.pct"></span><span class="txt"><strong>{{ y.pct }}%</strong> {{ y.name }}@if (y.carries.length) {<span class="muted"> · {{ 'culori.poarta_ascuns_lista' | t: { lista: y.carries.join(', ' | glue) } }}</span>}</span></div>
             }
           </div>
         </div>
         @if (r.unknown.length) {
-          <p class="notice">{{ 'culori.nu_stim' | t }} <strong>{{ r.unknown.join(', ') }}</strong>. {{ 'culori.nu_stim_rest' | t }}</p>
+          <p class="notice">{{ 'culori.nu_stim' | t }}{{ ' ' | glue }}<strong>{{ r.unknown.join(', ' | glue) }}</strong>{{ '. ' | glue }}{{ 'culori.nu_stim_rest' | t }}</p>
         }
       }
       <details>

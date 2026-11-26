@@ -89,7 +89,7 @@ export class SharePdfService {
         style: { border: '0', boxShadow: 'none', margin: '0', zoom: '1' },
       });
       const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
-      pdf.setProperties({ title: `Pedigree ${data.root.ring ?? ''}`.trim(), creator: 'Pigeonrama (www.porumbar.ro)' });
+      pdf.setProperties({ title: `Pedigree ${data.root.ring ?? ''}`.trim(), creator: 'Pigeonrama (www.pigeonrama.com)' });
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, 210, 297);
       const name = `pedigree-${(data.root.ring ?? 'porumbel').replace(/[^A-Za-z0-9-]+/g, '-')}.pdf`;
       return new File([pdf.output('blob')], name, { type: 'application/pdf' });

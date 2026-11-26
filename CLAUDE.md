@@ -16,7 +16,8 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   japoneză „Pigeonramaの…”. Cuvântul obișnuit „porumbar” (efectivul, adăpostul) se traduce: „dúc”, „鳩舎”.
 - **„Porumbar” rămâne numele tehnic**: pachetul, repo-ul, baza de date, cookie-ul `porumbar_session`, variabilele de
   mediu, serviciul Railway, formatul „porumbar-pedigree” v1, fișierele și clasele (`porumbar.ts`). Adresa
-  www.porumbar.ro rămâne până la un domeniu nou. Cuvântul obișnuit „porumbar” (adăpostul) rămâne în texte.
+  publică e www.pigeonrama.com (pe fișa tipărită și în PDF); emailul contact@porumbar.ro și `MAIL_FROM` se schimbă
+  după ce situl e mutat acolo. Cuvântul obișnuit „porumbar” (adăpostul) rămâne în texte.
 - **Sigla** (copiată din modelul primit, `docs/design/sigla/model.png`): cercul roșu `#D92132`, porumbelul
   albastru-închis `#263343` cu dunga aripii crem `#F7F8F3`; textul „PIGEONRAMA” în același albastru. Vectorial,
   urmărit din model (cercul potrivit exact, porumbelul, dunga și literele urmărite pe contur):
@@ -216,7 +217,7 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
 
 ## Situl de prezentare
 
-Situl (www.porumbar.ro, o pagină) e **alt proiect**, în `C:\dev\porumbar-site` (repo privat `eduardjena/porumbar-site`):
+Situl (www.pigeonrama.com, o pagină) e **alt proiect**, în `C:\dev\porumbar-site` (repo privat `eduardjena/porumbar-site`):
 `public/` e ce se urcă, butoanele duc în aplicație printr-o singură constantă `APP_URL`. Nu se pune niciodată în acest repo.
 Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` acolo și `PUBLIC_BASE_URL` pe Railway.
 

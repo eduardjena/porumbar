@@ -11,7 +11,7 @@ import { TPipe } from '../core/i18n';
       @if (hint()) { <span class="hint">{{ hint() }}</span> }
       <span class="wrap">
         <input [type]="visible() ? 'text' : 'password'" [name]="name()" [attr.autocomplete]="autocomplete()" required
-               [(ngModel)]="value" autocapitalize="off" spellcheck="false" />
+               [(ngModel)]="value" [attr.placeholder]="placeholder() || null" autocapitalize="off" spellcheck="false" />
         <button type="button" class="eye" (click)="visible.set(!visible())"
                 [attr.aria-label]="(visible() ? 'parola_camp.ascunde' : 'parola_camp.arata') | t" [attr.aria-pressed]="visible()">
           <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -39,6 +39,8 @@ export class PasswordField {
   /** Fără etichetă: „Parola”, din dicționar. */
   readonly label = input('');
   readonly hint = input('');
+  /** Textul din câmpul gol (de ex. ce trebuie scris, cu roșu, după o încercare greșită). */
+  readonly placeholder = input('');
   readonly name = input('password');
   readonly autocomplete = input('current-password');
   readonly value = model('');

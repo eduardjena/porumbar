@@ -1701,5 +1701,19 @@
   "camp.localitate": "település",
   "cont_nou.telefon": "Telefonszám",
   "cont_nou.localitate": "Település",
-  "eroare.telefon_gresit": "A telefonszám hibásnak tűnik: add meg az összes számjegyével."
+  "eroare.telefon_gresit": "A telefonszám hibásnak tűnik: add meg az összes számjegyével.",
+  "cont_nou.obligatorii": "A *-gal jelölt mezők kitöltése kötelező.",
+  "cont_nou.verifica": "Ellenőrizd a pirossal jelölt mezőket.",
+  "cont_nou.lipsa_nume": "Add meg a neved (vagy a dúc nevét).",
+  "cont_nou.lipsa_email": "Add meg az e-mail-címedet, például kovacs.janos@gmail.com.",
+  "cont_nou.lipsa_telefon": "Add meg a telefonszámodat, például +36 30 123 4567.",
+  "cont_nou.lipsa_localitate": "Add meg a települést, például Debrecen.",
+  "cont_nou.lipsa_parola": "Válassz legalább 10 karakteres jelszót.",
+  "cont_nou.lipsa_parola2": "Írd be még egyszer ugyanazt a jelszót.",
+  "cont_nou.gol_nume": "Add meg a neved",
+  "cont_nou.gol_email": "pl. kovacs.janos@gmail.com",
+  "cont_nou.gol_telefon": "pl. +36 30 123 4567",
+  "cont_nou.gol_localitate": "pl. Debrecen",
+  "cont_nou.gol_parola": "Legalább 10 karakter",
+  "cont_nou.gol_parola2": "Ugyanaz a jelszó még egyszer"
 }

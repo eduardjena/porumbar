@@ -82,6 +82,10 @@ export function authRouter() {
     const password = validatePassword(req.body?.password);
     const name = text(req.body?.name, 'camp.nume', { max: 120 });
     const country = countryOf(req.body?.country);
+    // Telefonul (cel puțin 6 cifre) și localitatea: obligatorii. Localitatea e adresa de pe fișă (strada o poate adăuga vânzătorul).
+    const phone = text(req.body?.phone, 'camp.telefon', { max: 40 });
+    if ((phone.match(/\d/g) ?? []).length < 6) throw badRequest('eroare.telefon_gresit');
+    const city = text(req.body?.city, 'camp.localitate', { max: 100 });
     // Limba de pe ecran (toate limbile sunt publice; una nepublică o poate pune doar vânzătorul).
     const lang = req.body?.lang ?? 'ro';
     if (!isPublicLang(lang)) throw badRequest('eroare.limba_indisponibila');
@@ -90,9 +94,9 @@ export function authRouter() {
     }
     // Numele de la înscriere e și numele de pe fișă (îl poate schimba vânzătorul).
     const id = await insert(
-      `INSERT INTO accounts (email, name, pedigree_name, password_hash, created_at, lang, country, terms_version, terms_accepted_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, now())`,
-      email, name, name, await hashPassword(password), nowIso(), lang, country, TERMS_VERSION,
+      `INSERT INTO accounts (email, name, pedigree_name, phone, address, password_hash, created_at, lang, country, terms_version, terms_accepted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())`,
+      email, name, name, phone, city, await hashPassword(password), nowIso(), lang, country, TERMS_VERSION,
     );
     await createSession(res, id, req.headers['user-agent']);
     // Contul e „doar citire” până omul deschide linkul din email; vânzătorul află abia la confirmare (un cont real).
@@ -249,7 +253,7 @@ export function authRouter() {
           // Pentru vânzător: în română.
           subject: `Cont nou în Pigeonrama: ${account.name}`, // i18n: ro
           text:
-            `Și-a făcut cont în Pigeonrama și și-a confirmat emailul:\n\nNume: ${account.name}\nEmail: ${account.email}\nȚara: ${account.country ?? '—'}\n` + // i18n: ro
+            `Și-a făcut cont în Pigeonrama și și-a confirmat emailul:\n\nNume: ${account.name}\nEmail: ${account.email}\nTelefon: ${account.phone ?? '—'}\nLocalitatea: ${account.address ?? '—'}\nȚara: ${account.country ?? '—'}\n` + // i18n: ro
             `Data: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}\n\n` + // i18n: ro
             `Proba de 30 de zile a pornit singură, până pe ${account.trial_end ? new Date(`${account.trial_end}T00:00:00Z`).toLocaleDateString('ro-RO', { timeZone: 'UTC' }) : '—'}. Îl găsești în consola vânzătorului:\n${config.publicBaseUrl}/vanzator\n`, // i18n: ro
         });

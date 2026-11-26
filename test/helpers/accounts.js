@@ -25,7 +25,7 @@ export async function newAccount(call, name = 'Crescător', { active = true } = 
   const r = await call('/api/auth/register', {
     method: 'POST',
     auth: 'none',
-    body: { email: `crescator${n}-${process.pid}@exemplu.test`, password: 'parola-de-test-123', name: `${name} ${n}`, country: 'RO', acceptTerms: true },
+    body: { email: `crescator${n}-${process.pid}@exemplu.test`, password: 'parola-de-test-123', name: `${name} ${n}`, country: 'RO', phone: '0700 000 000', city: 'Brașov', acceptTerms: true },
   });
   if (r.status !== 201) throw new Error(`Contul de test nu s-a creat: ${r.status} ${JSON.stringify(r.data)}`);
   if (active) {

@@ -212,7 +212,7 @@ test('consola arată ultima intrare în cont și ultima activitate; nimic pentru
 test('cont nou din formular: adminul primește mailul abia când omul își confirmă emailul', async () => {
   const before = mail.sentMails.length;
   const email = `mail-admin-${process.pid}@exemplu.test`;
-  const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: 'parola-de-test-123', name: 'Vasile Nou', country: 'RO', acceptTerms: true } });
+  const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: 'parola-de-test-123', name: 'Vasile Nou', country: 'RO', phone: '0700 000 000', city: 'Brașov', acceptTerms: true } });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(mail.sentMails.slice(before).filter((m) => m.to === process.env.ADMIN_EMAIL).length, 0, 'la înscriere, nimic pentru vânzător');
   await confirmEmail(call, email);

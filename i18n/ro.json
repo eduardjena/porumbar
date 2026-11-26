@@ -3269,5 +3269,77 @@
   "eroare.tara_lipsa": {
     "text": "Alege țara din listă.",
     "sens": "La înscriere, fără țară sau cu un cod necunoscut."
+  },
+  "camp.localitate": {
+    "text": "localitate",
+    "sens": "Numele câmpului localității, în mesajele de eroare (de ex. „Câmpul „localitate” e obligatoriu”)."
+  },
+  "cont_nou.telefon": {
+    "text": "Telefonul",
+    "sens": "Câmpul telefonului, la înscriere (obligatoriu; apare pe fișă după bifele omului)."
+  },
+  "cont_nou.localitate": {
+    "text": "Localitatea",
+    "sens": "Câmpul localității, la înscriere (obligatoriu; devine adresa de pe fișă)."
+  },
+  "eroare.telefon_gresit": {
+    "text": "Numărul de telefon pare greșit: scrie-l cu toate cifrele.",
+    "sens": "La înscriere, un telefon cu mai puțin de 6 cifre."
+  },
+  "cont_nou.obligatorii": {
+    "text": "Câmpurile cu * sunt obligatorii.",
+    "sens": "Nota de sus din formularul de cont nou."
+  },
+  "cont_nou.verifica": {
+    "text": "Verifică câmpurile marcate cu roșu.",
+    "sens": "Sub butonul „Fă contul”, când lipsește ceva."
+  },
+  "cont_nou.lipsa_nume": {
+    "text": "Scrie-ți numele (sau al porumbarului).",
+    "sens": "Sub câmpul numelui, gol."
+  },
+  "cont_nou.lipsa_email": {
+    "text": "Scrie adresa ta de email, de exemplu ion.popescu@gmail.com.",
+    "sens": "Sub câmpul emailului, gol."
+  },
+  "cont_nou.lipsa_telefon": {
+    "text": "Scrie numărul de telefon, de exemplu 0722 123 456.",
+    "sens": "Sub câmpul telefonului, gol."
+  },
+  "cont_nou.lipsa_localitate": {
+    "text": "Scrie localitatea, de exemplu Sibiu.",
+    "sens": "Sub câmpul localității, gol."
+  },
+  "cont_nou.lipsa_parola": {
+    "text": "Alege o parolă de cel puțin 10 caractere.",
+    "sens": "Sub câmpul parolei, gol sau prea scurtă."
+  },
+  "cont_nou.lipsa_parola2": {
+    "text": "Scrie aceeași parolă încă o dată.",
+    "sens": "Sub al doilea câmp de parolă, gol."
+  },
+  "cont_nou.gol_nume": {
+    "text": "Scrie-ți numele",
+    "sens": "În câmpul gol al numelui, cu roșu (scurt, să încapă pe telefon)."
+  },
+  "cont_nou.gol_email": {
+    "text": "ex. ion.popescu@gmail.com",
+    "sens": "În câmpul gol al emailului, cu roșu (un exemplu scurt)."
+  },
+  "cont_nou.gol_telefon": {
+    "text": "ex. 0722 123 456",
+    "sens": "În câmpul gol al telefonului, cu roșu (un exemplu scurt)."
+  },
+  "cont_nou.gol_localitate": {
+    "text": "ex. Sibiu",
+    "sens": "În câmpul gol al localității, cu roșu (un exemplu scurt)."
+  },
+  "cont_nou.gol_parola": {
+    "text": "Cel puțin 10 caractere",
+    "sens": "În câmpul gol al parolei, cu roșu."
+  },
+  "cont_nou.gol_parola2": {
+    "text": "Aceeași parolă, încă o dată",
+    "sens": "În al doilea câmp de parolă, gol, cu roșu."
   }
 }

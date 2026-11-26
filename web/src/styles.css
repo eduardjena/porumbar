@@ -1,22 +1,23 @@
 /*
- * Pigeonrama — paleta „Pământ” (aleasă de utilizator, 2026-11-16, din 5 propuse; docs/design/paletare.md): crem, maro și cărămiziu pentru acțiuni,
- * verde-măsliniu doar pentru valoarea porumbeilor (ca să nu se confunde cu butoanele). Curat, actual, fără efecte.
+ * Pigeonrama — culorile siglei (2026-11-26, înlocuiesc paleta „Pământ”): fundal crem #f7f8f3, text albastru-închis
+ * #263343, roșul siglei #d92132 pentru acțiuni (alb pe roșu: contrast 5:1), gri-uri reci; verde doar pentru valoarea
+ * porumbeilor (ca să nu se confunde cu butoanele). Curat, actual, fără efecte.
  * Pentru oameni în vârstă, pe telefon: text de bază 18px, ținte de cel puțin 48px, contrast mare, literă făcută pentru
  * citire ușoară (Atkinson Hyperlegible Next, găzduită de noi).
  */
 @import '@fontsource-variable/atkinson-hyperlegible-next';
 
 :root {
-  --bg: #f5f0e8;
-  --surface: #fffdf9;
-  --surface-2: #efe8dc;
-  --border: #e2d8c8;
-  --border-strong: #c2b39c;
-  --text: #2b2117;
-  --muted: #625345;
-  --accent: #a33d1c;
-  --accent-strong: #7c2c12;
-  --accent-soft: #f8e5da;
+  --bg: #f7f8f3;
+  --surface: #ffffff;
+  --surface-2: #eceee8;
+  --border: #dcdfd8;
+  --border-strong: #adb4bd;
+  --text: #263343;
+  --muted: #55606f;
+  --accent: #d92132;
+  --accent-strong: #a8141f;
+  --accent-soft: #fbe5e7;
   --accent-ink: #ffffff;
   --danger: #9a1a34;
   --danger-soft: #f9e3e7;
@@ -40,8 +41,8 @@
   --band-2-ink: #24350c;
   --band-1: #e7efd2;
   --band-1-ink: #34461a;
-  --band-0: #ebe6df;
-  --band-0-ink: #5e5043;
+  --band-0: #e9ebe6;
+  --band-0-ink: #55606f;
 
   --radius: 16px;
   --radius-sm: 12px;
@@ -72,7 +73,7 @@ body {
 /* Rânduri mai aerisite; inelele și emailurile (șiruri lungi fără spații) se rup oriunde. */
 html[lang="ja"] body { line-height: 1.75; }
 html[lang="ja"] .mono, html[lang="ja"] input, html[lang="ja"] td { overflow-wrap: anywhere; }
-::selection { background: #f3d3c3; color: var(--text); }
+::selection { background: #f7cdd1; color: var(--text); }
 h1 { font-size: 1.75rem; margin: 4px 0 16px; line-height: 1.15; font-weight: 750; letter-spacing: -0.015em; text-wrap: balance; }
 h2 { font-size: 1.25rem; margin: 28px 0 12px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
 h3 { font-size: 1.05rem; margin: 18px 0 8px; font-weight: 700; }
@@ -91,9 +92,9 @@ input, select, textarea {
   font: inherit; color: inherit; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm);
   min-height: 52px; padding: 10px 14px; width: 100%; transition: border-color 0.15s, box-shadow 0.15s;
 }
-input::placeholder, textarea::placeholder { color: #7a6a5a; }
+input::placeholder, textarea::placeholder { color: #6b7480; }
 textarea { min-height: 104px; resize: vertical; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgb(163 61 28 / 20%); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgb(217 33 50 / 20%); }
 button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
 input[type='checkbox'], input[type='radio'] { width: 26px; height: 26px; min-height: 0; flex: none; margin: 0; }
 label.check { display: flex; align-items: center; gap: 12px; min-height: 48px; font-weight: 600; cursor: pointer; }
@@ -152,7 +153,7 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 .tree-bar {
   position: sticky; top: 68px; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 8px 12px;
   flex-wrap: wrap; padding: 8px 0; margin: 0 0 10px; background: var(--bg);
-  box-shadow: 0 10px 12px -12px rgb(43 33 23 / 25%);
+  box-shadow: 0 10px 12px -12px rgb(38 51 67 / 25%);
 }
 .bar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .bar-title { display: flex; flex-direction: column; min-width: 0; }

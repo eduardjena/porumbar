@@ -125,7 +125,7 @@ const NAV: NavItem[] = [
     }
     /* Rândul meniului mare pe fundal închis; banda de submeniuri, dedesubt, rămâne deschisă. */
     .top {
-      background: #e4d8c4; border-bottom: 1px solid var(--border);
+      background: #e8ebe5; border-bottom: 1px solid var(--border);
       position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(1.4) blur(10px);
     }
     /* Rândul de sus are înălțime fixă; butoanele meniului îl umplu de sus până jos (celule, nu pastile). */

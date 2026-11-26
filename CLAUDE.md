@@ -24,6 +24,9 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   `python docs/design/sigla/scrie-svg.py sigla.json .` scrie `web/public/icon.svg` (fără fundal: tab, antet, fișă),
   `web/public/icon-maskable.svg` (fundal crem, iconița de pe telefon) și `docs/design/sigla/pigeonrama*.svg` (sigla
   întreagă, cu fundal și transparentă).
+- **Culorile** aplicației și ale site-ului sunt ale siglei (din 2026-11-26, în locul paletei „Pământ”): fundal crem `#f7f8f3`,
+  text `#263343`, acțiuni roșu `#d92132` (apăsat `#a8141f`), gri-uri reci; în `web/src/styles.css` (`:root`) și
+  `porumbar-site/public/site.css`. Verdele rămâne doar pentru valoarea porumbeilor, culorile liniilor de sânge rămân.
 
 ## Oamenii și mediile
 

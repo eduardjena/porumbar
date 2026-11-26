@@ -17,8 +17,8 @@ const R0 = 78; // cercul porumbelului
 const RING = 92; // grosimea unui inel
 const MALE = '#2b5a86';
 const FEMALE = '#8c357f';
-const BAND_FILL = ['#ebe6df', '#e7efd2', '#c8d99c', '#90b256', '#567a28', '#33501a'];
-const BAND_INK = ['#5e5043', '#34461a', '#24350c', '#1e2f08', '#ffffff', '#ffffff'];
+const BAND_FILL = ['#e9ebe6', '#e7efd2', '#c8d99c', '#90b256', '#567a28', '#33501a'];
+const BAND_INK = ['#55606f', '#34461a', '#24350c', '#1e2f08', '#ffffff', '#ffffff'];
 
 interface Slice {
   key: string;
@@ -59,7 +59,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
     <svg [attr.viewBox]="viewBox()" class="fan" role="img" [attr.aria-label]="'arbore.aria_evantai' | t">
       @for (s of slices(); track s.key) {
         <g class="slice" [class.sel]="s.id != null && s.id === selectedId()" (click)="s.id != null && select.emit(s.id)" (dblclick)="s.id != null && open.emit(s.id)">
-          <path [attr.d]="s.d" [attr.fill]="s.fill" stroke="#fffdf9" stroke-width="2" />
+          <path [attr.d]="s.d" [attr.fill]="s.fill" stroke="#ffffff" stroke-width="2" />
           <path [attr.d]="s.stripe" [attr.fill]="s.sexColor" />
           @if (s.repeat) { <path [attr.d]="s.d" fill="none" [attr.stroke]="repeatColor(s.repeat)" [attr.stroke-width]="s.both ? 4 : 2" /> }
           @if (s.both) { <title>{{ 'arbore.tm_lung' | t }}</title> }
@@ -67,7 +67,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
             <text [attr.x]="m.x" [attr.y]="m.y" [attr.transform]="'rotate(' + m.rot + ' ' + m.x + ' ' + m.y + ')'" [attr.fill]="s.ink"
                   text-anchor="middle" dominant-baseline="middle" [attr.font-size]="m.font" font-weight="800">{{ 'arbore.tm' | t }}</text>
           }
-          @if (s.id != null && s.id === selectedId()) { <path [attr.d]="s.d" fill="none" stroke="#a33d1c" stroke-width="5" /> }
+          @if (s.id != null && s.id === selectedId()) { <path [attr.d]="s.d" fill="none" stroke="#d92132" stroke-width="5" /> }
           @if (s.label) {
             <text [attr.x]="s.tx" [attr.y]="s.ty" [attr.transform]="'rotate(' + s.rot + ' ' + s.tx + ' ' + s.ty + ')'" [attr.fill]="s.ink"
                   text-anchor="middle" dominant-baseline="middle" [attr.font-size]="fontFor(s.gen)" font-weight="700">
@@ -78,7 +78,7 @@ function sector(r1: number, r2: number, a1: number, a2: number): string {
         </g>
       }
       <g class="slice" (click)="select.emit(data().rootId)" (dblclick)="open.emit(data().rootId)">
-        <path [attr.d]="rootHalf" [attr.fill]="rootFill()" stroke="#a33d1c" stroke-width="4" stroke-linejoin="round" />
+        <path [attr.d]="rootHalf" [attr.fill]="rootFill()" stroke="#d92132" stroke-width="4" stroke-linejoin="round" />
         <text [attr.x]="cx" [attr.y]="cy - 42" text-anchor="middle" [attr.fill]="rootInk()" font-size="24" font-weight="800">{{ rootValue() }}</text>
         <text [attr.x]="cx" [attr.y]="cy - 22" text-anchor="middle" [attr.fill]="rootInk()" font-size="14" font-weight="800">{{ rootName() }}</text>
         <text [attr.x]="cx" [attr.y]="cy - 7" text-anchor="middle" [attr.fill]="rootInk()" font-size="11">{{ rootRing() }}</text>
@@ -182,8 +182,8 @@ export class VedereEvantai {
           gen,
           d: sector(r1, r2, a1, a2),
           stripe: sector(r1, r1 + 7, a1, a2),
-          fill: !node ? '#f5f0e8' : own ? BAND_FILL[band] : '#e2d8c8',
-          ink: own && band >= 4 ? '#ffffff' : '#2b2117',
+          fill: !node ? '#f7f8f3' : own ? BAND_FILL[band] : '#dcdfd8',
+          ink: own && band >= 4 ? '#ffffff' : '#263343',
           sexColor: p?.sex === 'M' ? MALE : p?.sex === 'F' ? FEMALE : 'transparent',
           repeat: node?.repeat ?? null,
           both,

@@ -97,7 +97,7 @@ const cap = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);
     .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
     .wd { font-size: 0.82rem; font-weight: 700; color: var(--muted); padding: 4px 0; }
     .day { min-height: 44px; padding: 0; border: 0; background: none; border-radius: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .day:hover { background: var(--bg, #f3ece0); }
+    .day:hover { background: var(--bg, #eceee8); }
     .day.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
     .day.on { background: var(--accent); color: var(--accent-ink, #fff); }
     .foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; flex-wrap: wrap; }

@@ -10,7 +10,7 @@ import { TPipe, GluePipe } from '../../core/i18n';
 // Culori deschise pentru strămoșii care se repetă (textul negru rămâne lizibil pe toate).
 const REPEAT_COLORS = ['#ffe08a', '#b9e4ff', '#ffc9de', '#c8f0c2', '#e2d3ff', '#ffd6b0'];
 // Aceleași nuanțe, închise, pentru chenare (contrast cel puțin 3:1 pe alb și pe fundalul paginii; pastelul ar avea ~1,3:1).
-const REPEAT_BORDERS = ['#9a6f00', '#2b5a86', '#8c357f', '#567a28', '#6d4bb3', '#a33d1c'];
+const REPEAT_BORDERS = ['#9a6f00', '#2b5a86', '#8c357f', '#567a28', '#6d4bb3', '#d92132'];
 
 interface Cell {
   key: string;
@@ -112,20 +112,20 @@ interface Cell {
     .cell.m::before { top: 0; height: 50%; border-left: 2px solid #c995be; border-bottom: 2px solid #c995be; border-bottom-left-radius: 5px; }
     .box {
       flex: 1; min-width: 0; overflow: hidden; display: flex; flex-direction: column; text-align: left;
-      padding: 3px 6px; border-radius: 6px; border: 1px solid #8f8476; background: #fff; box-shadow: 2px 2px 0 #3a3129;
-      color: #2b2117; font-size: 0.74rem; line-height: 1.25;
+      padding: 3px 6px; border-radius: 6px; border: 1px solid #8a929c; background: #fff; box-shadow: 2px 2px 0 #263343;
+      color: #263343; font-size: 0.74rem; line-height: 1.25;
     }
-    .box.g0 { font-size: 0.95rem; border: 2px solid #a33d1c; padding: 6px 8px; }
+    .box.g0 { font-size: 0.95rem; border: 2px solid #d92132; padding: 6px 8px; }
     .box.g1 { font-size: 0.85rem; }
     .box.g2 { font-size: 0.8rem; }
     .box.g5 { font-size: 0.7rem; }
     .line1 { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
-    .ring { font-weight: 700; color: #a33d1c; overflow-wrap: anywhere; }
+    .ring { font-weight: 700; color: #d92132; overflow-wrap: anywhere; }
     .sx { flex: none; width: 1.3em; height: 1.3em; margin-top: 0.05em; border-radius: 50%; display: grid; place-items: center; font-size: 0.75em; font-weight: 700; color: #fff; background: var(--muted); }
     .sx.sM { background: var(--male); }
     .sx.sF { background: var(--female); }
     /* „T+M”: nu se micșorează și nu acoperă inelul; semnul nu e doar culoare. */
-    .tm { flex: none; margin-left: auto; font-weight: 700; font-size: 0.85em; color: #2b2117; border: 1px solid #2b2117; border-radius: 4px; padding: 0 3px; line-height: 1.2; }
+    .tm { flex: none; margin-left: auto; font-weight: 700; font-size: 0.85em; color: #263343; border: 1px solid #263343; border-radius: 4px; padding: 0 3px; line-height: 1.2; }
     .nm { font-weight: 700; }
     .txt { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
     .g0 .txt { -webkit-line-clamp: 10; }

@@ -192,9 +192,12 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
 - Înainte de publicarea „inelelor din toată lumea” (regula anului: `27` scris pe 2 cifre era 1927, acum 2027) se
   verifică în producție: `SELECT count(*) FROM pigeons WHERE ring_year = 1927;` și
   `SELECT count(*) FROM ring_series WHERE year = 1927;`. Dacă nu dau 0, rândurile acelea se lămuresc cu vânzătorul.
-- Push pe `main` **nu** publică singur. Publicarea: `git archive main | tar -x -C <folder temporar>`, apoi
-  `railway up <folder> --path-as-root --service porumbar --detach`; urmărești `railway deployment list --service porumbar`;
+- **Push pe `main` publică singur:** serviciul e legat de GitHub (`eduardjena/porumbar`, branch `main`) și pornește o
+  publicare în mai puțin de un minut (văzut pe 2026-11-26). Deci „urc main pe GitHub” = „public pe Railway”: se întreabă
+  o singură dată, ca publicare. Urmărești `railway deployment list --service porumbar` (publicarea arată commit-ul);
   verifici că `main-*.js` de pe site e același cu cel din build-ul local și că `/api/health` răspunde 200.
+- Publicare fără push (rar, de exemplu din nou aceeași versiune): `git archive main | tar -x -C <folder temporar>`, apoi
+  `railway up <folder> --path-as-root --service porumbar --detach`.
 - Variabilele secrete (`ADMIN_PASSWORD`, `ANTHROPIC_API_KEY`, SMTP) le pune vânzătorul în Railway, niciodată prin chat.
 - Tratamentele cu amintiri (feat/tratamente): variabile noi `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
   (`mailto:adresa`) și `REMINDER_EMAILS_PER_MINUTE` (implicit 10). Cheile VAPID se fac o singură dată cu
@@ -231,7 +234,7 @@ feat/plata-paddle intră după, migrările ei se renumerotează după cele din `
 ## Regulile vânzătorului (de respectat mereu)
 
 - Fiecare funcție pe branch-ul ei. **Înainte de orice merge în `main`, push al lui `main` sau publicare pe Railway:
-  întrebi.** O aprobare ține doar pentru acea publicare.
+  întrebi.** Push-ul lui `main` e o publicare (vezi „Publicarea”). O aprobare ține doar pentru acea publicare.
 - Bază de date: PostgreSQL (și local), niciodată SQLite sau o bază emulată.
 - Separare totală între conturi: nimeni nu vede datele altuia; datele trec doar prin copie (link public / QR, „Preia”,
   vânzare).

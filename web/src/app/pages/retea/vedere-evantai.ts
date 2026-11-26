@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { TreeNode } from '../../core/models';
 import { t, TPipe, glue } from '../../core/i18n';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
-import { tmRaza } from './tm-incape';
+import { tmChars, tmRaza } from './tm-incape';
 import { tmKeys } from '../../shared/stramosi-comuni';
 
 /*
@@ -167,13 +167,14 @@ export class VedereEvantai {
         // cele exterioare (feliile sunt înguste); niciodată cu capul în jos, niciodată peste felia vecină.
         const rot = gen <= 2 ? 90 - mid : mid > 90 ? 180 - mid : -mid;
         const ring = p?.ring?.display ?? (node ? t('text.fara_inel') : '');
-        const label = gen <= 2 ? ring : ring.replace(/^[A-Z]{2}-\d{2}-/, '').replace(/^(\d+)\s*\/.*$/, '$1');
+        // Inelele exterioare: fără țară și an (RO-25-, JPN 25-, NIPPON 2009-); HU-2023-… rămâne întreg, ca înainte.
+        const label = gen <= 2 ? ring : ring.replace(/^(?:[A-Z]{2}-\d{2}|JPN \d{2}|NIPPON \d{4})-/, '').replace(/^(\d+)\s*\/.*$/, '$1');
         const both = !!node && tm.has(String(node.id));
         const tmFont = this.narrow() ? 14 : 12;
         // Jumătatea din lungimea scrisului numărului, pe rază: pe rază la inelele exterioare (≈0,62 din corp per caracter), pe arc la cele interioare (+20 pentru rândul de dedesubt, nume / an).
         const fontEticheta = this.fontFor(gen);
         const jumEticheta = gen <= 2 ? fontEticheta / 2 + 20 : (label.length * 0.62 * fontEticheta) / 2;
-        const tmR = tmRaza(r1, r2, rm, jumEticheta, span, tmFont, tmText.length);
+        const tmR = tmRaza(r1, r2, rm, jumEticheta, span, tmFont, tmChars(tmText));
         const [mx, my] = tmR == null ? [0, 0] : pt(tmR, mid);
         out.push({
           key: key || 'r',

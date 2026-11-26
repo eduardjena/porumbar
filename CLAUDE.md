@@ -44,6 +44,8 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   inel englezesc / american / australian = hen, la ceilalți = hím; anul pe 2 cifre ≤ anul curent + 1 →
                   20AA. Partea din mijloc stă în `club`; DK se afișează cu anul primul (ca înainte), LT cu clubul primul.
                   Numărul cu lățime fixă la familiile noi își păstrează la afișare zerourile (CN-26-15-0443185), cheia nu.
+                  Japonia se afișează ca pe inel, cu spațiu după emitent: JPN 25-AB-01234 (cheia JP|…), NIPPON 2009-123456
+                  (anul întreg, cheia NIPPON|…); orice afișare se citește înapoi la aceeași cheie.
                   Peste 120 de caractere nu se citește; formele late și caracterele invizibile se curăță înainte.
                   Limită cunoscută: inelele poloneze vechi cu district (PL-01-96-123456) se citesc cu anul primul (anul
                   2001, clubul 96): afișarea e cea scrisă, cheia e consecventă, doar `ring_year` e greșit.
@@ -175,6 +177,8 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   `web/src/japoneza.css` → `/japoneza.css` (angular.json, `inject: false`), adus de `core/font-ja.ts` doar când se folosește
   japoneza; stiva de fonturi se schimbă doar sub `[lang="ja"]` (styles.css; foaia de pedigree are `lang` propriu). În PDF,
   `core/sheet-fonts.ts` așteaptă literele foii și încorporează doar feliile de pe ea (test/font-japonez.test.js).
+- Semnul strămoșului de la tată și de la mamă e cheia `arbore.tm` (ro „T+M”, hu „apa+anya”, ja „父母”); `fisa.tm` și
+  `retea.legenda_tm` încep cu el (test/ja.test.js). Nu se scrie „T+M” în cod.
 - Ce e gata pentru Japonia (2026-11-26): inelele (regula completă, la `rings.js` mai sus: „JPN ” doar la `ja`, doar pe ce
   aduce omul); Excelul japonez (titluri de coloană, date cu ere, cuvinte pentru sex, ；／ ca separatori; codurile de culoare
   dintr-o literă NU se citesc la `ja`, nu se ghicesc) și citirea pozei (promptul știe fișele japoneze); numele japoneze ale

@@ -175,7 +175,7 @@ test('cont ja: inelul japonez fără prefix devine JP (textul omului, cu JPN în
   const ja = await langAccount('Ja', 'ja');
   const r = await create(ja, { kind: 'own', ring: '25-AB-01234' });
   assert.equal(r.status, 201, JSON.stringify(r.data));
-  assert.equal(r.data.pigeon.ring.display, 'JP-25-AB-01234');
+  assert.equal(r.data.pigeon.ring.display, 'JPN 25-AB-01234');
   assert.equal(r.data.pigeon.ring.raw, 'JPN 25-AB-01234');
   // Același inel scris altfel e o dublură.
   assert.equal((await create(ja, { kind: 'own', ring: '25AB01234' })).status, 409);
@@ -183,7 +183,7 @@ test('cont ja: inelul japonez fără prefix devine JP (textul omului, cu JPN în
   const p = await call(`/api/pigeons/${r.data.pigeon.id}`, { method: 'PATCH', cookie: ja, body: { ring: '2025 AB 01235' } });
   assert.equal(p.status, 200, JSON.stringify(p.data));
   assert.equal(p.data.pigeon.ring.raw, 'JPN 2025 AB 01235');
-  assert.equal(p.data.pigeon.ring.display, 'JP-25-AB-01235');
+  assert.equal(p.data.pigeon.ring.display, 'JPN 25-AB-01235');
 });
 
 test('cont ja: un inel doar din cifre se salvează exact cum l-a scris omul (Review Focus 2)', async () => {

@@ -464,13 +464,13 @@ test('cont ja: inelul cu forma japoneză primește JPN înaintea țării coloane
   }
   const s = await save(ja, { defaultCountry: 'JP', rows: rows({ ring: '25-AB-01234', father: '24-CD-00777' }, { ring: '26-800546' }) });
   assert.equal(s.status, 201, JSON.stringify(s.data));
-  const child = await byRing(ja, 'JP-25-AB-01234');
+  const child = await byRing(ja, 'JPN 25-AB-01234');
   assert.equal(child.ring.raw, 'JPN 25-AB-01234');
   const father = await pigeon(ja, (await pigeon(ja, child.id)).fatherId);
   assert.equal(father.ring.raw, 'JPN 24-CD-00777');
-  assert.equal(father.ring.display, 'JP-24-CD-00777');
+  assert.equal(father.ring.display, 'JPN 24-CD-00777');
   // Doar cifre: țara coloanei, ca azi.
-  assert.equal((await byRing(ja, 'JP-26-800546')).ring.raw, 'JP 26-800546');
+  assert.equal((await byRing(ja, 'JPN 26-800546')).ring.raw, 'JP 26-800546');
   // Același inel scris altfel, din nou: e cel existent, nu unul nou.
   const again = await save(ja, { rows: rows({ ring: '25AB01234' }) });
   assert.equal(again.data.created, 0);
@@ -493,13 +493,13 @@ test('cont ja: antet japonez, sex, dată cu eră și culoarea B: culoarea necuno
   await setLang(call, await accountId(ja), 'ja');
   const s = await save(ja, body);
   assert.equal(s.status, 201, JSON.stringify(s.data));
-  const a = await pigeon(ja, (await byRing(ja, 'JP-25-AB-01234')).id);
+  const a = await pigeon(ja, (await byRing(ja, 'JPN 25-AB-01234')).id);
   assert.equal(a.sex, 'M');
   assert.equal(a.hatchedOn, '2025-04-05');
   assert.equal(a.name, 'テスト一号');
   assert.equal(a.color, null);
   assert.equal(a.colorText, 'B');
-  const b = await pigeon(ja, (await byRing(ja, 'JP-25-AB-01235')).id);
+  const b = await pigeon(ja, (await byRing(ja, 'JPN 25-AB-01235')).id);
   assert.equal(b.sex, 'F');
   assert.equal(b.hatchedOn, '2025-04-06');
   assert.equal(b.color, 'albastru');

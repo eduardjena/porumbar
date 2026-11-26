@@ -119,10 +119,10 @@ test('cont ja: inelele japoneze citite din poză se salvează ca JP; cele doar d
   const j = await readAndImport(ja);
   assert.equal(j.unclear, 1, 'doar inelul fără țară, din cifre');
   assert.equal(j.root.ring.raw, 'JPN 25-AB-01234');
-  assert.equal(j.root.ring.display, 'JP-25-AB-01234');
+  assert.equal(j.root.ring.display, 'JPN 25-AB-01234');
   assert.equal(j.father.ring.raw, '26-800546');
   assert.equal(j.mother.ring.raw, 'JPN 24-EF-00555');
-  assert.equal(j.mother.ring.display, 'JP-24-EF-00555');
+  assert.equal(j.mother.ring.display, 'JPN 24-EF-00555');
 
   const ro = await newAccount(call, 'Ro');
   const r = await readAndImport(ro);

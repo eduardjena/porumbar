@@ -142,9 +142,9 @@ test('cont ja: părintele scris de mână fără JPN devine JP și se regăseșt
   const ext = await call('/api/pigeons', { method: 'POST', cookie: ja, body: { kind: 'external', ring: '24-CD-00777', sex: 'M' } });
   assert.equal(ext.status, 201, JSON.stringify(ext.data));
   assert.equal(ext.data.pigeon.ring.raw, 'JPN 24-CD-00777');
-  assert.equal(ext.data.pigeon.ring.display, 'JP-24-CD-00777');
+  assert.equal(ext.data.pigeon.ring.display, 'JPN 24-CD-00777');
   const found = await call(`/api/pigeons/lookup?ring=${encodeURIComponent('24CD00777')}`, { cookie: ja });
-  assert.equal(found.data.ring.display, 'JP-24-CD-00777');
+  assert.equal(found.data.ring.display, 'JPN 24-CD-00777');
   assert.deepEqual(found.data.matches.map((m) => m.pigeon.id), [ext.data.pigeon.id]);
   const digits = await call('/api/pigeons', { method: 'POST', cookie: ja, body: { kind: 'external', ring: '26-800546' } });
   assert.equal(digits.data.pigeon.ring.raw, '26-800546');

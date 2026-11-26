@@ -91,9 +91,9 @@ export const WORLD = [
   ['C.T.R.P.A 2027 311605', { country: 'CTRPA', year: 2027, club: null, number: '311605' }, 'CTRPA-27-311605'],
   ['KLPR 2026 123456', { country: 'KLPR', year: 2026, club: null, number: '123456' }, 'KLPR-26-123456'],
   // Japonia (două federații), Filipine, Hong Kong, Coreea, Thailanda, Vietnam, Indonezia
-  ['JPN 09 AB 12345', { country: 'JP', year: 2009, club: 'AB', number: '12345' }, 'JP-09-AB-12345'],
-  ['JAPAN 2009 AB 12345', { country: 'JP', year: 2009, club: 'AB', number: '12345' }, 'JP-09-AB-12345'],
-  ['NIPPON 2009 123456', { country: 'NIPPON', year: 2009, club: null, number: '123456' }, 'NIPPON-09-123456'],
+  ['JPN 09 AB 12345', { country: 'JP', year: 2009, club: 'AB', number: '12345' }, 'JPN 09-AB-12345'],
+  ['JAPAN 2009 AB 12345', { country: 'JP', year: 2009, club: 'AB', number: '12345' }, 'JPN 09-AB-12345'],
+  ['NIPPON 2009 123456', { country: 'NIPPON', year: 2009, club: null, number: '123456' }, 'NIPPON 2009-123456'],
   ['PHA 26-5015967', { country: 'PHA', year: 2026, club: null, number: '5015967' }, 'PHA-26-5015967'],
   ['PHA 22A284639', { country: 'PHA', year: 2022, club: 'A', number: '284639' }, 'PHA-22-A-284639'],
   ['HKPA 26-0001384', { country: 'HKPA', year: 2026, club: null, number: '1384' }, 'HKPA-26-0001384'],

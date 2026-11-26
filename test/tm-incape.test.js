@@ -41,3 +41,10 @@ test('limita: numarul se opreste exact la marginea cu aer', () => {
   assert.equal(tmRaza(262, 354, 312, 24, 22.5, 12, 3), 345);
   assert.notEqual(tmRaza(262, 354, 312, 24.5, 22.5, 12, 3), 345);
 });
+
+test('semnul japonez „父母”: fiecare kanji cât un pătrat întreg, nu cât o literă latină', async () => {
+  const { tmChars } = await import('../web/src/app/pages/retea/tm-incape.ts');
+  assert.equal(tmChars('T+M'), 3);
+  assert.equal(tmChars('apa+anya'), 8);
+  assert.equal(tmWidth(12, tmChars('父母')), 24); // 2 pătrate de 12 px
+});

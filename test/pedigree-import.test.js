@@ -118,7 +118,7 @@ test('rădăcina proprie cu inel nerecunoscut se păstrează cum e scrisă; impo
   assert.deepEqual(rings, ['Latebred BasVK 7', 'XYZ tata', 'RO-20-123123']);
 });
 
-test('fișa japoneză citită din poză: la contul ja inel JP-… și culoarea cu textul păstrat; la ro inelul cum e scris', async () => {
+test('fișa japoneză citită din poză: la contul ja inel JPN … și culoarea cu textul păstrat; la ro inelul cum e scris', async () => {
   const { setLang } = await import('./helpers/accounts.js');
   const node = { ring: '25-AB-01234', color: 'B' };
   const ja = await newAccount(call, 'JA');
@@ -126,7 +126,7 @@ test('fișa japoneză citită din poză: la contul ja inel JP-… și culoarea c
   const r = await importPedigree(ja, node);
   assert.equal(r.status, 201, JSON.stringify(r.data));
   const p = (await call(`/api/pigeons/${r.data.pigeonId}`, { cookie: ja })).data.pigeon;
-  assert.equal(p.ring.display, 'JP-25-AB-01234');
+  assert.equal(p.ring.display, 'JPN 25-AB-01234');
   assert.equal(p.color ?? null, null);
   assert.equal(p.colorText, 'B');
   const ro = await newAccount(call, 'RO');

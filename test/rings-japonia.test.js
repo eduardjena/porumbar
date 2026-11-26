@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatRing, japaneseRingText, parseRing } from '../src/rings.js';
+import { formatRing, japaneseRingText, parseRing, ringKey } from '../src/rings.js';
 import { previewRing } from '../web/src/app/shared/ring-preview.ts';
 
 /*
@@ -14,7 +14,7 @@ test('forma japoneză (an + două litere + număr) primește „JPN ” în faț
   assert.equal(japaneseRingText('2025 AB 01234'), 'JPN 2025 AB 01234');
   assert.equal(japaneseRingText('25-et-1234'), 'JPN 25-et-1234');
   assert.equal(japaneseRingText('２５ＡＢ０１２３４'), 'JPN ２５ＡＢ０１２３４');
-  assert.equal(formatRing(parseRing(japaneseRingText('25AB01234'))), 'JP-25-AB-01234');
+  assert.equal(formatRing(parseRing(japaneseRingText('25AB01234'))), 'JPN 25-AB-01234');
 });
 
 test('doar cifre, cu țară sau deja cu JPN: neschimbat (Review Focus 2)', () => {
@@ -28,10 +28,27 @@ test('parseRing nu se schimbă pentru inelul fără prefix (Review Focus 1)', ()
 });
 
 test('previzualizarea: la ja inelul japonez fără prefix, la ro ca azi', () => {
-  assert.equal(previewRing('25-AB-01234', 'ja').display, 'JP-25-AB-01234');
+  assert.equal(previewRing('25-AB-01234', 'ja').display, 'JPN 25-AB-01234');
   assert.equal(previewRing('25-AB-01234', 'ja').ok, true);
   assert.equal(previewRing('25-AB-01234', 'ro').ok, false);
   assert.equal(previewRing('25-AB-01234').ok, false);
   assert.deepEqual(previewRing('26-800546', 'ja'), previewRing('26-800546'));
   assert.deepEqual(previewRing('RO-26-800546 L', 'ja'), previewRing('RO-26-800546 L'));
+});
+
+test('afișarea japoneză ca pe inel (JPN …, NIPPON cu anul întreg) se citește înapoi la aceeași cheie', () => {
+  for (const [text, shown] of [
+    ['JPN 09 AB 12345', 'JPN 09-AB-12345'],
+    ['JAPAN 2009 AB 12345', 'JPN 09-AB-12345'],
+    ['JP 26-800546', 'JPN 26-800546'],
+    ['NIPPON 2009 123456', 'NIPPON 2009-123456'],
+    ['NIPPON 09 12345', 'NIPPON 2009-012345'],
+  ]) {
+    const r = parseRing(text);
+    assert.equal(formatRing(r), shown, text);
+    assert.equal(ringKey(parseRing(shown)), ringKey(r), shown);
+  }
+  // Cheile salvate nu se schimbă (doar afișarea).
+  assert.equal(ringKey(parseRing('JPN 25-AB-01234')), 'JP|2025|AB|1234');
+  assert.equal(ringKey(parseRing('NIPPON 2009 123456')), 'NIPPON|2009||123456');
 });

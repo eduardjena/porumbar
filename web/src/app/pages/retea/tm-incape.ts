@@ -2,6 +2,13 @@
 export const tmWidth = (font: number, chars: number) => Math.ceil(chars * 0.7 * font);
 
 /**
+ * Lungimea semnului în „caractere groase” pentru tmWidth: un semn lat (kanji, kana, forme late) ocupă cât un pătrat
+ * întreg, adică 1 / 0,7 caractere latine („父母” = 2 pătrate ≈ 3 caractere latine).
+ */
+export const tmChars = (text: string) =>
+  [...text].reduce((n, c) => n + (/[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦]/.test(c) ? 1 / 0.7 : 1), 0);
+
+/**
  * Încape semnul „T+M” (`chars` caractere) pe felie? Arcul feliei la raza dată (unghiul în grade) trebuie să fie
  * mai lung decât scrisul plus un mic cadru. Dacă nu încape, rămâne doar conturul gros.
  */

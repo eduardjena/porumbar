@@ -123,7 +123,7 @@ function rowFields(row, dateOrder, lang) {
     colorText: color?.code && !color.rest ? null : cut(row.color, 120),
     eyeColor: readEyeColor(row.eyeColor),
     status: readStatus(row.status),
-    hatchedOn: realDay(readDate(row.hatchedOn, dateOrder)),
+    hatchedOn: realDay(readDate(row.hatchedOn, dateOrder, { lang })),
     breederText: cut(row.breeder, 200),
     pedigreeText: cut(row.notes, 2000),
     lines,

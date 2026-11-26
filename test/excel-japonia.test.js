@@ -15,9 +15,17 @@ test('date: formele japoneze, cele de azi neschimbate', () => {
   assert.equal(readDate('令和元年5月1日'), '2019-05-01');
   assert.equal(readDate('平成30年5月1日'), '2018-05-01');
   assert.equal(readDate('昭和60年1月1日'), '1985-01-01');
-  assert.equal(readDate('R7.11.25'), '2025-11-25');
-  assert.equal(readDate('H30.5.1'), '2018-05-01');
-  assert.equal(readDate('S60.1.1'), '1985-01-01');
+  assert.equal(readDate('R7.11.25', 'dm', { lang: 'ja' }), '2025-11-25');
+  assert.equal(readDate('H30.5.1', 'dm', { lang: 'ja' }), '2018-05-01');
+  assert.equal(readDate('S60.1.1', 'dm', { lang: 'ja' }), '1985-01-01');
+  // Prescurtările R/H/S doar la contul japonez; la ro/hu rămân necitite, ca înainte.
+  assert.equal(readDate('S1.2.3'), null);
+  assert.equal(readDate('S1.2.3', 'dm', { lang: 'ro' }), null);
+  // Anii imposibili ai erelor → null.
+  assert.equal(readDate('令和0年5月1日'), null);
+  assert.equal(readDate('昭和99年1月1日'), null);
+  assert.equal(readDate('平成40年1月1日'), null);
+  assert.equal(readDate('平成31年4月30日'), '2019-04-30');
   assert.equal(readDate('2025/2/30'), null);
   assert.equal(readDate('2025年11月'), null);
   assert.equal(readDate('05.04.2024'), '2024-04-05');

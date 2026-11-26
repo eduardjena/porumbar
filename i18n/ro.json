@@ -3269,5 +3269,21 @@
   "eroare.tara_lipsa": {
     "text": "Alege țara din listă.",
     "sens": "La înscriere, fără țară sau cu un cod necunoscut."
+  },
+  "camp.localitate": {
+    "text": "localitate",
+    "sens": "Numele câmpului localității, în mesajele de eroare (de ex. „Câmpul „localitate” e obligatoriu”)."
+  },
+  "cont_nou.telefon": {
+    "text": "Telefonul",
+    "sens": "Câmpul telefonului, la înscriere (obligatoriu; apare pe fișă după bifele omului)."
+  },
+  "cont_nou.localitate": {
+    "text": "Localitatea",
+    "sens": "Câmpul localității, la înscriere (obligatoriu; devine adresa de pe fișă)."
+  },
+  "eroare.telefon_gresit": {
+    "text": "Numărul de telefon pare greșit: scrie-l cu toate cifrele.",
+    "sens": "La înscriere, un telefon cu mai puțin de 6 cifre."
   }
 }

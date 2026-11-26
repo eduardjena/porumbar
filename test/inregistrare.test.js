@@ -14,7 +14,7 @@ before(async () => {
 after(() => server?.close());
 
 const PASS = 'parola-de-test-123';
-const reg = (email, extra = {}) => call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: PASS, name: 'Ion Popescu', acceptTerms: true, country: 'RO', ...extra } });
+const reg = (email, extra = {}) => call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: PASS, name: 'Ion Popescu', acceptTerms: true, country: 'RO', phone: '0700 000 000', city: 'Brașov', ...extra } });
 const mailsTo = async (email) => (await import('../src/mail.js')).sentMails.filter((m) => m.to === email);
 const tokenOf = async (email) => (await mailsTo(email)).at(-1).text.match(/\/confirma\/(\S+)/)[1];
 
@@ -174,4 +174,22 @@ test('în probă: 3 citiri din poză (numărate de la confirmare); neconfirmat: 
   assert.equal(a.subscription.status, 'trial');
   assert.equal(a.reads.allowed, 3);
   assert.equal(a.reads.used, 0);
+});
+
+test('telefonul și localitatea: obligatorii, telefonul cu cel puțin 6 cifre; ajung în cont (localitatea = adresa de pe fișă) și la vânzător', async () => {
+  for (const [extra, re] of [[{ phone: '' }, /telefon/i], [{ phone: '12-34' }, /telefon/i], [{ city: '' }, /localitate/i], [{ city: undefined }, /localitate/i]]) {
+    const r = await reg(`tel-${JSON.stringify(extra).replace(/\W/g, '')}@exemplu.test`, extra);
+    assert.equal(r.status, 400, JSON.stringify(extra));
+    assert.match(JSON.stringify(r.data), re);
+  }
+  const { sentMails } = await import('../src/mail.js');
+  const email = 'tel-ok@exemplu.test';
+  const before = sentMails.length;
+  const ok = await reg(email, { phone: '+40 722 123 456', city: 'Cluj-Napoca' });
+  assert.equal(ok.status, 201, JSON.stringify(ok.data));
+  assert.equal(ok.data.account.phone, '+40 722 123 456');
+  assert.equal(ok.data.account.address, 'Cluj-Napoca');
+  await confirmEmail(call, email);
+  const toSeller = sentMails.slice(before).filter((m) => m.to === process.env.ADMIN_EMAIL);
+  assert.ok(toSeller[0].text.includes('+40 722 123 456') && toSeller[0].text.includes('Cluj-Napoca'));
 });

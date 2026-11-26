@@ -16,7 +16,7 @@ const TERMS: Record<string, string> = {
 };
 
 /**
- * Înscrierea: nume, email, parola de două ori, țara și bifa termenilor. Contul se face „doar citire”; linkul din
+ * Înscrierea: nume, email, telefon, localitate, parola de două ori, țara și bifa termenilor. Contul se face „doar citire”; linkul din
  * emailul de confirmare pornește singur proba de 30 de zile (fără vânzător).
  */
 @Component({
@@ -48,14 +48,20 @@ const TERMS: Record<string, string> = {
           <label class="field">{{ 'auth.email' | t }}
             <input type="email" name="email" autocomplete="email" inputmode="email" required [(ngModel)]="email" />
           </label>
-          <app-password-field [(value)]="password" autocomplete="new-password" [hint]="'cont_nou.parola_hint' | t" />
-          <app-password-field [(value)]="password2" name="password2" autocomplete="new-password" [label]="'cont_nou.parola_din_nou' | t" />
+          <label class="field">{{ 'cont_nou.telefon' | t }}
+            <input type="tel" name="phone" autocomplete="tel" inputmode="tel" required [(ngModel)]="phone" />
+          </label>
+          <label class="field">{{ 'cont_nou.localitate' | t }}
+            <input name="city" autocomplete="address-level2" required [(ngModel)]="city" />
+          </label>
           <label class="field">{{ 'cont_nou.tara' | t }}
             <select name="country" autocomplete="country" required [(ngModel)]="country">
               <option value="" disabled></option>
               @for (c of countries(); track c.code) { <option [value]="c.code">{{ c.name }}</option> }
             </select>
           </label>
+          <app-password-field [(value)]="password" autocomplete="new-password" [hint]="'cont_nou.parola_hint' | t" />
+          <app-password-field [(value)]="password2" name="password2" autocomplete="new-password" [label]="'cont_nou.parola_din_nou' | t" />
           <div class="hp" aria-hidden="true"><input type="text" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="website" /></div>
           <label class="check terms">
             <input type="checkbox" name="terms" [(ngModel)]="terms" />
@@ -74,6 +80,8 @@ export default class ContNou {
   private readonly router = inject(Router);
   name = '';
   email = '';
+  phone = '';
+  city = '';
   password = '';
   password2 = '';
   country = defaultCountry(currentLang());
@@ -112,7 +120,7 @@ export default class ContNou {
     try {
       const email = this.email.trim();
       await this.auth.register({
-        name: this.name.trim(), email, password: this.password, lang: currentLang(), country: this.country,
+        name: this.name.trim(), email, phone: this.phone.trim(), city: this.city.trim(), password: this.password, lang: currentLang(), country: this.country,
         acceptTerms: this.terms, website: this.website,
       });
       this.sentTo.set(email);

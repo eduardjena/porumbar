@@ -1703,5 +1703,9 @@
   "cont_nou.tara": "国・地域",
   "cont_nou.parola_din_nou": "パスワード（確認）",
   "eroare.parole_diferite": "2つのパスワードが一致しません。",
-  "eroare.tara_lipsa": "リストから国・地域を選んでください。"
+  "eroare.tara_lipsa": "リストから国・地域を選んでください。",
+  "camp.localitate": "市区町村",
+  "cont_nou.telefon": "電話番号",
+  "cont_nou.localitate": "市区町村",
+  "eroare.telefon_gresit": "電話番号が正しくないようです。すべての数字を入力してください。"
 }

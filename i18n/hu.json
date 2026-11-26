@@ -1697,5 +1697,9 @@
   "cont_nou.tara": "Ország",
   "cont_nou.parola_din_nou": "Jelszó még egyszer",
   "eroare.parole_diferite": "A két jelszó nem egyezik.",
-  "eroare.tara_lipsa": "Válaszd ki az országot a listából."
+  "eroare.tara_lipsa": "Válaszd ki az országot a listából.",
+  "camp.localitate": "település",
+  "cont_nou.telefon": "Telefonszám",
+  "cont_nou.localitate": "Település",
+  "eroare.telefon_gresit": "A telefonszám hibásnak tűnik: add meg az összes számjegyével."
 }

@@ -1,4 +1,4 @@
-import { atBucharest } from './treatment-schedule.js';
+import { BUCHAREST, atLocal } from './zones.js';
 
 /*
  * Calendarul cuibului (design: docs/superpowers/specs/2026-11-23-calendar-cuib-design.md): momentele rămase ale unei
@@ -60,18 +60,18 @@ export function nestMoments(c, today) {
   return result;
 }
 
-export function reminderMoments(c) {
+export function reminderMoments(c, zone = BUCHAREST) {
   if (c.calendarClosedOn) return [];
   const out = [];
   const eve = (kind, day) => {
     const onDate = addDays(day, -1);
-    out.push({ kind, onDate, at: atBucharest(onDate, 19) });
+    out.push({ kind, onDate, at: atLocal(onDate, 19, zone) });
   };
   for (const p of pending(c)) {
     eve(p.kind, p.from);
     if (p.kind === 'inelare') {
       eve('inelare_ultima_maine', p.to);
-      out.push({ kind: 'inelare_ultima', onDate: p.to, at: atBucharest(p.to, 7) });
+      out.push({ kind: 'inelare_ultima', onDate: p.to, at: atLocal(p.to, 7, zone) });
     }
   }
   return out.sort((a, b) => a.at - b.at);

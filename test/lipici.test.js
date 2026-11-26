@@ -82,11 +82,12 @@ test('câmpul „Linii”: virgula obișnuită și cele japoneze (、 ，) despa
 });
 
 // Cutiile .notice / .warning / .error sunt flex cu gap: o propoziție din mai multe bucăți are un singur înveliș `.flow`,
-// care nu există ca cutie în ro/hu (display: contents) și e un bloc în japoneză (fără goluri de 10px între bucăți).
+// un bloc în toate limbile, ca bucățile (text, <strong>) să curgă pe rânduri, fără goluri de 10px între ele.
 test('propozițiile din cutii au învelișul `.flow`', () => {
   const css = fs.readFileSync(path.join(ROOT, 'web', 'src', 'styles.css'), 'utf8');
-  assert.match(css, /^\.flow \{ display: contents; \}$/m);
-  assert.match(css, /^html\[lang="ja"\] \.flow \{ display: block; flex: 1; min-width: 0; \}$/m);
+  assert.match(css, /^\.flow \{ display: block; flex: 1; min-width: 0; \}$/m);
+  assert.doesNotMatch(css, /\.flow \{ display: contents/);
+  assert.doesNotMatch(css, /html\[lang="ja"\] \.flow/);
   const dir = path.join(ROOT, 'web', 'src', 'app');
   const box = /<(div|p)\b[^>]*?(?:class="(?:notice|warning|error)(?! stack)[^"]*"|\[class\]="[^"]*'warning' : 'notice'")[^>]*>([\s\S]*?)<\/\1>/g;
   let found = 0;

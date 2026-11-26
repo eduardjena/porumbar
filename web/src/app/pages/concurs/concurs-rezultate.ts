@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
 import { CatalogService } from '../../core/catalog';
-import { TPipe, formatDay, formatNumber, t } from '../../core/i18n';
+import { TPipe, formatDay, formatNumber, t, GluePipe } from '../../core/i18n';
 import { PigeonSummary, Race } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { PastedRow, ownRows, readPasted, ringKeyOf } from '../../shared/clasament';
@@ -47,12 +47,12 @@ const GONE = new Set(['vandut', 'pierdut', 'mort']);
  */
 @Component({
   selector: 'app-concurs-rezultate',
-  imports: [DateField, FormsModule, Icon, TPipe],
+  imports: [DateField, FormsModule, Icon, TPipe, GluePipe],
   template: `
 
     @if (done(); as d) {
       <div class="notice" role="status">
-        <app-icon name="bifa" />{{ 'concurs.salvate' | t: { count: d.added } }}@if (d.skipped) { {{ 'concurs.deja' | t: { count: d.skipped } }} }
+        <app-icon name="bifa" />{{ 'concurs.salvate' | t: { count: d.added } }}@if (d.skipped) {<ng-container>{{ ' ' | glue }}{{ 'concurs.deja' | t: { count: d.skipped } }}{{ ' ' | glue }}</ng-container>}
       </div>
     }
 

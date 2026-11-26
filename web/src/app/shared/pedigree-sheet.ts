@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { PedigreeV1Node } from '../core/models';
-import { currentLang, tIn } from '../core/i18n';
+import { currentLang, glueIn, tIn } from '../core/i18n';
 import { ringCompareKey, tmKeys } from './stramosi-comuni';
 
 const REPEAT = ['#c2410c', '#0f766e', '#7c3aed', '#b45309', '#be185d', '#1d4ed8'];
@@ -49,7 +49,7 @@ export interface Box {
               <strong class="mono">{{ n.ring ?? tx('text.fara_inel') }}</strong>
               @if (b.both) { <span class="tm" [title]="tx('arbore.tm_lung')">{{ tx('arbore.tm') }}</span> }
             </div>
-            @if (n.name) { <div class="nm">„{{ n.name }}”</div> }
+            @if (n.name) { <div class="nm">{{ gl('„') }}{{ n.name }}{{ gl('”') }}</div> }
             @if (color(n); as c) { <div class="meta">{{ c }}</div> }
             @if (n.breeder) { <div class="meta">{{ n.breeder }}</div> }
             @if (textOf(n); as t) { <div class="txt" [class]="'txt t' + b.gen">{{ t }}</div> }
@@ -139,6 +139,10 @@ export class PedigreeSheet {
   readonly lang = input<string | null>(null);
   protected tx(key: string) {
     return tIn(this.lang() ?? currentLang(), key);
+  }
+  /** Semnul lipit, în limba fișei. */
+  protected gl(text: string) {
+    return glueIn(this.lang() ?? currentLang(), text);
   }
   /** Foaia tipărită: totul pe o pagină A4. */
   readonly compact = input(false);

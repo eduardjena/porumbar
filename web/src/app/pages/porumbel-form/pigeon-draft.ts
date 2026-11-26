@@ -1,6 +1,7 @@
 import { CatalogService } from '../../core/catalog';
 import { changes } from '../../core/confirm';
 import { t } from '../../core/i18n';
+import { splitLines } from './split-lines';
 import { Kind, Pigeon, PigeonSummary, Sex } from '../../core/models';
 
 /*
@@ -54,7 +55,7 @@ export function draftBody(f: Draft) {
     sex: f.sex || null,
     name: f.name.trim() || null,
     breed: f.breed,
-    lines: f.lines.split(',').map((s) => s.trim()).filter(Boolean),
+    lines: splitLines(f.lines),
     color: f.color || null,
     colorPa: f.colorPa,
     colorText: f.colorText.trim() || null,

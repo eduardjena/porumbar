@@ -1,0 +1,7 @@
+/*
+ * Fontul japonez (Noto Sans JP, găzduit de noi), feliat: fiecare felie are unicode-range, iar browserul descarcă doar
+ * feliile cu literele de pe ecran. Fișier separat de styles.css (angular.json, inject: false), ca lista feliilor
+ * (peste 200 KB) să nu ajungă la cine nu are japoneza; îl aduce core/font-ja.ts.
+ */
+@import '@fontsource/noto-sans-jp/400.css';
+@import '@fontsource/noto-sans-jp/700.css';

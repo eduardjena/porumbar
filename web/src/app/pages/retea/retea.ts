@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import type { Core, ElementDefinition, NodeSingular } from 'cytoscape';
 import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
-import { t, TPipe } from '../../core/i18n';
+import { t, TPipe, GluePipe } from '../../core/i18n';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { lastRoot, rememberRoot } from './arbore-data';
@@ -18,7 +18,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
  */
 @Component({
   selector: 'app-retea',
-  imports: [FormsModule, RouterLink, Icon, TPipe],
+  imports: [FormsModule, RouterLink, Icon, TPipe, GluePipe],
   template: `
     <p class="muted intro">{{ 'retea.intro' | t }}</p>
     <div class="controls">
@@ -41,7 +41,7 @@ const css = (name: string) => getComputedStyle(document.documentElement).getProp
     @if (!rootId() && !tot()) {
       <div class="notice"><app-icon name="cautare" />{{ 'retea.adauga_primul' | t }}</div>
     }
-    @if (rootLabel()) { <p class="from">{{ 'retea.pornind_de_la' | t }} <strong class="mono">{{ rootLabel() }}</strong>{{ 'retea.pornind_rest' | t }}</p> }
+    @if (rootLabel()) { <p class="from">{{ 'retea.pornind_de_la' | t }}{{ ' ' | glue }}<strong class="mono">{{ rootLabel() }}</strong>{{ 'retea.pornind_rest' | t }}</p> }
 
     <div class="graph-wrap">
       <div #graph class="graph" role="img" [attr.aria-label]="'arbore.titlu_porumbar' | t"></div>

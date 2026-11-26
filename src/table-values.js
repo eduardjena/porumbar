@@ -19,7 +19,7 @@ export function readSex(text) {
 }
 
 /**
- * Codul dintr-o listă de catalog, după cod sau după numele din interfață (română sau maghiară); `dictKeys` e
+ * Codul dintr-o listă de catalog, după cod sau după numele din interfață (română, maghiară sau japoneză); `dictKeys` e
  * prefixul cheilor din i18n („catalog.stare”). Fără potrivire: null.
  */
 export function readCode(text, list, dictKeys) {
@@ -27,7 +27,7 @@ export function readCode(text, list, dictKeys) {
   if (!f) return null;
   for (const { code } of list) {
     if (fold(code) === f) return code;
-    for (const lang of ['ro', 'hu']) {
+    for (const lang of ['ro', 'hu', 'ja']) {
       const name = t(lang, `${dictKeys}.${code}`);
       if (name !== `${dictKeys}.${code}` && fold(name) === f) return code;
     }
@@ -44,10 +44,10 @@ export function readBreed(text) {
 export const readEyeColor = (text) => readCode(text, EYE_COLORS, 'catalog.ochi');
 export const readStatus = (text) => readCode(text, STATUSES, 'catalog.stare');
 
-/** Liniile de sânge: despărțite la `,` `;` `/`, cel mult 10. */
+/** Liniile de sânge: despărțite la `,` `;` `/` (și virgulele japoneze `、` `，`), cel mult 10. */
 export function readLines(text) {
   return String(text ?? '')
-    .split(/[,;/]/)
+    .split(/[,、，;/]/)
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 10);

@@ -1,4 +1,6 @@
 [
   { "code": "ro", "name": "Română", "locale": "ro-RO", "public": true },
-  { "code": "hu", "name": "Magyar", "locale": "hu-HU", "public": true }
+  { "code": "hu", "name": "Magyar", "locale": "hu-HU", "public": true },
+  { "code": "ja", "name": "日本語", "locale": "ja-JP", "public": false,
+    "semne": { ".": "。", ",": "、", ":": "：", "(": "（", ")": "）", "„": "「", "”": "」", "–": "〜", " ": "", "\u00a0": "" } }
 ]

@@ -7,7 +7,7 @@ import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { QrCode } from '../../shared/qr-code';
 import { Vanzare } from './vanzare';
-import { TPipe, t } from '../../core/i18n';
+import { TPipe, t, GluePipe, glue } from '../../core/i18n';
 
 /*
  * Fila „QR” a porumbelului: linkul public (pornit doar de proprietar), codul QR, trimiterea, tiparul și vânzarea.
@@ -15,7 +15,7 @@ import { TPipe, t } from '../../core/i18n';
  */
 @Component({
   selector: 'app-partajare',
-  imports: [RouterLink, Icon, QrCode, Vanzare, TPipe],
+  imports: [RouterLink, Icon, QrCode, Vanzare, TPipe, GluePipe],
   template: `
     @if (pigeon().kind !== 'own') {
       <section class="card"><p class="muted">{{ 'partajare.doar_proprii' | t }}</p></section>
@@ -32,7 +32,7 @@ import { TPipe, t } from '../../core/i18n';
               @if (canShare) { <button type="button" (click)="share(u)"><app-icon name="trimite" />{{ 'actiune.trimite' | t }}</button> }
               <a class="btn" [routerLink]="['/porumbei', pigeon().id, 'tiparire']"><app-icon name="tipar" />{{ 'porumbel.tipareste_pedigree' | t }}</a>
             </div>
-            <p class="muted small">{{ 'partajare.pe_pedigree_apare' | t: { extra: extras() } }} <a routerLink="/cont">{{ 'partajare.schimba_in_cont' | t }}</a></p>
+            <p class="muted small">{{ 'partajare.pe_pedigree_apare' | t: { extra: extras() } }}{{ ' ' | glue }}<a routerLink="/cont">{{ 'partajare.schimba_in_cont' | t }}</a></p>
             <div class="row">
               <button type="button" (click)="renew()">{{ 'partajare.alt_link' | t }}</button>
               <button type="button" class="danger" (click)="stop()">{{ 'partajare.opreste' | t }}</button>
@@ -86,13 +86,13 @@ export class Partajare {
 
   protected title() {
     const p = this.pigeon();
-    return p.name ? `„${p.name}”` : (p.ring?.display ?? '');
+    return p.name ? glue('„') + p.name + glue('”') : (p.ring?.display ?? '');
   }
 
   protected extras() {
     const a = this.auth.account();
     const parts = [a?.showPhone && t('partajare.telefonul'), a?.showAddress && t('partajare.adresa'), a?.showEmail && t('partajare.emailul')].filter(Boolean);
-    return parts.length ? `, ${parts.join(', ')}` : t('partajare.fara_contact');
+    return parts.length ? `${glue(', ')}${parts.join(glue(', '))}` : t('partajare.fara_contact');
   }
 
   private async load(id: number) {

@@ -1,4 +1,4 @@
-import { formatDay, t } from '../../core/i18n';
+import { formatDay, t, glue } from '../../core/i18n';
 import { Treatment, TreatmentRepeat } from '../../core/models';
 import { IconName } from '../../shared/icon';
 
@@ -33,7 +33,7 @@ export function nextStart(startDate: string, repeat: TreatmentRepeat | null): st
 
 /** „21.11.2026 – 25.11.2026”, sau o singură dată pentru un tratament de o zi. */
 export function periodText(tr: Pick<Treatment, 'startDate' | 'endDate' | 'days'>): string {
-  return tr.days === 1 ? formatDay(tr.startDate) : `${formatDay(tr.startDate)} – ${formatDay(tr.endDate)}`;
+  return tr.days === 1 ? formatDay(tr.startDate) : `${formatDay(tr.startDate)}${glue(' – ')}${formatDay(tr.endDate)}`;
 }
 
 /** Unde a ajuns: „ziua 3 din 5” / „azi”, „începe pe …”, „terminat pe …”, „oprit pe …”. */

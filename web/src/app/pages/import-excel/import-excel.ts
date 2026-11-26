@@ -6,11 +6,11 @@ import { RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { AuthService } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
-import { formatDateTime, localeOf, t, TPipe } from '../../core/i18n';
+import { formatDateTime, localeOf, t, TPipe, glue } from '../../core/i18n';
 import { ImportProblem, ImportSummary, ImportUndo, LastImport } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import {
-  Field, ImportRow, buildRows, canContinue, findHeader, guessColumns, parsePasted,
+  Field, ImportRow, buildRows, canContinue, defaultRingCountry, findHeader, guessColumns, parsePasted, ringCountries,
 } from '../../shared/tabel-coloane';
 import type { Sheet } from '../../shared/tabel-fisier';
 import { PorumbarState } from '../panou/porumbar-state';
@@ -34,8 +34,6 @@ const MAX_ROWS = 3000;
 const MAX_COLS = 20;
 /** Câte rânduri cu probleme se văd până la „Arată toate”. */
 const FIRST_PROBLEMS = 10;
-/** Țările din lista „Inelele fără țară sunt din:” (toate citite de rings.js cu „XX 24 0117345”). */
-const COUNTRIES = ['RO', 'HU', 'DE', 'NL', 'BE', 'PL', 'CZ', 'SK', 'RS', 'BG', 'MD', 'UA', 'IT', 'FR', 'GB', 'US', 'AT', 'SI', 'HR'];
 const FIELDS: Field[] = [
   'inel', 'inel_tara', 'inel_an', 'inel_club', 'inel_numar', 'nume', 'sex', 'culoare', 'ochi', 'rasa', 'linii', 'eclozare',
   'crescator', 'stare', 'tata', 'mama', 'observatii', 'ignor',
@@ -284,8 +282,8 @@ export default class ImportExcel {
   readonly titleAt = signal(0);
   protected readonly hasHeader = computed(() => this.headerRow() >= 0);
   readonly fields = signal<Field[]>([]);
-  /** Țara pusă în față inelelor care nu se citesc fără ea: implicit România, la conturile maghiare Ungaria. */
-  readonly country = signal(this.auth.account()?.lang === 'hu' ? 'HU' : 'RO');
+  /** Țara pusă în față inelelor care nu se citesc fără ea: implicit România, la conturile maghiare Ungaria, la cele japoneze Japonia. */
+  readonly country = signal(defaultRingCountry(this.auth.account()?.lang));
   readonly summary = signal<ImportSummary | null>(null);
   readonly result = signal<ImportSummary | null>(null);
   readonly last = signal<LastImport | null>(null);
@@ -329,7 +327,10 @@ export default class ImportExcel {
     } catch {
       /* browser vechi: doar codul */
     }
-    return COUNTRIES.map((code) => ({ code, label: names ? `${names.of(code) ?? code} (${code})` : code }));
+    return ringCountries(this.auth.account()?.lang).map((code) => ({
+      code,
+      label: names ? `${names.of(code) ?? code}${glue(' (')}${code}${glue(')')}` : code,
+    }));
   });
 
   constructor() {
@@ -501,7 +502,7 @@ export default class ImportExcel {
     this.busy.set('anulare');
     try {
       const u = await this.api.post<ImportUndo>('/import/excel/undo');
-      const kept = u.kept > 0 ? ` ${t('excel.anulat_ramas', { count: u.kept })}` : '';
+      const kept = u.kept > 0 ? `${glue(' ')}${t('excel.anulat_ramas', { count: u.kept })}` : '';
       this.last.set(null);
       if (this.step() === 'gata') this.startOver();
       this.message.set(`${t('excel.anulat', { count: u.deleted })}${kept}`);

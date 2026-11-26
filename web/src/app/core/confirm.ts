@@ -1,5 +1,5 @@
 import { Component, Injectable, effect, inject, signal, viewChild, ElementRef } from '@angular/core';
-import { TPipe } from './i18n';
+import { TPipe, glue } from './i18n';
 import { Icon } from '../shared/icon';
 
 export interface ConfirmOptions {
@@ -38,8 +38,8 @@ export class ConfirmService {
 
 /** Lista schimbărilor dintre două versiuni ale acelorași câmpuri: „Eticheta: vechi → nou”. */
 export function changes(fields: { label: string; before: unknown; after: unknown }[]): string[] {
-  const show = (v: unknown) => (v == null || v === '' || (Array.isArray(v) && !v.length) ? '—' : Array.isArray(v) ? v.join(', ') : String(v));
-  return fields.filter((f) => show(f.before) !== show(f.after)).map((f) => `${f.label}: ${show(f.before)} → ${show(f.after)}`);
+  const show = (v: unknown) => (v == null || v === '' || (Array.isArray(v) && !v.length) ? '—' : Array.isArray(v) ? v.join(glue(', ')) : String(v));
+  return fields.filter((f) => show(f.before) !== show(f.after)).map((f) => `${f.label}${glue(': ')}${show(f.before)} → ${show(f.after)}`);
 }
 
 @Component({

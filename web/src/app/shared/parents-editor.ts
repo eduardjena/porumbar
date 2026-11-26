@@ -4,12 +4,12 @@ import { CoiResult, Pigeon, PigeonSummary } from '../core/models';
 import { percent, ringText } from '../core/catalog';
 import { PigeonPicker } from './pigeon-picker';
 import { ConfirmService, changes } from '../core/confirm';
-import { TPipe, t } from '../core/i18n';
+import { TPipe, t, GluePipe } from '../core/i18n';
 
 /** Tatăl și mama: alegi pe fiecare după inel, vezi cât de înrudiți ar fi puii lor, apoi confirmi. */
 @Component({
   selector: 'app-parents-editor',
-  imports: [PigeonPicker, TPipe],
+  imports: [PigeonPicker, TPipe, GluePipe],
   template: `
     <div class="stack">
       <app-pigeon-picker [label]="'parinti.tatal' | t" sex="M" [selected]="father()" (picked)="father.set($event); changed()" />
@@ -17,8 +17,7 @@ import { TPipe, t } from '../core/i18n';
       @if (coi(); as c) {
         <div [class]="c.coi >= 0.125 ? 'warning' : 'notice'" role="status">
           @if (c.coi > 0) {
-            {{ 'parinti.coi' | t }} <strong>{{ pct(c.coi) }}</strong>.
-            {{ 'parinti.stramosi_comuni' | t }} @for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : ', ' }}}.
+            <span class="flow">{{ 'parinti.coi' | t }}{{ ' ' | glue }}<strong>{{ pct(c.coi) }}</strong>{{ '. ' | glue }}{{ 'parinti.stramosi_comuni' | t }}{{ ' ' | glue }}@for (x of c.common; track x.pigeon.id; let last = $last) {<strong class="mono">{{ ring(x.pigeon) }}</strong>{{ last ? '' : (', ' | glue) }}}{{ '.' | glue }}</span>
           } @else {
             {{ 'parinti.fara_stramosi_comuni' | t }}
           }

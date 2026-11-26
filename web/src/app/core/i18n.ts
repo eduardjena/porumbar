@@ -1,6 +1,8 @@
 import { Pipe, PipeTransform, signal } from '@angular/core';
 import roDictionary from '../../../../i18n/ro.json';
 import languages from '../../../../i18n/languages.json';
+import { loadJapaneseFont } from './font-ja';
+import { glueWith } from './glue';
 
 /*
  * Textele aplicației vin din i18n/<limba>.json (aceleași fișiere le citește și serverul). Româna e în pachet; celelalte
@@ -11,6 +13,8 @@ export interface Lang {
   name: string;
   locale: string;
   public: boolean;
+  /** Semnele limbii, dacă nu sunt cele din șabloane (vezi `glue`). */
+  semne?: Record<string, string>;
 }
 type Plural = Partial<Record<Intl.LDMLPluralRule, string>>;
 type Entry = string | Plural;
@@ -63,8 +67,14 @@ export function tIn(code: string, key: string, vars: Record<string, unknown> = {
 /** Textul cheii în limba ecranului (citește semnalul, deci șabloanele se refac la schimbarea limbii). */
 export const t = (key: string, vars?: Record<string, unknown>) => tIn(lang(), key, vars);
 
-/** Aduce dicționarul unei limbi (fără să schimbe limba ecranului). */
+/** Un semn lipit între bucăți traduse („, ”, „).”, un spațiu), în limba dată: în japoneză 、 ）。 și fără spațiu. */
+export const glueIn = (code: string, text: string) => glueWith(LANGS.find((l) => l.code === code)?.semne, text);
+/** `glueIn` în limba ecranului. */
+export const glue = (text: string) => glueIn(lang(), text);
+
+/** Aduce dicționarul unei limbi și fontul ei (fără să schimbe limba ecranului). */
 export async function ensureLang(code: string): Promise<void> {
+  if (code === 'ja') void loadJapaneseFont(); // fără așteptare: textul apare cu fontul sistemului și se schimbă când vine
   if (dictionaries.has(code)) return;
   const r = await fetch(`/i18n/${code}.json`, { headers: { Accept: 'application/json' } });
   if (!r.ok) throw new Error(`/i18n/${code}.json: ${r.status}`);
@@ -108,7 +118,7 @@ export function rememberGuestLang(code: string) {
 
 // ——— Formatarea după limbă ———
 
-/** O zi „AAAA-LL-ZZ” (fără fus orar): 18.11.2026 în română, 2026. 11. 18. în maghiară. */
+/** O zi „AAAA-LL-ZZ” (fără fus orar): 18.11.2026 în română, 2026. 11. 18. în maghiară, 2026/11/18 în japoneză. */
 export const formatDay = (d: string | null | undefined) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString(localeOf()) : '');
 export const formatDate = (d: string | Date, opts?: Intl.DateTimeFormatOptions) => new Date(d).toLocaleDateString(localeOf(), opts);
 export const formatDateTime = (d: string | Date, opts?: Intl.DateTimeFormatOptions) => new Date(d).toLocaleString(localeOf(), opts);
@@ -122,5 +132,13 @@ export const formatMoney = (n: number) => `${formatNumber(n, { minimumFractionDi
 export class TPipe implements PipeTransform {
   transform(key: string, vars?: Record<string, unknown>): string {
     return t(key, vars);
+  }
+}
+
+/** `{{ '. ' | glue }}`: semnul lipit între două bucăți traduse, în limba ecranului. */
+@Pipe({ name: 'glue', pure: false })
+export class GluePipe implements PipeTransform {
+  transform(text: string): string {
+    return glue(text);
   }
 }

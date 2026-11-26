@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexLabel } from '../../core/catalog';
-import { TPipe, formatDay, t } from '../../core/i18n';
+import { TPipe, formatDay, t, GluePipe, glue } from '../../core/i18n';
 import { Family, JournalEntry, Pigeon } from '../../core/models';
 import { PigeonChip } from '../../shared/pigeon-chip';
 import { ParentsEditor } from '../../shared/parents-editor';
@@ -30,14 +30,14 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 
 @Component({
   selector: 'app-porumbel',
-  imports: [DateField, FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe],
+  imports: [DateField, FormsModule, RouterLink, PigeonChip, ParentsEditor, Arbore, Breadcrumbs, Partajare, RezultateToate, ConcursRezultate, FisaEditabila, TPipe, GluePipe],
   template: `
     @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
     @if (p(); as p) {
       <app-breadcrumbs [items]="[origin(), { label: ring(p) }]" />
       <div class="title">
         <div>
-          <h1><span class="mono">{{ ring(p) }}</span>@if (p.name) { <span class="name"> „{{ p.name }}”</span> }</h1>
+          <h1><span class="mono">{{ ring(p) }}</span>@if (p.name) { <span class="name">{{ ' „' | glue }}{{ p.name }}{{ '”' | glue }}</span> }</h1>
           <p class="row sub">
             <span [class]="'sex-' + (p.sex ?? '')">{{ sexLabel(p.sex) }}</span>
             @if (p.status) { <span class="badge">{{ catalog.label('statuses', p.status) }}</span> }
@@ -246,7 +246,7 @@ export default class Porumbel {
   /** Șterge porumbelul deschis (unul singur), după o confirmare care spune exact ce se pierde. */
   async removePigeon(p: Pigeon) {
     this.deleteError.set('');
-    const who = [p.ring?.display ?? t('text.fara_inel'), p.name ? `„${p.name}”` : ''].filter(Boolean).join(' ');
+    const who = [p.ring?.display ?? t('text.fara_inel'), p.name ? glue('„') + p.name + glue('”') : ''].filter(Boolean).join(glue(' '));
     const ok = await this.confirm.ask({
       title: t('porumbel.sterge_titlu', { cine: who }),
       lines: [t('porumbel.sterge_rand1'), t('porumbel.sterge_rand2'), t('text.nu_se_poate_da_inapoi')],
@@ -265,7 +265,7 @@ export default class Porumbel {
   async removeEntry(e: JournalEntry) {
     const ok = await this.confirm.ask({
       title: t('porumbel.sterge_nota_titlu'),
-      lines: [`${formatDay(e.date)} · ${this.catalog.label('journalTypes', e.type)}: ${e.text.slice(0, 80)}`, t('text.nu_se_poate_da_inapoi')],
+      lines: [`${formatDay(e.date)} · ${this.catalog.label('journalTypes', e.type)}${glue(': ')}${e.text.slice(0, 80)}`, t('text.nu_se_poate_da_inapoi')],
       confirmLabel: t('actiune.da_sterge'),
       danger: true,
     });

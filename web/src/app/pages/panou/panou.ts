@@ -2,7 +2,7 @@ import { Component, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorMessage } from '../../core/api';
 import { CatalogService, ringText, sexShort } from '../../core/catalog';
-import { TPipe, t } from '../../core/i18n';
+import { TPipe, t, GluePipe } from '../../core/i18n';
 import { BoardPigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { resultsLine } from './panou-view';
@@ -29,7 +29,7 @@ function reasons(p: BoardPigeon): string {
 
 @Component({
   selector: 'app-panou',
-  imports: [RouterLink, Icon, TPipe],
+  imports: [RouterLink, Icon, TPipe, GluePipe],
   template: `
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
     @if (shareNote(); as n) { <div class="notice" role="status">{{ n }}</div> }
@@ -87,7 +87,7 @@ function reasons(p: BoardPigeon): string {
     @if (s.all().length) {
       <div class="legend" [attr.aria-label]="'panou.culorile_notei' | t">
         <span class="muted">{{ 'panou.nota' | t }}</span>
-        @for (b of bands; track b.band) { <span class="chip" [class]="'chip band-' + b.band">{{ b.key ? (b.key | t) : b.label }}</span> }
+        @for (b of bands; track b.band) { <span class="chip" [class]="'chip band-' + b.band">{{ b.key ? (b.key | t) : (b.label | glue) }}</span> }
       </div>
       <p class="muted small">{{ 'panou.nota_explicatie' | t }}</p>
     }

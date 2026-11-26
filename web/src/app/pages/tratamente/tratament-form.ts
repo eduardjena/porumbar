@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { ConfirmService, changes } from '../../core/confirm';
-import { TPipe, formatDay, t } from '../../core/i18n';
+import { TPipe, formatDay, t, glue } from '../../core/i18n';
 import { PigeonSummary, Treatment, TreatmentPigeon, TreatmentRepeat } from '../../core/models';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { DateField } from '../../shared/date-field';
@@ -407,7 +407,7 @@ export default class TratamentForm {
       const before = new Set(this.origPigeons.map((p) => p.id));
       const now = this.chosen();
       if (before.size !== now.size || [...now].some((id) => !before.has(id))) {
-        lines.push(`${c('treatmentTargets', 'alesi')}: ${t('tratamente.n_porumbei', { count: before.size })} → ${t('tratamente.n_porumbei', { count: now.size })}`);
+        lines.push(`${c('treatmentTargets', 'alesi')}${glue(': ')}${t('tratamente.n_porumbei', { count: before.size })} → ${t('tratamente.n_porumbei', { count: now.size })}`);
       }
     }
     return lines;

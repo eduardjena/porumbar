@@ -1,5 +1,5 @@
 import { Component, computed, input, output, signal } from '@angular/core';
-import { formatNumber, t, TPipe } from '../../core/i18n';
+import { formatNumber, t, TPipe, glue } from '../../core/i18n';
 import { ArboreData, lineColor } from './arbore-data';
 
 /*
@@ -90,7 +90,7 @@ export class VedereSange {
   protected readonly nodeH = NODE_H;
   protected readonly fmt = (n: number) => formatNumber(n);
   protected readonly lines = computed(() => this.data().blood.lines);
-  protected readonly summary = computed(() => this.lines().map((l) => `${l.name} ${l.percent}%`).join(', '));
+  protected readonly summary = computed(() => this.lines().map((l) => `${l.name} ${l.percent}%`).join(glue(', ')));
   private readonly colorOf = computed(() => new Map(this.lines().map((l, i) => [l.name, lineColor(l.name, i)])));
 
   toggle(name: string) {
@@ -101,7 +101,7 @@ export class VedereSange {
   protected ring = (id: number) => this.pigeon(id)?.ring?.display ?? t('text.fara_inel');
   protected sub = (id: number) => {
     const p = this.pigeon(id);
-    return [p?.name ? `„${p.name}”` : '', p?.year ?? ''].filter(Boolean).join(' · ');
+    return [p?.name ? glue('„') + p.name + glue('”') : '', p?.year ?? ''].filter(Boolean).join(' · ');
   };
 
   /**
@@ -170,9 +170,9 @@ export class VedereSange {
     if (!l) return '';
     const paths = this.data().blood.paths.filter((p) => p.line === name);
     if (name === t('text.necunoscut')) return t('arbore.sange_necunoscut', { procent: this.fmt(l.percent) });
-    const founders = l.founders.map((id) => this.ring(id)).join(', ');
-    const parts = paths.map((p) => `${this.fmt(Math.round(p.share * 1e4) / 1e2)} %`).join(' + ');
+    const founders = l.founders.map((id) => this.ring(id)).join(glue(', '));
+    const parts = paths.map((p) => `${this.fmt(Math.round(p.share * 1e4) / 1e2)}${glue(' %')}`).join(' + ');
     const text = t('arbore.sange_vine_prin', { nume: name, procent: this.fmt(l.percent), fondatori: founders, count: paths.length, parti: parts });
-    return paths.length > 1 ? `${text} ${t('arbore.sange_se_intalnesc')}` : text;
+    return paths.length > 1 ? `${text}${glue(' ')}${t('arbore.sange_se_intalnesc')}` : text;
   });
 }

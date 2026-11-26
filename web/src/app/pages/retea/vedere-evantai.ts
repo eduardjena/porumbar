@@ -1,6 +1,6 @@
 import { Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
 import { TreeNode } from '../../core/models';
-import { t, TPipe } from '../../core/i18n';
+import { t, TPipe, glue } from '../../core/i18n';
 import { ArboreData, REPEAT_COLORS } from './arbore-data';
 import { tmRaza } from './tm-incape';
 import { tmKeys } from '../../shared/stramosi-comuni';
@@ -189,7 +189,7 @@ export class VedereEvantai {
           tm: both && tmR != null ? { x: mx, y: my, rot: 90 - mid, font: tmFont } : null,
           // Inelele exterioare scurtate la număr (încap în felie), și cele scrise ca „6008107/08 BELG M”.
           label,
-          sub: p?.name ? `„${p.name}”` : p?.year ? String(p.year) : '',
+          sub: p?.name ? glue('„') + p.name + glue('”') : p?.year ? String(p.year) : '',
           tx,
           ty,
           rot,

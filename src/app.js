@@ -37,6 +37,12 @@ export const DEFAULT_CSP = [
   "worker-src 'self'",
 ].join('; ');
 
+/**
+ * Fișier din build cu hash de conținut în nume (se poate ține în cache un an). La fonturi hash-ul e cel pus de build
+ * („-N6AQLONF”), ca un font fără hash („…-japanese-400-normal.woff2”) să nu treacă drept unul.
+ */
+export const hasContentHash = (file) => /[-.][A-Za-z0-9_-]{8,}\.(js|css)$|-[A-Z0-9]{8}\.woff2?$/.test(path.basename(file));
+
 /** Cererea vine din pagina altui site? (Sec-Fetch-Site al browserului, altfel Origin față de Host.) */
 function crossSite(req) {
   const site = req.headers['sec-fetch-site'];
@@ -121,7 +127,7 @@ export function createApp() {
         setHeaders: (res, file) => {
           // Service worker-ul: browserul îl verifică la fiecare pornire, deci nu stă în cache; poate controla tot site-ul.
           if (path.basename(file) === 'sw.js') res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
-          else if (/[-.][A-Za-z0-9_-]{8,}\.(js|css)$/.test(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable');
+          else if (hasContentHash(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable');
         },
       }),
     );

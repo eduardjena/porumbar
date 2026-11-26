@@ -5,11 +5,11 @@ import { AuthService } from '../../core/auth';
 import { errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
 import { LangSwitch } from '../../shared/lang-switch';
-import { TPipe } from '../../core/i18n';
+import { TPipe, GluePipe } from '../../core/i18n';
 
 @Component({
   selector: 'app-parola-noua',
-  imports: [FormsModule, RouterLink, PasswordField, LangSwitch, TPipe],
+  imports: [FormsModule, RouterLink, PasswordField, LangSwitch, TPipe, GluePipe],
   template: `
     <div class="auth-page stack">
       <app-lang-switch />
@@ -24,7 +24,7 @@ import { TPipe } from '../../core/i18n';
       <form class="card stack" (ngSubmit)="submit()">
         <app-password-field [(value)]="password" [label]="'parola_noua.eticheta' | t" autocomplete="new-password" [hint]="'parola_noua.hint' | t" />
         @if (error()) {
-          <div class="error" role="alert">{{ error() }}@if (auth.account()) { {{ 'parola_noua.totusi_in_cont' | t }} }</div>
+          <div class="error" role="alert">{{ error() }}@if (auth.account()) {<ng-container>{{ ' ' | glue }}{{ 'parola_noua.totusi_in_cont' | t }}{{ ' ' | glue }}</ng-container>}</div>
           @if (!auth.account()) { <a routerLink="/parola-uitata">{{ 'parola_noua.link_nou' | t }}</a> }
         }
         <button class="primary wide" type="submit" [disabled]="busy()">{{ 'parola_noua.salveaza' | t }}</button>

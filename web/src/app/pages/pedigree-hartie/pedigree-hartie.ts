@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
-import { t, TPipe } from '../../core/i18n';
+import { t, TPipe, GluePipe, glue } from '../../core/i18n';
 import { Kind, LookupResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { previewRing } from '../../shared/ring-preview';
@@ -62,7 +62,7 @@ function forgetOldDraft() {
 
 @Component({
   selector: 'app-pedigree-hartie',
-  imports: [FormsModule, RouterLink, Icon, TPipe, CititorPoza],
+  imports: [FormsModule, RouterLink, Icon, TPipe, GluePipe, CititorPoza],
   template: `
     <!-- În cadrul Panoului: titlul și explicația („hartie.intro”) le pune cadrul; totul stă în lățimea site-ului. -->
     <div class="wide">
@@ -70,7 +70,7 @@ function forgetOldDraft() {
       @if (result(); as r) {
         <section class="card done" role="status">
           <h2><app-icon name="bifa" />{{ 'hartie.e_in_program' | t }}</h2>
-          <p>{{ 'hartie.rezultat_noi' | t: { count: r.created } }}, {{ 'hartie.rezultat_existau' | t: { count: r.reused } }}</p>
+          <p>{{ 'hartie.rezultat_noi' | t: { count: r.created } }}{{ ', ' | glue }}{{ 'hartie.rezultat_existau' | t: { count: r.reused } }}</p>
           @if (r.conflicts.length) {
             <div class="warning stack">
               <strong>{{ 'text.de_verificat' | t: { n: r.conflicts.length } }}</strong>
@@ -115,7 +115,7 @@ function forgetOldDraft() {
                  [class.hidden-mobile]="g >= 3 && !openGen()[g]" [class.has]="filled(s)">
               @if (i === 1 || i === 2 || i === 4 || i === 8 || i === 16) {
                 <button type="button" class="gen-toggle" (click)="toggleGen(g)" [attr.aria-expanded]="g < 3 || openGen()[g]">
-                  {{ genName(g) }} <span class="muted">({{ countIn(g) }}/{{ 2 ** g }})</span>
+                  {{ genName(g) }}{{ ' ' | glue }}<span class="muted">{{ '(' | glue }}{{ countIn(g) }}/{{ 2 ** g }}{{ ')' | glue }}</span>
                 </button>
               }
               <div class="role">
@@ -313,7 +313,7 @@ export default class PedigreeHartie {
       if (this.d().slots[i].ring.trim() !== ring) return; // s-a schimbat între timp
       const m = r.matches[0];
       if (!m) return this.hint(i, { kind: 'new', text: t('hartie.hint_nou', { inel: p.display }) });
-      const who = m.pigeon.name ? ` „${m.pigeon.name}”` : '';
+      const who = m.pigeon.name ? `${glue(' „')}${m.pigeon.name}${glue('”')}` : '';
       this.hint(i, { kind: 'existing', text: t('hartie.hint_exista', { inel: `${r.ring.display}${who}` }) });
       // Părinții pe care programul îi știe deja se completează în căsuțele goale.
       const add: [number, string | undefined][] = [

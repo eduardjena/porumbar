@@ -1,6 +1,6 @@
 import { Component, computed, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TPipe } from '../core/i18n';
+import { TPipe, GluePipe } from '../core/i18n';
 import { previewRing } from './ring-preview';
 
 /*
@@ -10,7 +10,7 @@ import { previewRing } from './ring-preview';
  */
 @Component({
   selector: 'app-ring-input',
-  imports: [FormsModule, TPipe],
+  imports: [FormsModule, TPipe, GluePipe],
   template: `
     <label class="field">{{ label() || ('inel.eticheta' | t) }}
       <span class="hint">{{ 'inel.exemplu' | t }}</span>
@@ -19,7 +19,7 @@ import { previewRing } from './ring-preview';
     @if (value().trim()) {
       @if (preview().ok) {
         <p class="ok" role="status">
-          {{ 'inel.recunoscut' | t }} <strong class="mono">{{ preview().unringed ? ('text.fara_inel' | t) : preview().display }}</strong>@if (preview().sex) {, {{ (preview().sex === 'M' ? 'inel.mascul' : 'inel.femela') | t }}}
+          {{ 'inel.recunoscut' | t }}{{ ' ' | glue }}<strong class="mono">{{ preview().unringed ? ('text.fara_inel' | t) : preview().display }}</strong>@if (preview().sex) {<ng-container>{{ ', ' | glue }}{{ (preview().sex === 'M' ? 'inel.mascul' : 'inel.femela') | t }}</ng-container>}
         </p>
       } @else if (required() && preview().needsClub) {
         <p class="bad" role="status">{{ 'eroare.inel_hu_asociatie' | t }}</p>

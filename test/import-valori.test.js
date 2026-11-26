@@ -2,8 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readSex, readBreed, readEyeColor, readStatus, readCode, readLines, readDate, slashOrder, ringWithCountry, cut } from '../src/table-values.js';
+import { __setForTest } from '../src/i18n.js';
 import { parseRing } from '../src/rings.js';
-import { STATUSES } from '../src/catalog.js';
+import { STATUSES, COLORS } from '../src/catalog.js';
 
 test('readSex: cuvinte românești, maghiare și internaționale', () => {
   assert.equal(readSex('Mascul'), 'M');
@@ -34,9 +35,15 @@ test('readCode: stare și ochi după cod sau nume', () => {
   assert.equal(readEyeColor('Narancs'), 'portocaliu');
 });
 
+test('readCode: potrivește și numele japoneze (valoarea pusă de mână, independent de traduceri)', () => {
+  __setForTest('ja', 'catalog.culoare.albastru', 'ブルー');
+  assert.equal(readCode('ブルー', COLORS, 'catalog.culoare'), 'albastru');
+});
+
 test('readLines: separatori, curățare, cel mult 10', () => {
   assert.deepEqual(readLines('Janssen; Van Loon / Delbar'), ['Janssen', 'Van Loon', 'Delbar']);
   assert.deepEqual(readLines(' a,, b ;'), ['a', 'b']);
+  assert.deepEqual(readLines('Janssen、Van Loon，Delbar'), ['Janssen', 'Van Loon', 'Delbar'], 'virgulele japoneze');
   assert.equal(readLines(Array.from({ length: 12 }, (_, i) => `L${i}`).join(',')).length, 10);
 });
 
@@ -93,6 +100,7 @@ test('ringWithCountry: pune țara coloanei doar când ajută', () => {
   assert.equal(ringWithCountry('BE 19 6080187', 'RO'), 'BE 19 6080187');
   assert.equal(ringWithCountry('HU-24-12345', 'HU'), 'HU-24-12345');
   assert.equal(ringWithCountry('24-0117345', null), '24-0117345');
+  assert.equal(ringWithCountry('24-12345', 'JP'), 'JP 24-12345', 'inelul japonez scris fără țară');
 });
 
 test('cut: curăță și taie', () => {

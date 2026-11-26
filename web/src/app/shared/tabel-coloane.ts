@@ -14,6 +14,19 @@ export type ImportRow = {
 
 const MAX_COLOANE = 20;
 
+/** Țările din lista „Inelele fără țară sunt din:” (toate citite de rings.js cu „XX 24 0117345”). */
+const TARI = ['RO', 'HU', 'DE', 'NL', 'BE', 'PL', 'CZ', 'SK', 'RS', 'BG', 'MD', 'UA', 'IT', 'FR', 'GB', 'US', 'AT', 'SI', 'HR'];
+
+/** Lista de țări la limba contului: la conturile japoneze și Japonia, prima; la celelalte, lista de mai sus. */
+export function ringCountries(lang?: string): string[] {
+  return lang === 'ja' ? ['JP', ...TARI] : [...TARI];
+}
+
+/** Țara pusă în față inelelor scrise fără ea, aleasă dinainte: după limba contului. */
+export function defaultRingCountry(lang?: string): string {
+  return lang === 'hu' ? 'HU' : lang === 'ja' ? 'JP' : 'RO';
+}
+
 // Fără diacritice, litere mici, doar litere/cifre separate de un spațiu.
 function fold(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/ß/g, 'ss')

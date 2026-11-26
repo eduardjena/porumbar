@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { CatalogService } from '../../core/catalog';
 import { ConfirmService } from '../../core/confirm';
-import { TPipe, formatDay, t } from '../../core/i18n';
+import { TPipe, formatDay, t, GluePipe } from '../../core/i18n';
 import { Treatment, TreatmentPigeon } from '../../core/models';
 import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { Icon } from '../../shared/icon';
@@ -14,7 +14,7 @@ import { kindIcon, periodText, repeatText, statusLabel, statusText, todayIso } f
  */
 @Component({
   selector: 'app-tratament',
-  imports: [RouterLink, Icon, TPipe, Breadcrumbs],
+  imports: [RouterLink, Icon, TPipe, GluePipe, Breadcrumbs],
   template: `
     <app-breadcrumbs [items]="crumbs()" />
     @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
@@ -31,7 +31,7 @@ import { kindIcon, periodText, repeatText, statusLabel, statusText, todayIso } f
       <dl class="card facts">
         <dt>{{ 'tratamente.fel' | t }}</dt><dd>{{ catalog.label('journalTypes', x.kind) }}</dd>
         <dt>{{ 'tratamente.cum' | t }}</dt><dd>{{ catalog.label('treatmentMethods', x.method) }}</dd>
-        <dt>{{ 'tratamente.perioada' | t }}</dt><dd>{{ period(x) }} <span class="muted">({{ 'tratamente.n_zile' | t: { count: x.days } }})</span></dd>
+        <dt>{{ 'tratamente.perioada' | t }}</dt><dd>{{ period(x) }}{{ ' ' | glue }}<span class="muted">{{ '(' | glue }}{{ 'tratamente.n_zile' | t: { count: x.days } }}{{ ')' | glue }}</span></dd>
         <dt>{{ 'tratamente.cui' | t }}</dt><dd>{{ catalog.label('treatmentTargets', x.target) }} · {{ 'tratamente.n_porumbei' | t: { count: x.count } }}</dd>
         <dt>{{ 'tratamente.se_repeta' | t }}</dt>
         <dd>{{ repeat(x) }}

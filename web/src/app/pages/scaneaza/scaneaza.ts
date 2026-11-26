@@ -1,7 +1,7 @@
 import { Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import jsQR from 'jsqr';
-import { t, TPipe } from '../../core/i18n';
+import { t, TPipe, GluePipe } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 
 /** Tokenul din linkul public al unui pedigree Porumbar („…/p/<token>”), sau null dacă codul e altceva. */
@@ -29,7 +29,7 @@ declare const BarcodeDetector: { new (o: { formats: string[] }): Detector } | un
  */
 @Component({
   selector: 'app-scaneaza',
-  imports: [RouterLink, Icon, TPipe],
+  imports: [RouterLink, Icon, TPipe, GluePipe],
   template: `
     <!-- În cadrul Panoului: titlul și explicația („scan.intro”) le pune cadrul. -->
 
@@ -54,7 +54,7 @@ declare const BarcodeDetector: { new (o: { formats: string[] }): Detector } | un
     @if (other(); as text) {
       <div class="notice stack" role="status">
         <strong>{{ 'scan.alt_cod' | t }}</strong>
-        <span>{{ 'scan.in_cod_scrie' | t }} <span class="mono code">{{ text }}</span></span>
+        <span>{{ 'scan.in_cod_scrie' | t }}{{ ' ' | glue }}<span class="mono code">{{ text }}</span></span>
         <span>{{ 'scan.alte_programe' | t }}</span>
         <a class="btn" routerLink="/porumbei/pedigree"><app-icon name="fisa" />{{ 'hartie.titlu' | t }}</a>
       </div>

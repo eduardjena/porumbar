@@ -2,7 +2,7 @@
 // amintit acum pentru pontele deschise și ce intră în emailul de seară. Trimiterea o face verificarea tratamentelor
 // (treatment-reminders.js), în aceeași notificare și același email cu tratamentele.
 import { all } from './db.js';
-import { t } from './i18n.js';
+import { glue, t } from './i18n.js';
 import { openClutches } from './breeding.js';
 import { subscriptionOf } from './subscriptions.js';
 import { isOpen, nestMoments, reminderMoments } from './nest-schedule.js';
@@ -29,8 +29,8 @@ export function groupNestItems(items, lang) {
     const nests = [...new Set(list.filter((i) => i.nest).map((i) => String(i.nest)))]
       .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     const labels = [...new Set(list.filter((i) => !i.nest).map((i) => i.label))].sort((a, b) => a.localeCompare(b));
-    const parts = [...(nests.length ? [t(lang, 'amintire.cuibul', { n: nests.join(', ') })] : []), ...labels];
-    return { kind, text: t(lang, `amintire.cuib_${kind}`, { cuib: parts.join(', ') }) };
+    const parts = [...(nests.length ? [t(lang, 'amintire.cuibul', { n: nests.join(glue(lang, ', ')) })] : []), ...labels];
+    return { kind, text: t(lang, `amintire.cuib_${kind}`, { cuib: parts.join(glue(lang, ', ')) }) };
   }).sort(byNestKind);
 }
 

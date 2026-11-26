@@ -16,7 +16,7 @@ export const config = {
     return process.env.SMTP_URL || null;
   },
   get mailFrom() {
-    return process.env.MAIL_FROM || 'Pigeonrama <nu-raspunde@porumbar.local>';
+    return process.env.MAIL_FROM || 'Pigeonrama <nu-raspunde@pigeonrama.com>';
   },
   /** Singurul admin (consola vânzătorului): contul cu acest email. */
   get adminEmail() {

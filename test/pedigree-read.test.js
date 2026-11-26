@@ -131,3 +131,10 @@ test('cont ja: inelele japoneze citite din poză se salvează ca JP; cele doar d
   assert.equal(r.root.ring.country, null);
   assert.equal(r.mother.ring.raw, '24-EF-00555');
 });
+
+test('instrucțiunile cunosc fișa japoneză: titlul, părinții, crescătorul, semnele de sex și inelul cu / fără JPN', () => {
+  const text = reader.instructionsFor('ro');
+  for (const token of ['血統書', '父', '母', '作出者', '♂', '♀', 'JPN 25-AB-01234', '25-AB-01234']) {
+    assert.ok(text.includes(token), `lipsește ${token}`);
+  }
+});

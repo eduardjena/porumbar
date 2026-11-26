@@ -117,3 +117,23 @@ test('rădăcina proprie cu inel nerecunoscut se păstrează cum e scrisă; impo
   const rings = (await treeRings(c, first.data.pigeonId)).map((x) => x.ring);
   assert.deepEqual(rings, ['Latebred BasVK 7', 'XYZ tata', 'RO-20-123123']);
 });
+
+test('fișa japoneză citită din poză: la contul ja inel JP-…, data, sexul și culoarea cu textul păstrat; la ro inelul cum e scris', async () => {
+  const { setLang } = await import('./helpers/accounts.js');
+  const node = { ring: '25-AB-01234', sex: 'メス', hatchedOn: '令和7年4月1日', color: 'B' };
+  const ja = await newAccount(call, 'JA');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  const r = await importPedigree(ja, node);
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const p = (await call(`/api/pigeons/${r.data.pigeonId}`, { cookie: ja })).data.pigeon;
+  assert.equal(p.ring.display, 'JP-25-AB-01234');
+  assert.equal(p.hatchedOn, '2025-04-01');
+  assert.equal(p.sex, 'F');
+  assert.equal(p.color ?? null, null);
+  assert.equal(p.colorText, 'B');
+  const ro = await newAccount(call, 'RO');
+  const r2 = await importPedigree(ro, node);
+  assert.equal(r2.status, 201, JSON.stringify(r2.data));
+  const q = (await call(`/api/pigeons/${r2.data.pigeonId}`, { cookie: ro })).data.pigeon;
+  assert.equal(q.ring.raw, '25-AB-01234');
+});

@@ -103,14 +103,14 @@ Pentru fiecare căsuță în care scrie ceva:
 - color: culoarea, cum e scrisă (de ex. „Pestriț”, „Vânăt”, „Solzat p.a.”, „BB”); null dacă nu e.
 - breeder: crescătorul de origine, dacă e scris separat (de ex. „Van Heteren”, „Comb. Den Haan”); altfel null.
 - text: restul textului din căsuță (rezultate, observații), fără inel, nume, culoare și crescător; null dacă nu rămâne nimic.
-Căsuțele goale sau tăiate nu apar în listă. Diacriticele lipsă le lași cum sunt. Fișa poate fi scrisă și în maghiară („SZÁRMAZÁSI LAP”, apa / anya, culori ca „kék kovácsolt”, sexul H / T după inel): transcrii la fel, exact cum e scris. Pe fișele maghiare culoarea și sexul vin des după inel („HU24-04-41013 / Kk ♂”): în ring pui doar inelul cu sexul („HU24-04-41013 ♂”), iar culoarea („Kk”) în color; numărul asociației (cele două cifre sau litera dintre an și număr) face parte din inel. Dacă un card de inel (licența spaniolă, „IGAZOLÓKÁRTYA” maghiar) e lipit peste căsuța porumbelului principal, inelul îl iei de pe card.
+Căsuțele goale sau tăiate nu apar în listă. Diacriticele lipsă le lași cum sunt. Fișa poate fi scrisă și în maghiară („SZÁRMAZÁSI LAP”, apa / anya, culori ca „kék kovácsolt”, sexul H / T după inel): transcrii la fel, exact cum e scris. Pe fișele maghiare culoarea și sexul vin des după inel („HU24-04-41013 / Kk ♂”): în ring pui doar inelul cu sexul („HU24-04-41013 ♂”), iar culoarea („Kk”) în color; numărul asociației (cele două cifre sau litera dintre an și număr) face parte din inel. Fișa poate fi scrisă și în japoneză („血統書”, 父 = tatăl, 母 = mama, 作出者 = crescătorul, ♂ / ♀ sau オス / メス pentru sex, culoarea în japoneză sau cu litere): transcrii exact cum e scris, fără să traduci. Inelul japonez are anul, două litere și numărul, cu sau fără prefixul JPN („JPN 25-AB-01234”, „25-AB-01234”): îl copiezi ca atare, cu tot cu prefix dacă e scris. Data poate fi în era japoneză („令和7年4月1日”): o transcrii la fel. Dacă un card de inel (licența spaniolă, „IGAZOLÓKÁRTYA” maghiar) e lipit peste căsuța porumbelului principal, inelul îl iei de pe card.
 
 rootSex: sexul porumbelului principal dacă e scris, altfel null.
 notes: o frază scurtă, {LIMBA_NOTEI}, despre ce nu s-a putut citi (părți tăiate, scris neclar); șir gol dacă totul e clar. Dacă fișierul nu e un pedigree de porumbel, lași slots gol și spui asta în notes.`;
 
 // Nota („ce nu s-a putut citi”) vine în limba omului.
 const NOTE_LANG = { ro: 'în română', hu: 'în maghiară', ja: 'în japoneză' };
-const instructionsFor = (lang) => INSTRUCTIONS.replace('{LIMBA_NOTEI}', NOTE_LANG[lang] ?? NOTE_LANG.ro);
+export const instructionsFor = (lang) => INSTRUCTIONS.replace('{LIMBA_NOTEI}', NOTE_LANG[lang] ?? NOTE_LANG.ro);
 
 /** Modelul de citire; testele pun aici unul fals (fără rețea, fără cost). */
 let model = null;

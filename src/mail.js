@@ -14,5 +14,13 @@ export async function sendMail({ to, subject, text }) {
     return;
   }
   transport ??= nodemailer.createTransport(config.smtp);
-  await transport.sendMail({ from: config.mailFrom, to, subject, text });
+  const hide = (x) => String(x).replace(/[^\s<>"'@]+@[^\s<>"']+/g, '…@…');
+  // În jurnal doar răspunsul serverului de email (fără adresă și fără conținut), ca să se vadă dacă a plecat.
+  try {
+    const info = await transport.sendMail({ from: config.mailFrom, to, subject, text });
+    console.log(`[porumbar] Email predat serverului: ${hide(info.response ?? 'fără răspuns')}${info.rejected?.length ? ` (refuzate: ${info.rejected.length})` : ''}`); // i18n: ro
+  } catch (e) {
+    console.error(`[porumbar] Email netrimis: ${e.code ?? ''} ${hide(e.response ?? e.message)}`.trim()); // i18n: ro
+    throw e;
+  }
 }

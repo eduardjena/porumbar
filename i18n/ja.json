@@ -175,7 +175,7 @@
   "sex.m": "♂",
   "sex.f": "♀",
   "inel.eticheta": "脚環",
-  "inel.exemplu": "例：RO-25-276971、276971/25 RO、RO 25 276971。末尾の文字（M/F、L/T）で性別が分かります。",
+  "inel.exemplu": "例：JPN 25-AB-01234、25-AB-01234、25AB01234。",
   "inel.recunoscut": "認識結果：",
   "inel.mascul": "オス",
   "inel.femela": "メス",

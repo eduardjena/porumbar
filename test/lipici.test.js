@@ -125,3 +125,12 @@ test('codul QR: eticheta de accesibilitate e cheie i18n în ro/hu/ja', () => {
     assert.match(d['partajare.qr_eticheta'], /\{url\}/, l);
   }
 });
+
+// Rețeaua (canvas): la contul japonez se redesenează când fontul termină de încărcat (nu se poate verifica fără browser).
+test('rețeaua: la ja se redesenează după document.fonts, doar dacă desenul e încă același', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'pages', 'retea', 'retea.ts'), 'utf8');
+  assert.match(src, /currentLang\(\) === 'ja' && document\.fonts/);
+  assert.match(src, /document\.fonts\.load\(/);
+  assert.match(src, /document\.fonts\.ready\.then\(redraw/);
+  assert.match(src, /this\.cy === cy && !cy\.destroyed\(\)\) cy\.forceRender\(\)/);
+});

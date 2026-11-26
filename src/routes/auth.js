@@ -168,6 +168,8 @@ export function authRouter() {
         subject: t(account.lang, 'mail.parola.subiect'),
         text: t(account.lang, 'mail.parola_uitata.text', { nume: account.name, link }),
       });
+    } else if (email && process.env.NODE_ENV !== 'test') {
+      console.log('[porumbar] Parolă uitată: adresa scrisă nu e a niciunui cont; nu s-a trimis nimic.'); // i18n: ro
     }
     // Același răspuns pentru orice email: nu se află cine are cont.
     res.json({ ok: true });

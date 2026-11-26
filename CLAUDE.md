@@ -51,7 +51,7 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   dar un porumbel PROPRIU se salvează așa, cu cheia de rezervă `?|` + textul curățat, fără sex
                   (storedRingKey; dubluri, căutare, rezultate); fără nicio literă / cifră („??”) se refuză; strămoșii
                   nerecunoscuți n-au cheie (nu se leagă singuri). Telefonul folosește aceleași reguli:
-                  web/src/app/shared/ring-preview.ts importă src/rings.js (Dockerfile îl copiază la build-ul interfeței)
+                  web/src/app/shared/ring-preview.ts importă src/rings.js, iar core/today.ts src/zones.js (Dockerfile le copiază la build-ul interfeței)
                   (`previewRing(text, lang)`). La conturile `ja`, inelul japonez scris fără „JPN” (25-AB-01234: an +
                   două litere + număr) primește „JPN ” în față (`japaneseRingText`), doar pe ce scrie / aduce omul
                   (formular, căutarea părintelui, pui inelați, serii, clasament lipit, Excel înaintea țării coloanei,

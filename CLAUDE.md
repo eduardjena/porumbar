@@ -11,8 +11,9 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
 ## Numele și sigla
 
 - **Numele afișat: „Pigeonrama”** (din 2026-11-26), peste tot unde îl vede omul: titlul paginii, antetul, manifestul,
-  notificările, emailurile, PDF-ul și fișa tipărită, textele din `i18n`. În maghiară se declină cu „á”: Pigeonramában,
-  Pigeonramához, Pigeonramát, Pigeonrama-fiók.
+  notificările, emailurile, PDF-ul și fișa tipărită, textele din `i18n`. **Numele nu se traduce și nu se schimbă**
+  (fără terminații): în maghiară „a Pigeonrama alkalmazásban / alkalmazáshoz / alkalmazást”, „Pigeonrama-fiók”; în
+  japoneză „Pigeonramaの…”. Cuvântul obișnuit „porumbar” (efectivul, adăpostul) se traduce: „dúc”, „鳩舎”.
 - **„Porumbar” rămâne numele tehnic**: pachetul, repo-ul, baza de date, cookie-ul `porumbar_session`, variabilele de
   mediu, serviciul Railway, formatul „porumbar-pedigree” v1, fișierele și clasele (`porumbar.ts`). Adresa
   www.porumbar.ro rămâne până la un domeniu nou. Cuvântul obișnuit „porumbar” (adăpostul) rămâne în texte.

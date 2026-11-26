@@ -482,3 +482,30 @@ test('cont ja: inelul cu forma japoneză primește JPN înaintea țării coloane
   const own = (await pigeons(ro)).filter((x) => x.kind === 'own');
   assert.deepEqual(own.map((x) => x.ring.raw), ['25-AB-01234']);
 });
+
+test('cont ja: antet japonez, sex, dată cu eră și culoarea B: culoarea necunoscută, cu textul B păstrat; la ro, B e bătut', async () => {
+  const antet = ['脚環番号', '性別', '羽色', '父', '母', '生年月日', '作出者', '鳩名'];
+  const grid = [antet, ['25-AB-01234', 'オス', 'B', '', '', '令和7年4月5日', '山田', 'テスト一号'], ['25-AB-01235', '雌', 'ブルー', '', '', '2025/4/6', '', '']];
+  const fields = ['inel', 'sex', 'culoare', 'tata', 'mama', 'eclozare', 'crescator', 'nume'];
+  const body = { defaultCountry: 'JP', rows: buildRows(grid, fields, 0) };
+
+  const ja = await newAccount(call, 'Ja2');
+  await setLang(call, await accountId(ja), 'ja');
+  const s = await save(ja, body);
+  assert.equal(s.status, 201, JSON.stringify(s.data));
+  const a = await pigeon(ja, (await byRing(ja, 'JP-25-AB-01234')).id);
+  assert.equal(a.sex, 'M');
+  assert.equal(a.hatchedOn, '2025-04-05');
+  assert.equal(a.name, 'テスト一号');
+  assert.equal(a.color, null);
+  assert.equal(a.colorText, 'B');
+  const b = await pigeon(ja, (await byRing(ja, 'JP-25-AB-01235')).id);
+  assert.equal(b.sex, 'F');
+  assert.equal(b.hatchedOn, '2025-04-06');
+  assert.equal(b.color, 'albastru');
+
+  const ro = await newAccount(call, 'Ro2');
+  const r = await save(ro, { rows: rows({ ring: 'RO-25-100001', color: 'B' }) });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal((await pigeon(ro, (await byRing(ro, 'RO-25-100001')).id)).color, 'baltat');
+});

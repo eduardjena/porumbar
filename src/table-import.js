@@ -106,9 +106,9 @@ function readRing(text, country, lang) {
 
 const realDay = (d) => (d && d >= '1900-01-01' && d <= '2100-12-31' ? d : null);
 
-/** Câmpurile fișei din celulele rândului (fără inel, rasă și părinți); `dateOrder` = ordinea datelor cu „/” (slashOrder). */
-function rowFields(row, dateOrder) {
-  const color = row.color ? matchColor(row.color) : null;
+/** Câmpurile fișei din celulele rândului (fără inel, rasă și părinți); `dateOrder` = ordinea datelor cu „/” (slashOrder), `lang` = limba contului (culorile: la `ja` fără litere singure). */
+function rowFields(row, dateOrder, lang) {
+  const color = row.color ? matchColor(row.color, { lang }) : null;
   const lines = [];
   for (const l of readLines(row.lines)) {
     const s = l.slice(0, 40).trim();
@@ -227,7 +227,7 @@ async function runImport(accountId, rows, country, lang) {
       continue;
     }
     for (const k of ring.keys) seen.set(k, row.line);
-    const f = rowFields(row, dateOrder);
+    const f = rowFields(row, dateOrder, lang);
     let rec = find(ring);
     try {
       if (!rec) {

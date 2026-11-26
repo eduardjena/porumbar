@@ -8,14 +8,15 @@ import { t } from './i18n.js';
  */
 
 const SEX_WORDS = {
-  M: ['m', 'mascul', 'masc', 'h', 'him', 'cock', 'doffer', 'tauber', 'male', '♂'],
-  F: ['f', 'femela', 'fem', 't', 'tojo', 'hen', 'duivin', 'taubin', 'femelle', 'female', '♀'],
+  M: ['m', 'mascul', 'masc', 'h', 'him', 'cock', 'doffer', 'tauber', 'male', '♂', 'オス', '雄'],
+  F: ['f', 'femela', 'fem', 't', 'tojo', 'hen', 'duivin', 'taubin', 'femelle', 'female', '♀', 'メス', '雌'],
 };
 const SEX_BY_WORD = new Map(Object.entries(SEX_WORDS).flatMap(([sex, words]) => words.map((w) => [w, sex])));
 
 /** Sexul din text: 'M' | 'F' | null. */
 export function readSex(text) {
-  return SEX_BY_WORD.get(fold(text)) ?? null;
+  // NFKC: „ｵｽ” (katakana îngustă) și formele late se aduc la cele obișnuite.
+  return SEX_BY_WORD.get(fold(String(text ?? '').normalize('NFKC'))) ?? null;
 }
 
 /**
@@ -44,10 +45,10 @@ export function readBreed(text) {
 export const readEyeColor = (text) => readCode(text, EYE_COLORS, 'catalog.ochi');
 export const readStatus = (text) => readCode(text, STATUSES, 'catalog.stare');
 
-/** Liniile de sânge: despărțite la `,` `;` `/` (și virgulele japoneze `、` `，`), cel mult 10. */
+/** Liniile de sânge: despărțite la `,` `;` `/` (și semnele japoneze `、` `，` `；` `／`), cel mult 10. */
 export function readLines(text) {
   return String(text ?? '')
-    .split(/[,、，;/]/)
+    .split(/[,、，;；/／]/)
     .map((s) => s.trim())
     .filter(Boolean)
     .slice(0, 10);
@@ -72,17 +73,26 @@ export function slashOrder(values) {
   return md ? 'md' : 'dm';
 }
 
+// Primul an al fiecărei ere japoneze (și prescurtările R / H / S).
+const ERA_START = { 令和: 2019, 平成: 1989, 昭和: 1926, R: 2019, H: 1989, S: 1926 };
+
 /**
  * Data ca AAAA-LL-ZZ din AAAA-LL-ZZ, AAAA.LL.ZZ, „AAAA. LL. ZZ.” (maghiar), ZZ.LL.AAAA și ZZ/LL/AAAA (LL/ZZ/AAAA cu
- * `order` = 'md', vezi slashOrder), cu sau fără oră după ea; un an singur sau o dată inexistentă → null.
+ * `order` = 'md', vezi slashOrder), plus cele japoneze: AAAA/L/Z, AAAA年L月Z日, era (令和7年11月25日, 令和元年, R7.11.25),
+ * cu sau fără oră după ea; un an singur, o lună fără zi sau o dată inexistentă → null.
  */
 export function readDate(text, order = 'dm') {
-  const s = String(text ?? '').trim().replace(TIME, '');
+  const s = String(text ?? '').normalize('NFKC').trim().replace(TIME, ''); // NFKC: cifrele late (２０２５) devin obișnuite
   let y, m, d, x;
   if ((x = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/) || s.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.?$/))) [, y, m, d] = x;
   else if ((x = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))) [, d, m, y] = x;
   else if ((x = s.match(SLASH))) [, d, m, y] = order === 'md' ? [x[0], x[2], x[1], x[3]] : x;
-  else return null;
+  else if ((x = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/) || s.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日?$/))) [, y, m, d] = x;
+  else if ((x = s.match(/^(令和|平成|昭和)(元|\d{1,2})年(\d{1,2})月(\d{1,2})日?$/) || s.match(/^([RHS])(\d{1,2})\.(\d{1,2})\.(\d{1,2})$/i))) {
+    // Era japoneză: anul 1 al erei e anul ei de început (令和 2019, 平成 1989, 昭和 1926); „元” = anul 1.
+    y = ERA_START[x[1].toUpperCase()] + (x[2] === '元' ? 1 : Number(x[2])) - 1;
+    [, , , m, d] = x;
+  } else return null;
   const [Y, M, D] = [Number(y), Number(m), Number(d)];
   const dt = new Date(Date.UTC(Y, M - 1, D));
   if (dt.getUTCFullYear() !== Y || dt.getUTCMonth() !== M - 1 || dt.getUTCDate() !== D) return null;

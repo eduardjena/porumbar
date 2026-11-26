@@ -3184,5 +3184,90 @@
   "instalare.manual": {
     "text": "Din meniul browserului (cele trei puncte ⋮ sau liniuțele ☰) alege „Instalează aplicația” sau „Adaugă pe ecranul de pornire”.",
     "sens": "Pe Android, când browserul nu oferă butonul de instalare: pașii din meniul browserului."
+  },
+  "eroare.doar_citire_neconfirmat": {
+    "text": "Confirmă-ți emailul (am trimis un link la înregistrare) ca să poți adăuga și schimba porumbei. Până atunci poți doar să vezi și să tipărești.",
+    "sens": "Cont nou, emailul încă neconfirmat: doar citire, cu pasul de urmat."
+  },
+  "eroare.doar_citire_proba": {
+    "text": "Proba s-a terminat, așa că acum e doar citire: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.{activare}",
+    "sens": "Proba de 30 de zile s-a terminat. {activare} = fraza despre plată sau activare (începe cu spațiu)."
+  },
+  "eroare.termeni_necesari": "Ca să-ți faci cont, trebuie să fii de acord cu termenii și condițiile.",
+  "eroare.email_unica_folosinta": "Adresele de email de unică folosință nu sunt acceptate. Folosește emailul tău obișnuit.",
+  "mail.confirmare.subiect": "Confirmă emailul pentru Pigeonrama",
+  "mail.confirmare.text": {
+    "text": "Bună, {nume}!\n\nCa să pornească cele 30 de zile de probă în Pigeonrama, confirmă-ți emailul deschizând linkul de mai jos (e valabil 7 zile):\n\n{link}\n\nDacă nu ți-ai făcut tu cont, ignoră acest mesaj.\n",
+    "sens": "Mailul de confirmare a emailului, trimis la înscriere; confirmarea pornește proba de 30 de zile."
+  },
+  "cont_nou.termeni_bifa": {
+    "text": "Am citit și am înțeles ",
+    "sens": "Înainte de linkul „termenii”, la bifa din formularul de cont nou (cu spațiul de la final)."
+  },
+  "cont_nou.termeni_link": {
+    "text": "termenii și condițiile",
+    "sens": "Linkul către termenii și condițiile, după „Am citit și am înțeles ”."
+  },
+  "cont_nou.trimis_titlu": "Ți-am trimis un email",
+  "cont_nou.trimis_text": {
+    "text": "Am trimis un link la {email}. Deschide-l ca să-ți pornești proba de 30 de zile. Dacă nu-l găsești, uită-te și în Spam.",
+    "sens": "{email} = adresa pusă de om la înregistrare."
+  },
+  "cont_nou.spre_panou": "Intră în program",
+  "confirma.titlu": "Confirmarea emailului",
+  "confirma.se_confirma": "Se confirmă emailul…",
+  "confirma.proba_pornita": {
+    "text": "Proba a pornit: 30 de zile",
+    "sens": "După confirmarea emailului începe proba gratuită de 30 de zile."
+  },
+  "confirma.confirmat": "Emailul e confirmat.",
+  "confirma.la_panou": "Spre Panou",
+  "confirma.trimite_din_nou": "Trimite din nou linkul",
+  "confirma.trimis": "Ți-am trimis un link nou. Uită-te în email.",
+  "confirma.intra": "Intră în cont ca să ceri un link nou",
+  "banda.neconfirmat": {
+    "text": "Confirmă-ți emailul ca să înceapă proba de 30 de zile: ți-am trimis un link.",
+    "sens": "Banda de sus pentru un cont nou, cu emailul neconfirmat."
+  },
+  "banda.trimite_din_nou": {
+    "text": "Trimite din nou",
+    "sens": "Buton: se trimite din nou emailul cu linkul de confirmare."
+  },
+  "banda.trimis": "Ți-am trimis linkul din nou.",
+  "banda.proba": {
+    "one": "Probă: mai ai {count} zi.",
+    "few": "Probă: mai ai {count} zile.",
+    "other": "Probă: mai ai {count} de zile.",
+    "sens": "Banda de sus, în timpul probei gratuite de 30 de zile."
+  },
+  "banda.proba_gata": {
+    "text": "Proba s-a terminat: poți vedea și tipări porumbeii, dar nu poți adăuga sau schimba nimic.{activare}",
+    "sens": "{activare} = fraza despre activare (începe cu spațiu); goală când se poate plăti online."
+  },
+  "cont.proba_pana": {
+    "text": "Probă gratuită până pe {data}",
+    "sens": "Starea din Cont → Abonament în timpul probei."
+  },
+  "cont.neconfirmat": "Emailul nu e confirmat încă. Proba de 30 de zile pornește după ce deschizi linkul din email.",
+  "cont.proba_gata": {
+    "text": "Proba s-a terminat pe {data}. Acum poți doar să vezi și să tipărești porumbeii.",
+    "sens": "{data} = ziua în care s-a terminat proba."
+  },
+  "titlu.confirma": "Confirmarea emailului · Pigeonrama",
+  "cont_nou.tara": {
+    "text": "Țara",
+    "sens": "Câmpul cu lista țărilor, la înscriere."
+  },
+  "cont_nou.parola_din_nou": {
+    "text": "Parola, încă o dată",
+    "sens": "Al doilea câmp de parolă, la înscriere (să nu fie o greșeală de tastare)."
+  },
+  "eroare.parole_diferite": {
+    "text": "Cele două parole nu sunt la fel.",
+    "sens": "La înscriere, când parola și „încă o dată” diferă."
+  },
+  "eroare.tara_lipsa": {
+    "text": "Alege țara din listă.",
+    "sens": "La înscriere, fără țară sau cu un cod necunoscut."
   }
 }

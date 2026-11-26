@@ -806,7 +806,7 @@
   "amintiri.ios_pas1": "Safariの「共有」ボタン（上向き矢印のついた四角）を押します。",
   "amintiri.ios_pas2": "「ホーム画面に追加」を選びます。",
   "amintiri.ios_pas3": "新しくできたアイコンからPigeonramaを開き、ここに戻ってきてください。",
-  "amintiri.nesuportat": "この携帯電話は通知に対応していません。夜のメールでお知らせします。",
+  "amintiri.nesuportat": "この携帯電話は通知に対応していません。リマインダーはアプリのホーム画面でご確認ください。",
   "amintiri.refuzat": "Pigeonramaの通知がブロックされています。携帯電話の設定（「通知」、またはブラウザーのサイト設定）で許可し直してから、このページをもう一度開いてください。",
   "amintiri.telefoane": {
     "one": "{count}台の携帯電話でリマインダーを受け取ります。",

@@ -27,7 +27,9 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   `python docs/design/sigla/urmareste.py docs/design/sigla/model.png sigla.json`, apoi
   `python docs/design/sigla/scrie-svg.py sigla.json .` scrie `web/public/icon.svg` (fără fundal: tab, antet, fișă),
   `web/public/icon-maskable.svg` (fundal crem, iconița de pe telefon) și `docs/design/sigla/pigeonrama*.svg` (sigla
-  întreagă, cu fundal și transparentă).
+  întreagă, cu fundal și transparentă). PNG-urile (telefoanele nu arată SVG în notificări și pe ecranul iPhone-ului):
+  `node docs/design/sigla/fa-png.mjs` (cu Edge) scrie `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` și
+  `badge-96.png` (silueta albă din `docs/design/sigla/badge.svg`, pentru bara telefonului).
 - **Culorile** aplicației și ale site-ului sunt ale siglei (din 2026-11-26, în locul paletei „Pământ”): fundal crem `#f7f8f3`,
   text `#263343`, acțiuni roșu `#d92132` (apăsat `#a8141f`), gri-uri reci; în `web/src/styles.css` (`:root`) și
   `porumbar-site/public/site.css`. Verdele rămâne doar pentru valoarea porumbeilor, culorile liniilor de sânge rămân.
@@ -94,8 +96,8 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   treatments.js   tratamentele pe tot porumbarul: fișa (grup, porumbei, repetare), grupurile, jurnalul legat (intrarea din
                   jurnal scrisă de un tratament nu se șterge separat), repetările (doar în viitor), blocare pe rând
   treatment-schedule.js  momentele amintirilor în ora României (modul pur)
-  treatment-reminders.js rulantul pe oră (pornit din server.js): fixează momentele, trimite push + rezumatul de seară pe
-                  email (cel mult unul pe seară); deduplicare în `treatment_notices` / `email_digests`;
+  treatment-reminders.js rulantul pe oră (pornit din server.js): fixează momentele, trimite push (rezumatul de seară pe
+                  email e OPRIT din 2026-11-26, limita găzduirii; `REMINDER_EMAILS=1` îl pornește din nou); deduplicare în `treatment_notices` / `email_digests`;
                   `REMINDER_EMAILS_PER_MINUTE` limitează emailurile. Trimite și amintirile cuibului, în aceeași
                   notificare și același email cu tratamentele
   nest-reminders.js  amintirile cuibului (sursa pentru rulant): momentele sosite ale pontelor deschise (doar conturile
@@ -242,10 +244,11 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
   `railway up <folder> --path-as-root --service porumbar --detach`.
 - Variabilele secrete (`ADMIN_PASSWORD`, `ANTHROPIC_API_KEY`, SMTP) le pune vânzătorul în Railway, niciodată prin chat.
 - Tratamentele cu amintiri (feat/tratamente): variabile noi `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
-  (`mailto:adresa`) și `REMINDER_EMAILS_PER_MINUTE` (implicit 10). Cheile VAPID se fac o singură dată cu
-  `npx web-push generate-vapid-keys` și le pune vânzătorul în Railway, niciodată prin chat; dacă se schimbă, fiecare
-  telefon trebuie să se aboneze din nou. Fără chei nu există push pe telefon (Panoul și emailul merg), iar emailul cere
-  `SMTP_URL`. Migrarea acestei funcții e **22**; dacă feat/plata-paddle (22–25) intră înainte în `main`, se renumerotează
+  (`mailto:adresa`) și `REMINDER_EMAILS_PER_MINUTE` (implicit 10). Cheile VAPID de producție sunt pe Railway din
+  2026-11-26 (făcute local și puse direct cu `railway variables`, fără să apară în chat; `VAPID_SUBJECT=mailto:contact@pigeonrama.com`); dacă se schimbă, fiecare
+  telefon trebuie să se aboneze din nou. Fără chei nu există push pe telefon (Panoul merge). **Amintirile nu merg pe
+  email** (decizia vânzătorului, 2026-11-26): doar în aplicație (banda de pe Panou), în browser și pe telefon; bifa din
+  Cont apare doar cu `REMINDER_EMAILS=1`. Emailurile rămase: parola nouă, invitațiile și anunțul de expirare a abonamentului. Migrarea acestei funcții e **22**; dacă feat/plata-paddle (22–25) intră înainte în `main`, se renumerotează
   la merge. **Condiție de lansare:** probă pe un Android real și pe un iPhone real (aplicația adăugată pe ecranul
   principal) înainte de publicare.
 - Citirea din poze: cheia în `ANTHROPIC_API_KEY` (cheie API de pe console.anthropic.com, plătită separat de abonamentul

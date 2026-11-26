@@ -151,6 +151,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
         @if (pushError()) { <div class="error" role="alert">{{ pushError() }}</div> }
       </div>
       }
+      @if (auth.account()?.reminderEmailsOn) {
       <div class="card stack">
         <label class="check">
           <input type="checkbox" name="reminderEmail" [checked]="auth.account()?.reminderEmail !== false" [disabled]="emailBusy()" (change)="setReminderEmail($any($event.target).checked)" />
@@ -158,6 +159,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
         </label>
         @if (emailError()) { <div class="error" role="alert">{{ emailError() }}</div> }
       </div>
+      }
     }
 
     @if (section() === 'iesire') {

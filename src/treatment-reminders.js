@@ -72,6 +72,7 @@ function enqueueMail(mail, gapMs) {
 let warnedNoSmtp = false;
 /** În producție, fără server de email (SMTP_HOST sau SMTP_URL) nu se trimite nimic (și conținutul nu ajunge în jurnalul serverului). */
 function mailAllowed() {
+  if (!config.reminderEmails) return false; // oprite: amintirile vin doar în aplicație și pe telefon
   if (process.env.NODE_ENV !== 'production' || config.smtp) return true;
   if (!warnedNoSmtp) console.warn('[porumbar] Rezumatul de seară pe email e oprit: lipsește SMTP_HOST (sau SMTP_URL).'); // i18n: ro
   warnedNoSmtp = true;

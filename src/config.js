@@ -51,6 +51,13 @@ export const config = {
     return !!(this.vapidPublicKey && this.vapidPrivateKey && this.vapidSubject);
   },
   /** Câte emailuri de amintire pleacă pe minut (ca serverul de email să nu ne blocheze). */
+  /**
+   * Amintirile de seară pe email (tratamente, cuiburi): oprite din 2026-11-26 (limita de emailuri a găzduirii);
+   * amintirile vin doar în aplicație, în browser și pe telefon. REMINDER_EMAILS=1 le pornește din nou.
+   */
+  get reminderEmails() {
+    return ['1', 'true', 'da'].includes(String(process.env.REMINDER_EMAILS ?? '').trim().toLowerCase());
+  },
   get reminderEmailsPerMinute() {
     const n = Number(process.env.REMINDER_EMAILS_PER_MINUTE);
     if (!process.env.REMINDER_EMAILS_PER_MINUTE || !Number.isFinite(n)) return 10;

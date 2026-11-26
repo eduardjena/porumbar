@@ -26,6 +26,7 @@ const answers = new Map();
 before(async () => {
   delete process.env.SMTP_URL;
   delete process.env.SMTP_HOST;
+  process.env.REMINDER_EMAILS = '1'; // oprite implicit; aici se verifică emailul de seară
   ({ server, base } = await startTestApp());
   ({ runTreatmentReminders: remind } = await import('../src/treatment-reminders.js'));
   ({ nestEveningLines: eveningLines } = await import('../src/nest-reminders.js'));

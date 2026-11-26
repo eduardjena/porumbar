@@ -11,7 +11,9 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'Pigeonrama', {
       body: data.body || '',
-      icon: '/icon.svg',
+      // PNG: telefoanele nu arată SVG în notificări. Semnul (badge) e doar forma albă, pentru bara de sus a telefonului.
+      icon: '/icon-192.png',
+      badge: '/badge-96.png',
       data: { url: data.url || '/porumbar' },
     }),
   );

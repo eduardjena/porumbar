@@ -1514,7 +1514,7 @@
   "amintiri.ios_pas1": "Nyomd meg a Safari „Megosztás” gombját (a felfelé nyilas négyzet).",
   "amintiri.ios_pas2": "Válaszd a „Hozzáadás a kezdőképernyőhöz” lehetőséget.",
   "amintiri.ios_pas3": "Nyisd meg a Pigeonrama alkalmazást az új ikonról, és gyere vissza ide.",
-  "amintiri.nesuportat": "Ez a telefon nem kap értesítéseket. Megkapod az esti e-mailt.",
+  "amintiri.nesuportat": "Ez a telefon nem kap értesítéseket. Az emlékeztetőket a Főoldalon, az alkalmazásban látod.",
   "amintiri.refuzat": "Letiltottad a Pigeonrama értesítéseit. A telefon beállításaiban (Értesítések, vagy a böngésző webhelybeállításai) kapcsold vissza, majd nyisd meg újra ezt az oldalt.",
   "amintiri.telefoane": "Az emlékeztetők {count} telefonra mennek.",
   "amintiri.email": "Kérek emlékeztetőt e-mailben",

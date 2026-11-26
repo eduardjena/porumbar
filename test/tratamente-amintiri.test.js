@@ -25,6 +25,7 @@ const answers = new Map();
 before(async () => {
   delete process.env.SMTP_URL;
   delete process.env.SMTP_HOST;
+  process.env.REMINDER_EMAILS = '1'; // oprite implicit; aici se verifică emailul de seară
   ({ server, base } = await startTestApp());
   ({ runTreatmentReminders: remind } = await import('../src/treatment-reminders.js'));
   ({ one, all, run: dbRun } = await import('../src/db.js'));
@@ -238,6 +239,20 @@ test('în producție fără SMTP_URL: niciun email și niciun rând în email_di
     await run(at(addDays(d, -1), 19));
   } finally {
     process.env.NODE_ENV = env;
+  }
+  assert.equal(mailsTo(a).length, 0);
+  assert.equal((await all('SELECT 1 FROM email_digests WHERE account_id = ?', a.id)).length, 0);
+});
+
+test('emailurile de seară oprite (implicit, fără REMINDER_EMAILS): niciun email și niciun rând în email_digests', async () => {
+  const d = nextDay();
+  const a = await account('FaraEmail');
+  await treatment(a, { startDate: d });
+  delete process.env.REMINDER_EMAILS;
+  try {
+    await run(at(addDays(d, -1), 19));
+  } finally {
+    process.env.REMINDER_EMAILS = '1';
   }
   assert.equal(mailsTo(a).length, 0);
   assert.equal((await all('SELECT 1 FROM email_digests WHERE account_id = ?', a.id)).length, 0);

@@ -47,6 +47,8 @@ export const publicAccount = (a) => ({
   breederCode: a.breeder_code ?? null,
   // Amintirile de la tratamente vin și pe email (implicit da).
   reminderEmail: a.reminder_email !== false,
+  // Emailul de seară există pe acest server? (oprit implicit; atunci bifa din Cont nu se arată)
+  reminderEmailsOn: config.reminderEmails,
   isAdmin: isAdminEmail(a.email),
   sellerContact: config.sellerContact,
   subscription: subscriptionOf(a),

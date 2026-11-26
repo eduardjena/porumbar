@@ -775,6 +775,7 @@
   "partajare.alt_link": "Új link készítése (a régi nem működik többé)",
   "partajare.opreste": "Link leállítása",
   "partajare.link_si_qr": "Link és QR-kód a származási laphoz",
+  "partajare.qr_eticheta": "QR-kód ehhez: {url}",
   "partajare.porneste_explicatie": "Indítsd el a linket, hogy átadd a származási lapot egy másik tenyésztőnek: beolvassa a telefonjával, vagy megnyitja az üzenetből. Csak az látja, akinek megvan a link; bármikor leállíthatod.",
   "partajare.ce_se_vede": "Látható: a gyűrűszám, az ivar, a név, a szín, a tenyésztő és a származási lap szövege, 5 generáción át. Nem látható: az értékelés, a napló, az állapot.",
   "partajare.porneste": "Link indítása",

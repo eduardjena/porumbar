@@ -1112,6 +1112,7 @@
   "partajare.alt_link": "別のリンクを作る（今のリンクは使えなくなります）",
   "partajare.opreste": "リンクを停止",
   "partajare.link_si_qr": "血統書のリンクとQRコード",
+  "partajare.qr_eticheta": "{url}のQRコード",
   "partajare.porneste_explicatie": "リンクを有効にすると、血統書をほかの愛鳩家に渡せます。相手は携帯電話で読み取るか、メッセージから開きます。リンクを知っている人だけが見られ、いつでも停止できます。",
   "partajare.ce_se_vede": "表示される内容：脚環、性別、名前、色、作出者、血統書用テキスト（5世代分）。表示されない内容：メモ、日誌、状態。",
   "partajare.porneste": "リンクを有効にする",

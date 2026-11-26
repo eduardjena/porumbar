@@ -1133,6 +1133,7 @@
   "partajare.alt_link": "Fă alt link (vechiul nu mai merge)",
   "partajare.opreste": "Oprește linkul",
   "partajare.link_si_qr": "Link și cod QR pentru pedigree",
+  "partajare.qr_eticheta": "Cod QR pentru {url}",
   "partajare.porneste_explicatie": "Pornește linkul ca să dai pedigree-ul altui crescător: îl scanează cu telefonul sau îl deschide din mesaj. Doar cine are linkul îl vede; îl poți opri oricând.",
   "partajare.ce_se_vede": "Se văd: inelul, sexul, numele, culoarea, crescătorul și textul pentru pedigree, pe 5 generații. Nu se văd: notele, jurnalul, starea.",
   "partajare.porneste": "Pornește linkul",

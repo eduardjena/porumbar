@@ -19,7 +19,7 @@ Pedigree-ul ca date, nu ca hârtie: se mută la alt crescător prin QR, se impor
 Inele scrise în multe forme (`RO-26-800546 L`, `412084/15 RO`); clasamente de pe columba.ro lipite de crescător (serverul nu citește site-ul federației). Conturi strict separate.
 
 ## Brand Commitments
-Nume de lucru „Porumbar” (numele public se alege mai târziu). Limba: română, cu diacritice. Stilul ales de utilizator (2026-11-16): curat, actual, simplu, cu iconițe mari și clare, fără efecte „SF”; direcția „Cer” (alb + albastru de cer pentru acțiuni; valoarea porumbeilor pe verde).
+Numele public: „Pigeonrama” (ales 2026-11-26; „Porumbar” rămâne numele tehnic). Sigla: cerc roșu cu porumbel albastru-închis (`docs/design/sigla/`). Limba: română, cu diacritice. Stilul ales de utilizator (2026-11-16): curat, actual, simplu, cu iconițe mari și clare, fără efecte „SF”; direcția „Cer” (alb + albastru de cer pentru acțiuni; valoarea porumbeilor pe verde).
 
 ## Evidence on Hand
 Două pedigree-uri reale în `docs/exemple/` (Compuclub, foto 5 generații) și un clasament columba.ro anonimizat. Fără testimoniale sau cifre de utilizatori proprii.

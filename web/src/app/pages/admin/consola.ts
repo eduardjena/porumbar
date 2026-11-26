@@ -404,7 +404,7 @@ export default class Consola implements OnInit {
 
   /** Mesajul pentru WhatsApp; cu telefon, direct în conversația lui (07xx → +407xx). */
   protected whatsapp(iv: { name: string; phone: string | null; link: string }) {
-    const text = `Bună ziua, ${iv.name}! V-am făcut contul în Porumbar. Deschideți linkul, alegeți-vă o parolă și intrați: ${iv.link}`;
+    const text = `Bună ziua, ${iv.name}! V-am făcut contul în Pigeonrama. Deschideți linkul, alegeți-vă o parolă și intrați: ${iv.link}`;
     let digits = (iv.phone ?? '').replace(/\D/g, '');
     if (digits.startsWith('0')) digits = `40${digits.slice(1)}`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;

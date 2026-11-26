@@ -1,4 +1,4 @@
-# Porumbar: harta proiectului și regulile
+# Pigeonrama (Porumbar): harta proiectului și regulile
 
 Evidența porumbeilor voiajori pentru columbofili: fișa porumbelului, pedigree pe 5 generații (tipărit A4, PDF, link public
 și cod QR), arbore / rețea de rude / consangvinizare, perechi și pui, rezultate, vânzare prin copie, citirea pedigree-ului
@@ -7,6 +7,22 @@ din poză. Pentru cine și cum trebuie să arate: `PRODUCT.md`. Cum se pornește
 **Acest fișier se ține la zi** la fiecare schimbare de structură, regulă sau legătură (o funcție nouă, o limbă nouă, o
 schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers/specs/` (un design pe funcție) și
 `docs/superpowers/plans/`.
+
+## Numele și sigla
+
+- **Numele afișat: „Pigeonrama”** (din 2026-11-26), peste tot unde îl vede omul: titlul paginii, antetul, manifestul,
+  notificările, emailurile, PDF-ul și fișa tipărită, textele din `i18n`. În maghiară se declină cu „á”: Pigeonramában,
+  Pigeonramához, Pigeonramát, Pigeonrama-fiók.
+- **„Porumbar” rămâne numele tehnic**: pachetul, repo-ul, baza de date, cookie-ul `porumbar_session`, variabilele de
+  mediu, serviciul Railway, formatul „porumbar-pedigree” v1, fișierele și clasele (`porumbar.ts`). Adresa
+  www.porumbar.ro rămâne până la un domeniu nou. Cuvântul obișnuit „porumbar” (adăpostul) rămâne în texte.
+- **Sigla** (copiată din modelul primit, `docs/design/sigla/model.png`): cercul roșu `#D92132`, porumbelul
+  albastru-închis `#263343` cu dunga aripii crem `#F7F8F3`; textul „PIGEONRAMA” în același albastru. Vectorial,
+  urmărit din model (cercul potrivit exact, porumbelul, dunga și literele urmărite pe contur):
+  `python docs/design/sigla/urmareste.py docs/design/sigla/model.png sigla.json`, apoi
+  `python docs/design/sigla/scrie-svg.py sigla.json .` scrie `web/public/icon.svg` (fără fundal: tab, antet, fișă),
+  `web/public/icon-maskable.svg` (fundal crem, iconița de pe telefon) și `docs/design/sigla/pigeonrama*.svg` (sigla
+  întreagă, cu fundal și transparentă).
 
 ## Oamenii și mediile
 

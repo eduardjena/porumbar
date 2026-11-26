@@ -103,7 +103,7 @@ test('seara: în ajunul eclozării, o notificare cu cuibul; a doua rulare din fe
   await run(at(addDays(d, 16), 19));
   const got = pushesTo(ep);
   assert.equal(got.length, 1);
-  assert.equal(got[0].payload.title, 'Porumbar');
+  assert.equal(got[0].payload.title, 'Pigeonrama');
   assert.equal(got[0].payload.body, 'Mâine pot ieși puii: cuibul 7');
   assert.equal(got[0].payload.url, '/panou');
   assert.deepEqual(await notices(c), [{ kind: 'eclozare', on_date: addDays(d, 16) }]);
@@ -145,7 +145,7 @@ test('un singur mesaj: tratamentul și cuibul în aceeași notificare; fără di
   assert.equal(mailsTo(a).length, 0);
   const mails = mailsTo(b);
   assert.equal(mails.length, 1);
-  assert.equal(mails[0].subject, 'Porumbar: amintire pentru tratamente și cuiburi');
+  assert.equal(mails[0].subject, 'Pigeonrama: amintire pentru tratamente și cuiburi');
   assert.match(mails[0].text, /- Mâine începe: Tricomonază \(gălbenele\), \d+ (de )?porumbei \(în apă\)\n- Mâine începe inelarea puilor: cuibul 3\n/);
   assert.ok(mails[0].text.includes('http://localhost:3100/panou'), mails[0].text);
   const last = mails[0].text.trim().split('\n').at(-1);
@@ -172,7 +172,7 @@ test('dimineața: ultima zi de inelare la 07:00; seara dinainte, „mâine e ult
   assert.equal(pushesTo(ep).length, 0);
   assert.equal(mailsTo(a).length, 0, 'are dispozitiv: fără email');
   assert.equal(mailsTo(b).length, 1);
-  assert.equal(mailsTo(b)[0].subject, 'Porumbar: amintire pentru cuiburi');
+  assert.equal(mailsTo(b)[0].subject, 'Pigeonrama: amintire pentru cuiburi');
   assert.match(mailsTo(b)[0].text, /- Mâine e ultima zi de inelare: cuibul 5\n/);
   // Dimineața ultimei zile: notificarea; emailul nu (doar seara).
   await run(at(addDays(h, 8), 7, 10));
@@ -243,7 +243,7 @@ test('doar citire: fără amintiri de cuib; amintirile tratamentelor merg ca pâ
   assert.match(got[0].payload.body, TREATMENT_LINE);
   assert.equal(got[0].payload.url, `/tratamente/${trA.id}`);
   assert.equal(mailsTo(b).length, 1);
-  assert.equal(mailsTo(b)[0].subject, 'Porumbar: amintire pentru tratamente');
+  assert.equal(mailsTo(b)[0].subject, 'Pigeonrama: amintire pentru tratamente');
   assert.ok(!mailsTo(b)[0].text.includes('cuibul'), mailsTo(b)[0].text);
   assert.equal(mailsTo(c).length, 0);
   assert.equal((await all('SELECT 1 FROM email_digests WHERE account_id = ?', c.id)).length, 0);

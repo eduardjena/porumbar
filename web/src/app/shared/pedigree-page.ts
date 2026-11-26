@@ -45,7 +45,7 @@ import { QrCode } from './qr-code';
             <span>{{ tx('fisa.repetati') }}</span>
             <!-- Doar dacă foaia are „T+M”; un rând de 7 pt în coloana de jos, care rămâne sub cei 18 mm ai subsolului. -->
             @if (hasTm()) { <span>{{ tx('fisa.tm') }}</span> }
-            <span class="made">{{ tx('fisa.tiparit_pe') }} {{ today() }} · <img src="/icon.svg" alt="" width="12" height="12" />Porumbar</span>
+            <span class="made">{{ tx('fisa.tiparit_pe') }} {{ today() }} · <img src="/icon.svg" alt="" width="12" height="12" />Pigeonrama</span>
             <span class="site">www.porumbar.ro</span>
           </div>
         </footer>

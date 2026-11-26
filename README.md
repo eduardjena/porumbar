@@ -1,4 +1,6 @@
-# Porumbar
+# Pigeonrama
+
+Numele tehnic al proiectului rămâne `porumbar` (pachetul, repo-ul, baza de date).
 
 Evidența porumbeilor pentru columbofili: fișa porumbelului, rasa și liniile, părinții aleși după inel (cu istoricul lor),
 rudele, arborele genealogic și consangvinizarea. Design: `docs/superpowers/specs/2026-11-16-porumbar-design.md`.

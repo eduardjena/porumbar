@@ -12,7 +12,10 @@ const chars = (s) => new Set([...s].map((c) => c.codePointAt(0)));
 const face = (family, weight, file, range) =>
   `@font-face { font-family: "${family}"; font-style: normal; font-display: swap; font-weight: ${weight}; src: url("media/${file}.woff2") format("woff2"), url("media/${file}.woff") format("woff");${range ? ` unicode-range: ${range};` : ''} }`;
 
-test('CSS-ul fontului japonez are doar felii, iar styles.css (încărcat de toți) nu-l aduce', () => {
+// Feliile fontului stau în web/node_modules (npm ci în web/); fără ele testul se sare, nu pică.
+const fărăPachete = fs.existsSync(path.join(WEB, 'node_modules')) ? false : 'web/node_modules lipsește (rulează npm ci în web/)';
+
+test('CSS-ul fontului japonez are doar felii, iar styles.css (încărcat de toți) nu-l aduce', { skip: fărăPachete }, () => {
   const imports = [...read('src', 'japoneza.css').matchAll(/@import '([^']+)'/g)].map((m) => m[1]);
   assert.equal(imports.length, 2);
   for (const f of imports) {

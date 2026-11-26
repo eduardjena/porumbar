@@ -63,7 +63,7 @@ Nu se schimbă `parseRing` pentru inelele fără prefix (ar ghici JP și la rom�
 
 **Decizie (a lui Claude, după verificarea constructorului):** `JPN ` + aproape orice inel românesc fără țară (`26-800546`, `25-12345`) iese inel JP valid. De aceea prefixul se pune **doar pe forma japoneză**: an (2 sau 4 cifre) + **două litere de serie** + număr (`25-AB-01234`, `25AB01234`, `2025 AB 01234`, `25-ET-1234`). Un inel doar cu cifre rămâne cum e scris. Și se pune **doar pe ce scrie sau aduce omul însuși**: formularul (porumbelul, părinții, perechile), importul Excel și citirea pozei. Datele copiate de la alt cont (transfer, „Preia” din link public / QR, vânzare) își păstrează `ring_raw` neschimbat.
 
-**Porumbeii salvați înainte:** fără migrare și fără rescriere în fundal. Un porumbel japonez salvat înainte cu inelul nerecunoscut primește prefixul abia când omul îl editează și îl salvează (validarea îl pune). Japoneza e pe Railway doar de pe 2026-11-26 și o dă doar vânzătorul, deci nu se așteaptă date japoneze vechi (de confirmat cu vânzătorul).
+**Porumbeii salvați înainte:** fără migrare și fără rescriere în fundal. Un porumbel japonez salvat înainte cu inelul nerecunoscut primește prefixul abia când omul îl editează și îl salvează (validarea îl pune). Japoneza e pe Railway doar de pe 2026-11-26 și o dă doar vânzătorul, deci nu se așteaptă date japoneze vechi — **confirmat de vânzător (2026-11-26): niciun client de pe Railway nu are japoneza cu porumbei**, deci fără reparație pentru date vechi.
 
 Lăsat constructorului: dacă `日本` / `日鳩` sau alte prefixe în kanji apar pe inele — cercetarea nu le-a găsit; **nu** se adaugă până nu le vedem pe mostre.
 

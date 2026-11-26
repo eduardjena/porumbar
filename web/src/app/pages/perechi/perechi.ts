@@ -125,6 +125,9 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? `${glue(
     .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .head h1 { margin: 0; }
     .season { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    /* Japoneză: „シーズン” pe un singur rând și cutia sezonului cât îi trebuie (la 320px nu se rupe eticheta). */
+    :host-context(html[lang="ja"]) .season { white-space: nowrap; flex: none; }
+    :host-context(html[lang="ja"]) .season select { width: auto; flex: none; }
     .big { min-height: 56px; margin: 6px 0 16px; }
     h2 { margin: 0; }
     .check { display: flex; align-items: center; gap: 10px; font-weight: 600; min-height: 48px; }

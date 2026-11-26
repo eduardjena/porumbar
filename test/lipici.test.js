@@ -134,3 +134,10 @@ test('rețeaua: la ja se redesenează după document.fonts, doar dacă desenul e
   assert.match(src, /document\.fonts\.ready\.then\(redraw/);
   assert.match(src, /this\.cy === cy && !cy\.destroyed\(\)\) cy\.forceRender\(\)/);
 });
+
+// „シーズン” (sezonul) la 320px: eticheta nu se rupe pe două rânduri, cutia sezonului nu se strânge.
+test('perechi: la ja eticheta シーズン rămâne pe un rând (nowrap, selectul nu se întinde)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'pages', 'perechi', 'perechi.ts'), 'utf8');
+  assert.match(src, /:host-context\(html\[lang="ja"\]\) \.season \{[^}]*white-space: nowrap;[^}]*\}/);
+  assert.match(src, /:host-context\(html\[lang="ja"\]\) \.season select \{[^}]*width: auto;[^}]*\}/);
+});

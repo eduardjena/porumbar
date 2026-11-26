@@ -117,11 +117,10 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 .notice { background: var(--accent-soft); color: var(--accent-strong); }
 .warning { background: var(--warn-soft); color: var(--warn); }
 /*
- * Propoziția din mai multe bucăți (text, <strong>) dintr-o cutie: bucățile rămân copiii cutiei, ca și cum învelișul n-ar
- * fi; în japoneză, unde nu sunt spații între cuvinte, e un singur bloc (fără golul de 10px între bucăți).
+ * Propoziția din mai multe bucăți (text, <strong>) dintr-o cutie: un singur bloc, ca să curgă pe rânduri, fără golul
+ * de 10px dintre bucăți (cutia e flex, cu iconița alături).
  */
-.flow { display: contents; }
-html[lang="ja"] .flow { display: block; flex: 1; min-width: 0; }
+.flow { display: block; flex: 1; min-width: 0; }
 
 .sex-M { color: var(--male); font-weight: 700; }
 .sex-F { color: var(--female); font-weight: 700; }

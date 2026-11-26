@@ -4,7 +4,7 @@ import { all, insert, nowIso, one, run, tx } from '../db.js';
 import { HttpError, badRequest, notFound, realDate, text } from '../http.js';
 import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.js';
 import { sendMail } from '../mail.js';
-import { isAdminEmail, logEvent, plusOneYear, subscriptionOf } from '../subscriptions.js';
+import { isAdminEmail, isoDate, logEvent, plusDays, plusOneYear, subscriptionOf, TRIAL_DAYS } from '../subscriptions.js';
 import { isLang, t } from '../i18n.js';
 import { YEAR_READS_WHERE, readsOfRow } from '../reads.js';
 
@@ -28,7 +28,7 @@ async function passwordLinkFor(accountId, hours) {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const STATUSES = ['pending', 'active', 'expiring', 'expired'];
+const STATUSES = ['unconfirmed', 'trial', 'trial-ended', 'active', 'expiring', 'expired'];
 
 function requireAdmin(req, res, next) {
   if (!req.account?.isAdmin) return next(new HttpError(403, 'Doar vânzătorul are acces aici.')); // i18n: ro
@@ -110,6 +110,10 @@ function row(a) {
     subscriptionEnd: a.subscription_end ?? null,
     status: isAdminEmail(a.email) ? 'admin' : sub.status,
     daysLeft: sub.daysLeft,
+    // Proba de 30 de zile (fără abonament plătit): ziua de sfârșit; și când și-a confirmat emailul.
+    trialEnd: sub.trialEnd,
+    emailConfirmedAt: a.email_confirmed_at ?? null,
+    country: a.country ?? null,
     // Citirile din poze: în anul curent de abonament (folosite / limită, costul în dolari) și de la început.
     reads: readsOfRow(a),
     pigeons: Number(a.pigeons ?? 0),
@@ -143,7 +147,7 @@ export function adminRouter() {
     const q = String(req.query.q ?? '').trim().toLowerCase();
     const filter = STATUSES.includes(req.query.filter) ? req.query.filter : null;
     const rows = (await all(`${ACCOUNT_SQL} ORDER BY a.created_at DESC`)).map(row).filter((a) => a.status !== 'admin');
-    const counts = { all: rows.length, pending: 0, active: 0, expiring: 0, expired: 0 };
+    const counts = { all: rows.length, unconfirmed: 0, trial: 0, 'trial-ended': 0, active: 0, expiring: 0, expired: 0 };
     for (const a of rows) counts[a.status]++;
     const shown = rows
       .filter((a) => !filter || a.status === filter)
@@ -170,8 +174,11 @@ export function adminRouter() {
       if (await one('SELECT 1 FROM accounts WHERE lower(email) = lower(?)', email)) throw new HttpError(409, 'Există deja un cont cu acest email.'); // i18n: ro
       // Parola de pornire nu o știe nimeni (o valoare aleatoare); omul își alege parola din link.
       const id = await insert(
-        'INSERT INTO accounts (email, name, phone, password_hash, invited, created_at) VALUES (?, ?, ?, ?, true, ?)',
-        email, name, phone, await hashPassword(randomToken()), nowIso(),
+        // Contul făcut de vânzător e confirmat (omul nu mai confirmă nimic); proba de 30 de zile pornește de azi,
+        // în afară de cazul în care vânzătorul îi activează de la început o perioadă plătită.
+        `INSERT INTO accounts (email, name, phone, password_hash, invited, created_at, email_confirmed_at, trial_end)
+         VALUES (?, ?, ?, ?, true, ?, now(), ?)`,
+        email, name, phone, await hashPassword(randomToken()), nowIso(), activate ? null : plusDays(isoDate(), TRIAL_DAYS),
       );
       await run(IDENTITY_SQL, ...identityParams(ident, id));
       await logEvent(id, 'created', { note: note ?? 'făcut din consolă' }); // i18n: ro

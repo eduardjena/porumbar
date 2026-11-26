@@ -6,12 +6,16 @@ import { sendMail } from './mail.js';
 
 /*
  * Abonamentele (consola vânzătorului): crescătorul plătește în afara aplicației, iar adminul (un singur cont, cel cu
- * emailul ADMIN_EMAIL) îi pune data de început; abonamentul ține un an. Fără abonament activ contul e „doar citire”:
+ * emailul ADMIN_EMAIL) îi pune data de început; abonamentul ține un an. Înainte de plată: la înscriere contul e
+ * neconfirmat; linkul din emailul de confirmare pornește singur proba de 30 de zile (fără vânzător). Fără abonament activ contul e „doar citire”:
  * vede și tipărește tot, dar nu adaugă și nu schimbă nimic (datele nu se pierd niciodată). Cu 30 de zile înainte de
  * expirare pleacă un singur email de memento, iar contul apare în consolă la „Expiră curând”.
  */
 
 export const REMIND_DAYS = 30;
+export const TRIAL_DAYS = 30;
+/** Versiunea termenilor acceptați la înscriere (se schimbă când se schimbă termenii de pe sit). */
+export const TERMS_VERSION = '2026-11-26';
 const DAY = 86_400_000;
 
 /** Ziua calendaristică în România (abonamentul se termină la miezul nopții de aici, nu la 02:00 / 03:00). */
@@ -26,24 +30,40 @@ export function plusOneYear(start) {
   return end.toISOString().slice(0, 10);
 }
 
+/** O zi calendaristică (YYYY-MM-DD) plus n zile. */
+export function plusDays(isoDay, n) {
+  return new Date(Date.parse(`${isoDay}T00:00:00Z`) + n * DAY).toISOString().slice(0, 10);
+}
+
 export const isAdminEmail = (email) => !!config.adminEmail && String(email ?? '').toLowerCase() === config.adminEmail;
 
 /**
- * Starea abonamentului: pending (încă neactivat), active, expiring (activ, mai puțin de 30 de zile),
- * expired (ziua de sfârșit a trecut). Ziua de sfârșit nu mai e inclusă.
+ * Starea contului: abonamentul plătit are întâietate (active, expiring = activ cu mai puțin de 30 de zile, expired =
+ * ziua de sfârșit a trecut; ziua de sfârșit nu mai e inclusă). Fără abonament: unconfirmed (emailul nu e confirmat),
+ * trial (proba de 30 de zile în curs) sau trial-ended (ziua de sfârșit a probei a venit). Rândul trebuie să aibă
+ * email_confirmed_at și trial_end (vezi ACCOUNT_STATE_COLUMNS).
  */
 export function subscriptionOf(a, now = new Date()) {
   const today = isoDate(now);
   const end = a.subscription_end ?? null;
   const daysLeft = end ? daysBetween(today, end) : null;
-  const status = !end ? 'pending' : daysLeft <= 0 ? 'expired' : daysLeft <= REMIND_DAYS ? 'expiring' : 'active';
+  const trialEnd = a.trial_end ?? null;
+  const trialDaysLeft = trialEnd ? Math.max(0, daysBetween(today, trialEnd)) : null;
+  let status;
+  if (end) status = daysLeft <= 0 ? 'expired' : daysLeft <= REMIND_DAYS ? 'expiring' : 'active';
+  else if (!a.email_confirmed_at) status = 'unconfirmed';
+  else status = trialDaysLeft > 0 ? 'trial' : 'trial-ended';
   const admin = isAdminEmail(a.email);
-  return { start: a.subscription_start ?? null, end, status, daysLeft, active: admin || status === 'active' || status === 'expiring' };
+  const active = admin || status === 'active' || status === 'expiring' || status === 'trial';
+  return { start: a.subscription_start ?? null, end, status, daysLeft, active, trialEnd, trialDaysLeft };
 }
 
-/** Eroarea pentru un cont „doar citire” (402). */
+/** Coloanele de care are nevoie subscriptionOf (pentru SELECT-uri care nu iau tot rândul). */
+export const ACCOUNT_STATE_COLUMNS = 'subscription_start, subscription_end, email_confirmed_at, trial_end';
+
+/** Eroarea pentru un cont „doar citire” (402): neconfirmat, proba terminată sau abonamentul expirat. */
 export function readOnlyError(status) {
-  const key = status === 'expired' ? 'eroare.doar_citire_expirat' : 'eroare.doar_citire_neactivat';
+  const key = status === 'unconfirmed' ? 'eroare.doar_citire_neconfirmat' : status === 'trial-ended' ? 'eroare.doar_citire_proba' : 'eroare.doar_citire_expirat';
   const how = config.sellerContact ? ref('eroare.activare_contact', { contact: config.sellerContact }) : ref('eroare.activare_vanzator');
   return new HttpError(402, key, { activare: how });
 }

@@ -7,7 +7,7 @@ import { Icon } from '../../shared/icon';
 import { IdentityFields, IdentityForm, emptyIdentity, identityBody } from './identity-fields';
 import { DateField } from '../../shared/date-field';
 
-type Status = 'pending' | 'active' | 'expiring' | 'expired';
+type Status = 'unconfirmed' | 'trial' | 'trial-ended' | 'active' | 'expiring' | 'expired';
 interface Row {
   lang?: string;
   id: number;
@@ -28,6 +28,9 @@ interface Row {
   subscriptionEnd: string | null;
   status: Status;
   daysLeft: number | null;
+  /** Sfârșitul probei de 30 de zile (fără abonament plătit) și țara de la înscriere. */
+  trialEnd?: string | null;
+  country?: string | null;
   pigeons: number;
   /** Citirile din poze în anul curent de abonament: folosite / limită, costul lor în dolari. */
   reads: { used: number; allowed: number; perYear: number; costUsd: number; fullFrom: string | null };
@@ -36,7 +39,7 @@ interface Row {
   invited: boolean;
 }
 interface Event {
-  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity' | 'reads';
+  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity' | 'reads' | 'confirmed';
   amount: number | null;
   note: string | null;
   createdAt: string;
@@ -46,13 +49,17 @@ type Counts = Record<'all' | Status, number>;
 const FILTERS: { id: '' | Status; label: string }[] = [
   { id: '', label: 'Toți' },
   { id: 'expiring', label: 'Expiră curând' },
-  { id: 'pending', label: 'Neactivați' },
+  { id: 'trial', label: 'În probă' },
+  { id: 'trial-ended', label: 'Proba terminată' },
+  { id: 'unconfirmed', label: 'Neconfirmați' },
   { id: 'active', label: 'Activi' },
   { id: 'expired', label: 'Expirați' },
 ];
-const STATUS_LABEL: Record<Status, string> = { pending: 'Neactivat', active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat' };
+const STATUS_LABEL: Record<Status, string> = {
+  unconfirmed: 'Neconfirmat', trial: 'În probă', 'trial-ended': 'Proba terminată', active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat',
+};
 const EVENT_LABEL: Record<Event['kind'], string> = {
-  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă', reads: 'Citiri în plus',
+  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă', reads: 'Citiri în plus', confirmed: 'Email confirmat',
 };
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -114,7 +121,7 @@ function plusOneYear(start: string) {
         </section>
       }
       @if (mailConfigured() === false) {
-        <p class="warning">Emailurile nu pleacă încă (lipsește setarea SMTP_URL pe server): memento-urile și linkurile de parolă apar doar aici, în consolă. Linkurile le poți trimite tu pe telefon.</p>
+        <p class="warning">Emailurile nu pleacă încă (lipsește setarea SMTP_HOST pe server): memento-urile și linkurile de parolă apar doar aici, în consolă. Linkurile le poți trimite tu pe telefon.</p>
       }
       <div class="tiles" role="tablist" aria-label="Filtre">
         @for (f of filters; track f.id) {
@@ -142,6 +149,8 @@ function plusOneYear(start: string) {
               <span class="sub">
                 <span class="st" [class]="'st ' + r.status">{{ statusLabel[r.status] }}@if (r.invited) { <span class="inv">· n-a intrat încă</span> }</span>
                 @if (r.subscriptionEnd) { <span class="muted">până pe {{ date(r.subscriptionEnd) }}@if (r.status === 'expiring') { ({{ r.daysLeft }} zile) }</span> }
+                @else if (r.trialEnd && (r.status === 'trial' || r.status === 'trial-ended')) { <span class="muted">probă până pe {{ date(r.trialEnd) }}</span> }
+                @if (r.country) { <span class="muted">· {{ r.country }}</span> }
               </span>
               <span class="seen" [title]="r.lastLoginAt ? 'Ultima intrare: ' + when(r.lastLoginAt) : 'Nu a intrat încă'">{{ ago(r.lastLoginAt) }}</span>
               <span class="mono" [class.full]="r.reads.used >= r.reads.allowed" [title]="'Citiri din poze în anul de abonament: ' + r.reads.used + ' din ' + r.reads.allowed">{{ r.reads.used }} / {{ r.reads.allowed }}</span>
@@ -266,7 +275,8 @@ function plusOneYear(start: string) {
     .st.active { color: var(--ok); }
     .st.expiring { color: var(--accent-strong); }
     .st.expired { color: var(--danger); }
-    .st.pending { color: var(--muted); }
+    .st.unconfirmed, .st.trial-ended { color: var(--muted); }
+    .st.trial { color: var(--accent-strong); }
     .pad { padding: 16px; }
     .detail { position: sticky; top: 84px; max-height: calc(100dvh - 100px); overflow-y: auto; }
     .detail h2, .detail h3 { margin: 0; }

@@ -54,7 +54,7 @@ async function activeClutches(today, now, zone) {
   if (!open.length) return [];
   const ids = [...new Set(open.map((o) => o.accountId))];
   const z = inZone(zone, 'lang');
-  const accounts = await all(`SELECT id, email, lang, subscription_start, subscription_end FROM accounts WHERE id = ANY(?::bigint[]) AND ${z.sql}`, ids, z.param);
+  const accounts = await all(`SELECT id, email, lang, subscription_start, subscription_end, email_confirmed_at, trial_end FROM accounts WHERE id = ANY(?::bigint[]) AND ${z.sql}`, ids, z.param);
   const active = new Map(accounts.filter((a) => subscriptionOf(a, now).active).map((a) => [a.id, a]));
   return open.filter((o) => active.has(o.accountId)).map((o) => ({ ...o, lang: active.get(o.accountId).lang }));
 }

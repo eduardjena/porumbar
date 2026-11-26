@@ -55,7 +55,7 @@ test('un cont în română nu-și poate pune singur o limbă în probă; o limb�
 });
 
 test('înregistrarea: fără limbă e română; o limbă în probă nu se poate cere', async () => {
-  const body = (email, lang) => ({ email, password: 'parola-de-test-123', name: 'Nou', ...(lang ? { lang } : {}) });
+  const body = (email, lang) => ({ email, password: 'parola-de-test-123', name: 'Nou', country: 'RO', acceptTerms: true, ...(lang ? { lang } : {}) });
   const no = await call('/api/auth/register', { method: 'POST', auth: 'none', body: body('limba1@exemplu.test', 'hu') });
   assert.equal(no.status, 400);
   const ok = await call('/api/auth/register', { method: 'POST', auth: 'none', body: body('limba2@exemplu.test') });
@@ -142,7 +142,7 @@ test('inel maghiar fără numărul asociației: mesaj clar, în limba omului', a
 test('o limbă publică (maghiara, ca acum) se poate alege la înregistrare și schimba singur în Cont', async () => {
   hu.public = true;
   try {
-    const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: 'publica@exemplu.test', password: 'parola-de-test-123', name: 'Nagy Péter', lang: 'hu' } });
+    const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email: 'publica@exemplu.test', password: 'parola-de-test-123', name: 'Nagy Péter', lang: 'hu' } });
     assert.equal(r.status, 201, JSON.stringify(r.data));
     assert.equal(r.data.account.lang, 'hu');
     const a = await newAccount(call, 'Vasile Public');
@@ -160,7 +160,7 @@ test('japoneza în probă: fără cont, telefonul în japoneză primește român
   });
   assert.equal(r.status, 401);
   assert.match(r.data.error, /^Email sau parolă greșită/);
-  const reg = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: 'limba-ja@exemplu.test', password: 'parola-de-test-123', name: 'Nou', lang: 'ja' } });
+  const reg = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email: 'limba-ja@exemplu.test', password: 'parola-de-test-123', name: 'Nou', lang: 'ja' } });
   assert.equal(reg.status, 400);
 });
 

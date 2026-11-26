@@ -73,7 +73,7 @@ before(async () => {
   firstAdminRegistration = await call('/api/auth/register', {
     method: 'POST',
     auth: 'none',
-    body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD, name: 'Oricine de pe internet' },
+    body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD, name: 'Oricine de pe internet', country: 'RO', acceptTerms: true },
   });
   admin = await adminCookie(call);
   A = await newAccount(call, 'Ion');
@@ -261,7 +261,7 @@ test('existența unui cont: înregistrarea și vânzarea spun dacă emailul are 
   const forgot1 = await call('/api/auth/forgot', { method: 'POST', auth: 'none', body: { email: emails.B } });
   const forgot2 = await call('/api/auth/forgot', { method: 'POST', auth: 'none', body: { email: 'nimeni-123@exemplu.test' } });
   assert.deepEqual(forgot1.data, forgot2.data);
-  const reg = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: emails.B.toUpperCase(), password: PASSWORD, name: 'x' } });
+  const reg = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email: emails.B.toUpperCase(), password: PASSWORD, name: 'x' } });
   assert.equal(reg.status, 409);
   const p = (await call('/api/pigeons', { method: 'POST', cookie: A, body: { kind: 'own', ring: 'RO-26-700011' } })).data.pigeon.id;
   const unknown = await call(`/api/pigeons/${p}/transfers`, { method: 'POST', cookie: A, body: { email: 'nimeni-123@exemplu.test' } });
@@ -300,7 +300,7 @@ test('admin: emailul adminului în altă formă (litere mari, spații, Kelvin, c
     ADMIN_EMAIL.replace('k', 'ｋ'), // „ｋ” lat
   ];
   for (const email of variants) {
-    const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: PASSWORD, name: 'Impostor' } });
+    const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email, password: PASSWORD, name: 'Impostor' } });
     if (r.status === 201) {
       assert.equal(r.data.account.isAdmin, false, `${JSON.stringify(email)} a primit admin`);
       assert.equal((await call('/api/admin/accounts', { cookie: cookieOf(r) })).status, 403, JSON.stringify(email));

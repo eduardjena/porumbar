@@ -45,6 +45,8 @@ export const publicAccount = (a) => ({
   lang: isLang(a.lang) ? a.lang : 'ro',
   // Codul de crescător de pe clasamente (de ex. VL9001); îl scrie omul, pentru lipirea clasamentului.
   breederCode: a.breeder_code ?? null,
+  // Țara de la înscriere (cod ISO, de ex. RO).
+  country: a.country ?? null,
   // Amintirile de la tratamente vin și pe email (implicit da).
   reminderEmail: a.reminder_email !== false,
   // Emailul de seară există pe acest server? (oprit implicit; atunci bifa din Cont nu se arată)
@@ -103,7 +105,7 @@ export async function requireAccount(req, res, next) {
     const row = await one(
       `SELECT a.id, a.email, a.name, a.pedigree_name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
               a.print_phone, a.print_address, a.print_email, a.lang, a.breeder_code, a.reminder_email,
-              a.subscription_start, a.subscription_end, s.last_seen_at
+              a.subscription_start, a.subscription_end, a.email_confirmed_at, a.trial_end, a.country, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
       hash, SESSION_DAYS,

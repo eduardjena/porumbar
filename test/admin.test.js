@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { adminCookie, newAccount, setIdentity, today } from './helpers/accounts.js';
+import { adminCookie, confirmEmail, newAccount, setIdentity, today } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -25,14 +25,14 @@ const addDays = (iso, days) => {
 const activate = (id, body) => call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body });
 const newPigeon = (cookie, ring) => call('/api/pigeons', { method: 'POST', cookie, body: { kind: 'own', ring } });
 
-test('cont nou, neactivat: doar citire (vede, nu scrie), cu mesaj clar', async () => {
+test('cont nou, neconfirmat: doar citire (vede, nu scrie), cu mesaj clar', async () => {
   const c = await newAccount(call, 'Nou', { active: false });
   const a = await me(c);
-  assert.equal(a.subscription.status, 'pending');
+  assert.equal(a.subscription.status, 'unconfirmed');
   assert.equal(a.subscription.active, false);
   const w = await newPigeon(c, 'RO-26-100001');
   assert.equal(w.status, 402);
-  assert.match(w.data.error, /doar citire|nu este activ/i);
+  assert.match(w.data.error, /Confirmă-ți emailul/);
   assert.equal((await call('/api/pigeons', { cookie: c })).status, 200);
   assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { showPhone: true } })).status, 200); // bifele contului merg
 });
@@ -75,8 +75,8 @@ test('consola: doar adminul; lista cu stările și numărul de porumbei, fără 
   assert.equal(row.pigeons, 1);
   assert.ok(r.data.counts.active >= 1);
   assert.ok(!JSON.stringify(r.data).includes('RO-26-100005'));
-  const pending = await call('/api/admin/accounts?filter=pending', { cookie: admin });
-  assert.ok(pending.data.accounts.every((x) => x.status === 'pending'));
+  const unconfirmed = await call('/api/admin/accounts?filter=unconfirmed', { cookie: admin });
+  assert.ok(unconfirmed.data.accounts.every((x) => x.status === 'unconfirmed'));
   const found = await call(`/api/admin/accounts?q=${encodeURIComponent('Listat')}`, { cookie: admin });
   assert.ok(found.data.accounts.some((x) => x.id === id));
 });
@@ -134,7 +134,8 @@ test('crescător nou din consolă: cont fără parolă, link de activare pe 7 zi
   const r = await createBreeder({ name: 'Gheorghe Test', email: 'gheorghe.nou@exemplu.test', phone: '0700 111 222' });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.match(r.data.link, /\/parola-noua\/[A-Za-z0-9_-]+$/);
-  assert.equal(r.data.account.status, 'pending');
+  // Făcut de vânzător: confirmat, cu proba de 30 de zile pornită de azi (vânzătorul nu mai activează nimic).
+  assert.equal(r.data.account.status, 'trial');
   assert.equal(r.data.account.invited, true);
   assert.equal(r.data.account.phone, '0700 111 222');
   // Emailul cu linkul a plecat la el.
@@ -208,11 +209,13 @@ test('consola arată ultima intrare în cont și ultima activitate; nimic pentru
 
 /* Cont nou din formular: vânzătorul (ADMIN_EMAIL) primește un mail, ca să-l contacteze și să-l activeze. */
 
-test('cont nou din formular: adminul primește un mail cu numele și emailul omului', async () => {
+test('cont nou din formular: adminul primește mailul abia când omul își confirmă emailul', async () => {
   const before = mail.sentMails.length;
   const email = `mail-admin-${process.pid}@exemplu.test`;
-  const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: 'parola-de-test-123', name: 'Vasile Nou' } });
+  const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email, password: 'parola-de-test-123', name: 'Vasile Nou', country: 'RO', acceptTerms: true } });
   assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(mail.sentMails.slice(before).filter((m) => m.to === process.env.ADMIN_EMAIL).length, 0, 'la înscriere, nimic pentru vânzător');
+  await confirmEmail(call, email);
   const sent = mail.sentMails.slice(before).filter((m) => m.to === process.env.ADMIN_EMAIL);
   assert.equal(sent.length, 1);
   assert.match(sent[0].subject, /Cont nou/);

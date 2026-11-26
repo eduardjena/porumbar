@@ -36,10 +36,14 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
       @if (section() === 'abonament' && !a.isAdmin && a.subscription; as s) {
         <section class="card stack subs">
           <h2>{{ 'cont.abonament' | t }}</h2>
-          @if (s.start) {
+          @if (s.status === 'unconfirmed') {
+            <p>{{ 'cont.neconfirmat' | t }}</p>
+          } @else if (s.status === 'trial') {
+            <p><strong>{{ 'cont.proba_pana' | t: { data: day(s.trialEnd ?? null) } }}</strong>{{ ' ' | glue }}{{ 'cont.zile_ramase' | t: { count: s.trialDaysLeft } }}{{ '.' | glue }}</p>
+          } @else if (s.status === 'trial-ended') {
+            <p>{{ 'cont.proba_gata' | t: { data: day(s.trialEnd ?? null) } }}</p>
+          } @else if (s.start) {
             <p>{{ (s.active ? 'cont.activ' : 'cont.expirat') | t }}{{ 'cont.de_pe' | t }}<strong>{{ day(s.start) }}</strong>{{ 'cont.pana_pe' | t }}<strong>{{ day(s.end) }}</strong>@if (s.active) {<ng-container>{{ ' ' | glue }}{{ 'cont.zile_ramase' | t: { count: s.daysLeft } }}{{ ' ' | glue }}</ng-container>}{{ '.' | glue }}</p>
-          } @else {
-            <p>{{ 'cont.neactivat' | t }}</p>
           }
           @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }}{{ ' ' | glue }}<strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>{{ '&nbsp;' | glue }}<span class="muted">{{ 'cont.citiri_explicatie' | t: { numar: r.perYear } }}</span></p>
             @if (r.fullFrom) { <p class="muted">{{ 'cont.citiri_inceput' | t: { total: r.perYear, data: day(r.fullFrom) } }}</p> }

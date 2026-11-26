@@ -42,8 +42,13 @@ export class AuthService {
     void this.push.keepOrDrop();
   }
 
-  async register(name: string, email: string, password: string, lang: string): Promise<void> {
-    const r = await this.api.post<{ account: Account }>('/auth/register', { name, email, password, lang });
+  /**
+   * Contul se face și omul e intrat (cookie de sesiune), dar cu emailul neconfirmat (doar citire până deschide linkul din
+   * email). Răspunsul gol (capcana de roboți) nu intră în cont.
+   */
+  async register(data: { name: string; email: string; password: string; lang: string; country: string; acceptTerms: boolean; website: string }): Promise<void> {
+    const r = await this.api.post<{ account: Account | null }>('/auth/register', data);
+    if (!r.account) return;
     this.account.set(r.account);
     void this.push.keepOrDrop();
   }

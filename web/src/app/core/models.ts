@@ -29,14 +29,20 @@ export interface Account {
   reminderEmailsOn?: boolean;
   /** Câte telefoane primesc amintirile (doar la /auth/me). */
   pushDevices?: number;
+  /** Țara de la înscriere (cod ISO, de ex. RO). */
+  country?: string | null;
 }
 
 export interface Subscription {
   start: string | null;
   end: string | null;
-  status: 'pending' | 'active' | 'expiring' | 'expired';
+  /** unconfirmed = emailul neconfirmat; trial = proba de 30 de zile; trial-ended = proba s-a terminat; apoi abonamentul plătit. */
+  status: 'unconfirmed' | 'trial' | 'trial-ended' | 'active' | 'expiring' | 'expired';
   daysLeft: number | null;
   active: boolean;
+  /** Ziua de sfârșit a probei și câte zile mai are (fără abonament plătit). */
+  trialEnd?: string | null;
+  trialDaysLeft?: number | null;
 }
 
 export interface CodeLabel {

@@ -425,6 +425,33 @@ const MIGRATIONS = [
     PRIMARY KEY (clutch_id, kind, on_date)
   );
   `,
+
+  // 25: înscrierea cu confirmarea emailului și proba de 30 de zile (fără vânzător): contul are stări: neconfirmat,
+  // probă, proba terminată, plătit. Conturile existente sunt confirmate; cele încă neactivate (fără abonament) primesc
+  // 30 de zile de probă de azi. Țara (codul ISO, de ex. RO) și termenii acceptați la înscriere.
+  `
+  ALTER TABLE accounts ADD COLUMN email_confirmed_at TIMESTAMPTZ;
+  ALTER TABLE accounts ADD COLUMN trial_end DATE;
+  ALTER TABLE accounts ADD COLUMN terms_version TEXT;
+  ALTER TABLE accounts ADD COLUMN terms_accepted_at TIMESTAMPTZ;
+  ALTER TABLE accounts ADD COLUMN country TEXT;
+  UPDATE accounts SET email_confirmed_at = created_at;
+  UPDATE accounts SET trial_end = (now() AT TIME ZONE 'Europe/Bucharest')::date + 30 WHERE subscription_end IS NULL;
+  ALTER TABLE account_events DROP CONSTRAINT account_events_kind_check;
+  ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
+    CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created', 'identity', 'reads', 'confirmed'));
+  `,
+
+  // 26: linkurile de confirmare a emailului (ca password_resets: doar hash-ul, o singură folosire, 7 zile).
+  `
+  CREATE TABLE email_confirmations (
+    token_hash TEXT PRIMARY KEY,
+    account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at    TIMESTAMPTZ
+  );
+  CREATE INDEX ix_email_confirmations_account ON email_confirmations (account_id);
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

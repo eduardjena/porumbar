@@ -2114,7 +2114,7 @@
     "sens": "Titlul notificărilor pe telefon (numele aplicației)."
   },
   "push.proba": {
-    "text": "Proba: amintirile merg",
+    "text": "Proba: notificările merg",
     "sens": "Textul notificării de probă trimise din setări, ca omul să vadă că telefonul primește amintirile."
   },
   "amintire.porumbei": {
@@ -2144,8 +2144,8 @@
     "sens": "Subiectul emailului de seară cu tratamentele care încep mâine, se termină mâine sau se repetă peste 3 zile."
   },
   "amintire.email_text": {
-    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Amintiri.\n",
-    "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente. „Cont → Amintiri” = meniul Cont, secțiunea Amintiri (unde se pornesc notificările pe telefon și se oprește emailul)."
+    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nToate tratamentele: {link}\n\nPrimești acest email pentru că pe telefonul tău notificările nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Notificări.\n",
+    "sens": "Emailul de seară (cel mult unul pe zi), trimis când omul nu are notificările pornite pe telefon sau nu au ajuns. {nume} = numele omului, {lista} = rândurile cu tratamentele, câte unul pe rând, {link} = adresa paginii Tratamente. „Cont → Notificări” = meniul Cont, secțiunea Amintiri (unde se pornesc notificările pe telefon și se oprește emailul)."
   },
   "amintire.cuibul": {
     "text": "cuibul {n}",
@@ -2184,8 +2184,8 @@
     "sens": "Subiectul emailului de seară când are și tratamente, și cuiburi."
   },
   "amintire.email_text_cuib": {
-    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nPanoul: {link}\n\nPrimești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Amintirile pentru tratamente și cuiburi le pornești pe telefon, iar emailul îl oprești, din Cont → Amintiri.\n",
-    "sens": "Emailul de seară (cel mult unul pe zi) când are și amintiri pentru cuiburi. {nume} = numele omului, {lista} = rândurile (tratamentele, apoi cuiburile), câte unul pe rând, {link} = adresa Panoului. Ultimul rând spune unde se pornesc notificările și unde se oprește emailul („Cont → Amintiri” = meniul Cont, secțiunea Amintiri)."
+    "text": "Bună, {nume}!\n\nCe ai de făcut la porumbei:\n{lista}\n\nPanoul: {link}\n\nPrimești acest email pentru că pe telefonul tău notificările nu sunt pornite (sau n-au ajuns). Amintirile pentru tratamente și cuiburi le pornești pe telefon, iar emailul îl oprești, din Cont → Notificări.\n",
+    "sens": "Emailul de seară (cel mult unul pe zi) când are și amintiri pentru cuiburi. {nume} = numele omului, {lista} = rândurile (tratamentele, apoi cuiburile), câte unul pe rând, {link} = adresa Panoului. Ultimul rând spune unde se pornesc notificările și unde se oprește emailul („Cont → Notificări” = meniul Cont, secțiunea Amintiri)."
   },
   "meniu.tratamente": {
     "text": "Tratamente",
@@ -2664,7 +2664,7 @@
     "sens": "Titlul ferestrei de confirmare după „Nu mai urmări” din banda de cuiburi."
   },
   "cuib.nu_mai_urmari_text": {
-    "text": "Ponta iese din bandă și amintirile ei se opresc, inclusiv ultima zi de inelare. Pe fișa perechii se poate da oricând „Urmărește din nou”.",
+    "text": "Ponta iese din bandă și notificările ei se opresc, inclusiv ultima zi de inelare. Pe fișa perechii se poate da oricând „Urmărește din nou”.",
     "sens": "Explicația din fereastra de confirmare „Nu mai urmărești ponta?”. „Urmărește din nou” e butonul de pe fișa perechii care pornește la loc urmărirea."
   },
   "cuib.nu_mai_urmari_da": {
@@ -2672,23 +2672,23 @@
     "sens": "Butonul de confirmare din fereastra „Nu mai urmărești ponta?”."
   },
   "cont.sub_amintiri": {
-    "text": "Amintiri",
+    "text": "Notificări",
     "sens": "Eticheta din banda Cont: setările pentru amintiri (notificări pe telefon și email)."
   },
   "amintiri.titlu": {
-    "text": "Amintiri",
+    "text": "Notificări",
     "sens": "Titlul secțiunii din Cont."
   },
   "amintiri.explicatie": {
-    "text": "Primești o amintire când urmează un tratament sau un vaccin.",
+    "text": "Primești o notificare când urmează un tratament sau un vaccin.",
     "sens": "Explicația de sub titlul secțiunii Amintiri."
   },
   "amintiri.porneste": {
-    "text": "Primesc amintiri pe telefonul ăsta",
+    "text": "Primesc notificări pe telefonul ăsta",
     "sens": "Butonul mare; la apăsare telefonul întreabă dacă are voie să trimită notificări."
   },
   "amintiri.telefon_activ": {
-    "text": "Telefonul ăsta primește amintiri.",
+    "text": "Telefonul ăsta primește notificări.",
     "sens": "Stare: notificările sunt pornite pe acest telefon."
   },
   "amintiri.proba": {
@@ -2704,7 +2704,7 @@
     "sens": "Mesaj după ce s-a trimis notificarea de probă."
   },
   "amintiri.proba_expirat": {
-    "text": "Telefonul nu mai primește notificări. Apasă din nou pe „Primesc amintiri pe telefonul ăsta”.",
+    "text": "Telefonul nu mai primește notificări. Apasă din nou pe „Primesc notificări pe telefonul ăsta”.",
     "sens": "Mesaj când notificarea de probă nu mai ajunge la telefon (abonamentul a expirat)."
   },
   "amintiri.proba_eroare": {
@@ -2712,7 +2712,7 @@
     "sens": "Mesaj când notificarea de probă n-a putut fi trimisă."
   },
   "amintiri.eroare_pornire": {
-    "text": "Nu am putut porni amintirile pe telefon. Mai încearcă puțin mai târziu.",
+    "text": "Nu am putut porni notificările pe telefon. Mai încearcă puțin mai târziu.",
     "sens": "Mesaj când abonarea la notificări a eșuat."
   },
   "amintiri.permisiune_neacordata": {
@@ -2736,7 +2736,7 @@
     "sens": "Pasul 3 pentru iPhone."
   },
   "amintiri.nesuportat": {
-    "text": "Telefonul acesta nu primește notificări. Amintirile le vezi pe Panou, în aplicație.",
+    "text": "Telefonul acesta nu primește notificări. Ce urmează vezi pe Panou, în aplicație.",
     "sens": "Când browserul nu poate primi notificări."
   },
   "amintiri.refuzat": {
@@ -2744,13 +2744,13 @@
     "sens": "Când omul a refuzat permisiunea pentru notificări."
   },
   "amintiri.telefoane": {
-    "one": "Amintirile merg pe {count} telefon.",
-    "few": "Amintirile merg pe {count} telefoane.",
-    "other": "Amintirile merg pe {count} de telefoane.",
+    "one": "Notificările merg pe {count} telefon.",
+    "few": "Notificările merg pe {count} telefoane.",
+    "other": "Notificările merg pe {count} de telefoane.",
     "sens": "{count} = câte telefoane sunt abonate în total."
   },
   "amintiri.email": {
-    "text": "Primesc amintiri pe email",
+    "text": "Primesc notificări pe email",
     "sens": "Bifa pentru rezumatul de seară trimis pe email."
   },
   "amintiri.email_explicatie": {

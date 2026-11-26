@@ -151,7 +151,7 @@ test('un singur mesaj: tratamentul și cuibul în aceeași notificare; fără di
   assert.match(mails[0].text, /- Mâine începe: Tricomonază \(gălbenele\), \d+ (de )?porumbei \(în apă\)\n- Mâine începe inelarea puilor: cuibul 3\n/);
   assert.ok(mails[0].text.includes('http://localhost:3100/panou'), mails[0].text);
   const last = mails[0].text.trim().split('\n').at(-1);
-  assert.ok(last.includes('Cont → Amintiri'), last);
+  assert.ok(last.includes('Cont → Notificări'), last);
   assert.equal((await all('SELECT 1 FROM email_digests WHERE account_id = ?', b.id)).length, 1);
   // A doua rulare din fereastră: nimic nou.
   await run(at(addDays(d, -1), 20));

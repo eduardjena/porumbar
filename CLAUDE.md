@@ -144,7 +144,7 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul
                   porumbel/rezultat-editor.ts, ecranul de introducere cu `focusPigeon`)
   web/public/sw.js  service worker-ul (primește push-ul și deschide aplicația); core/push.ts + core/push-key.ts: abonarea
-                  la push (se refăce dacă cheia serverului s-a schimbat). Cont → Amintiri (?sec=amintiri): notificări pe
+                  la push (se refăce dacă cheia serverului s-a schimbat). Cont → Notificări (?sec=amintiri; în interfață ro/hu/ja: Notificări / Értesítések / 通知): notificări pe
                   telefon și email. Banda „În curs / Urmează” de pe Panou apare doar pe Grilă
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
                   date-field.ts (<app-date>): câmpul de dată peste tot, NU <input type="date"> (calendarul browserului

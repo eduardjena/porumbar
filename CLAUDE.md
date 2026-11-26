@@ -17,8 +17,10 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
 - **„Porumbar” rămâne numele tehnic**: pachetul, repo-ul, baza de date, cookie-ul `porumbar_session`, variabilele de
   mediu, serviciul Railway, formatul „porumbar-pedigree” v1, fișierele și clasele (`porumbar.ts`). Adresa
   publică e www.pigeonrama.com (pe fișa tipărită și în PDF); emailul de contact e contact@pigeonrama.com. Situl e
-  găzduit pe DirectAdmin (domains/pigeonrama.com/public_html, Let's Encrypt, https și www forțate). Pe Railway nu e încă
-  `SMTP_URL`, deci aplicația nu trimite emailuri; expeditorul implicit e `nu-raspunde@pigeonrama.com` (`MAIL_FROM`). Cuvântul obișnuit „porumbar” (adăpostul) rămâne în texte.
+  găzduit pe DirectAdmin (domains/pigeonrama.com/public_html, Let's Encrypt, https și www forțate). Emailurile aplicației
+  pleacă prin serverul găzduirii: `SMTP_HOST=mail.pigeonrama.com`, `SMTP_PORT=465`, `SMTP_USER=contact@pigeonrama.com`,
+  `SMTP_PASS` (o pune omul pe Railway, exact cum e; `SMTP_URL` într-un rând merge și el); expeditorul e `SMTP_USER`
+  dacă nu e `MAIL_FROM`. SPF și DKIM le pune găzduirea. Cuvântul obișnuit „porumbar” (adăpostul) rămâne în texte.
 - **Sigla** (copiată din modelul primit, `docs/design/sigla/model.png`): cercul roșu `#D92132`, porumbelul
   albastru-închis `#263343` cu dunga aripii crem `#F7F8F3`; textul „PIGEONRAMA” în același albastru. Vectorial,
   urmărit din model (cercul potrivit exact, porumbelul, dunga și literele urmărite pe contur):

@@ -150,7 +150,7 @@ export function adminRouter() {
       .filter((a) => !q || [a.name, a.sheetName, a.companyName, a.email, a.phone].some((x) => String(x ?? '').toLowerCase().includes(q)));
     // De încasat primele: cele care expiră curând, după zile rămase.
     if (filter === 'expiring') shown.sort((a, b) => a.daysLeft - b.daysLeft);
-    res.json({ accounts: shown, counts, mailConfigured: !!config.smtpUrl });
+    res.json({ accounts: shown, counts, mailConfigured: !!config.smtp });
   });
 
   // „Crescător nou”: contul fără parolă + link de activare (7 zile) pe care vânzătorul îl trimite pe telefon / email.
@@ -181,7 +181,7 @@ export function adminRouter() {
       }
       return { id, link: await passwordLinkFor(id, INVITE_LINK_HOURS) };
     });
-    let emailed = !!config.smtpUrl;
+    let emailed = !!config.smtp;
     try {
       await sendMail({
         to: email,
@@ -266,7 +266,7 @@ export function adminRouter() {
     // Cine n-a intrat încă niciodată (făcut din consolă) primește iar 7 zile; restul, 24 de ore.
     const hours = a.invited ? INVITE_LINK_HOURS : PASSWORD_LINK_HOURS;
     const link = await passwordLinkFor(a.id, hours);
-    let emailed = !!config.smtpUrl; // fără SMTP emailul doar se scrie în jurnalul serverului
+    let emailed = !!config.smtp; // fără SMTP emailul doar se scrie în jurnalul serverului
     try {
       await sendMail({
         to: a.email,

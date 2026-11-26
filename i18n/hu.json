@@ -1660,5 +1660,10 @@
   "excel.anulat_ramas": {
     "one": "{count} galamb megmaradt, mert az importálás után használtad.",
     "other": "{count} galamb megmaradt, mert az importálás után használtad."
-  }
+  },
+  "instalare.titlu": "Az alkalmazás a telefonon",
+  "instalare.explicatie": "Tedd fel a Pigeonrama alkalmazást a telefon kezdőképernyőjére: egy érintéssel megnyílik, és az értesítések a Pigeonrama nevével érkeznek.",
+  "instalare.buton": "Alkalmazás telepítése",
+  "instalare.gata": "Kész: a Pigeonrama a telefon kezdőképernyőjén van. Mostantól onnan nyisd meg.",
+  "instalare.manual": "A böngésző menüjében (a három pont ⋮ vagy a ☰) válaszd az „Alkalmazás telepítése” vagy a „Hozzáadás a kezdőképernyőhöz” lehetőséget."
 }

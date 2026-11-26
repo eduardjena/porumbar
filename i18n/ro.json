@@ -3164,5 +3164,25 @@
     "few": "{count} porumbei au rămas, pentru că i-ai folosit după import.",
     "other": "{count} de porumbei au rămas, pentru că i-ai folosit după import.",
     "sens": "După anulare: porumbeii păstrați pentru că omul i-a schimbat sau folosit după import (jurnal, rezultate, perechi …)."
+  },
+  "instalare.titlu": {
+    "text": "Aplicația pe telefon",
+    "sens": "Titlul cardului cu instalarea aplicației pe ecranul telefonului."
+  },
+  "instalare.explicatie": {
+    "text": "Pune Pigeonrama pe ecranul telefonului, ca pe o aplicație: se deschide cu o atingere, iar notificările vin cu numele Pigeonrama.",
+    "sens": "De ce să instaleze aplicația. Numele Pigeonrama nu se traduce și nu primește terminații."
+  },
+  "instalare.buton": {
+    "text": "Instalează aplicația",
+    "sens": "Butonul care deschide fereastra de instalare a telefonului."
+  },
+  "instalare.gata": {
+    "text": "Gata: Pigeonrama e pe ecranul telefonului. De acum deschide-o de acolo.",
+    "sens": "După ce omul a instalat aplicația."
+  },
+  "instalare.manual": {
+    "text": "Din meniul browserului (cele trei puncte ⋮ sau liniuțele ☰) alege „Instalează aplicația” sau „Adaugă pe ecranul de pornire”.",
+    "sens": "Pe Android, când browserul nu oferă butonul de instalare: pașii din meniul browserului."
   }
 }

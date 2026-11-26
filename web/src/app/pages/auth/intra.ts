@@ -6,10 +6,11 @@ import { errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
 import { LangSwitch } from '../../shared/lang-switch';
 import { TPipe } from '../../core/i18n';
+import { InstallApp } from '../../shared/install-app';
 
 @Component({
   selector: 'app-intra',
-  imports: [FormsModule, RouterLink, PasswordField, LangSwitch, TPipe],
+  imports: [FormsModule, RouterLink, PasswordField, LangSwitch, TPipe, InstallApp],
   template: `
     <div class="auth-page stack">
       <app-lang-switch />
@@ -25,6 +26,7 @@ import { TPipe } from '../../core/i18n';
         <a routerLink="/parola-uitata">{{ 'intra.am_uitat' | t }}</a>
       </form>
       <p class="muted">{{ 'intra.nu_ai_cont' | t }} <a routerLink="/cont-nou">{{ 'intra.fa_cont' | t }}</a></p>
+      <app-install-app />
     </div>
   `,
 })

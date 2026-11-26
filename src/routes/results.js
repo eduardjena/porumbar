@@ -27,7 +27,7 @@ export function resultsRouter() {
   });
 
   // Mai mulți porumbei la același concurs (scrierea de mână cu un singur număr, lipirea clasamentului).
-  r.post('/races/results', requireAccount, async (req, res) => res.status(201).json(await saveMany(req.account.id, req.body)));
+  r.post('/races/results', requireAccount, async (req, res) => res.status(201).json(await saveMany(req.account.id, req.body, { lang: req.account.lang })));
 
   r.get('/races', requireAccount, async (req, res) => res.json({ races: await listRaces(req.account.id) }));
 

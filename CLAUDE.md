@@ -51,6 +51,10 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   (storedRingKey; dubluri, căutare, rezultate); fără nicio literă / cifră („??”) se refuză; strămoșii
                   nerecunoscuți n-au cheie (nu se leagă singuri). Telefonul folosește aceleași reguli:
                   web/src/app/shared/ring-preview.ts importă src/rings.js (Dockerfile îl copiază la build-ul interfeței)
+                  (`previewRing(text, lang)`). La conturile `ja`, inelul japonez scris fără „JPN” (25-AB-01234: an +
+                  două litere + număr) primește „JPN ” în față (`japaneseRingText`), doar pe ce scrie / aduce omul
+                  (formular, căutarea părintelui, pui inelați, serii, clasament lipit, Excel înaintea țării coloanei,
+                  poză); un inel doar din cifre rămâne cum e scris; vânzarea și „Preia” păstrează `ring_raw`.
   ring-backfill.js la pornire (boot.js, după migrări; NU e o migrare numerotată): strămoșii salvați înainte cu un inel
                   necitit atunci, dar recunoscut acum, primesc cheia; idempotent, sare peste ce ar dubla alt porumbel
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri

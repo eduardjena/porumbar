@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setLang } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -265,4 +265,19 @@ test('toate rezultatele contului (fila Rezultate de pe Panou), cu porumbelul fie
   assert.deepEqual(dates, [...dates].sort().reverse(), 'cele mai noi întâi');
   const theirs = (await call('/api/results', { cookie: b })).data.results;
   assert.ok(theirs.every((x) => !list.some((y) => y.id === x.id)), 'fiecare cont își vede doar rezultatele lui');
+});
+
+test('cont ja: inelul japonez fără JPN din clasamentul lipit e porumbelul lui; cel nou se salvează ca JP', async () => {
+  const ja = await newAccount(call, 'Ja');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  const mine = (await call('/api/pigeons', { method: 'POST', cookie: ja, body: { kind: 'own', ring: '25-AB-01250' } })).data.pigeon;
+  assert.equal(mine.ring.raw, 'JPN 25-AB-01250');
+  const r = await many({
+    race: { ...yablanita, releasePlace: 'Japonia', date: '2026-06-07' }, distanceKm: 100, source: 'lipit',
+    rows: [{ newPigeon: { ring: '25AB01250' }, place: 1 }, { newPigeon: { ring: '25-AB-01251' }, place: 2 }],
+  }, ja);
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const [first, second] = r.data.results.map((x) => x.pigeonId);
+  assert.equal(first, mine.id);
+  assert.equal((await call(`/api/pigeons/${second}`, { cookie: ja })).data.pigeon.ring.raw, 'JPN 25-AB-01251');
 });

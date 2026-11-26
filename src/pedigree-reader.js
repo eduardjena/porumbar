@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { FIRST_DAYS, budgetUsd, readsOf } from './reads.js';
-import { parseRing } from './rings.js';
+import { japaneseRingText, parseRing } from './rings.js';
 import { currentLang, localeOf } from './i18n.js';
 import { HttpError, badRequest } from './http.js';
 import { insert, one, run as runSql } from './db.js';
@@ -148,11 +148,14 @@ async function claudeModel({ mime, data, model: modelName }) {
 }
 
 /** Lista plată de căsuțe → arbore { ring, name, color, text, breeder, sex?, father, mother }. */
-/** Câte inele scrise pe fișă nu se pot citi (omul trebuie să le verifice). */
-function unclearRings(node) {
+/**
+ * Câte inele scrise pe fișă nu se pot citi (omul trebuie să le verifice). La un cont japonez, inelul fără „JPN”
+ * (25-AB-01234) se citește, ca la import (pedigree-import.js).
+ */
+function unclearRings(node, ja = currentLang() === 'ja') {
   if (!node) return 0;
-  const here = node.ring && !parseRing(node.ring).ok ? 1 : 0;
-  return here + unclearRings(node.father) + unclearRings(node.mother);
+  const here = node.ring && !parseRing(ja ? japaneseRingText(node.ring) : node.ring).ok ? 1 : 0;
+  return here + unclearRings(node.father, ja) + unclearRings(node.mother, ja);
 }
 
 function toTree(slots, rootSex) {

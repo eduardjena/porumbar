@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setLang } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -132,4 +132,27 @@ test('arborele are pentru fiecare porumbel tot ce e pe fișa tipărită: culoare
   const { pigeons } = t.data;
   assert.deepEqual(pigeons[tataF.id].sheet, { color: 'Albastru p.a.', breeder: 'Ionescu Petre', text: "1e-197KM-10023P-'26; Tatăl campionilor" });
   assert.deepEqual(pigeons[puiF.id].sheet, { color: 'Solzat închis', breeder: null, text: null });
+});
+
+// ——— Părintele scris de mână la un cont japonez (25-AB-01234 fără „JPN”) ———
+
+test('cont ja: părintele scris de mână fără JPN devine JP și se regăsește la căutare; la ro, ca azi', async () => {
+  const ja = await newAccount(call, 'Ja');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  const ext = await call('/api/pigeons', { method: 'POST', cookie: ja, body: { kind: 'external', ring: '24-CD-00777', sex: 'M' } });
+  assert.equal(ext.status, 201, JSON.stringify(ext.data));
+  assert.equal(ext.data.pigeon.ring.raw, 'JPN 24-CD-00777');
+  assert.equal(ext.data.pigeon.ring.display, 'JP-24-CD-00777');
+  const found = await call(`/api/pigeons/lookup?ring=${encodeURIComponent('24CD00777')}`, { cookie: ja });
+  assert.equal(found.data.ring.display, 'JP-24-CD-00777');
+  assert.deepEqual(found.data.matches.map((m) => m.pigeon.id), [ext.data.pigeon.id]);
+  const digits = await call('/api/pigeons', { method: 'POST', cookie: ja, body: { kind: 'external', ring: '26-800546' } });
+  assert.equal(digits.data.pigeon.ring.raw, '26-800546');
+
+  const ro = await call('/api/pigeons', { method: 'POST', cookie: a, body: { kind: 'external', ring: '24-CD-00777' } });
+  assert.equal(ro.status, 201, JSON.stringify(ro.data));
+  assert.equal(ro.data.pigeon.ring.raw, '24-CD-00777');
+  assert.equal(ro.data.pigeon.ring.country, null);
+  const roLookup = await call(`/api/pigeons/lookup?ring=${encodeURIComponent('24-CD-00777')}`, { cookie: a });
+  assert.equal(roLookup.data.ring.ok, false);
 });

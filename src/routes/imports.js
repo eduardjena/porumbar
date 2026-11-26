@@ -10,10 +10,10 @@ import { importTable, lastImport, undoLastImport } from '../table-import.js';
 export function importsRouter() {
   const r = express.Router();
   r.post('/preview', rateLimit({ windowMs: 60_000, max: 30, key: (req) => `import:${req.account.id}` }), async (req, res) => {
-    res.json(await importTable(req.account.id, req.body, { save: false }));
+    res.json(await importTable(req.account.id, req.body, { save: false, lang: req.account.lang }));
   });
   r.post('/', async (req, res) => {
-    res.status(201).json(await importTable(req.account.id, req.body, { save: true }));
+    res.status(201).json(await importTable(req.account.id, req.body, { save: true, lang: req.account.lang }));
   });
   r.get('/last', async (req, res) => {
     res.json({ last: await lastImport(req.account.id) });

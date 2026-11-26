@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setLang } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -161,4 +161,46 @@ test('un porumbel care e părinte nu se șterge', async () => {
   assert.equal(del.status, 409);
   assert.equal(del.data.error, 'Porumbelul are pui în program. Schimbă-i starea în loc să-l ștergi.');
   assert.equal((await call(`/api/pigeons/${child.data.pigeon.id}`, { method: 'DELETE', cookie: a })).status, 204);
+});
+
+// ——— Inelele japoneze fără „JPN” (25-AB-01234): doar la conturile japoneze ———
+
+async function langAccount(name, lang) {
+  const cookie = await newAccount(call, name);
+  await setLang(call, (await call('/api/auth/me', { cookie })).data.account.id, lang);
+  return cookie;
+}
+
+test('cont ja: inelul japonez fără prefix devine JP (textul omului, cu JPN în față)', async () => {
+  const ja = await langAccount('Ja', 'ja');
+  const r = await create(ja, { kind: 'own', ring: '25-AB-01234' });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.pigeon.ring.display, 'JP-25-AB-01234');
+  assert.equal(r.data.pigeon.ring.raw, 'JPN 25-AB-01234');
+  // Același inel scris altfel e o dublură.
+  assert.equal((await create(ja, { kind: 'own', ring: '25AB01234' })).status, 409);
+  // Schimbat din fișă: tot JP.
+  const p = await call(`/api/pigeons/${r.data.pigeon.id}`, { method: 'PATCH', cookie: ja, body: { ring: '2025 AB 01235' } });
+  assert.equal(p.status, 200, JSON.stringify(p.data));
+  assert.equal(p.data.pigeon.ring.raw, 'JPN 2025 AB 01235');
+  assert.equal(p.data.pigeon.ring.display, 'JP-25-AB-01235');
+});
+
+test('cont ja: un inel doar din cifre se salvează exact cum l-a scris omul (Review Focus 2)', async () => {
+  const ja = await langAccount('Ja', 'ja');
+  for (const ring of ['26-800546', '412084/15']) {
+    const r = await create(ja, { kind: 'own', ring });
+    assert.equal(r.status, 201, JSON.stringify(r.data));
+    assert.equal(r.data.pigeon.ring.raw, ring);
+  }
+});
+
+test('cont ro: 25-AB-01234 se salvează ca azi, fără JPN (Review Focus 1)', async () => {
+  const ro = await langAccount('Ro', 'ro');
+  const r = await create(ro, { kind: 'own', ring: '25-AB-01234' });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.pigeon.ring.raw, '25-AB-01234');
+  assert.equal(r.data.pigeon.ring.country, null);
+  const hu = await langAccount('Hu', 'hu');
+  assert.equal((await create(hu, { kind: 'external', ring: '25-AB-01234' })).data.pigeon.ring.raw, '25-AB-01234');
 });

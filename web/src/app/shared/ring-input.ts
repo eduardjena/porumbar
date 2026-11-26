@@ -1,5 +1,6 @@
-import { Component, computed, input, model } from '@angular/core';
+import { Component, computed, inject, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../core/auth';
 import { TPipe, GluePipe } from '../core/i18n';
 import { previewRing } from './ring-preview';
 
@@ -44,5 +45,7 @@ export class RingInput {
   readonly name = input('ring');
   readonly required = input(true);
   readonly value = model('');
-  protected readonly preview = computed(() => previewRing(this.value()));
+  private readonly auth = inject(AuthService);
+  /** Limba contului: la conturile japoneze, 25-AB-01234 (fără „JPN”) se citește ca JP, ca pe server. */
+  protected readonly preview = computed(() => previewRing(this.value(), this.auth.account()?.lang));
 }

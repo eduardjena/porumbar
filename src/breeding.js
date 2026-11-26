@@ -3,7 +3,7 @@ import { ref } from './i18n.js';
 import { HttpError, badRequest, notFound, text, realDate } from './http.js';
 import { createPigeon, getPigeon, getPigeonRow, loadNodes, toSummary } from './pigeons.js';
 import { wrightCoi } from './genealogy.js';
-import { parseRing, formatRing, ringKey } from './rings.js';
+import { parseRing, formatRing, ringKey, japaneseRingText } from './rings.js';
 import { HATCH_DAYS, RING_DAYS, OPEN_DAYS, isOpen, nestMoments } from './nest-schedule.js';
 import { cleanFactors, factorsFromColor, inferHidden, predictColors } from './color-genetics.js';
 
@@ -333,7 +333,8 @@ export async function getPair(accountId, id) {
 
 // ——— Inelarea puilor ———
 
-export async function ringYoung(accountId, clutchId, body) {
+/** `lang` = limba contului (la `ja`, inelul japonez scris fără „JPN” e JP; vezi createPigeon). */
+export async function ringYoung(accountId, clutchId, body, { lang = null } = {}) {
   return tx(async () => {
     await lockAccount(accountId);
     const clutch = await getClutchRow(accountId, clutchId);
@@ -348,7 +349,7 @@ export async function ringYoung(accountId, clutchId, body) {
       name: body?.name ?? null,
       status: 'tanar',
       hatchedOn: clutch.hatched_on ?? null,
-    });
+    }, { lang });
     const row = await getPigeonRow(accountId, pigeon.id);
     if ((row.father_id && row.father_id !== pair.cock_id) || (row.mother_id && row.mother_id !== pair.hen_id)) {
       throw new HttpError(409, 'eroare.inel_alti_parinti');
@@ -360,9 +361,9 @@ export async function ringYoung(accountId, clutchId, body) {
 
 // ——— Seriile de inele ———
 
-function seriesRing(value, label) {
+function seriesRing(value, label, lang) {
   const raw = text(value, label, { max: 40 });
-  const r = parseRing(raw);
+  const r = parseRing(lang === 'ja' ? japaneseRingText(raw) : raw);
   if (!r.ok || r.unringed || !/^\d+$/.test(r.number)) throw badRequest('eroare.inel_serie_necitit', { camp: ref(label) });
   return r;
 }
@@ -375,9 +376,10 @@ export async function listSeries(accountId) {
   return (await all('SELECT * FROM ring_series WHERE account_id = ? ORDER BY year DESC, id', accountId)).map(toSeries);
 }
 
-export async function createSeries(accountId, body) {
-  const a = seriesRing(body?.first, 'camp.primul_inel');
-  const b = seriesRing(body?.last, 'camp.ultimul_inel');
+/** `lang` = limba contului: la `ja`, primul / ultimul inel scris fără „JPN” (26-AB-00001) sunt JP. */
+export async function createSeries(accountId, body, { lang = null } = {}) {
+  const a = seriesRing(body?.first, 'camp.primul_inel', lang);
+  const b = seriesRing(body?.last, 'camp.ultimul_inel', lang);
   if (a.country !== b.country || a.year !== b.year || (a.club ?? '') !== (b.club ?? '')) throw badRequest('eroare.serie_aceeasi_tara');
   const first = Number(a.number);
   const last = Number(b.number);

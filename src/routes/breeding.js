@@ -26,10 +26,10 @@ export function breedingRouter() {
     await b.deleteClutch(a(req), req.params.id);
     res.status(204).end();
   });
-  r.post('/clutches/:id/young', requireAccount, async (req, res) => res.status(201).json({ pigeon: await b.ringYoung(a(req), req.params.id, req.body) }));
+  r.post('/clutches/:id/young', requireAccount, async (req, res) => res.status(201).json({ pigeon: await b.ringYoung(a(req), req.params.id, req.body, { lang: req.account.lang }) }));
 
   r.get('/ring-series', requireAccount, async (req, res) => res.json({ series: await b.listSeries(a(req)) }));
-  r.post('/ring-series', requireAccount, async (req, res) => res.status(201).json({ series: await b.createSeries(a(req), req.body) }));
+  r.post('/ring-series', requireAccount, async (req, res) => res.status(201).json({ series: await b.createSeries(a(req), req.body, { lang: req.account.lang }) }));
   r.get('/ring-series/next', requireAccount, async (req, res) => res.json({ ring: await b.nextRing(a(req), req.query.year) }));
   r.delete('/ring-series/:id', requireAccount, async (req, res) => {
     await b.deleteSeries(a(req), req.params.id);

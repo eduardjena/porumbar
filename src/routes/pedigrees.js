@@ -8,7 +8,7 @@ import { rateLimit } from '../http.js';
 export function pedigreesRouter() {
   const r = express.Router();
   r.post('/pedigrees/import', requireAccount, async (req, res) => {
-    const result = await importPedigree(req.account.id, req.body?.root, req.body?.rootKind ?? 'own');
+    const result = await importPedigree(req.account.id, req.body?.root, req.body?.rootKind ?? 'own', { lang: req.account.lang });
     res.status(201).json(result);
   });
   // Citirea dintr-o poză / PDF: doar întoarce căsuțele, omul le verifică și salvează cu /import.

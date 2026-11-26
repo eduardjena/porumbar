@@ -2,6 +2,7 @@ import { Component, DestroyRef, ElementRef, computed, effect, inject, signal, vi
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
+import { AuthService } from '../../core/auth';
 import { ConfirmService } from '../../core/confirm';
 import { t, TPipe, GluePipe, glue } from '../../core/i18n';
 import { Kind, LookupResult } from '../../core/models';
@@ -200,6 +201,7 @@ export default class PedigreeHartie {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
+  private readonly auth = inject(AuthService);
   protected readonly gens = [0, 1, 2, 3, 4];
   protected readonly indexes = Array.from({ length: SLOTS }, (_, k) => k + 1);
   protected readonly gen = genOf;
@@ -299,7 +301,8 @@ export default class PedigreeHartie {
   async check(i: number) {
     const ring = this.d().slots[i].ring.trim();
     if (!ring) return;
-    const p = previewRing(ring);
+    // Limba contului: la conturile japoneze, 25-AB-01234 (fără „JPN”) se citește ca JP, ca la salvare.
+    const p = previewRing(ring, this.auth.account()?.lang);
     if (!p.ok) {
       // Porumbelul meu: un inel nerecunoscut se păstrează cum e scris (avertisment blând); maghiarul fără organizator, nu.
       const mine = i === 1 && this.d().kind === 'own';

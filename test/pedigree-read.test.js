@@ -2,7 +2,7 @@ import { test, before, after, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { adminCookie, newAccount } from './helpers/accounts.js';
+import { adminCookie, newAccount, setLang } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -90,4 +90,44 @@ test('limita pe zi: după 3 citiri, a patra e refuzată (429)', async () => {
   } finally {
     delete process.env.PEDIGREE_READS_FIRST_DAYS;
   }
+});
+
+// ——— Inelele japoneze fără „JPN” de pe o fișă citită din poză ———
+
+test('cont ja: inelele japoneze citite din poză se salvează ca JP; cele doar din cifre, cum sunt; la ro, ca azi', async () => {
+  reader.setPedigreeModel(async () => ({
+    rootSex: 'M',
+    notes: null,
+    slots: [
+      { slot: 1, ring: '25-AB-01234', name: 'Kaze', color: null, text: null, breeder: null },
+      { slot: 2, ring: '26-800546', name: null, color: null, text: null, breeder: null },
+      { slot: 3, ring: '24-EF-00555', name: null, color: null, text: null, breeder: null },
+    ],
+  }));
+  const pigeon = async (cookie, id) => (await call(`/api/pigeons/${id}`, { cookie })).data.pigeon;
+  const readAndImport = async (cookie) => {
+    const r = await send(cookie, photo);
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    const imp = await call('/api/pedigrees/import', { method: 'POST', cookie, body: { root: r.data.root } });
+    assert.equal(imp.status, 201, JSON.stringify(imp.data));
+    const root = await pigeon(cookie, imp.data.pigeonId);
+    return { unclear: r.data.unclear, root, father: await pigeon(cookie, root.fatherId), mother: await pigeon(cookie, root.motherId) };
+  };
+
+  const ja = await newAccount(call, 'Ja');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  const j = await readAndImport(ja);
+  assert.equal(j.unclear, 1, 'doar inelul fără țară, din cifre');
+  assert.equal(j.root.ring.raw, 'JPN 25-AB-01234');
+  assert.equal(j.root.ring.display, 'JP-25-AB-01234');
+  assert.equal(j.father.ring.raw, '26-800546');
+  assert.equal(j.mother.ring.raw, 'JPN 24-EF-00555');
+  assert.equal(j.mother.ring.display, 'JP-24-EF-00555');
+
+  const ro = await newAccount(call, 'Ro');
+  const r = await readAndImport(ro);
+  assert.equal(r.unclear, 3);
+  assert.equal(r.root.ring.raw, '25-AB-01234');
+  assert.equal(r.root.ring.country, null);
+  assert.equal(r.mother.ring.raw, '24-EF-00555');
 });

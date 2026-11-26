@@ -1,4 +1,4 @@
-import { fallbackKey, formatRing, parseRing } from '../../../../src/rings.js';
+import { fallbackKey, formatRing, japaneseRingText, parseRing } from '../../../../src/rings.js';
 
 /*
  * Ce a înțeles programul din inelul scris: aceleași reguli ca pe server (src/rings.js, importat direct), ca telefonul să
@@ -18,8 +18,9 @@ export interface RingPreview {
   unknown: boolean;
 }
 
-export function previewRing(text: string): RingPreview {
-  const r = parseRing(text);
+/** `lang` = limba contului: la `ja` inelul japonez scris fără „JPN” (25-AB-01234) se citește ca JP, ca pe server. */
+export function previewRing(text: string, lang?: string | null): RingPreview {
+  const r = parseRing(lang === 'ja' ? japaneseRingText(text) : text);
   return {
     ok: r.ok,
     display: r.ok && !r.unringed ? formatRing(r) : '',

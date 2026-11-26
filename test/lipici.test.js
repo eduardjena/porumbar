@@ -141,3 +141,17 @@ test('perechi: la ja eticheta シーズン rămâne pe un rând (nowrap, selectu
   assert.match(src, /:host-context\(html\[lang="ja"\]\) \.season \{[^}]*white-space: nowrap;[^}]*\}/);
   assert.match(src, /:host-context\(html\[lang="ja"\]\) \.season select \{[^}]*width: auto;[^}]*\}/);
 });
+
+// `glueIn` (web/src/app/core/i18n.ts) nu se poate importa în Node (i18n.ts aduce Angular și JSON fără atribut), deci
+// testăm chiar linia lui din sursă, cu glueWith și LANGS adevărate: semnele limbii date, nu ale ecranului.
+test('glueIn: lipește cu semnele limbii date (ja → 、 ）。, ro/hu/necunoscută → neschimbat)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'core', 'i18n.ts'), 'utf8');
+  const line = /export const glueIn = (\(code: string, text: string\) => .+);$/m.exec(src)?.[1];
+  assert.ok(line, 'linia glueIn nu s-a găsit');
+  const LANGS_ = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', 'languages.json'), 'utf8'));
+  const glueIn = new Function('glueWith', 'LANGS', `return ${line.replace(/: string/g, '')}`)(glueWith, LANGS_);
+  assert.equal(glueIn('ja', 'a, b (c).'), 'a、b（c）。');
+  assert.equal(glueIn('ro', 'a, b (c).'), 'a, b (c).');
+  assert.equal(glueIn('hu', 'a, b (c).'), 'a, b (c).');
+  assert.equal(glueIn('xx', 'a, b (c).'), 'a, b (c).');
+});

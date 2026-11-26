@@ -25,6 +25,7 @@ files = {
     'docs/design/sigla/pigeonrama.svg': svg('0 0 1024 1024', f'<rect width="1024" height="1024" fill="{C["bg"]}"/>{bird}{text}', ' width="1024" height="1024"'),
     'docs/design/sigla/pigeonrama-transparent.svg': svg(f'{fx0:.1f} {fy0:.1f} {fx1 - fx0:.1f} {fy1 - fy0:.1f}', bird + text, f' width="{round(fx1 - fx0)}" height="{round(fy1 - fy0)}"'),
     'web/public/icon.svg': svg(icon_vb, bird),
+    'web/public/wordmark.svg': svg(f'{tx0 - 3:.1f} {ty0 - 3:.1f} {tx1 - tx0 + 6:.1f} {ty1 - ty0 + 6:.1f}', text),
     'web/public/icon-maskable.svg': svg('%.1f %.1f %.1f %.1f' % mask_vb, '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s"/>' % (*mask_vb, C['bg']) + bird),
 }
 for p, s in files.items():

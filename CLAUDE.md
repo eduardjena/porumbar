@@ -192,12 +192,16 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   pică dacă rămâne text cu diacritice românești în cod (excepții: comentarii, consola vânzătorului, rânduri marcate `// i18n: ro`).
 - Consola vânzătorului (`/vanzator`, `src/routes/admin.js`) rămâne în română. Mailul către vânzător e în română; mailurile
   către crescător sunt în limba contului.
-- Limbile publice: româna și maghiara (publică din 2026-11-20, la cererea vânzătorului): omul și-o alege la înregistrare
+- **Toate limbile sunt publice și oficiale** (regula vânzătorului, 2026-11-26, și pentru limbile viitoare): româna,
+  maghiara și japoneza; omul și-o alege la înregistrare
   sau în Cont, iar fără cont vine după limba telefonului. Vânzătorul poate pune limba oricui (Crescător nou / Date pe
-  fișă). O limbă **nepublică** („în probă”, una nouă, încă neverificată) o primește doar cine i-o dă vânzătorul; omul
-  poate trece singur doar spre o limbă publică (testul test/limba.test.js face maghiara „în probă” ca să verifice asta). Fișa tipărită și PDF-ul pot ieși și în altă limbă (alegerea de pe pagina de tipărire).
-- Japoneza (`ja`) e **nepublică** („în probă”) din 2026-11-25, până confirmă un columbofil japonez lista din
-  `docs/cercetare/termeni-japonezi.md` §8. Fontul ei (Noto Sans JP, feliat cu unicode-range) e într-un CSS separat,
+  fișă). Mecanismul pentru o limbă nepublică (`public: false`: o dă doar vânzătorul) rămâne în cod, dar nu se folosește;
+  test/limba.test.js face maghiara și japoneza „în probă” doar ca să-l verifice. Fișa tipărită și PDF-ul pot ieși și în altă limbă (alegerea de pe pagina de tipărire).
+  Fără cont, limba se alege din steagul rotund din colțul din dreapta sus (`shared/lang-switch.ts`, ca pe sit; pe
+  paginile de intrare e în colț prin `.auth-page app-lang-switch` din styles.css). Sub siglă, pe Intră și Cont nou, e
+  `web/public/wordmark.svg` (literele din siglă, scrise de `docs/design/sigla/scrie-svg.py`).
+- Japoneza (`ja`) e **publică** din 2026-11-26 (a fost „în probă” din 2026-11-25; vânzătorul a hotărât să o deschidă
+  înainte de verificarea unui columbofil japonez a listei din `docs/cercetare/termeni-japonezi.md` §8, care rămâne de făcut). Fontul ei (Noto Sans JP, feliat cu unicode-range) e într-un CSS separat,
   `web/src/japoneza.css` → `/japoneza.css` (angular.json, `inject: false`), adus de `core/font-ja.ts` doar când se folosește
   japoneza; stiva de fonturi se schimbă doar sub `[lang="ja"]` (styles.css; foaia de pedigree are `lang` propriu). În PDF,
   `core/sheet-fonts.ts` așteaptă literele foii și încorporează doar feliile de pe ea (test/font-japonez.test.js).
@@ -208,15 +212,14 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   dintr-o literă NU se citesc la `ja`, nu se ghicesc) și citirea pozei (promptul știe fișele japoneze); numele japoneze ale
   culorilor (`matchColor`, din ja.json; test/culori-japoneze.test.js); țara implicită la import = JP; ora contului (mai jos).
   Ce rămâne: verificarea pe mostre reale de la columbofili japonezi (inele, o fișă de pedigree ca poză / Excel; mesajul în
-  `docs/cercetare/mesaj-grupuri-japonia.md`, lista în `termeni-japonezi.md` §8), până atunci `ja` rămâne `public: false`, și
-  acordul vânzătorului; prețurile în yeni vin odată cu Paddle. Ramurile neîmbinate (feat/plata-paddle etc.) au nevoie de
+  `docs/cercetare/mesaj-grupuri-japonia.md`, lista în `termeni-japonezi.md` §8), de făcut în continuare (`ja` e totuși publică); prețurile în yeni vin odată cu Paddle. Ramurile neîmbinate (feat/plata-paddle etc.) au nevoie de
   textele lor în `ja.json` la rebase.
 - Ora contului: fiecare limbă din `languages.json` are `zone` (ro București, hu Budapesta, ja Tokyo); `src/zones.js`
   (modul pur, și serverul, și interfața) dă `zoneOf(lang)`, `todayIn`, `atLocal`. Amintirile, tratamentele și calendarul
   cuibului merg pe ora zonei contului; în browser „azi” vine din `web/src/app/core/today.ts`. Pe ora României rămân data
   abonamentului, mesajele către vânzător și consola vânzătorului. O limbă nouă primește și `zone` (altfel cade pe București).
 - Termenii maghiari ai crescătorilor (culori, H / T pentru sex, „SZÁRMAZÁSI LAP”): `docs/cercetare/termeni-maghiari.md`.
-- O limbă nouă: un fișier `i18n/<cod>.json` cu toate cheile + un rând în `languages.json` (cu `zone` și `public: false` până e verificată).
+- O limbă nouă: un fișier `i18n/<cod>.json` cu toate cheile + un rând în `languages.json` (cu `zone` și `public: true`: orice limbă nouă e publică și oficială de la început).
 
 ## Situl de prezentare
 
@@ -227,7 +230,7 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
 ## Publicarea (Railway)
 
 - Proiectul Railway „porumbar” (Soopra Projects, UE): serviciul `porumbar` (Dockerfile: construiește interfața, apoi
-  pornește serverul) + `Postgres`. Adresa: https://porumbar-production.up.railway.app.
+  pornește serverul) + `Postgres`. Adresa: **https://app.pigeonrama.com** (din 2026-11-26, domeniu propriu pe Railway: CNAME `app` → `lrz7xqum.up.railway.app` și TXT `_railway-verify.app` în DNS-ul DirectAdmin; `PUBLIC_BASE_URL` arată spre ea). Adresa veche https://porumbar-production.up.railway.app merge în continuare (codurile QR deja tipărite) și nu se șterge.
 - Înainte de publicarea „inelelor din toată lumea” (regula anului: `27` scris pe 2 cifre era 1927, acum 2027) se
   verifică în producție: `SELECT count(*) FROM pigeons WHERE ring_year = 1927;` și
   `SELECT count(*) FROM ring_series WHERE year = 1927;`. Dacă nu dau 0, rândurile acelea se lămuresc cu vânzătorul.

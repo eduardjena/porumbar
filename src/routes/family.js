@@ -3,7 +3,7 @@ import { all, run, tx, lockAccount } from '../db.js';
 import { badRequest } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow, getPigeon, loadNodes, toPigeon, toSummary } from '../pigeons.js';
-import { parseRing, formatRing, ringKey, fallbackKey } from '../rings.js';
+import { parseRing, formatRing, ringKey, fallbackKey, japaneseRingText } from '../rings.js';
 import { buildTree, wrightCoi, coiOf, ancestorIds } from '../genealogy.js';
 import { bloodlines } from '../bloodlines.js';
 import { COLORS } from '../catalog.js';
@@ -67,7 +67,8 @@ export function familyRouter() {
 
   r.get('/pigeons/lookup', requireAccount, async (req, res) => {
     const raw = String(req.query.ring ?? '').trim();
-    const ring = parseRing(raw);
+    // La un cont japonez, inelul scris fără „JPN” (25-AB-01234) se caută ca JP, cum se și salvează (pigeons.js).
+    const ring = parseRing(req.account.lang === 'ja' ? japaneseRingText(raw) : raw);
     const key = ringKey(ring);
     let rows = [];
     // Un porumbel fără inel („000 M”) nu se caută: două strămoși necunoscuți nu sunt același porumbel.

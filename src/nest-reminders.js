@@ -6,10 +6,21 @@ import { glue, t } from './i18n.js';
 import { openClutches } from './breeding.js';
 import { subscriptionOf } from './subscriptions.js';
 import { isOpen, nestMoments, reminderMoments } from './nest-schedule.js';
+import { BUCHAREST, langsIn, langsOutside } from './zones.js';
 
 const HOUR = 3600e3;
 const WINDOW = 3 * HOUR; // ca la tratamente: un moment ratat se mai trimite cel mult 3 ore
 export const NEST_KIND_ORDER = { ou2: 0, mirare: 1, eclozare: 2, inelare: 3, inelare_ultima_maine: 4, inelare_ultima: 4 };
+
+/**
+ * Condiția SQL „contul cu limba din `column` e în zona `zone`” și parametrul ei, ca la `zoneOf`: o limbă
+ * necunoscută e a Bucureștiului (o folosesc și amintirile tratamentelor).
+ */
+export function inZone(zone, column) {
+  return zone === BUCHAREST
+    ? { sql: `${column} <> ALL(?::text[])`, param: langsOutside(zone) }
+    : { sql: `${column} = ANY(?::text[])`, param: langsIn(zone) };
+}
 
 // Momentul din calendar căruia îi aparține amintirea (ultima zi de inelare e tot inelarea).
 const baseKind = (kind) => (kind.startsWith('inelare') ? 'inelare' : kind);
@@ -34,12 +45,16 @@ export function groupNestItems(items, lang) {
   }).sort(byNestKind);
 }
 
-/** Pontele deschise ale conturilor cu abonament activ (cele „doar citire” nu primesc amintiri de cuib), cu limba. */
-async function activeClutches(today, now) {
+/**
+ * Pontele deschise ale conturilor din zona `zone` cu abonament activ (cele „doar citire” nu primesc amintiri de cuib),
+ * cu limba. `today`: ziua de azi în zona aceea.
+ */
+async function activeClutches(today, now, zone) {
   const open = (await openClutches({ today })).filter((o) => isOpen(o.clutch, today));
   if (!open.length) return [];
   const ids = [...new Set(open.map((o) => o.accountId))];
-  const accounts = await all('SELECT id, email, lang, subscription_start, subscription_end FROM accounts WHERE id = ANY(?::bigint[])', ids);
+  const z = inZone(zone, 'lang');
+  const accounts = await all(`SELECT id, email, lang, subscription_start, subscription_end FROM accounts WHERE id = ANY(?::bigint[]) AND ${z.sql}`, ids, z.param);
   const active = new Map(accounts.filter((a) => subscriptionOf(a, now).active).map((a) => [a.id, a]));
   return open.filter((o) => active.has(o.accountId)).map((o) => ({ ...o, lang: active.get(o.accountId).lang }));
 }
@@ -53,17 +68,17 @@ function addTo(map, key, value) {
 }
 
 /**
- * Amintirile de cuib sosite la `now`, pe cont: momentul a venit (cel mult 3 ore în urmă), după ultima schimbare a pontei,
- * și e încă de făcut. „Mâine e ultima zi de inelare” nu intră: cine are telefonul primește ultima zi la 07:00, iar
- * emailul de seară o ia din `nestEveningLines`.
+ * Amintirile de cuib sosite la `now`, pe cont, pentru conturile din zona `zone` (`today`: ziua de azi acolo): momentul
+ * a venit (cel mult 3 ore în urmă), după ultima schimbare a pontei, și e încă de făcut. „Mâine e ultima zi de inelare”
+ * nu intră: cine are telefonul primește ultima zi la 07:00, iar emailul de seară o ia din `nestEveningLines`.
  * @returns {Promise<Map<number, { clutchId: number, kind: string, onDate: string, lang: string, nest: string|null, label: string|null }[]>>}
  */
-export async function nestDueItems(now, today) {
+export async function nestDueItems(now, today, zone = BUCHAREST) {
   const out = new Map();
-  for (const o of await activeClutches(today, now)) {
+  for (const o of await activeClutches(today, now, zone)) {
     const changedAt = new Date(o.updatedAt);
     const todo = stillToDo(o.clutch, today);
-    for (const m of reminderMoments(o.clutch)) {
+    for (const m of reminderMoments(o.clutch, zone)) {
       if (m.kind === 'inelare_ultima_maine') continue;
       if (!(m.at <= now && now - m.at <= WINDOW && m.at >= changedAt)) continue;
       if (!todo.has(baseKind(m.kind))) continue;
@@ -92,13 +107,14 @@ export async function claimNestNotices(items) {
 }
 
 /**
- * Rândurile de cuib ale emailului de seară din ziua `today` (`evening` = 19:00): ce începe mâine și „mâine e ultima zi
- * de inelare”, pentru pontele neschimbate după 19:00, încă de făcut, fără un moment amintit deja în altă zi.
+ * Rândurile de cuib ale emailului de seară din ziua `today` (`evening` = 19:00), pentru conturile din zona `zone`: ce
+ * începe mâine și „mâine e ultima zi de inelare”, pentru pontele neschimbate după 19:00, încă de făcut, fără un moment
+ * amintit deja în altă zi.
  * @returns {Promise<Map<number, { kind: string, text: string }[]>>}
  */
-export async function nestEveningLines(today, evening) {
+export async function nestEveningLines(today, evening, zone = BUCHAREST) {
   const out = new Map();
-  const list = await activeClutches(today, evening);
+  const list = await activeClutches(today, evening, zone);
   if (!list.length) return out;
   const sent = await all(
     'SELECT clutch_id, kind FROM nest_notices WHERE clutch_id = ANY(?::bigint[]) AND on_date <> ?::date',
@@ -108,7 +124,7 @@ export async function nestEveningLines(today, evening) {
   for (const o of list) {
     if (new Date(o.updatedAt) > evening) continue;
     const todo = stillToDo(o.clutch, today);
-    for (const m of reminderMoments(o.clutch)) {
+    for (const m of reminderMoments(o.clutch, zone)) {
       if (m.onDate !== today || m.at.getTime() !== evening.getTime()) continue;
       if (!todo.has(baseKind(m.kind)) || sentElsewhere.has(`${o.clutchId}|${m.kind}`)) continue;
       addTo(out, o.accountId, { kind: m.kind, lang: o.lang, ...place(o) });

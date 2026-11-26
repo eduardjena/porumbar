@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setLang } from './helpers/accounts.js';
 import { buildRows } from '../web/src/app/shared/tabel-coloane.ts';
 
 // Adu porumbeii din Excel: motorul de import (previzualizare și salvare). Inelele și numele sunt inventate.
@@ -448,4 +448,64 @@ test('3000 de rânduri', async () => {
   const id = await accountId(a);
   const linked = await one('SELECT count(*)::int AS n FROM pigeons WHERE account_id = ? AND father_id IS NOT NULL AND mother_id IS NOT NULL', id);
   assert.equal(linked.n, 1500);
+});
+
+// ——— Inelele japoneze fără „JPN” la conturile japoneze ———
+
+test('cont ja: inelul cu forma japoneză primește JPN înaintea țării coloanei; cel doar din cifre, ca azi; la ro, ca azi', async () => {
+  const ja = await newAccount(call, 'Ja');
+  await setLang(call, await accountId(ja), 'ja');
+  for (const defaultCountry of ['JP', 'RO', undefined]) {
+    const b = { ...(defaultCountry ? { defaultCountry } : {}), rows: rows({ ring: '25-AB-01234', father: '24-CD-00777' }, { ring: '26-800546' }) };
+    const p = await preview(ja, b);
+    assert.equal(p.status, 200, JSON.stringify(p.data));
+    assert.equal(p.data.created, 2, defaultCountry);
+    assert.equal(p.data.ancestors, 1, defaultCountry);
+  }
+  const s = await save(ja, { defaultCountry: 'JP', rows: rows({ ring: '25-AB-01234', father: '24-CD-00777' }, { ring: '26-800546' }) });
+  assert.equal(s.status, 201, JSON.stringify(s.data));
+  const child = await byRing(ja, 'JP-25-AB-01234');
+  assert.equal(child.ring.raw, 'JPN 25-AB-01234');
+  const father = await pigeon(ja, (await pigeon(ja, child.id)).fatherId);
+  assert.equal(father.ring.raw, 'JPN 24-CD-00777');
+  assert.equal(father.ring.display, 'JP-24-CD-00777');
+  // Doar cifre: țara coloanei, ca azi.
+  assert.equal((await byRing(ja, 'JP-26-800546')).ring.raw, 'JP 26-800546');
+  // Același inel scris altfel, din nou: e cel existent, nu unul nou.
+  const again = await save(ja, { rows: rows({ ring: '25AB01234' }) });
+  assert.equal(again.data.created, 0);
+  assert.equal(again.data.existing, 1);
+
+  const ro = await newAccount(call, 'Ro');
+  const r = await save(ro, { defaultCountry: 'RO', rows: rows({ ring: '25-AB-01234' }) });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  const own = (await pigeons(ro)).filter((x) => x.kind === 'own');
+  assert.deepEqual(own.map((x) => x.ring.raw), ['25-AB-01234']);
+});
+
+test('cont ja: antet japonez, sex, dată cu eră și culoarea B: culoarea necunoscută, cu textul B păstrat; la ro, B e bătut', async () => {
+  const antet = ['脚環番号', '性別', '羽色', '父', '母', '生年月日', '作出者', '鳩名'];
+  const grid = [antet, ['25-AB-01234', 'オス', 'B', '', '', '令和7年4月5日', '山田', 'テスト一号'], ['25-AB-01235', '雌', 'ブルー', '', '', '2025/4/6', '', '']];
+  const fields = ['inel', 'sex', 'culoare', 'tata', 'mama', 'eclozare', 'crescator', 'nume'];
+  const body = { defaultCountry: 'JP', rows: buildRows(grid, fields, 0) };
+
+  const ja = await newAccount(call, 'Ja2');
+  await setLang(call, await accountId(ja), 'ja');
+  const s = await save(ja, body);
+  assert.equal(s.status, 201, JSON.stringify(s.data));
+  const a = await pigeon(ja, (await byRing(ja, 'JP-25-AB-01234')).id);
+  assert.equal(a.sex, 'M');
+  assert.equal(a.hatchedOn, '2025-04-05');
+  assert.equal(a.name, 'テスト一号');
+  assert.equal(a.color, null);
+  assert.equal(a.colorText, 'B');
+  const b = await pigeon(ja, (await byRing(ja, 'JP-25-AB-01235')).id);
+  assert.equal(b.sex, 'F');
+  assert.equal(b.hatchedOn, '2025-04-06');
+  assert.equal(b.color, 'albastru');
+
+  const ro = await newAccount(call, 'Ro2');
+  const r = await save(ro, { rows: rows({ ring: 'RO-25-100001', color: 'B' }) });
+  assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal((await pigeon(ro, (await byRing(ro, 'RO-25-100001')).id)).color, 'baltat');
 });

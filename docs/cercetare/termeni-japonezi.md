@@ -159,3 +159,6 @@ Registru: etichete scurte de substantiv (体言止め) pe butoane; です・ま�
 4. Stările porumbelului (activ/vândut/pierdut/mort).
 5. Eticheta pentru „maraton” (`超長距離` propus) și dacă vor pragurile de km ale Porumbar sau pe ale lor.
 6. Forma prețului: `円` vs `¥`, și prețul real în yeni pentru abonament.
+7. Forma inelelor: 25-AB-01234 (an + două litere + număr), cu sau fără „JPN”; emitenții și organizațiile; cum scriu anul (2 sau 4 cifre).
+8. Titlurile de coloană din Excelurile lor (nume, inel, sex, culoare, data nașterii, tată, mamă …) și datele cu ere (令和 / 平成).
+9. Codurile de culoare dintr-o literă (B, S, G …): le folosesc deloc? Azi la `ja` nu se citesc.

@@ -1,7 +1,7 @@
 import express from 'express';
 import { requireAccount } from '../accounts.js';
 import * as b from '../breeding.js';
-import { bucharestNow } from '../treatment-schedule.js';
+import { todayFor } from '../treatments.js';
 
 /** Reproducția: perechi, ponte, inelarea puilor, seriile de inele (toate ale contului). */
 export function breedingRouter() {
@@ -17,7 +17,7 @@ export function breedingRouter() {
     res.status(204).end();
   });
 
-  r.get('/breeding/calendar', requireAccount, async (req, res) => res.json(await b.calendar(a(req), bucharestNow(new Date()).date)));
+  r.get('/breeding/calendar', requireAccount, async (req, res) => res.json(await b.calendar(a(req), todayFor(req.lang))));
   r.get('/pairs/:id/colors', requireAccount, async (req, res) => res.json(await b.pairColors(a(req), req.params.id, req.lang)));
   r.post('/colors/predict', requireAccount, async (req, res) => res.json(b.predictFromBody(req.body, req.lang)));
   r.post('/pairs/:id/clutches', requireAccount, async (req, res) => res.status(201).json({ clutch: await b.createClutch(a(req), req.params.id, req.body) }));
@@ -26,10 +26,10 @@ export function breedingRouter() {
     await b.deleteClutch(a(req), req.params.id);
     res.status(204).end();
   });
-  r.post('/clutches/:id/young', requireAccount, async (req, res) => res.status(201).json({ pigeon: await b.ringYoung(a(req), req.params.id, req.body) }));
+  r.post('/clutches/:id/young', requireAccount, async (req, res) => res.status(201).json({ pigeon: await b.ringYoung(a(req), req.params.id, req.body, { lang: req.account.lang }) }));
 
   r.get('/ring-series', requireAccount, async (req, res) => res.json({ series: await b.listSeries(a(req)) }));
-  r.post('/ring-series', requireAccount, async (req, res) => res.status(201).json({ series: await b.createSeries(a(req), req.body) }));
+  r.post('/ring-series', requireAccount, async (req, res) => res.status(201).json({ series: await b.createSeries(a(req), req.body, { lang: req.account.lang }) }));
   r.get('/ring-series/next', requireAccount, async (req, res) => res.json({ ring: await b.nextRing(a(req), req.query.year) }));
   r.delete('/ring-series/:id', requireAccount, async (req, res) => {
     await b.deleteSeries(a(req), req.params.id);

@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setLang } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -128,4 +128,30 @@ test('culorile puilor pentru o pereche: din culorile din fișe, cu ce poartă as
   assert.equal(edited.data.cocks.length, 2);
   assert.equal((await call('/api/colors/predict', { method: 'POST', cookie: a, body: { sire: { base: 'verde' }, dam: {} } })).status, 400);
   assert.equal((await call(`/api/pairs/${p.id}/colors`, { cookie: b })).status, 404);
+});
+
+// ——— Inelele japoneze fără „JPN” la conturile japoneze: puiul inelat și seria de inele ———
+
+test('cont ja: puiul inelat și seria cu inele japoneze fără JPN; la ro seria se refuză, ca azi', async () => {
+  const ja = await newAccount(call, 'Ja');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  const c = await own('24-AB-00100', 'M', ja);
+  const h = await own('24-AB-00101', 'F', ja);
+  assert.equal(c.ring.raw, 'JPN 24-AB-00100');
+  const pair = await call('/api/pairs', { method: 'POST', cookie: ja, body: { cockId: c.id, henId: h.id, pairedOn: '2026-02-10' } });
+  assert.equal(pair.status, 201, JSON.stringify(pair.data));
+  const cl = await call(`/api/pairs/${pair.data.pair.id}/clutches`, { method: 'POST', cookie: ja, body: { egg1On: '2026-02-20', egg2On: '2026-02-22' } });
+  await call(`/api/clutches/${cl.data.clutch.id}`, { method: 'PATCH', cookie: ja, body: { hatchedOn: '2026-03-10', hatched: 2, infertile: 0 } });
+  const y = await call(`/api/clutches/${cl.data.clutch.id}/young`, { method: 'POST', cookie: ja, body: { ring: '26-ab-00050' } });
+  assert.equal(y.status, 201, JSON.stringify(y.data));
+  assert.equal(y.data.pigeon.ring.raw, 'JPN 26-ab-00050');
+  assert.equal(y.data.pigeon.ring.display, 'JP-26-AB-00050');
+  const d = await call(`/api/clutches/${cl.data.clutch.id}/young`, { method: 'POST', cookie: ja, body: { ring: '26-800546' } });
+  assert.equal(d.data.pigeon.ring.raw, '26-800546');
+
+  const s = await call('/api/ring-series', { method: 'POST', cookie: ja, body: { first: '26-CD-00001', last: '26-CD-00010' } });
+  assert.equal(s.status, 201, JSON.stringify(s.data));
+  assert.equal(s.data.series.first, 'JP-26-CD-00001');
+  assert.equal((await call('/api/ring-series/next?year=2026', { cookie: ja })).data.ring, 'JP-26-CD-00001');
+  assert.equal((await call('/api/ring-series', { method: 'POST', cookie: a, body: { first: '26-CD-00001', last: '26-CD-00010' } })).status, 400);
 });

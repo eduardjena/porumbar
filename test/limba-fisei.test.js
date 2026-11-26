@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { sheetLangs, allowedSheetLang } from '../web/src/app/core/sheet-langs.ts';
-import { within } from '../web/src/app/core/within.ts';
+import { within, withTimeout, PDF_TIMEOUT_MS } from '../web/src/app/core/within.ts';
 import { joinFontCss } from '../web/src/app/core/font-faces.ts';
 
 const LANGS = [{ code: 'ro', public: true }, { code: 'hu', public: true }, { code: 'ja', public: false }];
@@ -33,4 +33,13 @@ test('joinFontCss: nimic adus înseamnă undefined (fonturile implicite), nu un 
   assert.equal(joinFontCss(['', '']), undefined);
   assert.equal(joinFontCss([]), undefined);
   assert.equal(joinFontCss(['', '@font-face{a}']), '@font-face{a}');
+});
+
+test('withTimeout: rezultatul trece, eroarea trece, o lucrare blocată pică cu mesajul dat după limită', { timeout: 5000 }, async () => {
+  assert.equal(PDF_TIMEOUT_MS, 30_000);
+  assert.equal(await withTimeout(Promise.resolve(7), 1000, () => new Error('x')), 7);
+  await assert.rejects(withTimeout(Promise.reject(new Error('real')), 1000, () => new Error('x')), /real/);
+  const t0 = Date.now();
+  await assert.rejects(withTimeout(new Promise(() => {}), 30, () => new Error('prea lent')), /prea lent/);
+  assert.ok(Date.now() - t0 < 1000);
 });

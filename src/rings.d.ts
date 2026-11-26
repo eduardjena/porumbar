@@ -17,4 +17,5 @@ export function formatRing(r: Partial<ParsedRing> | null | undefined): string;
 export function ringKey(r: Partial<ParsedRing> | null | undefined): string | null;
 export function fallbackKey(r: Partial<ParsedRing> | null | undefined): string | null;
 export function storedRingKey(r: Partial<ParsedRing> | null | undefined): string | null;
+export function japaneseRingText(text: string): string;
 export function ringFromColumba(matricol: string | number, an: string | number): ParsedRing;

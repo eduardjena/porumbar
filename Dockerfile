@@ -8,8 +8,8 @@ RUN npm ci --no-audit --no-fund
 COPY web/ ./
 # Dicționarele (i18n/) le citește și interfața la build (ro.json intră în pachet).
 COPY i18n/ /app/i18n/
-# Regulile inelelor sunt aceleași în telefon și pe server: interfața importă src/rings.js (tipurile în rings.d.ts).
-COPY src/rings.js src/rings.d.ts /app/src/
+# Regulile inelelor și zonele de timp sunt aceleași în telefon și pe server: interfața importă src/rings.js și src/zones.js (tipurile în *.d.ts).
+COPY src/rings.js src/rings.d.ts src/zones.js src/zones.d.ts /app/src/
 RUN npm run build
 
 # 2. Serverul

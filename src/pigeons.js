@@ -1,6 +1,6 @@
 import { one, all, run, insert, tx, nowIso, lockAccount } from './db.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
-import { parseRing, formatRing, ringKey, fallbackKey, storedRingKey } from './rings.js';
+import { parseRing, formatRing, ringKey, fallbackKey, storedRingKey, japaneseRingText } from './rings.js';
 import { BREEDS, COLORS, EYE_COLORS, STATUSES, EVAL_CRITERIA, codes, fold } from './catalog.js';
 
 /*
@@ -119,14 +119,19 @@ function validEvaluation(value) {
   };
 }
 
-/** Fișa completă, validată, din câmpurile trimise peste cele existente (la PATCH). */
-function validate(input, existing = null) {
+/**
+ * Fișa completă, validată, din câmpurile trimise peste cele existente (la PATCH). `lang` = limba contului: la `ja`, un
+ * inel japonez scris acum de om fără „JPN” (25-AB-01234) primește „JPN ” în față; inelul deja salvat (de ex. venit
+ * dintr-o vânzare sau din „Preia”) rămâne cum e, și când fișa îl trimite înapoi neschimbat.
+ */
+function validate(input, existing = null, lang = null) {
   const pick = (key, fallback) => (input[key] === undefined ? fallback : input[key]);
   const kind = oneOf(pick('kind', existing?.kind ?? 'own'), KINDS, 'tip');
 
   const ringText = pick('ring', existing?.ring?.raw ?? null);
   const raw = ringText == null || String(ringText).trim() === '' ? null : text(ringText, 'camp.inel', { max: 80 });
-  const ring = raw ? parseRing(raw) : null;
+  const written = raw && lang === 'ja' && raw !== existing?.ring?.raw ? japaneseRingText(raw) : raw;
+  const ring = written ? parseRing(written) : null;
   // Un porumbel propriu are inel. Unul nerecunoscut se păstrează cum l-a scris omul (cheia de rezervă, ringKeyOf);
   // doar „fără inel”, textul fără nicio literă sau cifră („??”) și inelul maghiar fără organizator (numerele se repetă
   // între asociații) se refuză.
@@ -195,15 +200,16 @@ const columns = (p) => [
 const COLS = `kind, ring_raw, ring_key, ring_country, ring_year, ring_club, ring_number, sex, name, breed, lines, color, color_pa,
   color_text, eye_color, status, hatched_on, breeder_text, pedigree_text, evaluation, search_text`;
 
-export async function createPigeon(accountId, input) {
-  const p = validate(input ?? {});
+/** `lang` = limba contului care scrie inelul (doar ce scrie omul; copiile din vânzare / „Preia” nu o dau). */
+export async function createPigeon(accountId, input, { lang = null } = {}) {
+  const p = validate(input ?? {}, null, lang);
   return tx(async () => {
     // Inelul există deja ca strămoș în cont (de ex. tatăl unui porumbel cumpărat, cumpărat și el acum):
     // devine porumbelul propriu, cu tot cu părinții și puii lui, ca genealogia să nu se rupă în două.
     const key = ringKey(p.ring);
     if (p.kind === 'own' && key) {
       const ext = await one(`SELECT id FROM pigeons WHERE account_id = ? AND kind = 'external' AND ring_key = ?`, accountId, key);
-      if (ext) return updatePigeon(accountId, ext.id, { ...input, kind: 'own' });
+      if (ext) return updatePigeon(accountId, ext.id, { ...input, kind: 'own' }, { lang });
     }
     await checkDuplicate(accountId, p);
     const now = nowIso();
@@ -238,10 +244,10 @@ export async function insertPigeons(accountId, list) {
   return ids;
 }
 
-export async function updatePigeon(accountId, id, input) {
+export async function updatePigeon(accountId, id, input, { lang = null } = {}) {
   return tx(async () => {
     const existing = await getPigeon(accountId, id);
-    const p = validate(input ?? {}, existing);
+    const p = validate(input ?? {}, existing, lang);
     await checkDuplicate(accountId, p, existing.id);
     if (p.sex !== existing.sex) {
       const column = existing.sex === 'M' ? 'father_id' : existing.sex === 'F' ? 'mother_id' : null;

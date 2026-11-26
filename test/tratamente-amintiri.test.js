@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
 import { newAccount, setLang, today } from './helpers/accounts.js';
+import { BUCHAREST, atLocal } from '../src/zones.js';
 
 // Amintirile tratamentelor: notificările pe telefon (expeditor fals) și rezumatul de seară pe email (sentMails),
 // cu `now` fixat. Fiecare test își ia zilele lui (slot), ca rulările unui test să nu atingă tratamentele altuia.
@@ -15,7 +16,6 @@ let all;
 let dbRun;
 let setPushSender;
 let sentMails;
-let atBucharest;
 const call = apiCaller(() => ({ base }));
 
 /** Ce a „trimis” expeditorul fals: { endpoint, payload }; răspunsul pe dispozitiv se alege din `answers`. */
@@ -29,7 +29,6 @@ before(async () => {
   ({ one, all, run: dbRun } = await import('../src/db.js'));
   ({ setPushSender } = await import('../src/push.js'));
   ({ sentMails } = await import('../src/mail.js'));
-  ({ atBucharest } = await import('../src/treatment-schedule.js'));
   setPushSender(async (sub, payload) => {
     pushes.push({ endpoint: sub.endpoint, payload });
     return answers.get(sub.endpoint) ?? 'ok';
@@ -43,8 +42,10 @@ beforeEach(() => answers.clear());
 
 const run = (now) => remind(now, { emailDelayMs: 0 });
 const addDays = (iso, n) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86400_000).toISOString().slice(0, 10);
-/** Ora României `hour`:`min` din ziua `date`. */
-const at = (date, hour, min = 5) => new Date(atBucharest(date, hour).getTime() + min * 60_000);
+const BUDAPEST = 'Europe/Budapest';
+const TOKYO = 'Asia/Tokyo';
+/** Ora `hour`:`min` din ziua `date`, în zona `zone` (implicit ora României). */
+const at = (date, hour, min = 5, zone = BUCHAREST) => new Date(atLocal(date, hour, zone).getTime() + min * 60_000);
 let slot = 0;
 /** O zi de început doar a testului acesta (la 20 de zile una de alta, după lanțul din primul test). */
 const nextDay = () => addDays(today(), 30 + 20 * slot++);
@@ -176,7 +177,10 @@ test('fără dispozitive: un email seara, cu ambele tratamente, în limba contul
   const a = await account('FaraHu', { lang: 'hu' });
   await treatment(a, { startDate: d, days: 2 });
   await treatment(a, { startDate: d, name: 'paramixo', kind: 'vaccin', method: 'injectie', days: 1 });
-  const r = await run(at(addDays(d, -1), 19));
+  // Contul `hu` trăiește pe ora Budapestei: seara lui vine cu o oră după cea a României.
+  await run(at(addDays(d, -1), 19));
+  assert.equal(mailsTo(a).length, 0);
+  const r = await run(at(addDays(d, -1), 19, 5, BUDAPEST));
   assert.ok(r.emails >= 1);
   const mails = mailsTo(a);
   assert.equal(mails.length, 1);
@@ -187,11 +191,11 @@ test('fără dispozitive: un email seara, cu ambele tratamente, în limba contul
   assert.ok(mails[0].text.includes('mert a telefonodon az emlékeztetők nincsenek bekapcsolva (vagy nem érkeztek meg)'), mails[0].text);
   assert.ok(mails[0].text.includes('Fiók → Emlékeztetők'), mails[0].text);
   // A doua zi seara: „mâine e ultima zi” → încă un email (unul pe seară).
-  await run(at(d, 19));
+  await run(at(d, 19, 5, BUDAPEST));
   assert.equal(mailsTo(a).length, 2);
   assert.match(mailsTo(a)[1].text, /Holnap van az utolsó nap/);
   // Dimineața ultimei zile: fără email.
-  await run(at(addDays(d, 1), 7));
+  await run(at(addDays(d, 1), 7, 5, BUDAPEST));
   assert.equal(mailsTo(a).length, 2);
 });
 
@@ -261,6 +265,60 @@ test('salvat la 19:30 pentru mâine: fără „Mâine începe” la 20:00; „ul
   const got = pushesTo(ep);
   assert.equal(got.length, 1);
   assert.equal(got[0].payload.body, 'Azi e ultima zi: Tricomonază (gălbenele)');
+});
+
+test('ora țării contului: „Mâine începe” la 19:00 la Tokyo (ja), la București (ro), la Budapesta (hu)', async () => {
+  const ja = await account('Tokio', { lang: 'ja' });
+  const ro = await account('Bucuresti');
+  const hu = await account('Budapesta', { lang: 'hu' });
+  const eps = { ja: await device(ja, 1), ro: await device(ro, 1), hu: await device(hu, 1) };
+  const trs = [];
+  for (const acc of [ja, ro, hu]) trs.push(await treatment(acc, { startDate: '2026-11-28' }));
+  const got = () => Object.fromEntries(Object.entries(eps).map(([k, ep]) => [k, pushesTo(ep).length]));
+  await run(new Date('2026-11-27T10:00:30Z')); // 19:00 la Tokyo; la București e abia 12:00
+  assert.deepEqual(got(), { ja: 1, ro: 0, hu: 0 });
+  assert.match(pushesTo(eps.ja)[0].payload.body, /^明日から開始：/);
+  await run(new Date('2026-11-27T17:00:30Z')); // 19:00 la București, exact ca până acum
+  assert.deepEqual(got(), { ja: 1, ro: 1, hu: 0 });
+  assert.equal(pushesTo(eps.ro)[0].payload.body, 'Mâine începe: Tricomonază (gălbenele), 2 porumbei (în apă)');
+  await run(new Date('2026-11-27T18:00:30Z')); // 19:00 la Budapesta
+  assert.deepEqual(got(), { ja: 1, ro: 1, hu: 1 });
+  for (const tr of trs) {
+    assert.deepEqual(await all('SELECT kind, on_date FROM treatment_notices WHERE treatment_id = ?', tr.id), [{ kind: 'inainte', on_date: '2026-11-27' }]);
+  }
+});
+
+test('ora țării contului: rezumatul de seară al contului ja pleacă după 19:00 la Tokyo, nu la București', async () => {
+  const d = nextDay();
+  const ja = await account('TokioEmail', { lang: 'ja' });
+  const ro = await account('BucurestiEmail');
+  await treatment(ja, { startDate: d });
+  await treatment(ro, { startDate: d });
+  await run(at(addDays(d, -1), 18, 55, TOKYO));
+  assert.equal(mailsTo(ja).length, 0, 'înainte de 19:00 la Tokyo: nimic');
+  await run(at(addDays(d, -1), 19, 5, TOKYO));
+  assert.equal(mailsTo(ja).length, 1);
+  assert.equal(mailsTo(ja)[0].subject, 'Porumbar：治療のリマインダー');
+  assert.equal(mailsTo(ro).length, 0, 'la București e încă dimineață');
+  assert.deepEqual(await all('SELECT on_date FROM email_digests WHERE account_id = ?', ja.id), [{ on_date: addDays(d, -1) }]);
+  await run(at(addDays(d, -1), 19));
+  assert.equal(mailsTo(ro).length, 1);
+  assert.equal(mailsTo(ja).length, 1, 'la Tokyo e noapte: nimic nou');
+});
+
+test('ora țării contului: tratamentul început se fixează la miezul nopții contului', async () => {
+  const d = nextDay();
+  const ja = await account('TokioFix', { lang: 'ja' });
+  const ro = await account('BucurestiFix');
+  const tj = await treatment(ja, { startDate: d });
+  const tr = await treatment(ro, { startDate: d });
+  const frozen = async (t) => !!(await one('SELECT frozen_at FROM treatments WHERE id = ?', t.id)).frozen_at;
+  await run(at(addDays(d, -1), 23, 50, TOKYO));
+  assert.deepEqual([await frozen(tj), await frozen(tr)], [false, false]);
+  await run(at(d, 0, 1, TOKYO)); // la București e încă ziua de dinainte
+  assert.deepEqual([await frozen(tj), await frozen(tr)], [true, false]);
+  await run(at(d, 0, 1));
+  assert.deepEqual([await frozen(tj), await frozen(tr)], [true, true]);
 });
 
 test('verificarea orară cade la hh:00:30, cel puțin o secundă mai târziu', async () => {

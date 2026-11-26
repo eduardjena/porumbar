@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount, setIdentity } from './helpers/accounts.js';
+import { newAccount, setIdentity, setLang } from './helpers/accounts.js';
 import { PEDIGREE_FOTO } from './fixtures/pedigree-foto.js';
 
 let server;
@@ -107,4 +107,22 @@ test('preluarea ca porumbel propriu și cazurile greșite', async () => {
   assert.equal((await call(`/api/public/${token}/import`, { method: 'POST', cookie: a })).status, 400); // e al lui
   assert.equal((await call(`/api/public/${token}/import`, { method: 'POST', auth: 'none' })).status, 401);
   assert.equal((await call(`/api/public/nimic/import`, { method: 'POST', cookie: c })).status, 404);
+});
+
+test('„Preia” de la un cont ro într-un cont ja: inelele rămân cum sunt scrise (fără JPN)', async () => {
+  const mk = async (body) => (await call('/api/pigeons', { method: 'POST', cookie: a, body })).data.pigeon;
+  const child = await mk({ kind: 'own', ring: '25-AB-01234', sex: 'M' });
+  const father = await mk({ kind: 'external', ring: '24-CD-00777', sex: 'M' });
+  await call(`/api/pigeons/${child.id}/parents`, { method: 'PUT', cookie: a, body: { fatherId: father.id, motherId: null } });
+  const on = await call(`/api/pigeons/${child.id}/public`, { method: 'POST', cookie: a });
+  const ja = await newAccount(call, 'Ja');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  for (const kind of ['external', 'own']) {
+    const r = await call(`/api/public/${tokenOf(on.data.url)}/import`, { method: 'POST', cookie: ja, body: { kind } });
+    assert.equal(r.status, 201, JSON.stringify(r.data));
+    const mine = (await call(`/api/pigeons/${r.data.pigeonId}`, { cookie: ja })).data.pigeon;
+    assert.equal(mine.ring.raw, '25-AB-01234');
+    const dad = (await call(`/api/pigeons/${mine.fatherId}`, { cookie: ja })).data.pigeon;
+    assert.equal(dad.ring.raw, '24-CD-00777');
+  }
 });

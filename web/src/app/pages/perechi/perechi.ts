@@ -8,8 +8,8 @@ import { formatDay, t, TPipe, GluePipe, glue } from '../../core/i18n';
 import { CalendarItem, Pair, PigeonSummary, RingSeries } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { DateField } from '../../shared/date-field';
+import { todayIso } from '../../core/today';
 
-const today = () => new Date().toISOString().slice(0, 10);
 export const statusLabel = (s: Pair['status']) => t(`perechi.status_${s}`);
 // În listă: întâi ai tăi; strămoșii / împrumutații sunt marcați (o pereche se poate face și cu un porumbel împrumutat).
 const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? `${glue(' „')}${p.name}${glue('”')}` : ''}${p.kind === 'external' ? ` · ${t('text.nu_e_in_porumbarul_meu')}` : ''}` : '—');
@@ -125,6 +125,9 @@ const who = (p: PigeonSummary | null) => (p ? `${ringText(p)}${p.name ? `${glue(
     .head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .head h1 { margin: 0; }
     .season { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    /* Japoneză: „シーズン” pe un singur rând și cutia sezonului cât îi trebuie (la 320px nu se rupe eticheta). */
+    :host-context(html[lang="ja"]) .season { white-space: nowrap; flex: none; }
+    :host-context(html[lang="ja"]) .season select { width: auto; flex: none; }
     .big { min-height: 56px; margin: 6px 0 16px; }
     h2 { margin: 0; }
     .check { display: flex; align-items: center; gap: 10px; font-weight: 600; min-height: 48px; }
@@ -176,7 +179,7 @@ export default class Perechi {
   cockId: number | null = null;
   henId: number | null = null;
   planned = false;
-  pairedOn = today();
+  pairedOn = todayIso();
   nest = '';
   first = '';
   last = '';

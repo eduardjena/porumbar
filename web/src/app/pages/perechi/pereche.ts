@@ -11,8 +11,8 @@ import { Breadcrumbs } from '../../shared/breadcrumbs';
 import { statusLabel } from './perechi';
 import { CuloriPui } from './culori-pui';
 import { DateField } from '../../shared/date-field';
+import { todayIso } from '../../core/today';
 
-const today = () => new Date().toISOString().slice(0, 10);
 
 /** Textul cheii în bucăți: valorile din `bold` se scriu îngroșat (de ex. datele din „între {de} și {pana}”). */
 function boldParts(key: string, bold: Record<string, unknown>, plain: Record<string, unknown> = {}) {
@@ -265,7 +265,7 @@ export default class Pereche {
   readonly busy = signal(false);
   e = { pairedOn: '', separatedOn: '', nest: '', note: '' };
   cf: ClutchForm = { egg1On: '', egg2On: '', candledOn: '', eggs: 2, hatchedOn: '', hatched: 2, infertile: 0, broken: 0, fosterPairId: null, note: '' };
-  egg1On = today();
+  egg1On = todayIso();
   egg2On = '';
   yRing = '';
   ySex = '';
@@ -336,7 +336,7 @@ export default class Pereche {
 
   async startPair(p: Pair) {
     try {
-      await this.api.patch(`/pairs/${p.id}`, { pairedOn: today() });
+      await this.api.patch(`/pairs/${p.id}`, { pairedOn: todayIso() });
       await this.reload();
     } catch (e) {
       this.error.set(errorMessage(e));
@@ -366,7 +366,7 @@ export default class Pereche {
     this.clutchError.set('');
     try {
       await this.api.post(`/pairs/${this.id()}/clutches`, { egg1On: this.egg1On, egg2On: this.egg2On || null });
-      this.egg1On = today();
+      this.egg1On = todayIso();
       this.egg2On = '';
       await this.reload();
     } catch (e) {
@@ -377,7 +377,7 @@ export default class Pereche {
   openClutch(c: Clutch) {
     this.clutchError.set('');
     this.cf = {
-      egg1On: c.egg1On, egg2On: c.egg2On ?? '', candledOn: c.candledOn ?? '', eggs: c.eggs, hatchedOn: c.hatchedOn ?? today(),
+      egg1On: c.egg1On, egg2On: c.egg2On ?? '', candledOn: c.candledOn ?? '', eggs: c.eggs, hatchedOn: c.hatchedOn ?? todayIso(),
       hatched: c.hatched ?? Math.max(0, c.eggs - c.infertile - c.broken), infertile: c.infertile, broken: c.broken,
       fosterPairId: c.fosterPairId, note: c.note ?? '',
     };

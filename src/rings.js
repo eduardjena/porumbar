@@ -360,6 +360,23 @@ export function fallbackKey(r) {
 /** Cheia salvată la un porumbel propriu: cea recunoscută sau, pentru un inel nerecunoscut, cea de rezervă. */
 export const storedRingKey = (r) => ringKey(r) ?? fallbackKey(r);
 
+/** Forma inelului japonez scris fără emitent: anul (2 sau 4 cifre), litera de serie (două litere), numărul. */
+const JAPANESE_SHAPE = /^(\d{2}|\d{4})[ -]?([A-Z]{2})[ -]?(\d{1,6})$/;
+
+/**
+ * Crescătorii japonezi își scriu inelele fără „JPN” (25-AB-01234). Dacă textul are forma japoneză și cu „JPN ” în față
+ * se citește, întoarce textul omului cu „JPN ” în față; altfel textul neschimbat (un inel doar din cifre, cu țară sau
+ * deja cu JPN rămâne cum e). Nu știe de cont: o cheamă doar cine salvează ce scrie sau aduce omul la un cont `ja`
+ * (formular, părinți, pui inelați, serii, clasament lipit, import Excel, citirea din poză); copiile (vânzare, „Preia”)
+ * nu. `parseRing` nu se schimbă pentru inelul fără prefix.
+ */
+export function japaneseRingText(text) {
+  if (typeof text !== 'string' || text.length > MAX_LENGTH) return text;
+  if (!JAPANESE_SHAPE.test(clean(text))) return text;
+  const withIssuer = `JPN ${text.trim()}`;
+  return parseRing(withIssuer).ok ? withIssuer : text;
+}
+
 /** Inelul dintr-un rând de clasament columba.ro: coloanele MATRICOL (0276971) și AN (2025). */
 export function ringFromColumba(matricol, an) {
   return parseRing(`RO-${an}-${String(matricol).trim()}`);

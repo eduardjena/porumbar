@@ -1,8 +1,8 @@
-import { test, before, after } from 'node:test';
+import { test, before, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount, today } from './helpers/accounts.js';
+import { newAccount, setLang, today } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -406,4 +406,33 @@ test('„gata”: ultimele 50, cu „Mai multe”', async () => {
   assert.equal(more.length, 3);
   assert.equal(new Set([...first, ...more].map((x) => x.id)).size, 53);
   assert.equal((await call('/api/treatments?stare=nimic', { cookie: a })).status, 400);
+});
+
+test('ziua de azi a contului ja e cea de la Tokyo: începutul, starea și lista', async () => {
+  const ja = await newAccount(call, 'Tokio');
+  await setLang(call, (await call('/api/auth/me', { cookie: ja })).data.account.id, 'ja');
+  const ro = await newAccount(call, 'Bucuresti');
+  for (const c of [ja, ro]) await pigeon(c, 'concurent');
+  // Azi la 20:30 UTC: la București încă azi, la Tokyo deja mâine.
+  const tomorrow = addDays(today(), 1);
+  mock.timers.enable({ apis: ['Date'], now: Date.parse(`${today()}T20:30:00Z`) });
+  try {
+    const tj = await post(ja, { startDate: tomorrow });
+    const tr = await post(ro, { startDate: tomorrow });
+    assert.equal(tj.status, 201, JSON.stringify(tj.data));
+    assert.equal(tj.data.treatment.status, 'in_curs');
+    assert.equal(tj.data.treatment.day, 1);
+    assert.equal(tr.data.treatment.status, 'urmeaza');
+    const { one } = await import('../src/db.js');
+    assert.ok((await one('SELECT frozen_at FROM treatments WHERE id = ?', tj.data.treatment.id)).frozen_at, 'început la Tokyo: fixat');
+    assert.equal((await one('SELECT frozen_at FROM treatments WHERE id = ?', tr.data.treatment.id)).frozen_at, null);
+    const list = async (c, stare) => (await call(`/api/treatments?stare=${stare}`, { cookie: c })).data.treatments.map((t) => t.id);
+    assert.deepEqual(await list(ja, 'in_curs'), [tj.data.treatment.id]);
+    assert.deepEqual(await list(ro, 'urmeaza'), [tr.data.treatment.id]);
+    const stop = await call(`/api/treatments/${tj.data.treatment.id}/cancel`, { method: 'POST', cookie: ja });
+    assert.equal(stop.status, 200, JSON.stringify(stop.data));
+    assert.equal(stop.data.treatment.cancelledOn, tomorrow);
+  } finally {
+    mock.timers.reset();
+  }
 });

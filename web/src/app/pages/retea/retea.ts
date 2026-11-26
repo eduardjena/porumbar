@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import type { Core, ElementDefinition, NodeSingular } from 'cytoscape';
 import { Api, errorMessage } from '../../core/api';
 import { sexLabel } from '../../core/catalog';
-import { t, TPipe, GluePipe } from '../../core/i18n';
+import { currentLang, t, TPipe, GluePipe } from '../../core/i18n';
 import { Network, NetworkNode, PigeonSummary } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { lastRoot, rememberRoot } from './arbore-data';
@@ -333,6 +333,17 @@ export default class Retea implements OnDestroy {
       ],
       layout: { name: 'dagre', rankDir: 'LR', nodeSep: 18, rankSep: 70, edgeSep: 10, padding: 24 } as never,
     });
+
+    // Japoneză: fontul vine pe felii, abia când literele sunt cerute; desenul (canvas) nu se reface singur la sosirea lui.
+    if (currentLang() === 'ja' && document.fonts) {
+      const cy = this.cy;
+      const redraw = () => {
+        if (this.cy === cy && !cy.destroyed()) cy.forceRender();
+      };
+      const text = elements.map((e) => String(e.data['label'] ?? '')).join('');
+      document.fonts.load(`700 15px ${css('--font')}`, text).then(redraw, () => undefined);
+      document.fonts.ready.then(redraw, () => undefined);
+    }
 
     this.cy.on('tap', 'node', (evt) => {
       const node = evt.target as NodeSingular;

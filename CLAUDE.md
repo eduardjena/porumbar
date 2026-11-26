@@ -29,6 +29,7 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
   db.js           conexiunea + migrările (o listă doar adăugată la final; SCHEMA_VERSION = lungimea ei)
   routes/         API-ul /api/*: auth, pigeons, family, journal, results, breeding, views, pedigrees, public, transfers, admin
   accounts.js     sesiuni (cookie `porumbar_session`), requireAccount / optionalAccount, publicAccount
+  zones.js        zona orară a contului după limbă (`zone` din languages.json); modul pur, folosit și de interfață
   i18n.js         dicționarele, t(), limba cererii (vezi „Limbi”)
   http.js         HttpError(status, cheie, valori), validări (text, realDate, oneOf), rateLimit, errorHandler
   rings.js        citirea inelelor din toată lumea (modul pur, fără importuri; tipurile în rings.d.ts). Două trepte:
@@ -50,7 +51,11 @@ src/            serverul (Node 24, ESM, Express 5, PostgreSQL prin `pg`)
                   dar un porumbel PROPRIU se salvează așa, cu cheia de rezervă `?|` + textul curățat, fără sex
                   (storedRingKey; dubluri, căutare, rezultate); fără nicio literă / cifră („??”) se refuză; strămoșii
                   nerecunoscuți n-au cheie (nu se leagă singuri). Telefonul folosește aceleași reguli:
-                  web/src/app/shared/ring-preview.ts importă src/rings.js (Dockerfile îl copiază la build-ul interfeței)
+                  web/src/app/shared/ring-preview.ts importă src/rings.js, iar core/today.ts src/zones.js (Dockerfile le copiază la build-ul interfeței)
+                  (`previewRing(text, lang)`). La conturile `ja`, inelul japonez scris fără „JPN” (25-AB-01234: an +
+                  două litere + număr) primește „JPN ” în față (`japaneseRingText`), doar pe ce scrie / aduce omul
+                  (formular, căutarea părintelui, pui inelați, serii, clasament lipit, Excel înaintea țării coloanei,
+                  poză); un inel doar din cifre rămâne cum e scris; vânzarea și „Preia” păstrează `ring_raw`.
   ring-backfill.js la pornire (boot.js, după migrări; NU e o migrare numerotată): strămoșii salvați înainte cu un inel
                   necitit atunci, dar recunoscut acum, primesc cheia; idempotent, sare peste ce ar dubla alt porumbel
   catalog.js      listele: rase, culori (+ sinonime pentru citire, și maghiare), ochi, stări, criterii, jurnal, concursuri
@@ -170,14 +175,20 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   `web/src/japoneza.css` → `/japoneza.css` (angular.json, `inject: false`), adus de `core/font-ja.ts` doar când se folosește
   japoneza; stiva de fonturi se schimbă doar sub `[lang="ja"]` (styles.css; foaia de pedigree are `lang` propriu). În PDF,
   `core/sheet-fonts.ts` așteaptă literele foii și încorporează doar feliile de pe ea (test/font-japonez.test.js).
-- Ce nu e gata pentru Japonia: inelele lor (partea A: formele și emitenții japonezi în `rings.js`); citirea din Excel, poze și
-  hârtie cu coduri de culoare goale (B, BCW …; azi B = bălțat, S = solzat, G = gut, ca în română) și cu antete de coloane
-  japoneze (partea B); ora amintirilor (tratamente, cuib) e ora Bucureștiului. Numele japoneze ale culorilor, cum le arată
-  programul, se citesc (`matchColor`, luate din ja.json; test/culori-japoneze.test.js), iar la importul din Excel țara
-  implicită a conturilor japoneze e JP. Ramurile neîmbinate (feat/plata-paddle etc.) au nevoie de textele lor în `ja.json` la
-  rebase.
+- Ce e gata pentru Japonia (2026-11-26): inelele (regula completă, la `rings.js` mai sus: „JPN ” doar la `ja`, doar pe ce
+  aduce omul); Excelul japonez (titluri de coloană, date cu ere, cuvinte pentru sex, ；／ ca separatori; codurile de culoare
+  dintr-o literă NU se citesc la `ja`, nu se ghicesc) și citirea pozei (promptul știe fișele japoneze); numele japoneze ale
+  culorilor (`matchColor`, din ja.json; test/culori-japoneze.test.js); țara implicită la import = JP; ora contului (mai jos).
+  Ce rămâne: verificarea pe mostre reale de la columbofili japonezi (inele, o fișă de pedigree ca poză / Excel; mesajul în
+  `docs/cercetare/mesaj-grupuri-japonia.md`, lista în `termeni-japonezi.md` §8), până atunci `ja` rămâne `public: false`, și
+  acordul vânzătorului; prețurile în yeni vin odată cu Paddle. Ramurile neîmbinate (feat/plata-paddle etc.) au nevoie de
+  textele lor în `ja.json` la rebase.
+- Ora contului: fiecare limbă din `languages.json` are `zone` (ro București, hu Budapesta, ja Tokyo); `src/zones.js`
+  (modul pur, și serverul, și interfața) dă `zoneOf(lang)`, `todayIn`, `atLocal`. Amintirile, tratamentele și calendarul
+  cuibului merg pe ora zonei contului; în browser „azi” vine din `web/src/app/core/today.ts`. Pe ora României rămân data
+  abonamentului, mesajele către vânzător și consola vânzătorului. O limbă nouă primește și `zone` (altfel cade pe București).
 - Termenii maghiari ai crescătorilor (culori, H / T pentru sex, „SZÁRMAZÁSI LAP”): `docs/cercetare/termeni-maghiari.md`.
-- O limbă nouă: un fișier `i18n/<cod>.json` cu toate cheile + un rând în `languages.json` (cu `public: false` până e verificată).
+- O limbă nouă: un fișier `i18n/<cod>.json` cu toate cheile + un rând în `languages.json` (cu `zone` și `public: false` până e verificată).
 
 ## Situl de prezentare
 

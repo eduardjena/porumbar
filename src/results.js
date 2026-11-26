@@ -3,7 +3,7 @@ import { ref } from './i18n.js';
 import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.js';
 import { RACE_CATEGORIES, RACE_LEVELS, codes, fold } from './catalog.js';
 import { createPigeon, getPigeonRow, ringOf } from './pigeons.js';
-import { parseRing, storedRingKey } from './rings.js';
+import { japaneseRingText, parseRing, storedRingKey } from './rings.js';
 
 /*
  * Rezultatele la concursuri introduse de mână (design: docs/superpowers/specs/2026-11-16-rezultate-manual-design.md).
@@ -252,7 +252,7 @@ const MAX_ROWS = 300;
  * și, opțional, distanța, sosirea, viteza și coeficientul din clasament. Distanța comună vine din `distanceKm`.
  * Totul într-o tranzacție (o greșeală nu lasă jumătăți); rezultatele deja trecute se sar („dublu”).
  */
-export async function saveMany(accountId, body) {
+export async function saveMany(accountId, body, { lang = null } = {}) {
   const race = parseRace(body?.race);
   const rows = Array.isArray(body?.rows) ? body.rows : [];
   if (!rows.length || rows.length > MAX_ROWS) throw badRequest('eroare.lipsa_rezultate', { max: MAX_ROWS });
@@ -263,7 +263,7 @@ export async function saveMany(accountId, body) {
     const ids = [];
     const skipped = [];
     for (const [index, { row, res }] of parsed.entries()) {
-      const pigeonId = await pigeonOf(accountId, row);
+      const pigeonId = await pigeonOf(accountId, row, lang);
       if (r.entered && res.place > r.entered) throw badRequest('eroare.loc_prea_mare', { loc: res.place, angajati: r.entered });
       if (await one('SELECT 1 FROM race_results WHERE race_id = ? AND pigeon_id = ?', r.id, pigeonId)) {
         skipped.push({ index, reason: 'dublu' });
@@ -283,10 +283,12 @@ export async function saveMany(accountId, body) {
 }
 
 /** Porumbelul rândului: al contului, după id, sau după inel (cel existent ori unul nou, al omului). */
-async function pigeonOf(accountId, row) {
+async function pigeonOf(accountId, row, lang) {
   if (row?.pigeonId != null) return (await getPigeonRow(accountId, row.pigeonId)).id;
   // Lungimea se verifică înainte de citire (câmpul de inel are cel mult 80 de caractere).
-  const ring = text(typeof row?.newPigeon?.ring === 'string' ? row.newPigeon.ring : '', 'camp.inel', { max: 80, optional: true }) ?? '';
+  const written = text(typeof row?.newPigeon?.ring === 'string' ? row.newPigeon.ring : '', 'camp.inel', { max: 80, optional: true }) ?? '';
+  // La un cont japonez, inelul fără „JPN” (25-AB-01234) e JP: se găsește porumbelul salvat așa (pigeons.js).
+  const ring = lang === 'ja' ? japaneseRingText(written) : written;
   // Și un inel nerecunoscut: porumbelul propriu cu aceeași scriere (cheia de rezervă) sau unul nou.
   const key = storedRingKey(parseRing(ring));
   if (!key) throw badRequest('eroare.scrie_inelul');

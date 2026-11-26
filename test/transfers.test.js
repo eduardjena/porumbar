@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount } from './helpers/accounts.js';
+import { newAccount, setLang } from './helpers/accounts.js';
 import { PEDIGREE_FOTO } from './fixtures/pedigree-foto.js';
 
 let server;
@@ -96,4 +96,25 @@ test('anulat: nimic nu se schimbă; doar cumpărătorul acceptă; emailuri greș
   assert.equal(again.status, 201);
   const out = await call('/api/transfers', { cookie: s });
   assert.equal(out.data.outgoing.filter((x) => x.status === 'pending').length, 1);
+});
+
+test('vânzarea de la un cont ro către un cont ja păstrează inelul cum e scris (fără JPN), și după o editare', async () => {
+  const s = await newAccount(call, 'Vânzător');
+  const p = (await call('/api/pigeons', { method: 'POST', cookie: s, body: { kind: 'own', ring: '25-AB-01234', sex: 'M' } })).data.pigeon;
+  assert.equal(p.ring.raw, '25-AB-01234');
+  const buyer = await newAccount(call, 'Cumpărător');
+  await setLang(call, (await call('/api/auth/me', { cookie: buyer })).data.account.id, 'ja');
+  const t = await sell(s, p.id, await emailOf(buyer));
+  assert.equal(t.status, 201, JSON.stringify(t.data));
+  const ok = await call(`/api/transfers/${t.data.transfer.id}/accept`, { method: 'POST', cookie: buyer });
+  assert.equal(ok.status, 200, JSON.stringify(ok.data));
+  const mine = (await call(`/api/pigeons/${ok.data.pigeonId}`, { cookie: buyer })).data.pigeon;
+  assert.equal(mine.ring.raw, '25-AB-01234');
+  assert.equal(mine.ring.country, null);
+  // O editare care nu atinge inelul (sau îl trimite neschimbat) nu-l face japonez.
+  for (const body of [{ name: 'KAZE' }, { ring: '25-AB-01234', name: 'KAZE 2' }]) {
+    const e = await call(`/api/pigeons/${ok.data.pigeonId}`, { method: 'PATCH', cookie: buyer, body });
+    assert.equal(e.status, 200, JSON.stringify(e.data));
+    assert.equal(e.data.pigeon.ring.raw, '25-AB-01234');
+  }
 });

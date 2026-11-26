@@ -1,14 +1,16 @@
 import { Component, ElementRef, effect, input, viewChild } from '@angular/core';
+import { t } from '../core/i18n';
 
 /** Codul QR al unei adrese, desenat în browser (biblioteca se încarcă doar unde e nevoie de QR). */
 @Component({
   selector: 'app-qr-code',
-  template: `<canvas #c role="img" [attr.aria-label]="'Cod QR pentru ' + url()"></canvas>`,
+  template: `<canvas #c role="img" [attr.aria-label]="label()"></canvas>`,
   styles: `:host { display: inline-block; line-height: 0; max-width: 100%; } canvas { width: 100%; height: auto; image-rendering: pixelated; }`,
 })
 export class QrCode {
   readonly url = input.required<string>();
   readonly size = input(320);
+  protected readonly label = () => t('partajare.qr_eticheta', { url: this.url() });
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('c');
 
   constructor() {

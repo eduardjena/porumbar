@@ -1,9 +1,9 @@
-import { atBucharest } from './treatment-schedule.js';
+import { BUCHAREST, atLocal } from './zones.js';
 
 /*
  * Calendarul cuibului (design: docs/superpowers/specs/2026-11-23-calendar-cuib-design.md): momentele rămase ale unei
  * ponte (al doilea ou, mirarea, eclozarea, inelarea) și când se trimit amintirile. Modul pur: fără bază de date.
- * Zilele sunt `YYYY-MM-DD`, în ora României; amintirile: 19:00 în ajun, 07:00 în ultima zi de inelare.
+ * Zilele sunt `YYYY-MM-DD`, în ora zonei contului (implicit România); amintirile: 19:00 în ajun, 07:00 în ultima zi de inelare.
  */
 
 export const HATCH_DAYS = [17, 19]; // de la primul ou
@@ -60,18 +60,18 @@ export function nestMoments(c, today) {
   return result;
 }
 
-export function reminderMoments(c) {
+export function reminderMoments(c, zone = BUCHAREST) {
   if (c.calendarClosedOn) return [];
   const out = [];
   const eve = (kind, day) => {
     const onDate = addDays(day, -1);
-    out.push({ kind, onDate, at: atBucharest(onDate, 19) });
+    out.push({ kind, onDate, at: atLocal(onDate, 19, zone) });
   };
   for (const p of pending(c)) {
     eve(p.kind, p.from);
     if (p.kind === 'inelare') {
       eve('inelare_ultima_maine', p.to);
-      out.push({ kind: 'inelare_ultima', onDate: p.to, at: atBucharest(p.to, 7) });
+      out.push({ kind: 'inelare_ultima', onDate: p.to, at: atLocal(p.to, 7, zone) });
     }
   }
   return out.sort((a, b) => a.at - b.at);

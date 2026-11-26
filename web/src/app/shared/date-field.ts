@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, booleanAttribute, computed, forwar
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TPipe, currentLang, formatDay, localeOf, t } from '../core/i18n';
 import { Icon } from './icon';
+import { todayIso } from '../core/today';
 
 /*
  * Câmpul de dată al aplicației, în locul lui <input type="date">: calendarul browserului vine în limba telefonului
@@ -13,10 +14,6 @@ const iso = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
 const valid = (y: number, m: number, d: number) => {
   const x = new Date(Date.UTC(y, m, d));
   return y >= 1900 && y <= 2100 && x.getUTCFullYear() === y && x.getUTCMonth() === m && x.getUTCDate() === d;
-};
-const todayIso = () => {
-  const n = new Date();
-  return iso(n.getFullYear(), n.getMonth(), n.getDate());
 };
 
 /** Ce a scris omul → „AAAA-LL-ZZ”, '' pentru gol, null dacă nu se înțelege. Anul în față (HU) sau la coadă (RO). */

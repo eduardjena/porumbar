@@ -4,7 +4,7 @@ import { tr } from './i18n.js';
 import { matchColor } from './catalog.js';
 import { ancestorIds } from './genealogy.js';
 import { insertPigeons, loadNodes, ringOf, updatePigeon, validNewPigeon } from './pigeons.js';
-import { fallbackKey, formatRing, parseRing, ringKey } from './rings.js';
+import { fallbackKey, formatRing, japaneseRingText, parseRing, ringKey } from './rings.js';
 import { cut, readBreed, readDate, readEyeColor, readLines, readSex, readStatus, ringWithCountry, slashOrder } from './table-values.js';
 
 /*
@@ -80,13 +80,15 @@ function readBody(body) {
  * state: 'empty' (fără inel), 'ok', 'fallback' (necitit, dar cu cheie de rezervă), 'hu' (maghiar fără asociație), 'bad'.
  * `keys`: cheia inelului și, când țara a fost pusă de import, și cheia de rezervă a textului scris fără ea: un porumbel
  * trecut de mână ca „24-0117345” (cheia „?|240117345”) e același cu „24-0117345” + RO, deci nu se dublează.
+ * La un cont japonez (`lang` = 'ja'), inelul cu forma japoneză (25-AB-01234) primește „JPN ” înaintea țării coloanei;
+ * cel doar din cifre urmează țara coloanei, ca la celelalte conturi.
  */
-function readRing(text, country) {
+function readRing(text, country, lang) {
   if (!text) return { state: 'empty' };
   // Fără nicio cifră nu e un inel: titlul tabelului („Inel”), un rând de secțiune („MASCULI”), un cuvânt.
   if (!/\d/.test(text)) return { state: 'bad', label: text.slice(0, MAX_RING) };
   if (text.length > MAX_RING) return { state: 'bad', label: text.slice(0, MAX_RING) };
-  const raw = ringWithCountry(text, country);
+  const raw = ringWithCountry(lang === 'ja' ? japaneseRingText(text) : text, country);
   const parsed = parseRing(raw);
   if (parsed.ok && parsed.unringed) return { state: 'empty' };
   if (raw.length > MAX_RING) return { state: 'bad', label: text };
@@ -104,9 +106,9 @@ function readRing(text, country) {
 
 const realDay = (d) => (d && d >= '1900-01-01' && d <= '2100-12-31' ? d : null);
 
-/** Câmpurile fișei din celulele rândului (fără inel, rasă și părinți); `dateOrder` = ordinea datelor cu „/” (slashOrder). */
-function rowFields(row, dateOrder) {
-  const color = row.color ? matchColor(row.color) : null;
+/** Câmpurile fișei din celulele rândului (fără inel, rasă și părinți); `dateOrder` = ordinea datelor cu „/” (slashOrder), `lang` = limba contului (culorile: la `ja` fără litere singure). */
+function rowFields(row, dateOrder, lang) {
+  const color = row.color ? matchColor(row.color, { lang }) : null;
   const lines = [];
   for (const l of readLines(row.lines)) {
     const s = l.slice(0, 40).trim();
@@ -121,7 +123,7 @@ function rowFields(row, dateOrder) {
     colorText: color?.code && !color.rest ? null : cut(row.color, 120),
     eyeColor: readEyeColor(row.eyeColor),
     status: readStatus(row.status),
-    hatchedOn: realDay(readDate(row.hatchedOn, dateOrder)),
+    hatchedOn: realDay(readDate(row.hatchedOn, dateOrder, { lang })),
     breederText: cut(row.breeder, 200),
     pedigreeText: cut(row.notes, 2000),
     lines,
@@ -137,14 +139,14 @@ const SELECT_COLUMNS = `id, kind, ring_raw, ring_key, ring_country, ring_year, r
  * { created, existing, ancestors, problems: [{ line, ring, kind, message }] (cel mult 100), problemCount, importId? }.
  * Un import care n-a creat, completat și n-a făcut propriu nimic nu se ține minte (fără `importId`): altfel ar lua
  * locul ultimului import adevărat și, cu el, anularea lui. În evidență rămân doar cifrele, nu și lista problemelor
- * (inelele din tabel; regula 11).
+ * (inelele din tabel; regula 11). `lang` = limba contului (inelele japoneze fără „JPN”, vezi readRing).
  */
-export async function importTable(accountId, body, { save }) {
+export async function importTable(accountId, body, { save, lang = null }) {
   const { rows, country } = readBody(body);
   try {
     return await tx(async () => {
       await lockAccount(accountId); // importurile și legăturile aceluiași cont, una după alta
-      const { summary, log } = await runImport(accountId, rows, country);
+      const { summary, log } = await runImport(accountId, rows, country, lang);
       if (!save) throw new Preview(summary);
       if (!log.size) return summary;
       const counts = { created: summary.created, existing: summary.existing, ancestors: summary.ancestors, problemCount: summary.problemCount };
@@ -158,7 +160,7 @@ export async function importTable(accountId, body, { save }) {
   }
 }
 
-async function runImport(accountId, rows, country) {
+async function runImport(accountId, rows, country, lang) {
   const stats = { created: 0, existing: 0, ancestors: 0 };
   const problems = [];
   const problem = (line, ring, kind, message) => problems.push({ line, ring: ring ?? null, kind, message });
@@ -210,7 +212,7 @@ async function runImport(accountId, rows, country) {
   const pendingOwn = [];
   for (const row of rows) {
     if (CELLS.every((c) => !row[c])) continue; // rândul gol nu e un porumbel
-    const ring = readRing(row.ring, country);
+    const ring = readRing(row.ring, country, lang);
     if (ring.state === 'empty') {
       problem(row.line, null, 'fara_inel', tr('import_excel.fara_inel'));
       continue;
@@ -225,7 +227,7 @@ async function runImport(accountId, rows, country) {
       continue;
     }
     for (const k of ring.keys) seen.set(k, row.line);
-    const f = rowFields(row, dateOrder);
+    const f = rowFields(row, dateOrder, lang);
     let rec = find(ring);
     try {
       if (!rec) {
@@ -276,7 +278,7 @@ async function runImport(accountId, rows, country) {
   const parentRing = (row, side) => {
     const text = row[side];
     if (!text || !hasSign(text)) return null;
-    const pr = readRing(text, country);
+    const pr = readRing(text, country, lang);
     return pr.state === 'empty' ? null : pr;
   };
 

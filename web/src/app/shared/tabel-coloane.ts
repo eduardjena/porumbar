@@ -29,31 +29,32 @@ export function defaultRingCountry(lang?: string): string {
 
 // Fără diacritice, litere mici, doar litere/cifre separate de un spațiu.
 function fold(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/ß/g, 'ss')
+  // Formele late japoneze (litere late, katakana îngustă) se aduc la cele obișnuite (NFKC); kana cu semnul dakuten se recompune (NFC), ca să nu fie tăiată ca semn.
+  return s.normalize('NFKC').normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC').toLowerCase().replace(/ß/g, 'ss')
     .replace(/[^\p{L}\p{N}♂♀]+/gu, ' ').trim();
 }
 
-// Titlurile cunoscute (după fold) → câmpul. Fiecare listă: RO, HU, EN, NL, DE, FR.
+// Titlurile cunoscute (după fold) → câmpul. Fiecare listă: RO, HU, EN, NL, DE, FR, JA.
 const TITLURI: Partial<Record<Field, string[]>> = {
   inel: ['inel', 'inelul', 'nr inel', 'numar inel', 'gyuru', 'gyuruszam', 'ring', 'ring nr', 'ring number', 'ringnummer',
-    'ringnr', 'ring no', 'bague', 'numero de bague', 'ringnummer', 'ring id'],
-  inel_tara: ['tara', 'country', 'orszag', 'land', 'pays', 'tara inel'],
+    'ringnr', 'ring no', 'bague', 'numero de bague', 'ringnummer', 'ring id', '脚環', '足環', '足輪', '脚環番号', 'リング', 'リング番号'],
+  inel_tara: ['tara', 'country', 'orszag', 'land', 'pays', 'tara inel', '国'],
   inel_an: ['an', 'anul', 'an inel', 'year', 'ev', 'jaar', 'jahr', 'annee', 'ring year'],
   inel_club: ['club', 'asociatie', 'asociatia', 'egyesulet', 'association', 'vereniging', 'verein', 'federation', 'federatie'],
   inel_numar: ['number', 'szam', 'nummer', 'numero', 'serial', 'serie'],
-  nume: ['nume', 'denumire', 'name', 'naam', 'nev', 'bezeichnung', 'nom'],
-  sex: ['sex', 'sexul', 'ivar', 'geslacht', 'geschlecht', 'sexe', 'gender'],
-  culoare: ['culoare', 'culoarea', 'szin', 'kleur', 'farbe', 'couleur', 'colour', 'color', 'colour of plumage'],
+  nume: ['nume', 'denumire', 'name', 'naam', 'nev', 'bezeichnung', 'nom', '名前', '鳩名'],
+  sex: ['sex', 'sexul', 'ivar', 'geslacht', 'geschlecht', 'sexe', 'gender', '性別', '雌雄'],
+  culoare: ['culoare', 'culoarea', 'szin', 'kleur', 'farbe', 'couleur', 'colour', 'color', 'colour of plumage', '羽色', '色'],
   ochi: ['ochi', 'ochii', 'culoare ochi', 'culoarea ochilor', 'szem', 'szemszin', 'eye', 'eyes', 'eye colour', 'eye color',
     'oog', 'ogen', 'oogkleur', 'auge', 'augen', 'augenfarbe', 'yeux', 'oeil', 'couleur des yeux'],
   rasa: ['rasa', 'rasa porumbel', 'fajta', 'breed', 'ras', 'rassen', 'rasse', 'race'],
   linii: ['linii', 'linie', 'linia', 'line', 'lines', 'lijn', 'lijnen', 'linie sange', 'vonal', 'bloodline', 'strain', 'stamm'],
   eclozare: ['data eclozarii', 'eclozare', 'eclozat', 'data nasterii', 'nascut', 'born', 'hatched', 'hatch date', 'geboren',
-    'geboortedatum', 'kelt', 'kelte', 'keltezes', 'geburtsdatum', 'ne le', 'date de naissance', 'birth', 'birthday'],
-  crescator: ['crescator', 'crescatorul', 'breeder', 'kweker', 'zuchter', 'tenyeszto', 'eleveur', 'fokker', 'owner', 'proprietar'],
+    'geboortedatum', 'kelt', 'kelte', 'keltezes', 'geburtsdatum', 'ne le', 'date de naissance', 'birth', 'birthday', '生年月日', '孵化日', '生年'],
+  crescator: ['crescator', 'crescatorul', 'breeder', 'kweker', 'zuchter', 'tenyeszto', 'eleveur', 'fokker', 'owner', 'proprietar', '作出者'],
   stare: ['stare', 'starea', 'status', 'allapot', 'toestand', 'zustand', 'etat', 'statut'],
-  tata: ['tata', 'tatal', 'apa', 'vader', 'vater', 'sire', 'father', 'pere', 'cock', 'tata inel', 'inel tata', 'father ring'],
-  mama: ['mama', 'mama inel', 'inel mama', 'mama', 'anya', 'moeder', 'mutter', 'dam', 'mother', 'mere', 'hen', 'mother ring'],
+  tata: ['tata', 'tatal', 'apa', 'vader', 'vater', 'sire', 'father', 'pere', 'cock', 'tata inel', 'inel tata', 'father ring', '父', '父鳩'],
+  mama: ['mama', 'mama inel', 'inel mama', 'mama', 'anya', 'moeder', 'mutter', 'dam', 'mother', 'mere', 'hen', 'mother ring', '母', '母鳩'],
   observatii: ['observatii', 'observatie', 'notes', 'note', 'notite', 'remarks', 'comments', 'opmerking', 'opmerkingen',
     'megjegyzes', 'bemerkung', 'bemerkungen', 'remarque', 'remarques'],
 };
@@ -71,7 +72,7 @@ function titleField(cell: string): Field | null {
 }
 
 const SEX_CUVINTE = new Set(['m', 'f', 'h', 't', 'mascul', 'masculin', 'femela', 'feminin', 'him', 'tojo', 'cock', 'hen',
-  'doffer', 'duivin', 'tauber', 'taubin', 'male', 'female', 'femelle', '♂', '♀']);
+  'doffer', 'duivin', 'tauber', 'taubin', 'male', 'female', 'femelle', '♂', '♀', 'オス', 'メス', '雄', '雌']);
 
 function looksLikeSex(cell: string): boolean {
   return SEX_CUVINTE.has(fold(cell));
@@ -80,7 +81,8 @@ function looksLikeSex(cell: string): boolean {
 function looksLikeDate(cell: string): boolean {
   const c = cell.trim();
   return /^\d{1,2}[./-]\d{1,2}[./-]\d{2,4}(\s+\d{1,2}:\d{2}(:\d{2})?)?$/.test(c)
-    || /^\d{4}[./-] ?\d{1,2}[./-] ?\d{1,2}\.?(\s+\d{1,2}:\d{2}(:\d{2})?|T[\d:.Z+-]+)?$/.test(c);
+    || /^\d{4}[./-] ?\d{1,2}[./-] ?\d{1,2}\.?(\s+\d{1,2}:\d{2}(:\d{2})?|T[\d:.Z+-]+)?$/.test(c)
+    || /^(\d{4}|[令平昭][和成]?\S{0,2})年\d{1,2}月\d{1,2}日$/.test(c.normalize('NFKC')) || /^[RHS]\d{1,2}\.\d{1,2}\.\d{1,2}$/i.test(c);
 }
 
 // Forma unui inel, fără rings.js: cel puțin 5 cifre și doar litere, cifre, spațiu, - / . (nu și data).

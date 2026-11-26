@@ -9,6 +9,7 @@ import { Icon } from '../../shared/icon';
 import { PastedRow, ownRows, readPasted, ringKeyOf } from '../../shared/clasament';
 import { PorumbarState } from '../panou/porumbar-state';
 import { DateField } from '../../shared/date-field';
+import { todayIso } from '../../core/today';
 
 /** Concursul, ca în formularul unui rezultat (texte, ca să primească și „196,608”). */
 interface RaceForm {
@@ -30,8 +31,7 @@ interface PastedPick {
   checked: boolean;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
-const emptyRace = (): RaceForm => ({ raceId: '', date: today(), releasePlace: '', category: 'viteza', organizer: '', level: '', number: '', releaseTime: '', entered: '' });
+const emptyRace = (): RaceForm => ({ raceId: '', date: todayIso(), releasePlace: '', category: 'viteza', organizer: '', level: '', number: '', releaseTime: '', entered: '' });
 const str = (v: number | string | null | undefined) => (v == null ? '' : String(v));
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 const opt = (v: string) => (v.trim() === '' ? null : v.trim());
@@ -307,7 +307,7 @@ export default class ConcursRezultate {
     const r = parsed.race;
     this.race = {
       ...emptyRace(),
-      date: r.date ?? today(), releasePlace: r.releasePlace ?? '', category: r.category ?? 'viteza', organizer: r.organizer ?? '',
+      date: r.date ?? todayIso(), releasePlace: r.releasePlace ?? '', category: r.category ?? 'viteza', organizer: r.organizer ?? '',
       level: r.organizer ? 'filiala' : '', number: str(r.number), releaseTime: str(r.releaseTime), entered: str(r.entered),
     };
     this.picks.set(

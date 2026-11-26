@@ -114,3 +114,44 @@ test('meniul de jos: etichetele japoneze încap la 320px, cu literele de 14,4 / 
     assert.ok(total <= 320, `${total}px cu butonul ${on} aprins`);
   }
 });
+
+// Eticheta pentru cititoarele de ecran a codului QR vine din i18n, nu din româna scrisă în cod.
+test('codul QR: eticheta de accesibilitate e cheie i18n în ro/hu/ja', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'shared', 'qr-code.ts'), 'utf8');
+  assert.doesNotMatch(src, /Cod QR pentru/);
+  assert.match(src, /t\('partajare\.qr_eticheta'/);
+  for (const l of ['ro', 'hu', 'ja']) {
+    const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', `${l}.json`), 'utf8'));
+    assert.match(d['partajare.qr_eticheta'], /\{url\}/, l);
+  }
+});
+
+// Rețeaua (canvas): la contul japonez se redesenează când fontul termină de încărcat (nu se poate verifica fără browser).
+test('rețeaua: la ja se redesenează după document.fonts, doar dacă desenul e încă același', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'pages', 'retea', 'retea.ts'), 'utf8');
+  assert.match(src, /currentLang\(\) === 'ja' && document\.fonts/);
+  assert.match(src, /document\.fonts\.load\(/);
+  assert.match(src, /document\.fonts\.ready\.then\(redraw/);
+  assert.match(src, /this\.cy === cy && !cy\.destroyed\(\)\) cy\.forceRender\(\)/);
+});
+
+// „シーズン” (sezonul) la 320px: eticheta nu se rupe pe două rânduri, cutia sezonului nu se strânge.
+test('perechi: la ja eticheta シーズン rămâne pe un rând (nowrap, selectul nu se întinde)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'pages', 'perechi', 'perechi.ts'), 'utf8');
+  assert.match(src, /:host-context\(html\[lang="ja"\]\) \.season \{[^}]*white-space: nowrap;[^}]*\}/);
+  assert.match(src, /:host-context\(html\[lang="ja"\]\) \.season select \{[^}]*width: auto;[^}]*\}/);
+});
+
+// `glueIn` (web/src/app/core/i18n.ts) nu se poate importa în Node (i18n.ts aduce Angular și JSON fără atribut), deci
+// testăm chiar linia lui din sursă, cu glueWith și LANGS adevărate: semnele limbii date, nu ale ecranului.
+test('glueIn: lipește cu semnele limbii date (ja → 、 ）。, ro/hu/necunoscută → neschimbat)', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'core', 'i18n.ts'), 'utf8');
+  const line = /export const glueIn = (\(code: string, text: string\) => .+);$/m.exec(src)?.[1];
+  assert.ok(line, 'linia glueIn nu s-a găsit');
+  const LANGS_ = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', 'languages.json'), 'utf8'));
+  const glueIn = new Function('glueWith', 'LANGS', `return ${line.replace(/: string/g, '')}`)(glueWith, LANGS_);
+  assert.equal(glueIn('ja', 'a, b (c).'), 'a、b（c）。');
+  assert.equal(glueIn('ro', 'a, b (c).'), 'a, b (c).');
+  assert.equal(glueIn('hu', 'a, b (c).'), 'a, b (c).');
+  assert.equal(glueIn('xx', 'a, b (c).'), 'a, b (c).');
+});

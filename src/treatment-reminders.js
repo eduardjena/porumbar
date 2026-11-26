@@ -3,14 +3,17 @@
 // moment, un singur email pe cont și seară (cuiburile: nest-reminders.js). Fiecare amintire se „rezervă” în bază
 // înainte de trimitere (INSERT … ON CONFLICT DO NOTHING RETURNING): pleacă doar ce a rezervat rularea aceasta, deci
 // două rulări simultane (o publicare nouă pornită peste cea veche) nu trimit de două ori. Nimic nu se reîncearcă: mai bine o amintire pierdută decât spam.
+// Fiecare cont trăiește pe ora țării lui (zona după limbă, src/zones.js): verificarea face pașii o dată pe zonă, cu
+// „azi” și seara zonei, doar pentru conturile ei.
 import { all, one } from './db.js';
 import { config } from './config.js';
 import { t, ref, localeOf } from './i18n.js';
 import { pushToAccount } from './push.js';
 import { sendMail } from './mail.js';
 import { addDays, freezeTreatment, recipientIds, treatmentLabel } from './treatments.js';
-import { atBucharest, bucharestNow, dueMoments } from './treatment-schedule.js';
-import { claimNestNotices, groupNestItems, nestDueItems, nestEveningLines } from './nest-reminders.js';
+import { dueMoments } from './treatment-schedule.js';
+import { claimNestNotices, groupNestItems, inZone, nestDueItems, nestEveningLines } from './nest-reminders.js';
+import { ACCOUNT_ZONES, atLocal, todayIn } from './zones.js';
 
 const HOUR = 3600e3;
 const WINDOW = 3 * HOUR; // ca în treatment-schedule.js: un moment ratat se mai trimite cel mult 3 ore
@@ -78,11 +81,12 @@ function mailAllowed() {
 // ---- Pașii verificării ----
 
 /** 1. Tratamentele începute (până azi) și încă nefixate se fixează; așa continuă și lanțul repetărilor. */
-async function freezeStarted(today) {
+async function freezeStarted(today, zone) {
+  const z = inZone(zone, 'a.lang');
   const rows = await all(
     `SELECT t.id, a.lang FROM treatments t JOIN accounts a ON a.id = t.account_id
-      WHERE t.frozen_at IS NULL AND t.cancelled_on IS NULL AND t.start_date <= ?::date ORDER BY t.id`,
-    today,
+      WHERE t.frozen_at IS NULL AND t.cancelled_on IS NULL AND t.start_date <= ?::date AND ${z.sql} ORDER BY t.id`,
+    today, z.param,
   );
   let frozen = 0;
   for (const r of rows) {
@@ -109,13 +113,14 @@ async function claimNotices(items) {
 }
 
 /** 2. Momentele tratamentelor sosite, rezervate, pe cont: `{ lang, lines, ids }` (ids = tratamentele din rânduri). */
-async function dueTreatmentLines(now, today) {
+async function dueTreatmentLines(now, today, zone) {
+  const z = inZone(zone, 'a.lang');
   const rows = await all(
     `SELECT t.*, a.lang FROM treatments t JOIN accounts a ON a.id = t.account_id
-      WHERE t.cancelled_on IS NULL
+      WHERE t.cancelled_on IS NULL AND ${z.sql}
         AND (t.start_date BETWEEN ?::date - 1 AND ?::date + 4 OR t.start_date + t.days - 1 BETWEEN ?::date - 1 AND ?::date + 1)
       ORDER BY t.account_id, t.id`,
-    today, today, today, today,
+    z.param, today, today, today, today,
   );
   const out = new Map();
   for (const [accountId, list] of groupBy(rows, 'account_id')) {
@@ -123,7 +128,7 @@ async function dueTreatmentLines(now, today) {
       const items = [];
       for (const tr of list) {
         const plan = { startDate: tr.start_date, days: tr.days, cancelledOn: tr.cancelled_on, parentId: tr.parent_id };
-        const due = dueMoments(plan, now, new Date(tr.updated_at));
+        const due = dueMoments(plan, now, new Date(tr.updated_at), zone);
         if (!due.length) continue;
         const count = (await recipientIds(tr)).length;
         if (!count) continue; // fără porumbei, fără amintiri
@@ -146,11 +151,11 @@ async function dueTreatmentLines(now, today) {
 }
 
 /** 3. Momentele cuibului sosite, rezervate, pe cont: rândurile lor. */
-async function dueNestLines(now, today) {
+async function dueNestLines(now, today, zone) {
   const out = new Map();
   let due;
   try {
-    due = await nestDueItems(now, today);
+    due = await nestDueItems(now, today, zone);
   } catch (e) {
     console.error('[porumbar] Amintirile cuibului nu au rulat:', e.message); // i18n: ro
     return out;
@@ -177,9 +182,9 @@ async function accountInfo(ids) {
  * 2–3. Momentele sosite (tratamente și cuiburi) pleacă într-o singură notificare pe cont; linkul: tratamentul, când e
  * unul singur și nimic de la cuiburi, altfel Panoul. Întoarce rezultatele pe cont.
  */
-async function sendDuePushes(now, today) {
-  const treatments = await dueTreatmentLines(now, today);
-  const nests = await dueNestLines(now, today);
+async function sendDuePushes(now, today, zone) {
+  const treatments = await dueTreatmentLines(now, today, zone);
+  const nests = await dueNestLines(now, today, zone);
   const info = await accountInfo([...nests.keys()].filter((id) => !treatments.has(id)));
   const results = new Map();
   for (const accountId of new Set([...treatments.keys(), ...nests.keys()])) {
@@ -214,20 +219,21 @@ async function sendDuePushes(now, today) {
  * singur email. `pushResults`: notificările trimise de rularea asta (în fereastra serii toate sunt ale serii: momentele
  * de 07:00 nu pot fi sosite atunci).
  */
-async function sendEveningEmails(today, evening, pushResults, gapMs) {
+async function sendEveningEmails(today, evening, zone, pushResults, gapMs) {
   const tomorrow = addDays(today, 1);
+  const z = inZone(zone, 'a.lang');
   const rows = await all(
     `SELECT t.*, a.lang FROM treatments t JOIN accounts a ON a.id = t.account_id
-      WHERE a.reminder_email AND t.cancelled_on IS NULL AND t.updated_at <= ?
+      WHERE a.reminder_email AND ${z.sql} AND t.cancelled_on IS NULL AND t.updated_at <= ?
         AND (t.start_date = ?::date OR (t.days >= 2 AND t.start_date + t.days - 1 = ?::date)
              OR (t.parent_id IS NOT NULL AND t.start_date = ?::date))
       ORDER BY t.account_id, t.id`,
-    evening.toISOString(), tomorrow, tomorrow, addDays(today, 3),
+    z.param, evening.toISOString(), tomorrow, tomorrow, addDays(today, 3),
   );
   const treatments = groupBy(rows, 'account_id');
   let nests = new Map();
   try {
-    nests = await nestEveningLines(today, evening);
+    nests = await nestEveningLines(today, evening, zone);
   } catch (e) {
     console.error('[porumbar] Rândurile de cuib ale rezumatului de seară nu au rulat:', e.message); // i18n: ro
   }
@@ -273,23 +279,34 @@ async function sendEveningEmails(today, evening, pushResults, gapMs) {
   return emails;
 }
 
+/** Pașii 1–4 pentru conturile din zona `zone`, cu ziua, ora și seara de acolo. */
+async function runZone(now, zone, emailDelayMs) {
+  const today = todayIn(zone, now);
+  const frozen = await freezeStarted(today, zone);
+  const pushResults = await sendDuePushes(now, today, zone);
+  let emails = 0;
+  const evening = atLocal(today, EVENING, zone);
+  if (now >= evening && now - evening <= WINDOW && mailAllowed()) {
+    const gapMs = emailDelayMs ?? Math.ceil(60_000 / config.reminderEmailsPerMinute);
+    emails = await sendEveningEmails(today, evening, zone, pushResults, gapMs);
+  }
+  return { frozen, pushed: pushResults.size, emails };
+}
+
 /**
- * O verificare. `now` hotărăște tot (ziua, ora, momentele), nu ceasul. Emailurile intră într-o coadă care nu oprește
- * verificarea; cu `emailDelayMs: 0` (teste) coada nu așteaptă între emailuri, iar funcția se întoarce după ce s-a golit.
+ * O verificare: pașii, o dată pe zonă (București întâi). `now` hotărăște tot (ziua, ora, momentele), nu ceasul.
+ * Emailurile intră într-o coadă care nu oprește verificarea; cu `emailDelayMs: 0` (teste) coada nu așteaptă între
+ * emailuri, iar funcția se întoarce după ce s-a golit.
  * @returns {Promise<{ frozen: number, pushed: number, emails: number }>}
  */
 export async function runTreatmentReminders(now = new Date(), { emailDelayMs } = {}) {
-  const today = bucharestNow(now).date;
-  const frozen = await freezeStarted(today);
-  const pushResults = await sendDuePushes(now, today);
-  let emails = 0;
-  const evening = atBucharest(today, EVENING);
-  if (now >= evening && now - evening <= WINDOW && mailAllowed()) {
-    const gapMs = emailDelayMs ?? Math.ceil(60_000 / config.reminderEmailsPerMinute);
-    emails = await sendEveningEmails(today, evening, pushResults, gapMs);
-    if (emailDelayMs === 0) await mailQueue;
+  const total = { frozen: 0, pushed: 0, emails: 0 };
+  for (const zone of ACCOUNT_ZONES) {
+    const r = await runZone(now, zone, emailDelayMs);
+    for (const k of Object.keys(total)) total[k] += r[k];
   }
-  return { frozen, pushed: pushResults.size, emails };
+  if (emailDelayMs === 0) await mailQueue;
+  return total;
 }
 
 const TICK_AT = 30_000; // verificarea orară: la hh:00:30

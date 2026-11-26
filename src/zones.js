@@ -19,6 +19,13 @@ const formatter = (zone) => {
 
 export const zoneOf = (lang) => ZONES.get(lang) ?? BUCHAREST;
 
+/** Zonele conturilor, fiecare o dată, București întâi (verificarea orară le ia pe rând). */
+export const ACCOUNT_ZONES = [...new Set([BUCHAREST, ...languages.map((l) => zoneOf(l.code))])];
+
+/** Limbile cunoscute din zona `zone` / din celelalte zone (o limbă necunoscută e a Bucureștiului). */
+export const langsIn = (zone) => languages.map((l) => l.code).filter((c) => zoneOf(c) === zone);
+export const langsOutside = (zone) => languages.map((l) => l.code).filter((c) => zoneOf(c) !== zone);
+
 export function localNow(now, zone) {
   const p = Object.fromEntries(formatter(zone).formatToParts(now).map((x) => [x.type, x.value]));
   return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour), minute: Number(p.minute) };

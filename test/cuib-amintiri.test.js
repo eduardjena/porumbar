@@ -2,7 +2,8 @@ import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount, today } from './helpers/accounts.js';
+import { newAccount, setLang, today } from './helpers/accounts.js';
+import { BUCHAREST, atLocal } from '../src/zones.js';
 
 // Amintirile cuibului, în aceeași notificare de seară și același email cu tratamentele (expeditor fals, sentMails),
 // cu `now` fixat. Fiecare test își ia zilele lui (la 30 de zile una de alta), ca rulările unui test să nu atingă
@@ -44,15 +45,17 @@ beforeEach(() => answers.clear());
 
 const run = (now) => remind(now, { emailDelayMs: 0 });
 const addDays = (iso, n) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86400_000).toISOString().slice(0, 10);
-/** Ora României `hour`:`min` din ziua `date`. */
-const at = (date, hour, min = 5) => new Date(atBucharest(date, hour).getTime() + min * 60_000);
+const TOKYO = 'Asia/Tokyo';
+/** Ora `hour`:`min` din ziua `date`, în zona `zone` (implicit ora României). */
+const at = (date, hour, min = 5, zone = BUCHAREST) => new Date(atLocal(date, hour, zone).getTime() + min * 60_000);
 let slot = 0;
 const nextDay = () => addDays(today(), 10 + 30 * slot++);
 
 let seq = 0;
-async function account(name) {
+async function account(name, { lang } = {}) {
   const cookie = await newAccount(call, name);
   const me = (await call('/api/auth/me', { cookie })).data.account;
+  if (lang) await setLang(call, me.id, lang);
   return { cookie, id: me.id, email: me.email };
 }
 
@@ -273,4 +276,32 @@ test('închisă („Nu mai urmări”): nimic', async () => {
   await run(at(addDays(d, -1), 19));
   assert.equal(pushesTo(ep).length, 0);
   assert.equal(mailsTo(b).length, 0);
+});
+
+test('ora țării contului: la un cont ja, amintirile cuibului vin la 19:00 și 07:00 la Tokyo', async () => {
+  const h = nextDay();
+  const ja = await account('CuibTokio', { lang: 'ja' });
+  const ep = await device(ja);
+  const jaMail = await account('CuibTokioEmail', { lang: 'ja' });
+  const ro = await account('CuibBucuresti');
+  const epRo = await device(ro);
+  const clutches = [];
+  for (const acc of [ja, jaMail, ro]) clutches.push(await clutch(acc, '2', { egg1On: addDays(h, -18), egg2On: addDays(h, -18), hatchedOn: h, hatched: 2 }));
+  // Ajunul inelării (ziua 6 după eclozare), 19:05 la Tokyo: notificarea la ja, emailul la ja fără dispozitiv; ro nimic.
+  await run(at(addDays(h, 5), 19, 5, TOKYO));
+  assert.equal(pushesTo(ep).length, 1);
+  assert.equal(pushesTo(epRo).length, 0);
+  assert.equal(mailsTo(jaMail).length, 1);
+  assert.deepEqual(await notices(clutches[0]), [{ kind: 'inelare', on_date: addDays(h, 5) }]);
+  assert.deepEqual(await notices(clutches[2]), []);
+  // Același moment la București: doar ro.
+  await run(at(addDays(h, 5), 19));
+  assert.equal(pushesTo(ep).length, 1);
+  assert.equal(pushesTo(epRo).length, 1);
+  assert.equal(mailsTo(jaMail).length, 1);
+  // Ultima zi de inelare, 07:10 la Tokyo: notificarea la ja; la București e noapte.
+  await run(at(addDays(h, 8), 7, 10, TOKYO));
+  assert.equal(pushesTo(ep).length, 2);
+  assert.equal(pushesTo(epRo).length, 1);
+  assert.deepEqual((await notices(clutches[0])).map((n) => n.kind), ['inelare', 'inelare_ultima']);
 });

@@ -3,7 +3,7 @@ import { BUCHAREST, atLocal } from './zones.js';
 /*
  * Calendarul cuibului (design: docs/superpowers/specs/2026-11-23-calendar-cuib-design.md): momentele rămase ale unei
  * ponte (al doilea ou, mirarea, eclozarea, inelarea) și când se trimit amintirile. Modul pur: fără bază de date.
- * Zilele sunt `YYYY-MM-DD`, în ora României; amintirile: 19:00 în ajun, 07:00 în ultima zi de inelare.
+ * Zilele sunt `YYYY-MM-DD`, în ora zonei contului (implicit România); amintirile: 19:00 în ajun, 07:00 în ultima zi de inelare.
  */
 
 export const HATCH_DAYS = [17, 19]; // de la primul ou

@@ -1,8 +1,8 @@
-import { test, before, after } from 'node:test';
+import { test, before, after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { newAccount, today as todayFn } from './helpers/accounts.js';
+import { newAccount, setLang, today as todayFn } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -154,4 +154,35 @@ test('updated_at: o modificare a pontei îl mută înainte', async () => {
   await new Promise((r) => setTimeout(r, 15));
   const u = (await patch(a, c, { note: 'schimbată' })).data.clutch;
   assert.ok(Date.parse(u.updatedAt) > Date.parse(c.updatedAt));
+});
+
+test('„azi” al calendarului e ziua din țara contului (todayFor, cu ora dată)', async () => {
+  const { todayFor } = await import('../src/treatments.js');
+  const night = new Date('2026-11-26T23:30:00Z');
+  assert.equal(todayFor('ja', night), '2026-11-27');
+  assert.equal(todayFor('ro', night), '2026-11-27');
+  const evening = new Date('2026-11-26T20:30:00Z'); // 05:30 la Tokyo, 22:30 la București
+  assert.equal(todayFor('ja', evening), '2026-11-27');
+  assert.equal(todayFor('ro', evening), '2026-11-26');
+  const late = new Date('2026-11-26T22:30:00Z'); // 00:30 la București, 23:30 la Budapesta
+  assert.equal(todayFor('ro', late), '2026-11-27');
+  assert.equal(todayFor('hu', late), '2026-11-26');
+  assert.equal(todayFor('xx', late), '2026-11-27', 'limba necunoscută: ora României');
+});
+
+test('GET /api/breeding/calendar: „azi” al unui cont ja e ziua de la Tokyo', async () => {
+  const ja = await newAccount(call, 'Tokio');
+  const me = (await call('/api/auth/me', { cookie: ja })).data.account;
+  await setLang(call, me.id, 'ja');
+  // Azi la 20:30 UTC: la București încă azi (22:30 sau 23:30), la Tokyo deja mâine.
+  const now = Date.parse(`${today}T20:30:00Z`);
+  mock.timers.enable({ apis: ['Date'], now });
+  try {
+    const r = await call('/api/breeding/calendar', { cookie: ja });
+    assert.equal(r.status, 200, JSON.stringify(r.data));
+    assert.equal(r.data.today, day(1));
+    assert.equal((await call('/api/breeding/calendar', { cookie: a })).data.today, today);
+  } finally {
+    mock.timers.reset();
+  }
 });

@@ -3,14 +3,18 @@ import { HttpError, badRequest, notFound, text, oneOf, realDate } from './http.j
 import { ringOf } from './pigeons.js';
 import { glue, ref, t } from './i18n.js';
 import { TREATMENT_METHODS, TREATMENT_TARGETS, TREATMENT_SUGGESTIONS, codes } from './catalog.js';
+import { todayIn, zoneOf } from './zones.js';
 
 const MS_DAY = 86400_000;
 const GONE = ['vandut', 'pierdut', 'mort'];
 const GROUP_STATUS = { concurenti: 'concurent', reproducatori: 'reproducator', tineret: 'tanar' };
 const SUGGESTIONS = new Set(codes(TREATMENT_SUGGESTIONS));
 
-/** Data de azi în București (AAAA-LL-ZZ), ca în toate conturile. */
+/** Data de azi în București (AAAA-LL-ZZ): doar unde nu se știe contul. */
 export const todayBucharest = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
+
+/** Data de azi (AAAA-LL-ZZ) în țara contului cu limba `lang` (ro București, hu Budapesta, ja Tokyo). */
+export const todayFor = (lang, now = new Date()) => todayIn(zoneOf(lang), now);
 
 export function addDays(iso, n) {
   return new Date(Date.parse(`${iso}T00:00:00Z`) + n * MS_DAY).toISOString().slice(0, 10);
@@ -129,7 +133,7 @@ export async function createNextOccurrence(row, today = todayBucharest()) {
   return id;
 }
 
-async function ensureNext(tr, today = todayBucharest()) {
+async function ensureNext(tr, today) {
   if (tr.repeat_kind && !tr.cancelled_on && !(await one('SELECT 1 FROM treatments WHERE parent_id = ?', tr.id))) await createNextOccurrence(tr, today);
 }
 
@@ -141,7 +145,7 @@ const lockRow = (id) => one('SELECT * FROM treatments WHERE id = ? FOR UPDATE', 
  * fixat nu se mai fixează (decât cu `force`, la schimbarea țintei după început). `today` ca la createNextOccurrence.
  * Întoarce true dacă rularea aceasta l-a fixat.
  */
-export function freezeTreatment(row, lang, { force = false, today = todayBucharest() } = {}) {
+export function freezeTreatment(row, lang, { force = false, today = todayFor(lang) } = {}) {
   return tx(async () => {
     const tr = await lockRow(row.id);
     if (!tr || (tr.frozen_at && !force)) return false;
@@ -161,7 +165,7 @@ export function freezeTreatment(row, lang, { force = false, today = todayBuchare
 
 /** Prima citire de după ziua de început fixează tratamentele contului care n-au fost încă fixate. */
 export async function freezeDue(accountId, lang) {
-  const due = await all('SELECT id FROM treatments WHERE account_id = ? AND frozen_at IS NULL AND cancelled_on IS NULL AND start_date <= ?::date ORDER BY id', accountId, todayBucharest());
+  const due = await all('SELECT id FROM treatments WHERE account_id = ? AND frozen_at IS NULL AND cancelled_on IS NULL AND start_date <= ?::date ORDER BY id', accountId, todayFor(lang));
   for (const d of due) await freezeTreatment(d, lang);
 }
 
@@ -180,7 +184,7 @@ function statusOf(tr, today) {
   return 'in_curs';
 }
 
-export async function toTreatment(tr, lang, today = todayBucharest()) {
+export async function toTreatment(tr, lang, today = todayFor(lang)) {
   const status = statusOf(tr, today);
   const next = await one('SELECT id, frozen_at FROM treatments WHERE parent_id = ? ORDER BY id LIMIT 1', tr.id);
   return {
@@ -269,7 +273,7 @@ export function createTreatment(accountId, lang, body) {
     );
     if (v.target === 'alesi') await replaceChosen(id, v.pigeonIds);
     const row = await one('SELECT * FROM treatments WHERE id = ?', id);
-    if (row.start_date <= todayBucharest()) await freezeTreatment(row, lang);
+    if (row.start_date <= todayFor(lang)) await freezeTreatment(row, lang);
     return one('SELECT * FROM treatments WHERE id = ?', id);
   });
 }
@@ -302,7 +306,7 @@ export function updateTreatment(accountId, lang, id, body) {
       await run('DELETE FROM treatment_pigeons WHERE treatment_id = ?', old.id);
     }
     const row = await one('SELECT * FROM treatments WHERE id = ?', old.id);
-    if (row.start_date > todayBucharest()) {
+    if (row.start_date > todayFor(lang)) {
       // Încă neînceput (sau mutat în viitor): fără listă fixată, fără jurnal, fără următor planificat.
       await run('DELETE FROM treatments WHERE parent_id = ? AND frozen_at IS NULL', old.id);
       if (wasFrozen) {
@@ -312,7 +316,7 @@ export function updateTreatment(accountId, lang, id, body) {
       }
     } else if (wasFrozen && !listChanged) {
       await syncJournal(row, lang);
-      await ensureNext(row);
+      await ensureNext(row, todayFor(lang));
     } else {
       await freezeTreatment(row, lang, { force: true });
     }
@@ -323,7 +327,7 @@ export function updateTreatment(accountId, lang, id, body) {
 export function cancelTreatment(accountId, lang, id) {
   return tx(async () => {
     let row = await treatmentRow(accountId, id, { lock: true });
-    const today = todayBucharest();
+    const today = todayFor(lang);
     if (statusOf(row, today) !== 'in_curs') throw new HttpError(409, 'eroare.tratament_nu_e_in_curs');
     // Început azi, dar nefixat încă: întâi se fixează (lista și jurnalul), apoi se oprește.
     if (!row.frozen_at) {
@@ -348,7 +352,7 @@ export function deleteTreatment(accountId, id) {
 }
 
 export async function listTreatments(accountId, lang, { stare, before } = {}) {
-  const today = todayBucharest();
+  const today = todayFor(lang);
   const where = ['account_id = ?'];
   const params = [accountId];
   let order = 'start_date, id';

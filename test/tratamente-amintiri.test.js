@@ -24,6 +24,7 @@ const answers = new Map();
 
 before(async () => {
   delete process.env.SMTP_URL;
+  delete process.env.SMTP_HOST;
   ({ server, base } = await startTestApp());
   ({ runTreatmentReminders: remind } = await import('../src/treatment-reminders.js'));
   ({ one, all, run: dbRun } = await import('../src/db.js'));

@@ -70,10 +70,10 @@ function enqueueMail(mail, gapMs) {
 }
 
 let warnedNoSmtp = false;
-/** În producție, fără SMTP_URL nu se trimite nimic (și conținutul nu ajunge în jurnalul serverului). */
+/** În producție, fără server de email (SMTP_HOST sau SMTP_URL) nu se trimite nimic (și conținutul nu ajunge în jurnalul serverului). */
 function mailAllowed() {
-  if (process.env.NODE_ENV !== 'production' || config.smtpUrl) return true;
-  if (!warnedNoSmtp) console.warn('[porumbar] Rezumatul de seară pe email e oprit: lipsește SMTP_URL.'); // i18n: ro
+  if (process.env.NODE_ENV !== 'production' || config.smtp) return true;
+  if (!warnedNoSmtp) console.warn('[porumbar] Rezumatul de seară pe email e oprit: lipsește SMTP_HOST (sau SMTP_URL).'); // i18n: ro
   warnedNoSmtp = true;
   return false;
 }

@@ -93,6 +93,6 @@ pune doar vânzătorul, din consolă). Orice text nou intră în toate dicționa
   (în dolari; fiecare citire scade costul ei real), **link de parolă nouă** (24 h; parola o alege doar omul), istoricul.
 - Pe Railway pune `TRUST_PROXY=2` (sunt două straturi de proxy; verifică numărând intrările din antetul `X-Forwarded-For` — IP-ul real al clientului e primul). Altfel serverul vede IP-ul proxy-ului (care se schimbă de la o cerere la alta) și limitele pe IP — login, resetare, token public — nu funcționează. Pe Render sau alt proxy numărul poate diferi.
 - Cu 30 de zile înainte de expirare pleacă un email de memento (o dată), iar contul apare la „Expiră curând”.
-  Emailurile pleacă doar cu `SMTP_URL`; `SELLER_CONTACT` spune crescătorilor cum te contactează pentru plată.
+  Emailurile pleacă doar cu `SMTP_HOST` + `SMTP_USER` + `SMTP_PASS` (sau `SMTP_URL`); `SELLER_CONTACT` spune crescătorilor cum te contactează pentru plată.
 - La fiecare cont nou făcut din formular pleacă un mail la `ADMIN_EMAIL` (nume, email, link spre consolă), ca să-l
   contactezi și să-i activezi abonamentul. Dacă mailul nu pleacă, contul se face oricum.

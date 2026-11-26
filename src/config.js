@@ -12,11 +12,22 @@ export const config = {
   get publicBaseUrl() {
     return (process.env.PUBLIC_BASE_URL || 'http://localhost:3100').replace(/\/+$/, '');
   },
-  get smtpUrl() {
-    return process.env.SMTP_URL || null;
+  /**
+   * Serverul de email (null = nu se trimite nimic): SMTP_URL într-un singur rând, sau separat SMTP_HOST, SMTP_PORT
+   * (465 = SSL/TLS, 587 = STARTTLS), SMTP_USER și SMTP_PASS, ca parola să se lipească exact cum e, fără codificare.
+   */
+  get smtp() {
+    if (process.env.SMTP_URL) return process.env.SMTP_URL;
+    const host = process.env.SMTP_HOST;
+    if (!host) return null;
+    const port = Number(process.env.SMTP_PORT) || 465;
+    const user = process.env.SMTP_USER;
+    return { host, port, secure: port === 465, ...(user ? { auth: { user, pass: process.env.SMTP_PASS ?? '' } } : {}) };
   },
+  /** Expeditorul: MAIL_FROM, altfel contul cu care se trimite (serverul găzduirii cere de obicei să fie același). */
   get mailFrom() {
-    return process.env.MAIL_FROM || 'Pigeonrama <nu-raspunde@pigeonrama.com>';
+    if (process.env.MAIL_FROM) return process.env.MAIL_FROM;
+    return `Pigeonrama <${process.env.SMTP_USER || 'nu-raspunde@pigeonrama.com'}>`;
   },
   /** Singurul admin (consola vânzătorului): contul cu acest email. */
   get adminEmail() {

@@ -3,7 +3,6 @@ import { tr } from './i18n.js';
 import { ancestorIds } from './genealogy.js';
 import { badRequest } from './http.js';
 import { COLORS, matchColor } from './catalog.js';
-import { readDate, readSex } from './table-values.js';
 import { createPigeon, getPigeonRow, loadNodes, updatePigeon } from './pigeons.js';
 import { fallbackKey, formatRing, japaneseRingText, parseRing, ringKey } from './rings.js';
 
@@ -40,9 +39,7 @@ function readNode(raw, depth, lang) {
   const node = {
     ring,
     parsed: ring ? parseRing(ring) : null,
-    // Sexul și data scrise ca pe hârtie (メス, 令和7年4月1日) se normalizează; ce nu se citește rămâne gol.
-    sex: raw.sex === 'M' || raw.sex === 'F' ? raw.sex : readSex(str(raw.sex, 20)),
-    hatchedOn: raw.hatchedOn == null ? null : readDate(str(raw.hatchedOn, 40)),
+    sex: raw.sex === 'M' || raw.sex === 'F' ? raw.sex : null,
     lang,
     name: str(raw.name, 80),
     color: str(raw.color, 120),
@@ -73,7 +70,6 @@ function fields(node, kind, sex) {
     ring: node.ring,
     sex: node.sex ?? sex,
     name: node.name,
-    hatchedOn: node.hatchedOn,
     color: color?.code ?? null,
     colorPa: color?.pa ?? false,
     colorText: node.colorCode ? null : node.color,
@@ -88,7 +84,6 @@ function missing(row, node, sex) {
   const patch = {};
   if (!row.sex && f.sex) patch.sex = f.sex;
   if (!row.name && f.name) patch.name = f.name;
-  if (!row.hatched_on && f.hatchedOn) patch.hatchedOn = f.hatchedOn;
   if (!row.color && f.color) (patch.color = f.color), (patch.colorPa = f.colorPa);
   if (!row.color_text && f.colorText) patch.colorText = f.colorText;
   if (!row.breeder_text && f.breederText) patch.breederText = f.breederText;

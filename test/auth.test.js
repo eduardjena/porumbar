@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
+import { confirmAndEnter } from './helpers/accounts.js';
 
 let server;
 let base;
@@ -13,11 +14,16 @@ const call = apiCaller(() => ({ base, cookie }));
 const cookieOf = (r) => r.res.headers.get('set-cookie')?.split(';')[0] ?? null;
 const PASS = 'parola-buna-123';
 
-test('cont nou → intrat în cont', async () => {
+test('cont nou: nu intră în cont până nu confirmă emailul; linkul din email îl bagă în cont', async () => {
   const r = await call('/api/auth/register', { method: 'POST', body: { country: 'RO', phone: '0700 000 000', city: 'Brașov', acceptTerms: true, email: 'Ion@Exemplu.test', password: PASS, name: 'Ion Popescu' } });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.account.email, 'Ion@Exemplu.test');
-  cookie = cookieOf(r);
+  assert.equal(r.res.headers.get('set-cookie'), null, 'înscrierea nu face sesiune');
+  // Cu parola bună, dar neconfirmat: oprit, cu mesajul lui.
+  const early = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email: 'ion@exemplu.test', password: PASS } });
+  assert.equal(early.status, 403);
+  assert.equal(early.data.key, 'eroare.email_neconfirmat');
+  cookie = await confirmAndEnter(call, 'Ion@Exemplu.test');
   assert.match(cookie, /^porumbar_session=/);
   const me = await call('/api/auth/me');
   assert.equal(me.status, 200);

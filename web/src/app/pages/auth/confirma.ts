@@ -55,8 +55,8 @@ export default class Confirma {
     try {
       const r = await this.api.post<{ account: Account }>('/auth/confirm', { token: this.token() });
       this.trial.set(r.account?.subscription?.status === 'trial');
-      // Cine e intrat în cont își vede banda nouă (proba pornită) fără să mai reîncarce.
-      if (this.auth.account()) await this.auth.refresh().catch(() => undefined);
+      // Linkul te bagă în cont (serverul a făcut sesiunea): contul și banda probei, fără reîncărcare.
+      await this.auth.refresh().catch(() => undefined);
       this.state.set('done');
     } catch (e) {
       this.error.set(errorMessage(e));

@@ -1716,5 +1716,6 @@
   "cont_nou.gol_localitate": "pl. Debrecen",
   "cont_nou.gol_parola": "Legalább 10 karakter",
   "cont_nou.gol_parola2": "Ugyanaz a jelszó még egyszer",
-  "cont_nou.email_folosit_ajutor": "Ha ez a te címed: "
+  "cont_nou.email_folosit_ajutor": "Ha ez a te címed: ",
+  "eroare.email_neconfirmat": "Az e-mail-címed még nincs megerősítve. Nyisd meg a regisztrációkor kapott e-mailben lévő linket (nézd meg a spam mappát is)."
 }

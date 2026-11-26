@@ -415,7 +415,7 @@ export class App {
     const activare = a.sellerContact ? t('eroare.activare_contact', { contact: a.sellerContact }) : t('eroare.activare_vanzator');
     switch (s.status) {
       case 'unconfirmed':
-        return { kind: 'notice', big: false, text: t('banda.neconfirmat'), action: 'resend' as const };
+        return null; // nu mai poate fi intrat în cont până confirmă emailul
       case 'trial': {
         const days = s.trialDaysLeft ?? 0;
         return { kind: days <= 5 ? 'notice' : 'trial', big: false, text: t('banda.proba', { count: days }), action: null };

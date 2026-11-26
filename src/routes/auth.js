@@ -99,8 +99,8 @@ export function authRouter() {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())`,
       email, name, name, phone, city, await hashPassword(password), nowIso(), lang, country, TERMS_VERSION,
     );
-    await createSession(res, id, req.headers['user-agent']);
-    // Contul e „doar citire” până omul deschide linkul din email; vânzătorul află abia la confirmare (un cont real).
+    // Fără sesiune: omul intră abia după ce deschide linkul din email (telefonul rămâne în contul în care era).
+    // Vânzătorul află abia la confirmare (un cont real).
     await sendConfirmation({ id, email, name, lang });
     res.status(201).json({ account: publicAccount(await one('SELECT * FROM accounts WHERE id = ?', id)) });
   });
@@ -113,6 +113,7 @@ export function authRouter() {
     const ok = await checkPassword(account?.password_hash ?? dummyHash, req.body?.password);
     // Același mesaj pentru orice greșeală (nu spune cine are cont), cu un îndemn pentru cei făcuți de vânzător.
     if (!account || !ok) throw new HttpError(401, 'eroare.login_gresit');
+    if (!account.email_confirmed_at && !isAdminEmail(account.email)) throw new HttpError(403, 'eroare.email_neconfirmat');
     await createSession(res, account.id, req.headers['user-agent']);
     res.json({ account: publicAccount(account) });
   });
@@ -246,6 +247,8 @@ export function authRouter() {
       return { accountId: row.account_id, first: !before?.email_confirmed_at };
     });
     const account = await one('SELECT * FROM accounts WHERE id = ?', accountId);
+    // Linkul a venit pe email, ca la parola nouă: omul intră direct în cont (proba a pornit).
+    await createSession(res, accountId, req.headers['user-agent']);
     // Vânzătorul află de contul nou abia acum: e un cont real, cu emailul confirmat. Un mail eșuat nu oprește nimic.
     if (first && config.adminEmail) {
       try {
@@ -265,9 +268,11 @@ export function authRouter() {
     res.json({ account: publicAccount(account) });
   });
 
-  r.post('/confirm/resend', requireAccount, resendLimit, async (req, res) => {
-    const a = await one('SELECT * FROM accounts WHERE id = ?', req.account.id);
-    if (!a.email_confirmed_at) {
+  r.post('/confirm/resend', resendLimit, async (req, res) => {
+    // După email (omul nu e intrat în cont până confirmă); același răspuns pentru orice email.
+    const email = String(req.body?.email ?? '').trim();
+    const a = email ? await one('SELECT * FROM accounts WHERE lower(email) = lower(?)', email) : null;
+    if (a && !a.email_confirmed_at) {
       // Linkurile vechi nu mai merg.
       await run('UPDATE email_confirmations SET used_at = now() WHERE account_id = ? AND used_at IS NULL', a.id);
       await sendConfirmation(a);

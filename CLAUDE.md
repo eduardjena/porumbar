@@ -46,9 +46,10 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
 - **Înscrierea și proba** (din 2026-11-26, fără vânzător): „Fă-ți cont” cere nume, email, telefon (≥ 6 cifre), localitate
   (devine adresa de pe fișă; strada o poate adăuga vânzătorul), țara, parola de două ori
   (cod ISO, `core/countries.ts`) și bifa termenilor (link spre termenii de pe sit, în limba ecranului), cu o capcană
-  pentru roboți (`website`) și fără emailuri de unică folosință (`src/disposable.js`). Contul se face „doar citire”
-  (`unconfirmed`) și pleacă emailul cu linkul `/confirma/<token>` (7 zile, „Trimite din nou” din bandă / pagină).
-  Linkul pornește singur proba de 30 de zile (`trial`, `trial_end`; 3 citiri din poză, `PEDIGREE_READS_TRIAL`);
+  pentru roboți (`website`) și fără emailuri de unică folosință (`src/disposable.js`). Contul se face neconfirmat
+  (`unconfirmed`) **fără sesiune**: nu poate intra (login 403, sesiunile vechi 401, cheia `eroare.email_neconfirmat`)
+  până deschide linkul `/confirma/<token>` (7 zile; „Trimite din nou linkul” după email, pe Cont nou și pe Intră).
+  Linkul îl bagă direct în cont (ca linkul de parolă nouă) și pornește singur proba de 30 de zile (`trial`, `trial_end`; 3 citiri din poză, `PEDIGREE_READS_TRIAL`);
   vânzătorul primește emailul „Cont nou” abia la confirmare (un cont real). Linkul de parolă nouă confirmă și el emailul.
   După probă: `trial-ended` = doar citire până activează vânzătorul abonamentul plătit (plata cu cardul vine separat).
   Conturile făcute din consolă sunt confirmate și primesc proba de azi. Stările: unconfirmed, trial, trial-ended,

@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { adminCookie, newAccount } from './helpers/accounts.js';
+import { adminCookie, confirmAndEnter, newAccount } from './helpers/accounts.js';
 import { PEDIGREE_FOTO } from './fixtures/pedigree-foto.js';
 
 // Fără cheie: citirea din poză nu are cum să iasă în rețea.
@@ -303,7 +303,9 @@ test('admin: emailul adminului în altă formă (litere mari, spații, Kelvin, c
     const r = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', phone: '0700 000 000', city: 'Brașov', acceptTerms: true, email, password: PASSWORD, name: 'Impostor' } });
     if (r.status === 201) {
       assert.equal(r.data.account.isAdmin, false, `${JSON.stringify(email)} a primit admin`);
-      assert.equal((await call('/api/admin/accounts', { cookie: cookieOf(r) })).status, 403, JSON.stringify(email));
+      // Intră doar din linkul de confirmare; nici atunci nu e admin.
+      const cookie = await confirmAndEnter(call, r.data.account.email);
+      assert.equal((await call('/api/admin/accounts', { cookie })).status, 403, JSON.stringify(email));
     } else {
       assert.ok([400, 409].includes(r.status), `${JSON.stringify(email)} → ${r.status}`);
     }
@@ -531,9 +533,10 @@ test('redirect deschis: afterLoginUrl acceptă doar căi din program, iar server
   for (const v of ['//atacator.example', 'https://atacator.example', 'javascript:alert(1)', 'atacator.example', '']) assert.equal(run(v), '/panou', v);
   assert.equal(run('/p/abc'), '/p/abc');
   // „/\\atacator.example” trece filtrul, dar rezultatul merge doar în router.navigateByUrl (navigare internă), nu în location.
+  // Cont nou nu mai trimite nicăieri după înscriere (omul intră din linkul din email).
   for (const f of ['intra.ts', 'cont-nou.ts']) {
     const page = fs.readFileSync(path.join(import.meta.dirname, '..', 'web', 'src', 'app', 'pages', 'auth', f), 'utf8');
-    assert.match(page, /router\.navigateByUrl\(afterLoginUrl\(\)\)/, f);
+    if (f === 'intra.ts') assert.match(page, /router\.navigateByUrl\(afterLoginUrl\(\)\)/, f);
     assert.ok(!/location\.(href|assign|replace)/.test(page), f);
   }
   // Serverul: directoarele statice redirecționează doar în același site.

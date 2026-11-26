@@ -25,14 +25,14 @@ const addDays = (iso, days) => {
 const activate = (id, body) => call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body });
 const newPigeon = (cookie, ring) => call('/api/pigeons', { method: 'POST', cookie, body: { kind: 'own', ring } });
 
-test('cont nou, neconfirmat: doar citire (vede, nu scrie), cu mesaj clar', async () => {
+test('proba terminată, fără abonament: doar citire (vede, nu scrie), cu mesaj clar', async () => {
   const c = await newAccount(call, 'Nou', { active: false });
   const a = await me(c);
-  assert.equal(a.subscription.status, 'unconfirmed');
+  assert.equal(a.subscription.status, 'trial-ended');
   assert.equal(a.subscription.active, false);
   const w = await newPigeon(c, 'RO-26-100001');
   assert.equal(w.status, 402);
-  assert.match(w.data.error, /Confirmă-ți emailul/);
+  assert.match(w.data.error, /Proba s-a terminat/);
   assert.equal((await call('/api/pigeons', { cookie: c })).status, 200);
   assert.equal((await call('/api/auth/me', { method: 'PATCH', cookie: c, body: { showPhone: true } })).status, 200); // bifele contului merg
 });

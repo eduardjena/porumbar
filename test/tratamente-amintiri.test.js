@@ -90,7 +90,7 @@ test('lanțul: copilul care începe azi se fixează și primește și el următo
   const b = await account('LantCitire');
   const ta = await treatment(a, { startDate: today(), repeat: { kind: 'zile', days: 7 } });
   const tb = await treatment(b, { startDate: today(), repeat: { kind: 'zile', days: 7 } });
-  await dbRun('UPDATE accounts SET subscription_start = NULL, subscription_end = NULL WHERE id = ?', b.id);
+  await dbRun(`UPDATE accounts SET subscription_start = NULL, subscription_end = NULL, trial_end = (now() AT TIME ZONE 'Europe/Bucharest')::date - 1 WHERE id = ?`, b.id);
   assert.equal((await call('/api/auth/me', { cookie: b.cookie })).data.account.subscription.active, false);
   const childOf = (id) => one('SELECT * FROM treatments WHERE parent_id = ?', id);
   const day7 = addDays(today(), 7);

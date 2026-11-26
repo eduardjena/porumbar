@@ -111,6 +111,8 @@ export async function requireAccount(req, res, next) {
       hash, SESSION_DAYS,
     );
     if (!row) throw new HttpError(401, 'eroare.trebuie_cont');
+    // Până confirmă emailul, contul nu intră nicăieri (și sesiunile vechi, de dinainte de regulă, sunt oprite).
+    if (!row.email_confirmed_at && !isAdminEmail(row.email)) throw new HttpError(401, 'eroare.email_neconfirmat');
     // Actualizat cel mult o dată pe oră, ca sesiunea să nu expire cât e folosită.
     if (Date.now() - Date.parse(row.last_seen_at) > 3600_000) {
       const now = nowIso();

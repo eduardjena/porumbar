@@ -96,7 +96,8 @@ export function errorHandler(err, req, res, next) {
   if (err.type === 'entity.too.large') return res.status(413).json({ error: t(lang, 'eroare.prea_mare') });
   // Erorile noastre (HttpError) au mesaje pentru utilizator, inclusiv cele 5xx (de ex. 507: spațiu plin);
   // celelalte sunt neprevăzute: se scriu în jurnal, iar utilizatorul vede doar „Eroare internă”.
-  if (err instanceof HttpError) return res.status(err.status).json({ error: t(lang, err.message, err.vars) });
+  // `key` = numele mesajului (de ex. eroare.email_exista): formularele îl pun sub câmpul lui.
+  if (err instanceof HttpError) return res.status(err.status).json({ error: t(lang, err.message, err.vars), key: err.message });
   // Valori pe care le refuză PostgreSQL (număr prea mare, dată imposibilă, caracter nul în text): cerere invalidă, nu o defecțiune.
   if (INVALID_VALUE.has(err.code)) return res.status(400).json({ error: t(lang, 'eroare.valoare_invalida') });
   if (DATABASE_UNAVAILABLE.has(err.code) || /timeout exceeded when trying to connect|Connection terminated/.test(err.message ?? '')) {

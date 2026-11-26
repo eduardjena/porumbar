@@ -55,7 +55,7 @@
   "eroare.doar_json": "Cererea trebuie trimisă ca JSON.",
   "eroare.cerere_refuzata": "Cerere refuzată.",
   "eroare.email_gresit": "Adresa de email nu pare corectă.",
-  "eroare.email_exista": "Există deja un cont cu acest email.",
+  "eroare.email_exista": "Această adresă de email este deja folosită.",
   "eroare.limba_indisponibila": "Limba aleasă nu este disponibilă.",
   "eroare.login_gresit": "Email sau parolă greșită. Dacă ți-a făcut contul vânzătorul, deschide întâi linkul primit de la el.",
   "eroare.date_doar_vanzator": "Numele, numele de pe fișă, telefonul și adresa le schimbă doar cel de la care ai primit programul (vânzătorul).",
@@ -3283,8 +3283,8 @@
     "sens": "Câmpul localității, la înscriere (obligatoriu; devine adresa de pe fișă)."
   },
   "eroare.telefon_gresit": {
-    "text": "Numărul de telefon pare greșit: scrie-l cu toate cifrele.",
-    "sens": "La înscriere, un telefon cu mai puțin de 6 cifre."
+    "text": "Numărul de telefon trebuie să aibă cel puțin 6 cifre; cel scris are {n}.",
+    "sens": "La înscriere, un telefon cu mai puțin de 6 cifre. {n} = câte cifre a scris omul."
   },
   "cont_nou.obligatorii": {
     "text": "Câmpurile cu * sunt obligatorii.",
@@ -3341,5 +3341,9 @@
   "cont_nou.gol_parola2": {
     "text": "Aceeași parolă, încă o dată",
     "sens": "În al doilea câmp de parolă, gol, cu roșu."
+  },
+  "cont_nou.email_folosit_ajutor": {
+    "text": "Dacă e adresa ta: ",
+    "sens": "Sub emailul deja folosit, înainte de linkurile „Intră” și „Am uitat parola”."
   }
 }

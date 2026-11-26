@@ -89,9 +89,11 @@ test('CNP-ul lipit cu spații se acceptă; istoricul ține ce era înainte și c
   await identity(aId, { kind: 'pf', name: 'Ion Popescu', sheetName: 'Popescu-Ionescu Team', phone: '0722 000 111', address: 'Str. Exemplu 1' });
 });
 
-test('fără numele de pe fișă abonamentul nu se activează', async () => {
+test('contul din formular are numele de pe fișă de la înscriere; fără el abonamentul nu se activează', async () => {
   const c = await newAccount(call, 'Fără', { active: false });
   const id = (await me(c)).id;
+  assert.ok((await me(c)).pedigreeName, 'numele de la înscriere e și pe fișă');
+  await identity(id, { kind: 'pf', name: 'Fără Nume', sheetName: '' });
   const no = await call(`/api/admin/accounts/${id}/subscription`, { method: 'POST', cookie: admin, body: { start: today() } });
   assert.equal(no.status, 400);
   assert.match(no.data.error, /numele de pe fișă/i);

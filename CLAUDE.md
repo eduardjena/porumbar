@@ -43,6 +43,17 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   din poze sunt incluse în abonament: 100 pe an de abonament, cel mult 20 pe zi, dar în primele 14 zile ale fiecărui
   abonament (cât ține dreptul de retragere) doar 3, `PEDIGREE_READS_FIRST_DAYS` (`src/reads.js`); vânzătorul poate da
   citiri în plus și vede în consolă, la fiecare crescător, câte a folosit și cât au costat (în dolari). Fără credit. Fără abonament contul e doar citire; datele nu se pierd.
+- **Înscrierea și proba** (din 2026-11-26, fără vânzător): „Fă-ți cont” cere nume, email, parola de două ori, țara
+  (cod ISO, `core/countries.ts`) și bifa termenilor (link spre termenii de pe sit, în limba ecranului), cu o capcană
+  pentru roboți (`website`) și fără emailuri de unică folosință (`src/disposable.js`). Contul se face „doar citire”
+  (`unconfirmed`) și pleacă emailul cu linkul `/confirma/<token>` (7 zile, „Trimite din nou” din bandă / pagină).
+  Linkul pornește singur proba de 30 de zile (`trial`, `trial_end`; 3 citiri din poză, `PEDIGREE_READS_TRIAL`);
+  vânzătorul primește emailul „Cont nou” abia la confirmare (un cont real). Linkul de parolă nouă confirmă și el emailul.
+  După probă: `trial-ended` = doar citire până activează vânzătorul abonamentul plătit (plata cu cardul vine separat).
+  Conturile făcute din consolă sunt confirmate și primesc proba de azi. Stările: unconfirmed, trial, trial-ended,
+  active, expiring, expired (`subscriptionOf`; un SELECT trebuie să ia `ACCOUNT_STATE_COLUMNS`). Migrările **25**
+  (stări, țara, termenii) și **26** (`email_confirmations`); ramurile neîmbinate cu migrări ≥ 25 (feat/plata-paddle
+  etc.) se renumerotează. Înscrierea, confirmarea și proba au fost luate din feat/plata-paddle, fără plată.
 - **Local = dezvoltare și test** (date de probă, conturi de test). **Railway = producție, cu date reale.**
 
 ## Structura

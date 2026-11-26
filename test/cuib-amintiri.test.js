@@ -93,7 +93,8 @@ async function treatment(acc, startDate) {
 
 const readOnly = (acc) => dbRun('UPDATE accounts SET subscription_start = NULL, subscription_end = NULL WHERE id = ?', acc.id);
 const pushesTo = (endpoint) => pushes.filter((p) => p.endpoint === endpoint);
-const mailsTo = (acc) => sentMails.filter((m) => m.to === acc.email);
+// Doar emailurile de seară (nu și cel de confirmare de la înscriere).
+const mailsTo = (acc) => sentMails.filter((m) => m.to === acc.email && !m.text.includes("/confirma/"));
 const notices = (c) => all('SELECT kind, on_date FROM nest_notices WHERE clutch_id = ? ORDER BY on_date, kind', c.id);
 const TREATMENT_LINE = /^Mâine începe: Tricomonază \(gălbenele\), \d+ (de )?porumbei \(în apă\)$/;
 

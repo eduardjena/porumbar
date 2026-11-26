@@ -155,7 +155,9 @@ export class CuiburiBanda {
     const a = this.auth.account();
     if (!a) return '';
     const activare = a.sellerContact ? t('eroare.activare_contact', { contact: a.sellerContact }) : t('eroare.activare_vanzator');
-    return t(a.subscription?.status === 'expired' ? 'eroare.doar_citire_expirat' : 'eroare.doar_citire_neactivat', { activare });
+    const status = a.subscription?.status;
+    const key = status === 'unconfirmed' ? 'eroare.doar_citire_neconfirmat' : status === 'trial-ended' ? 'eroare.doar_citire_proba' : 'eroare.doar_citire_expirat';
+    return t(key, { activare });
   });
 
   protected readonly sections = computed<Section[]>(() => {

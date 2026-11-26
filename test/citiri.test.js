@@ -151,7 +151,7 @@ test('fișă maghiară (model fals, fără credite): inelele cu asociație, ♂ 
   assert.equal(r.data.root.color, 'Kk');
 });
 
-test('un cont neactivat (încă neplătit) nu citește din poze: se oprește înainte de Claude, deci nu costă nimic', async () => {
+test('un cont neconfirmat nu citește din poze: se oprește înainte de Claude, deci nu costă nimic', async () => {
   const c = await newAccount(call, 'Neplatit', { active: false });
   let called = 0;
   reader.setPedigreeModel(async () => {
@@ -160,7 +160,7 @@ test('un cont neactivat (încă neplătit) nu citește din poze: se oprește în
   });
   const r = await read(c);
   assert.equal(r.status, 402, JSON.stringify(r.data));
-  assert.match(r.data.error, /nu este activ/);
+  assert.match(r.data.error, /Confirmă-ți emailul/);
   assert.equal(called, 0, 'cererea n-a ajuns la Claude');
   assert.equal((await me(c)).reads.used, 0);
 });

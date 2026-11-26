@@ -25,7 +25,7 @@ export async function newAccount(call, name = 'Crescător', { active = true } = 
   const r = await call('/api/auth/register', {
     method: 'POST',
     auth: 'none',
-    body: { email: `crescator${n}-${process.pid}@exemplu.test`, password: 'parola-de-test-123', name: `${name} ${n}` },
+    body: { email: `crescator${n}-${process.pid}@exemplu.test`, password: 'parola-de-test-123', name: `${name} ${n}`, country: 'RO', acceptTerms: true },
   });
   if (r.status !== 201) throw new Error(`Contul de test nu s-a creat: ${r.status} ${JSON.stringify(r.data)}`);
   if (active) {
@@ -53,5 +53,15 @@ export async function setLang(call, accountId, lang) {
   const body = { kind: a.kind, name: a.name, sheetName: a.sheetName, phone: a.phone, address: a.address, cnp: a.cnp, companyName: a.companyName, cui: a.cui, regCom: a.regCom, lang };
   const r = await call(`/api/admin/accounts/${accountId}/identity`, { method: 'PATCH', cookie, body });
   if (r.status !== 200) throw new Error(`Limba contului: ${r.status} ${JSON.stringify(r.data)}`);
+  return r.data.account;
+}
+
+/** Omul își confirmă emailul: tokenul se ia din ultimul email de confirmare trimis către adresa lui. */
+export async function confirmEmail(call, email) {
+  const { sentMails } = await import('../../src/mail.js');
+  const mail = [...sentMails].reverse().find((m) => m.to === email && /\/confirma\//.test(m.text));
+  if (!mail) throw new Error(`Niciun email de confirmare către ${email}`);
+  const r = await call('/api/auth/confirm', { method: 'POST', auth: 'none', body: { token: mail.text.match(/\/confirma\/(\S+)/)[1] } });
+  if (r.status !== 200) throw new Error(`Confirmarea: ${r.status} ${JSON.stringify(r.data)}`);
   return r.data.account;
 }

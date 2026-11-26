@@ -319,7 +319,7 @@ test('10 activări de abonament deodată, cu date diferite: început și sfârș
 test('10 înregistrări deodată cu același email: un singur cont, restul 409 cu mesaj', async () => {
   const email = `dublu-${process.pid}@exemplu.test`;
   const rs = await Promise.all(
-    Array.from({ length: 10 }, (_, i) => call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: i % 2 ? email.toUpperCase() : email, password: 'parola-de-test-123', name: `Dublu ${i}` } })),
+    Array.from({ length: 10 }, (_, i) => call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email: i % 2 ? email.toUpperCase() : email, password: 'parola-de-test-123', name: `Dublu ${i}` } })),
   );
   no500(rs, 'register x10');
   assert.equal(rs.filter((r) => r.status === 201).length, 1);

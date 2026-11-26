@@ -3,6 +3,7 @@ import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { IncomingService } from './core/incoming';
 import { AuthService } from './core/auth';
+import { Api } from './core/api';
 import { Icon, IconName } from './shared/icon';
 import { ConfirmDialog } from './core/confirm';
 import { TPipe, currentLang, formatDay, t } from './core/i18n';
@@ -94,7 +95,15 @@ const NAV: NavItem[] = [
     }
     <app-confirm-dialog />
     <main [class.with-bottom]="auth.account()">
-      @if (banner(); as b) { <div class="sub-banner no-print" [class]="'sub-banner ' + b.kind" role="status">{{ b.text }}</div> }
+      @if (banner(); as b) {
+        <div class="no-print" [class]="'sub-banner stack ' + b.kind + (b.big ? ' big' : '')" role="status">
+          <span>{{ b.text }}</span>
+          @if (b.action === 'resend') {
+            @if (resend() === 'sent') { <span>{{ 'banda.trimis' | t }}</span> }
+            <button type="button" [disabled]="resend() === 'busy'" (click)="resendConfirmation()">{{ 'banda.trimite_din_nou' | t }}</button>
+          }
+        </div>
+      }
       <router-outlet />
       <!-- Semnătura: pe calculator mic în colțul din dreapta jos, pe telefon la capătul paginii. -->
       <a class="made-by no-print" href="https://www.soopra.com" target="_blank" rel="noopener">Soopra</a>
@@ -112,7 +121,10 @@ const NAV: NavItem[] = [
     }
   `,
   styles: `
-    .sub-banner { margin-bottom: 14px; font-weight: 600; }
+    .sub-banner { margin-bottom: 14px; font-weight: 600; flex-direction: column; align-items: stretch; gap: 10px; }
+    .sub-banner.trial { background: var(--surface-2); color: var(--muted); border-radius: var(--radius-sm); padding: 10px 16px; font-weight: 500; }
+    .sub-banner.big { padding: 18px; font-size: 1.15rem; }
+    .sub-banner button { min-height: 48px; align-self: flex-start; }
     /* Numărul de porumbei trimiși de alți crescători, ca o notificare deasupra iconiței Vânzări. */
     .top-nav .ico, .bottom-nav .ico { position: relative; }
     .top-nav .ico { display: inline-grid; }
@@ -388,18 +400,45 @@ export class App {
     this.auth.account()?.isAdmin ? [{ path: '/vanzator', label: 'meniu.vanzator', icon: 'vinde' }, NAV[NAV.length - 1]] : NAV,
   );
   /** Banda de sus pentru crescători: „doar citire” sau abonamentul care expiră curând. */
+  /** „Trimite din nou” din banda de confirmare: 'sent' = a plecat linkul, 'busy' = se trimite. */
+  protected readonly resend = signal<'' | 'busy' | 'sent'>('');
+  private readonly api = inject(Api);
+
+  /** Banda de sus pentru crescători: confirmarea emailului, proba, „doar citire” sau abonamentul care expiră curând. */
   protected readonly banner = computed(() => {
     const a = this.auth.account();
     const s = a?.subscription;
     if (!a || a.isAdmin || !s) return null;
+    // Pe pagina de confirmare a emailului banda ar repeta ce scrie pagina.
+    if (this.url().startsWith('/confirma/') || this.url().startsWith('/cont-nou')) return null;
     // Fraza de activare începe cu un spațiu (aceleași chei ca la erorile „doar citire” de pe server).
     const activare = a.sellerContact ? t('eroare.activare_contact', { contact: a.sellerContact }) : t('eroare.activare_vanzator');
-    if (!s.active) {
-      const text = s.status === 'expired' ? t('banda.expirat', { data: formatDay(s.end), activare }) : t('banda.neactivat', { activare });
-      return { kind: 'warning', text };
+    switch (s.status) {
+      case 'unconfirmed':
+        return { kind: 'notice', big: false, text: t('banda.neconfirmat'), action: 'resend' as const };
+      case 'trial': {
+        const days = s.trialDaysLeft ?? 0;
+        return { kind: days <= 5 ? 'notice' : 'trial', big: false, text: t('banda.proba', { count: days }), action: null };
+      }
+      case 'trial-ended':
+        return { kind: 'warning', big: true, text: t('banda.proba_gata', { activare }), action: null };
+      case 'expired':
+        return { kind: 'warning', big: true, text: t('banda.expirat', { data: formatDay(s.end), activare }), action: null };
+      case 'expiring':
+        return { kind: 'notice', big: false, text: t('banda.expira', { data: formatDay(s.end), count: s.daysLeft, activare }), action: null };
+      default:
+        return null;
     }
-    if (s.status === 'expiring') return { kind: 'notice', text: t('banda.expira', { data: formatDay(s.end), count: s.daysLeft, activare }) };
-    return null;
   });
+
+  protected async resendConfirmation() {
+    this.resend.set('busy');
+    try {
+      await this.api.post('/auth/confirm/resend');
+      this.resend.set('sent');
+    } catch {
+      this.resend.set('');
+    }
+  }
 
 }

@@ -14,7 +14,7 @@ const cookieOf = (r) => r.res.headers.get('set-cookie')?.split(';')[0] ?? null;
 const PASS = 'parola-buna-123';
 
 test('cont nou → intrat în cont', async () => {
-  const r = await call('/api/auth/register', { method: 'POST', body: { email: 'Ion@Exemplu.test', password: PASS, name: 'Ion Popescu' } });
+  const r = await call('/api/auth/register', { method: 'POST', body: { country: 'RO', acceptTerms: true, email: 'Ion@Exemplu.test', password: PASS, name: 'Ion Popescu' } });
   assert.equal(r.status, 201, JSON.stringify(r.data));
   assert.equal(r.data.account.email, 'Ion@Exemplu.test');
   cookie = cookieOf(r);
@@ -25,10 +25,10 @@ test('cont nou → intrat în cont', async () => {
 });
 
 test('parolă prea scurtă și email dublat', async () => {
-  const short = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: 'a@b.test', password: 'scurta', name: 'A' } });
+  const short = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email: 'a@b.test', password: 'scurta', name: 'A' } });
   assert.equal(short.status, 400);
   assert.match(short.data.error, /cel puțin 10 caractere/);
-  const dup = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { email: 'ion@exemplu.TEST', password: PASS, name: 'Altul' } });
+  const dup = await call('/api/auth/register', { method: 'POST', auth: 'none', body: { country: 'RO', acceptTerms: true, email: 'ion@exemplu.TEST', password: PASS, name: 'Altul' } });
   assert.equal(dup.status, 409);
 });
 

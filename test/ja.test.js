@@ -10,7 +10,7 @@ const read = (lang) => JSON.parse(fs.readFileSync(path.join(DIR, `${lang}.json`)
 
 export const GROUPS = [
   { nume: 'domeniu', prefixe: ['catalog', 'culori', 'genetica', 'sex', 'camp', 'inel'] },
-  { nume: 'shell', prefixe: ['cont', 'cont_nou', 'intra', 'parola_noua', 'parola_uitata', 'parola_camp', 'meniu', 'titlu', 'actiune', 'mail', 'banda', 'trimite', 'auth', 'push', 'instalare'] },
+  { nume: 'shell', prefixe: ['cont', 'cont_nou', 'intra', 'parola_noua', 'parola_uitata', 'parola_camp', 'meniu', 'titlu', 'actiune', 'mail', 'banda', 'trimite', 'auth', 'push', 'instalare', 'confirma'] },
   { nume: 'panou', prefixe: ['panou', 'retea', 'text', 'vedere', 'drum'] },
   { nume: 'porumbel', prefixe: ['porumbel', 'form', 'parinti', 'cuib', 'amintiri', 'amintire', 'data', 'cip'] },
   { nume: 'perechi', prefixe: ['perechi', 'arbore', 'rezultate', 'concurs'] },

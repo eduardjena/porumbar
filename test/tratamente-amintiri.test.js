@@ -82,7 +82,8 @@ async function device(acc, n) {
 }
 
 const pushesTo = (endpoint) => pushes.filter((p) => p.endpoint === endpoint);
-const mailsTo = (acc) => sentMails.filter((m) => m.to === acc.email);
+// Doar emailurile de seară (nu și cel de confirmare de la înscriere).
+const mailsTo = (acc) => sentMails.filter((m) => m.to === acc.email && !m.text.includes("/confirma/"));
 
 test('lanțul: copilul care începe azi se fixează și primește și el următorul (și la un cont doar-citire)', async () => {
   const a = await account('Lant');

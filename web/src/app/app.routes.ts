@@ -34,6 +34,8 @@ export const routes: Routes = [
   { path: 'retea', redirectTo: 'arbore' },
   { path: 'intra', canActivate: [guestGuard], title: title('titlu.intra'), loadComponent: () => import('./pages/auth/intra') },
   { path: 'cont-nou', canActivate: [guestGuard], title: title('titlu.cont_nou'), loadComponent: () => import('./pages/auth/cont-nou') },
+  // Linkul din emailul de confirmare: fără gardă (merge și cu cont intrat, și fără).
+  { path: 'confirma/:token', title: title('titlu.confirma'), loadComponent: () => import('./pages/auth/confirma') },
   { path: 'parola-uitata', title: title('titlu.parola_uitata'), loadComponent: () => import('./pages/auth/parola-uitata') },
   { path: 'parola-noua/:token', title: title('titlu.parola_noua'), loadComponent: () => import('./pages/auth/parola-noua') },
   { path: 'perechi', canActivate: [authGuard], title: title('titlu.perechi'), loadComponent: () => import('./pages/perechi/perechi') },

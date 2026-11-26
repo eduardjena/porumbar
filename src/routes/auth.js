@@ -63,9 +63,9 @@ export function authRouter() {
         await sendMail({
           to: config.adminEmail,
           // Pentru vânzător: în română.
-          subject: `Cont nou în Porumbar: ${name}`, // i18n: ro
+          subject: `Cont nou în Pigeonrama: ${name}`, // i18n: ro
           text:
-            `Și-a făcut cont în Porumbar:\n\nNume: ${name}\nEmail: ${email}\nData: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}\n\n` + // i18n: ro
+            `Și-a făcut cont în Pigeonrama:\n\nNume: ${name}\nEmail: ${email}\nData: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}\n\n` + // i18n: ro
             `Contul e doar citire până îl activezi. Îl găsești în consola vânzătorului, la „Neactivați”:\n${config.publicBaseUrl}/vanzator\n`, // i18n: ro
         });
       } catch (err) {

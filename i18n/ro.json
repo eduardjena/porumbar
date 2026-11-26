@@ -42,9 +42,9 @@
     "sens": "Începe cu un spațiu. {contact} = telefonul sau emailul vânzătorului."
   },
   "eroare.activare_vanzator": " Pentru activare, ia legătura cu cel de la care ai primit programul.",
-  "mail.memento.subiect": "Abonamentul Porumbar expiră în curând",
+  "mail.memento.subiect": "Abonamentul Pigeonrama expiră în curând",
   "mail.memento.text": {
-    "text": "Bună, {nume}!\n\nAbonamentul tău Porumbar expiră pe {data}.\nCa să poți adăuga și schimba porumbei și după această dată, achită abonamentul pentru încă un an. {plata}\n\nDatele tale nu se pierd: și fără abonament îți poți vedea și tipări porumbeii.\n",
+    "text": "Bună, {nume}!\n\nAbonamentul tău Pigeonrama expiră pe {data}.\nCa să poți adăuga și schimba porumbei și după această dată, achită abonamentul pentru încă un an. {plata}\n\nDatele tale nu se pierd: și fără abonament îți poți vedea și tipări porumbeii.\n",
     "sens": "Mailul de aducere aminte cu o lună înainte de sfârșitul abonamentului."
   },
   "mail.memento.plata_contact": "Pentru plată și activare: {contact}.",
@@ -69,18 +69,18 @@
   "camp.adresa": "adresă",
   "camp.email": "email",
   "camp.vedere_arbore": "vederea Arborelui",
-  "mail.parola.subiect": "Parolă nouă pentru Porumbar",
+  "mail.parola.subiect": "Parolă nouă pentru Pigeonrama",
   "mail.parola_uitata.text": {
-    "text": "Bună, {nume}!\n\nCineva (sperăm că tu) a cerut o parolă nouă pentru contul tău Porumbar.\nDeschide linkul de mai jos în cel mult o oră și alege parola nouă:\n\n{link}\n\nDacă nu ai cerut tu, nu face nimic: parola ta rămâne aceeași.\n",
+    "text": "Bună, {nume}!\n\nCineva (sperăm că tu) a cerut o parolă nouă pentru contul tău Pigeonrama.\nDeschide linkul de mai jos în cel mult o oră și alege parola nouă:\n\n{link}\n\nDacă nu ai cerut tu, nu face nimic: parola ta rămâne aceeași.\n",
     "sens": "Mailul de la „Am uitat parola”."
   },
-  "mail.cont_nou.subiect": "Contul tău Porumbar",
+  "mail.cont_nou.subiect": "Contul tău Pigeonrama",
   "mail.cont_nou.text": {
-    "text": "Bună, {nume}!\n\nȚi-am făcut un cont în Porumbar, programul pentru evidența porumbeilor și a pedigree-urilor.\nDeschide linkul de mai jos în cel mult 7 zile și alege-ți parola; apoi intri direct în porumbarul tău:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
+    "text": "Bună, {nume}!\n\nȚi-am făcut un cont în Pigeonrama, programul pentru evidența porumbeilor și a pedigree-urilor.\nDeschide linkul de mai jos în cel mult 7 zile și alege-ți parola; apoi intri direct în porumbarul tău:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
     "sens": "Mailul pentru contul făcut de vânzător din consolă."
   },
-  "mail.parola_link.text_7zile": "Bună, {nume}!\n\nCa să intri în contul tău Porumbar, deschide linkul de mai jos în cel mult 7 zile și alege-ți o parolă nouă:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
-  "mail.parola_link.text_24ore": "Bună, {nume}!\n\nCa să intri în contul tău Porumbar, deschide linkul de mai jos în cel mult 24 de ore și alege-ți o parolă nouă:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
+  "mail.parola_link.text_7zile": "Bună, {nume}!\n\nCa să intri în contul tău Pigeonrama, deschide linkul de mai jos în cel mult 7 zile și alege-ți o parolă nouă:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
+  "mail.parola_link.text_24ore": "Bună, {nume}!\n\nCa să intri în contul tău Pigeonrama, deschide linkul de mai jos în cel mult 24 de ore și alege-ți o parolă nouă:\n\n{link}\n\nParola o alegi doar tu; nimeni altcineva nu o vede.\n",
   "eroare.numar_intre": "„{camp}” trebuie să fie un număr între {min} și {max}.",
   "eroare.pereche_doi_diferiti": "Alege doi porumbei diferiți.",
   "eroare.pereche_mascul": "Primul porumbel al perechii trebuie să fie mascul (sexul M pe fișa lui).",
@@ -232,7 +232,7 @@
   "eroare.vanzare_anulata": "Vânzarea a fost anulată.",
   "eroare.vinde_doar_proprii": "Poți vinde doar porumbei din porumbarul tău.",
   "eroare.email_cumparator": "Scrie emailul cumpărătorului.",
-  "eroare.cumparator_fara_cont": "Nu există un cont cu acest email. Cumpărătorul trebuie să-și facă întâi cont în Porumbar, iar contul să fie activ.",
+  "eroare.cumparator_fara_cont": "Nu există un cont cu acest email. Cumpărătorul trebuie să-și facă întâi cont în Pigeonrama, iar contul să fie activ.",
   "eroare.emailul_tau": "Acesta e emailul contului tău.",
   "eroare.deja_vandut": "Porumbelul a fost deja vândut.",
   "eroare.vanzare_in_asteptare": "Porumbelul are deja o vânzare în așteptare. Anuleaz-o întâi.",
@@ -428,40 +428,40 @@
   "public.intra_preia": "Intră ca să-l preiei",
   "public.fa_cont": "Fă-ți cont",
   "actiune.tipareste": "Tipărește",
-  "public.reclama": "Ții evidența porumbeilor pe hârtie? În Porumbar pedigree-urile se trec dintr-o poză și se dau mai departe cu un cod QR. Ca să preiei porumbei, contul trebuie să fie activ.",
-  "public.generat": "Generat de Porumbar pe {data}. Strămoșii colorați la fel apar de mai multe ori în pedigree.",
+  "public.reclama": "Ții evidența porumbeilor pe hârtie? În Pigeonrama pedigree-urile se trec dintr-o poză și se dau mai departe cu un cod QR. Ca să preiei porumbei, contul trebuie să fie activ.",
+  "public.generat": "Generat de Pigeonrama pe {data}. Strămoșii colorați la fel apar de mai multe ori în pedigree.",
   "public.preia_titlu": "Preiei pedigree-ul lui {inel}?",
   "public.preia_rand1": "Se copiază în porumbarul tău ca porumbel care nu e în porumbarul tău (de ex. împrumutat pentru pui), cu strămoșii lui.",
   "public.preia_rand2": "Strămoșii pe care îi ai deja nu se dublează. Dacă l-ai cumpărat, îl poți trece apoi ca al tău din fișa lui.",
   "public.preia_da": "Da, preia",
   "public.indisponibil": "Pedigree indisponibil",
-  "public.mergi": "Mergi la Porumbar",
+  "public.mergi": "Mergi la Pigeonrama",
   "public.se_incarca": "Se încarcă pedigree-ul…",
   "pdf.gata": "Fișa e gata",
   "pdf.gata_rand": "{fisier} se poate trimite acum pe WhatsApp, mail sau unde vrei.",
   "pdf.trimite": "Trimite fișa",
   "pdf.prea_lent": "Pregătirea a durat prea mult (peste 30 de secunde). Verifică internetul și încearcă din nou.",
   "titlu.panou": {
-    "text": "Panou · Porumbar",
+    "text": "Panou · Pigeonrama",
     "sens": "Titlul paginii în bara browserului."
   },
-  "titlu.arbore": "Arbore · Porumbar",
-  "titlu.intra": "Intră în cont · Porumbar",
-  "titlu.cont_nou": "Cont nou · Porumbar",
-  "titlu.parola_uitata": "Parolă uitată · Porumbar",
-  "titlu.parola_noua": "Parolă nouă · Porumbar",
+  "titlu.arbore": "Arbore · Pigeonrama",
+  "titlu.intra": "Intră în cont · Pigeonrama",
+  "titlu.cont_nou": "Cont nou · Pigeonrama",
+  "titlu.parola_uitata": "Parolă uitată · Pigeonrama",
+  "titlu.parola_noua": "Parolă nouă · Pigeonrama",
   "titlu.porumbar": "Porumbarul meu",
-  "titlu.perechi": "Perechi · Porumbar",
-  "titlu.pereche": "Pereche · Porumbar",
-  "titlu.scaneaza": "Scanează codul QR · Porumbar",
-  "titlu.pedigree_hartie": "Importă pedigree · Porumbar",
+  "titlu.perechi": "Perechi · Pigeonrama",
+  "titlu.pereche": "Pereche · Pigeonrama",
+  "titlu.scaneaza": "Scanează codul QR · Pigeonrama",
+  "titlu.pedigree_hartie": "Importă pedigree · Pigeonrama",
   "titlu.porumbel_nou": "Porumbel nou",
   "titlu.editeaza": "Editează porumbelul",
-  "titlu.tiparire": "Tipărește pedigree-ul · Porumbar",
+  "titlu.tiparire": "Tipărește pedigree-ul · Pigeonrama",
   "titlu.porumbel": "Porumbel",
-  "titlu.vanzator": "Consola vânzătorului · Porumbar",
-  "titlu.vanzari": "Vânzări · Porumbar",
-  "titlu.public": "Pedigree · Porumbar",
+  "titlu.vanzator": "Consola vânzătorului · Pigeonrama",
+  "titlu.vanzari": "Vânzări · Pigeonrama",
+  "titlu.public": "Pedigree · Pigeonrama",
   "titlu.cont": "Contul meu",
   "meniu.panou": {
     "text": "Panou",
@@ -486,7 +486,7 @@
     "sens": "Meniul vânzătorului (adminul care dă programul crescătorilor)."
   },
   "meniu.brand": {
-    "text": "Porumbar, panoul",
+    "text": "Pigeonrama, panoul",
     "sens": "Eticheta pentru cititorul de ecran a siglei din colț."
   },
   "meniu.meniu": "Meniu",
@@ -1201,7 +1201,7 @@
     "sens": "Începe cu virgulă; lipit de „(trimis pe …)”."
   },
   "vanzare.anuleaza": "Anulează vânzarea",
-  "vanzare.explicatie": "Cumpărătorul primește porumbelul cu tot pedigree-ul în contul lui. Trebuie să aibă cont activ în Porumbar. Dacă nu are încă, dă-i linkul sau pedigree-ul tipărit de mai sus.",
+  "vanzare.explicatie": "Cumpărătorul primește porumbelul cu tot pedigree-ul în contul lui. Trebuie să aibă cont activ în Pigeonrama. Dacă nu are încă, dă-i linkul sau pedigree-ul tipărit de mai sus.",
   "vanzare.email_cumparator": "Emailul cumpărătorului",
   "vanzare.email_exemplu": {
     "text": "cumparator@exemplu.ro",
@@ -1255,7 +1255,7 @@
   },
   "form.import_titlu": "Importă pedigree: îl ai pe hârtie, în PDF sau în poză?",
   "form.import_text": "Trece-l tot dintr-o dată (porumbelul și strămoșii), sau lasă programul să-l citească din poză.",
-  "form.qr_titlu": "Are cod QR de la Porumbar?",
+  "form.qr_titlu": "Are cod QR de la Pigeonrama?",
   "form.qr_text": "Scanează-l: se deschide pedigree-ul crescătorului și îl preiei cu tot cu strămoși.",
   "form.ciorna_pastrata": "Am păstrat ce scriseseși data trecută.",
   "form.de_la_zero": "Începe de la zero",
@@ -1690,12 +1690,12 @@
   "vanzari.refuzi_text": "{vanzator} va vedea vânzarea anulată.",
   "vanzari.da_refuz": "Da, refuz",
   "scan.titlu": "Scanează codul QR",
-  "scan.intro": "Ține telefonul deasupra codului QR de pe pedigree-ul altui crescător care folosește Porumbar. Se deschide pedigree-ul, iar de acolo îl poți prelua.",
+  "scan.intro": "Ține telefonul deasupra codului QR de pe pedigree-ul altui crescător care folosește Pigeonrama. Se deschide pedigree-ul, iar de acolo îl poți prelua.",
   "scan.caut": "Caut codul… Ține telefonul nemișcat, cu codul în pătrat.",
   "scan.opreste": "Oprește camera",
   "scan.porneste": "Pornește camera",
   "scan.poza": "Fă o poză codului (sau alege una)",
-  "scan.alt_cod": "Acest cod nu e al unui pedigree din Porumbar.",
+  "scan.alt_cod": "Acest cod nu e al unui pedigree din Pigeonrama.",
   "scan.in_cod_scrie": "În cod scrie:",
   "scan.alte_programe": "Pedigree-urile din alte programe (sau de pe hârtie) le treci cu „Importă pedigree”: dintr-o poză le citește programul.",
   "scan.fara_camera_browser": "Browserul acesta nu poate folosi camera aici. Folosește „Fă o poză codului”.",
@@ -1873,7 +1873,7 @@
     "sens": "Codul crescătorului de pe clasamentele Columba."
   },
   "eroare.lipsa_rezultate": "Scrie locul la cel puțin un porumbel (cel mult {max} deodată).",
-  "titlu.concurs": "Rezultatele unui concurs · Porumbar",
+  "titlu.concurs": "Rezultatele unui concurs · Pigeonrama",
   "panou.rezultate_concurs": {
     "text": "Rezultate concurs",
     "sens": "Butonul de pe Panou spre ecranul cu rezultatele mai multor porumbei la același concurs."
@@ -1938,7 +1938,7 @@
   },
   "concurs.cauta": "Caută",
   "concurs.salveaza_gol": "Salvează rezultatele",
-  "titlu.rezultate": "Rezultate concurs · Porumbar",
+  "titlu.rezultate": "Rezultate concurs · Pigeonrama",
   "toate.numar": {
     "one": "{count} rezultat la concursuri",
     "few": "{count} rezultate la concursuri",
@@ -2110,7 +2110,7 @@
     "sens": "Numele câmpurilor cu chei ale abonamentului la notificări pe telefon, în mesaje de eroare."
   },
   "push.titlu": {
-    "text": "Porumbar",
+    "text": "Pigeonrama",
     "sens": "Titlul notificărilor pe telefon (numele aplicației)."
   },
   "push.proba": {
@@ -2140,7 +2140,7 @@
     "sens": "Notificarea cu 3 zile înainte de un tratament care se repetă (ca omul să aibă timp să cumpere vaccinul). {zi} = ziua săptămânii, cu literă mare (de ex. „Joi”), {nume} = boala / vaccinul, {porumbei} = de ex. „24 de porumbei”, {mod} = cum se dă."
   },
   "amintire.email_subiect": {
-    "text": "Porumbar: amintire pentru tratamente",
+    "text": "Pigeonrama: amintire pentru tratamente",
     "sens": "Subiectul emailului de seară cu tratamentele care încep mâine, se termină mâine sau se repetă peste 3 zile."
   },
   "amintire.email_text": {
@@ -2176,11 +2176,11 @@
     "sens": "Notificarea de dimineață (07:00) din ultima zi în care puii se mai pot inela. {cuib} = cuibul sau perechea."
   },
   "amintire.email_subiect_cuiburi": {
-    "text": "Porumbar: amintire pentru cuiburi",
+    "text": "Pigeonrama: amintire pentru cuiburi",
     "sens": "Subiectul emailului de seară când are doar amintiri pentru cuiburi (al doilea ou, mirare, eclozare, inelare)."
   },
   "amintire.email_subiect_toate": {
-    "text": "Porumbar: amintire pentru tratamente și cuiburi",
+    "text": "Pigeonrama: amintire pentru tratamente și cuiburi",
     "sens": "Subiectul emailului de seară când are și tratamente, și cuiburi."
   },
   "amintire.email_text_cuib": {
@@ -2192,19 +2192,19 @@
     "sens": "Butonul din banda Panoului și numele paginii cu tratamentele și vaccinurile date la tot porumbarul."
   },
   "titlu.tratamente": {
-    "text": "Tratamente · Porumbar",
+    "text": "Tratamente · Pigeonrama",
     "sens": "Titlul ferestrei pe pagina Tratamente."
   },
   "titlu.tratament_nou": {
-    "text": "Tratament nou · Porumbar",
+    "text": "Tratament nou · Pigeonrama",
     "sens": "Titlul ferestrei pe fișa unui tratament nou."
   },
   "titlu.tratament": {
-    "text": "Tratament · Porumbar",
+    "text": "Tratament · Pigeonrama",
     "sens": "Titlul ferestrei când e deschis un tratament."
   },
   "titlu.tratament_modifica": {
-    "text": "Modifică tratamentul · Porumbar",
+    "text": "Modifică tratamentul · Pigeonrama",
     "sens": "Titlul ferestrei când omul schimbă un tratament."
   },
   "tratamente.titlu": {
@@ -2224,7 +2224,7 @@
     "sens": "Pagina Tratamente când nu e scris niciun tratament."
   },
   "tratamente.niciunul_text": {
-    "text": "Scrie aici cura sau vaccinul, o singură dată pentru tot porumbarul. Porumbar îți amintește când începe și când se termină.",
+    "text": "Scrie aici cura sau vaccinul, o singură dată pentru tot porumbarul. Pigeonrama îți amintește când începe și când se termină.",
     "sens": "Explicația de pe pagina Tratamente goală."
   },
   "tratamente.in_curs": {
@@ -2732,7 +2732,7 @@
     "sens": "Pasul 2 pentru iPhone (cum se numește în iOS în română)."
   },
   "amintiri.ios_pas3": {
-    "text": "Deschide Porumbar din iconița nouă și revino aici.",
+    "text": "Deschide Pigeonrama din iconița nouă și revino aici.",
     "sens": "Pasul 3 pentru iPhone."
   },
   "amintiri.nesuportat": {
@@ -2740,7 +2740,7 @@
     "sens": "Când browserul nu poate primi notificări."
   },
   "amintiri.refuzat": {
-    "text": "Ai blocat notificările pentru Porumbar. Le repornești din setările telefonului (la Notificări, sau în setările site-ului din browser), apoi deschizi din nou pagina asta.",
+    "text": "Ai blocat notificările pentru Pigeonrama. Le repornești din setările telefonului (la Notificări, sau în setările site-ului din browser), apoi deschizi din nou pagina asta.",
     "sens": "Când omul a refuzat permisiunea pentru notificări."
   },
   "amintiri.telefoane": {
@@ -2818,7 +2818,7 @@
     "sens": "Rezumatul importului din Excel: fișa porumbelului a fost refuzată. {motiv} = mesajul de eroare al fișei."
   },
   "titlu.excel": {
-    "text": "Adu porumbeii din Excel · Porumbar",
+    "text": "Adu porumbeii din Excel · Pigeonrama",
     "sens": "Titlul ferestrei pe pagina de import din Excel."
   },
   "panou.din_excel": {

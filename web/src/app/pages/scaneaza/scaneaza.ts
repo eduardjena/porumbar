@@ -4,7 +4,7 @@ import jsQR from 'jsqr';
 import { t, TPipe, GluePipe } from '../../core/i18n';
 import { Icon } from '../../shared/icon';
 
-/** Tokenul din linkul public al unui pedigree Porumbar („…/p/<token>”), sau null dacă codul e altceva. */
+/** Tokenul din linkul public al unui pedigree Pigeonrama („…/p/<token>”), sau null dacă codul e altceva. */
 export function pedigreeToken(text: string): string | null {
   let url: URL;
   try {
@@ -23,7 +23,7 @@ interface Detector {
 declare const BarcodeDetector: { new (o: { formats: string[] }): Detector } | undefined;
 
 /*
- * Scanarea codului QR de pe pedigree-ul altui crescător cu Porumbar, din aplicație: cu camera sau dintr-o poză.
+ * Scanarea codului QR de pe pedigree-ul altui crescător cu Pigeonrama, din aplicație: cu camera sau dintr-o poză.
  * Codul duce la pagina publică a porumbelului, unde e „Preia în porumbarul meu”. Codurile altor programe nu se deschid
  * (nici ca linkuri): pentru ele e „Importă pedigree”.
  */

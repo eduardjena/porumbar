@@ -1,5 +1,5 @@
 /*
- * Clasamentul lipit (copiat de om de pe columba.ro și lipit în Porumbar). Se citește DOAR în telefonul omului: la server
+ * Clasamentul lipit (copiat de om de pe columba.ro și lipit în Pigeonrama). Se citește DOAR în telefonul omului: la server
  * pleacă numai rândurile lui (după codul de crescător sau după inelele porumbeilor lui), restul paginii, cu ceilalți
  * crescători, nu iese din telefon. Fără importuri, ca să se poată testa direct cu Node (test/clasament.test.js).
  *
@@ -16,7 +16,7 @@
 export interface PastedRace {
   number: number | null;
   organizer: string | null;
-  /** Codul categoriei din Porumbar (viteza, semifond, fond, mare-fond, maraton, pui, altele). */
+  /** Codul categoriei din Pigeonrama (viteza, semifond, fond, mare-fond, maraton, pui, altele). */
   category: string | null;
   /** AAAA-LL-ZZ */
   date: string | null;
@@ -30,7 +30,7 @@ export interface PastedRow {
   place: number;
   name: string;
   code: string;
-  /** Inelul, ca în Porumbar: RO-25-276971 (MATRICOL 0276971 + AN 2025, fără zerourile din față). */
+  /** Inelul, ca în Pigeonrama: RO-25-276971 (MATRICOL 0276971 + AN 2025, fără zerourile din față). */
   ring: string;
   country: string;
   year: number;

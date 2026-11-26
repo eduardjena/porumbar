@@ -17,7 +17,7 @@ interface Outgoing {
 }
 
 /*
- * „Vinde porumbelul” (pe fila QR): emailul cumpărătorului (care are cont în Porumbar) și bifa pentru note și jurnal.
+ * „Vinde porumbelul” (pe fila QR): emailul cumpărătorului (care are cont în Pigeonrama) și bifa pentru note și jurnal.
  * Cumpărătorul acceptă în contul lui; până atunci vânzarea se poate anula. La vânzător porumbelul rămâne, „Vândut”.
  */
 @Component({

@@ -1,7 +1,7 @@
 {
   "name": "porumbar",
   "version": "0.1.0",
-  "description": "Porumbar – evidența porumbeilor, pedigree și genealogie pentru columbofili",
+  "description": "Pigeonrama – evidența porumbeilor, pedigree și genealogie pentru columbofili",
   "private": true,
   "type": "module",
   "engines": {

@@ -65,7 +65,7 @@ const NAV: NavItem[] = [
         <div class="top-inner">
         <a routerLink="/panou" class="brand" [attr.aria-label]="'meniu.brand' | t">
           <img class="brand-mark" src="/icon.svg" alt="" width="40" height="40" />
-          Porumbar
+          Pigeonrama
         </a>
         <nav #topNav class="top-nav" [attr.aria-label]="'meniu.meniu' | t">
           @for (n of nav(); track n.path) {

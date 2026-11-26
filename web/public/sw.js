@@ -6,10 +6,10 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: 'Porumbar', body: event.data ? event.data.text() : '' };
+    data = { title: 'Pigeonrama', body: event.data ? event.data.text() : '' };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Porumbar', {
+    self.registration.showNotification(data.title || 'Pigeonrama', {
       body: data.body || '',
       icon: '/icon.svg',
       data: { url: data.url || '/porumbar' },

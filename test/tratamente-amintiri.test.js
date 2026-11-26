@@ -130,7 +130,7 @@ test('„Mâine începe” la 19:05, o singură dată; numărul de porumbei și 
   assert.ok(r.pushed >= 1);
   const got = pushesTo(ep);
   assert.equal(got.length, 1);
-  assert.equal(got[0].payload.title, 'Porumbar');
+  assert.equal(got[0].payload.title, 'Pigeonrama');
   assert.equal(got[0].payload.body, 'Mâine începe: Tricomonază (gălbenele), 2 porumbei (în apă)');
   assert.equal(got[0].payload.url, `/tratamente/${tr.id}`);
   const notices = await all('SELECT kind, on_date FROM treatment_notices WHERE treatment_id = ?', tr.id);
@@ -184,7 +184,7 @@ test('fără dispozitive: un email seara, cu ambele tratamente, în limba contul
   assert.ok(r.emails >= 1);
   const mails = mailsTo(a);
   assert.equal(mails.length, 1);
-  assert.equal(mails[0].subject, 'Porumbar: emlékeztető a kezelésekről');
+  assert.equal(mails[0].subject, 'Pigeonrama: emlékeztető a kezelésekről');
   assert.match(mails[0].text, /Holnap kezdődik: .*, 2 galamb \(ivóvízbe\)/);
   assert.match(mails[0].text, /Holnap kezdődik: .*\(injekció\)/);
   assert.ok(mails[0].text.includes('http://localhost:3100/tratamente'), mails[0].text);
@@ -298,7 +298,7 @@ test('ora țării contului: rezumatul de seară al contului ja pleacă după 19:
   assert.equal(mailsTo(ja).length, 0, 'înainte de 19:00 la Tokyo: nimic');
   await run(at(addDays(d, -1), 19, 5, TOKYO));
   assert.equal(mailsTo(ja).length, 1);
-  assert.equal(mailsTo(ja)[0].subject, 'Porumbar：治療のリマインダー');
+  assert.equal(mailsTo(ja)[0].subject, 'Pigeonrama：治療のリマインダー');
   assert.equal(mailsTo(ro).length, 0, 'la București e încă dimineață');
   assert.deepEqual(await all('SELECT on_date FROM email_digests WHERE account_id = ?', ja.id), [{ on_date: addDays(d, -1) }]);
   await run(at(addDays(d, -1), 19));

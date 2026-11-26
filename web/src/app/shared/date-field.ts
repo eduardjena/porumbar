@@ -6,7 +6,7 @@ import { todayIso } from '../core/today';
 
 /*
  * Câmpul de dată al aplicației, în locul lui <input type="date">: calendarul browserului vine în limba telefonului
- * (adesea engleză, cu luna înaintea zilei); aici totul e în limba aleasă în Porumbar (RO 18.11.2026, HU 2026. 11. 18.).
+ * (adesea engleză, cu luna înaintea zilei); aici totul e în limba aleasă în Pigeonrama (RO 18.11.2026, HU 2026. 11. 18.).
  * Se poate scrie data de mână sau alege din calendar. Valoarea rămâne „AAAA-LL-ZZ” (ce așteaptă serverul), '' când e goală.
  */
 const pad = (n: number) => String(n).padStart(2, '0');

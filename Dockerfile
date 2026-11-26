@@ -1,4 +1,4 @@
-# Porumbar pe un singur serviciu: Express servește API-ul și interfața Angular (web/dist), baza de date e separată.
+# Pigeonrama pe un singur serviciu: Express servește API-ul și interfața Angular (web/dist), baza de date e separată.
 
 # 1. Interfața
 FROM node:24-slim AS web

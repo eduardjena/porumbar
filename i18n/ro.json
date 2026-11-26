@@ -3345,5 +3345,9 @@
   "cont_nou.email_folosit_ajutor": {
     "text": "Dacă e adresa ta: ",
     "sens": "Sub emailul deja folosit, înainte de linkurile „Intră” și „Am uitat parola”."
+  },
+  "eroare.email_neconfirmat": {
+    "text": "Emailul nu e confirmat încă. Deschide linkul din emailul primit la înscriere (uită-te și în Spam).",
+    "sens": "La intrare (sau cu o sesiune veche), când contul nu și-a confirmat încă emailul."
   }
 }

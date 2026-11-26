@@ -1722,5 +1722,6 @@
   "cont_nou.gol_localitate": "例：名古屋市",
   "cont_nou.gol_parola": "10文字以上",
   "cont_nou.gol_parola2": "同じパスワードをもう一度",
-  "cont_nou.email_folosit_ajutor": "ご自分のアドレスの場合："
+  "cont_nou.email_folosit_ajutor": "ご自分のアドレスの場合：",
+  "eroare.email_neconfirmat": "メールアドレスがまだ確認されていません。登録時にお送りしたメールのリンクを開いてください（迷惑メールフォルダーもご確認ください）。"
 }

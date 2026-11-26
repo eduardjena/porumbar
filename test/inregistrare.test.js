@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { apiCaller } from './helpers/api.js';
 import { startTestApp } from './helpers/db.js';
-import { adminCookie, confirmEmail, today } from './helpers/accounts.js';
+import { adminCookie, confirmAndEnter, confirmEmail, today } from './helpers/accounts.js';
 import { plusDays, TERMS_VERSION } from '../src/subscriptions.js';
 
 let server;
@@ -92,23 +92,28 @@ test('tokenul mai vechi de 7 zile nu merge', async () => {
   await run("UPDATE email_confirmations SET expires_at = now() - interval '1 minute' WHERE account_id = (SELECT id FROM accounts WHERE email = ?)", email);
   const r = await call('/api/auth/confirm', { method: 'POST', auth: 'none', body: { token } });
   assert.equal(r.status, 400);
-  const me = await call('/api/auth/me', { cookie: (await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email, password: PASS } })).res.headers.get('set-cookie').split(';')[0] });
-  assert.equal(me.data.account.subscription.status, 'unconfirmed');
+  // Tot neconfirmat: nu poate intra.
+  const login = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email, password: PASS } });
+  assert.equal(login.status, 403);
+  assert.equal(login.data.key, 'eroare.email_neconfirmat');
 });
 
 test('„Trimite din nou”: email nou, tokenul vechi nu mai merge', async () => {
   const email = 'din-nou@exemplu.test';
   const r = await reg(email);
-  const cookie = r.res.headers.get('set-cookie').split(';')[0];
+  assert.equal(r.res.headers.get('set-cookie'), null, 'înscrierea nu face sesiune');
   const old = await tokenOf(email);
-  const s = await call('/api/auth/confirm/resend', { method: 'POST', cookie });
+  // „Trimite din nou” merge fără cont intrat, după email; același răspuns pentru un email necunoscut.
+  const s = await call('/api/auth/confirm/resend', { method: 'POST', auth: 'none', body: { email } });
   assert.equal(s.status, 200);
   assert.deepEqual(s.data, { ok: true });
   assert.equal((await mailsTo(email)).length, 2);
   assert.equal((await call('/api/auth/confirm', { method: 'POST', auth: 'none', body: { token: old } })).status, 400);
-  await confirmEmail(call, email);
+  const cookie = await confirmAndEnter(call, email);
   assert.equal((await call('/api/auth/me', { cookie })).data.account.subscription.status, 'trial');
-  assert.equal((await call('/api/auth/confirm/resend', { method: 'POST', auth: 'none' })).status, 401);
+  const unknown = await call('/api/auth/confirm/resend', { method: 'POST', auth: 'none', body: { email: 'nimeni-aici@exemplu.test' } });
+  assert.deepEqual(unknown.data, { ok: true });
+  assert.equal((await mailsTo('nimeni-aici@exemplu.test')).length, 0);
 });
 
 test('contul făcut din consolă e confirmat, cu probă de 30 de zile', async () => {
@@ -166,10 +171,9 @@ test('linkul de parolă nouă confirmă și emailul (a venit pe email) și porne
 
 test('în probă: 3 citiri din poză (numărate de la confirmare); neconfirmat: niciuna', async () => {
   const email = 'citiri-proba@exemplu.test';
-  const r = await reg(email);
-  const cookie = r.res.headers.get('set-cookie').split(';')[0];
+  await reg(email);
+  const cookie = await confirmAndEnter(call, email);
   const me = async () => (await call('/api/auth/me', { cookie })).data.account;
-  await confirmEmail(call, email);
   const a = await me();
   assert.equal(a.subscription.status, 'trial');
   assert.equal(a.reads.allowed, 3);
@@ -205,4 +209,20 @@ test('telefonul: mesajul spune câte cifre a numărat; cifrele japoneze (０-９
   assert.equal(again.status, 409);
   assert.equal(again.data.key, 'eroare.email_exista');
   assert.match(again.data.error, /deja folosită/);
+});
+
+test('un cont neconfirmat nu intră: nici cu parola, nici cu o sesiune mai veche (de dinainte de regulă)', async () => {
+  const email = 'sesiune-veche@exemplu.test';
+  await reg(email);
+  const cookie = await confirmAndEnter(call, email);
+  assert.equal((await call('/api/auth/me', { cookie })).status, 200);
+  // Ca un cont făcut înainte de regulă: sesiune deschisă, email neconfirmat.
+  const { run } = await import('../src/db.js');
+  await run('UPDATE accounts SET email_confirmed_at = NULL WHERE email = ?', email);
+  const me = await call('/api/auth/me', { cookie });
+  assert.equal(me.status, 401);
+  assert.equal(me.data.key, 'eroare.email_neconfirmat');
+  const login = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email, password: PASS } });
+  assert.equal(login.status, 403);
+  assert.equal(login.data.key, 'eroare.email_neconfirmat');
 });

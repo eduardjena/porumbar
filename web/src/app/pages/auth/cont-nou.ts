@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService, afterLoginUrl } from '../../core/auth';
-import { errorMessage } from '../../core/api';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth';
+import { Api, errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
 import { LangSwitch } from '../../shared/lang-switch';
 import { TPipe, currentLang, t } from '../../core/i18n';
@@ -51,15 +51,17 @@ const TERMS: Record<string, string> = {
   `,
   template: `
     <div class="auth-page stack">
-      <!-- Intrat în cont (după înscriere) e antetul aplicației sus; limba se schimbă atunci din Cont. -->
-      @if (!sentTo()) { <app-lang-switch /> }
+      <app-lang-switch />
       <div class="logo"><img src="/icon.svg" alt="" width="88" height="88" /><img class="wordmark" src="/wordmark.svg" alt="Pigeonrama" width="190" height="23" /></div>
       @if (sentTo(); as sent) {
         <h1>{{ 'cont_nou.trimis_titlu' | t }}</h1>
         <div class="notice stack" role="status">
           <span>{{ 'cont_nou.trimis_text' | t: { email: sent } }}</span>
         </div>
-        <button type="button" class="primary wide" (click)="enter()">{{ 'cont_nou.spre_panou' | t }}</button>
+        @if (resent()) { <div class="notice" role="status">{{ 'confirma.trimis' | t }}</div> }
+        @if (error()) { <div class="error" role="alert">{{ error() }}</div> }
+        <button type="button" class="wide" [disabled]="busy()" (click)="resend()">{{ 'confirma.trimite_din_nou' | t }}</button>
+        <p class="muted">{{ 'cont_nou.ai_cont' | t }} <a routerLink="/intra">{{ 'intra.intra' | t }}</a></p>
       } @else {
         <h1>{{ 'cont_nou.titlu' | t }}</h1>
         <form class="card stack" (ngSubmit)="submit()" novalidate>
@@ -126,7 +128,7 @@ const TERMS: Record<string, string> = {
 })
 export default class ContNou {
   private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
+  private readonly api = inject(Api);
   name = '';
   email = '';
   phone = '';
@@ -166,8 +168,18 @@ export default class ContNou {
     });
   }
 
-  protected enter() {
-    this.router.navigateByUrl(afterLoginUrl());
+  /** Încă un link de confirmare, la adresa din formular. */
+  readonly resent = signal(false);
+  protected async resend() {
+    this.busy.set(true);
+    try {
+      await this.api.post('/auth/confirm/resend', { email: this.sentTo() });
+      this.resent.set(true);
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    } finally {
+      this.busy.set(false);
+    }
   }
 
   /** Câmpurile obligatorii, în ordinea de pe ecran: ce lipsește sau e greșit, cu ce trebuie scris. */

@@ -91,7 +91,7 @@ async function treatment(acc, startDate) {
   return r.data.treatment;
 }
 
-const readOnly = (acc) => dbRun('UPDATE accounts SET subscription_start = NULL, subscription_end = NULL WHERE id = ?', acc.id);
+const readOnly = (acc) => dbRun(`UPDATE accounts SET subscription_start = NULL, subscription_end = NULL, trial_end = (now() AT TIME ZONE 'Europe/Bucharest')::date - 1 WHERE id = ?`, acc.id);
 const pushesTo = (endpoint) => pushes.filter((p) => p.endpoint === endpoint);
 // Doar emailurile de seară (nu și cel de confirmare de la înscriere).
 const mailsTo = (acc) => sentMails.filter((m) => m.to === acc.email && !m.text.includes("/confirma/"));

@@ -13,13 +13,16 @@ let admin;
 const call = apiCaller(() => ({ base }));
 const me = async (cookie) => (await call('/api/auth/me', { cookie })).data.account;
 const hu = LANGS.find((l) => l.code === 'hu');
+const ja = LANGS.find((l) => l.code === 'ja');
 before(async () => {
   hu.public = false;
+  ja.public = false; // publică din 2026-11-26; aici „în probă”, ca testele de mai jos să verifice în continuare mecanismul
   ({ server, base } = await startTestApp());
   admin = await adminCookie(call);
 });
 after(() => {
   hu.public = true;
+  ja.public = true;
   server?.close();
 });
 
@@ -150,7 +153,7 @@ test('o limbă publică (maghiara, ca acum) se poate alege la înregistrare și 
   }
 });
 
-// Japoneza e chiar „în probă” (public: false în languages.json), nu doar în test.
+// Japoneza e publică din 2026-11-26; aici e făcută „în probă” (before), ca maghiara, ca să rămână verificat mecanismul.
 test('japoneza în probă: fără cont, telefonul în japoneză primește româna', async () => {
   const r = await call('/api/auth/login', {
     method: 'POST', auth: 'none', headers: { 'Accept-Language': 'ja-JP,ja;q=0.9' }, body: { email: 'nimeni@exemplu.test', password: 'gresit-gresit-1' },

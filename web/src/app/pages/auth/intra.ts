@@ -13,7 +13,7 @@ import { TPipe } from '../../core/i18n';
   template: `
     <div class="auth-page stack">
       <app-lang-switch />
-      <div class="logo"><img src="/icon.svg" alt="Pigeonrama" width="88" height="88" /></div>
+      <div class="logo"><img src="/icon.svg" alt="" width="88" height="88" /><img class="wordmark" src="/wordmark.svg" alt="Pigeonrama" width="190" height="23" /></div>
       <h1>{{ 'intra.titlu' | t }}</h1>
       <form class="card stack" (ngSubmit)="submit()">
         <label class="field">{{ 'auth.email' | t }}

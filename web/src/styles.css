@@ -135,8 +135,11 @@ button.link { border: 0; background: none; color: var(--accent-strong); text-dec
 .band-1 { background: var(--band-1); color: var(--band-1-ink); }
 .band-0 { background: var(--band-0); color: var(--band-0-ink); outline: 2px dashed var(--border-strong); outline-offset: -2px; }
 
-.auth-page { max-width: 440px; margin: 32px auto; }
-.auth-page .logo { display: flex; justify-content: center; color: var(--accent); margin-bottom: 8px; }
+.auth-page { max-width: 440px; margin: 64px auto 32px; } /* sus: loc pentru limba din colț */
+.auth-page .logo { display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--accent); margin-bottom: 8px; }
+/* Paginile de intrare: limba stă în colțul din dreapta sus al paginii, ca pe sit; sub siglă, numele PIGEONRAMA. */
+.auth-page app-lang-switch { position: absolute; top: 10px; right: max(12px, env(safe-area-inset-right)); z-index: 20; }
+.auth-page .wordmark { display: block; width: 190px; height: auto; }
 
 * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 

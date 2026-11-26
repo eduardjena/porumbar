@@ -1,6 +1,10 @@
 import { formatDay, t, glue } from '../../core/i18n';
 import { Treatment, TreatmentRepeat } from '../../core/models';
 import { IconName } from '../../shared/icon';
+import { todayIso } from '../../core/today';
+
+/** «Azi» după ora țării contului: același cu cel din core/today, re-exportat pentru paginile de tratamente. */
+export { todayIso };
 
 /*
  * Cum se scrie un tratament pentru om, la fel în listă, în detaliu și în banda de pe Panou. Fișier separat (fără
@@ -9,12 +13,6 @@ import { IconName } from '../../shared/icon';
 
 /** Vaccinul are seringă, tratamentul picurătoare. */
 export const kindIcon = (tr: Pick<Treatment, 'kind'>): IconName => (tr.kind === 'vaccin' ? 'vaccin' : 'tratament');
-
-/** Ziua de azi pe telefon, „AAAA-LL-ZZ”. */
-export function todayIso(): string {
-  const n = new Date();
-  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
-}
 
 /** Ziua de după `n` zile, „AAAA-LL-ZZ” (fără fus orar). */
 export function addDays(iso: string, n: number): string {

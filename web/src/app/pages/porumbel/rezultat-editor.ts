@@ -7,6 +7,7 @@ import { Race, RaceResult } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { TPipe, formatDay, t } from '../../core/i18n';
 import { DateField } from '../../shared/date-field';
+import { todayIso } from '../../core/today';
 
 /** Formularul, cu aceleași câmpuri ca clasamentul columba.ro (texte, ca să primească și „196,608”). */
 interface Form {
@@ -28,9 +29,8 @@ interface Form {
   onPedigree: boolean;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
 const empty = (): Form => ({
-  raceId: '', date: today(), releasePlace: '', category: 'viteza', organizer: '', level: '', number: '', releaseTime: '', entered: '',
+  raceId: '', date: todayIso(), releasePlace: '', category: 'viteza', organizer: '', level: '', number: '', releaseTime: '', entered: '',
   place: '', distanceKm: '', arrivalDay: '1', arrivalTime: '', speed: '', fci: '', onPedigree: true,
 });
 const str = (v: number | string | null | undefined) => (v == null ? '' : String(v));

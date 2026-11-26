@@ -16,6 +16,7 @@ import { Breadcrumbs, Crumb } from '../../shared/breadcrumbs';
 import { ConfirmService } from '../../core/confirm';
 import { IconName } from '../../shared/icon';
 import { DateField } from '../../shared/date-field';
+import { todayIso } from '../../core/today';
 
 type Tab = 'fisa' | 'rezultate' | 'introdu' | 'rude' | 'arbore' | 'jurnal' | 'qr';
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
@@ -176,7 +177,7 @@ export default class Porumbel {
   readonly version = signal(0);
   readonly error = signal('');
   readonly jError = signal('');
-  jDate = new Date().toISOString().slice(0, 10);
+  jDate = todayIso();
   jType = 'nota';
   jText = '';
 

@@ -193,3 +193,16 @@ test('telefonul și localitatea: obligatorii, telefonul cu cel puțin 6 cifre; a
   const toSeller = sentMails.slice(before).filter((m) => m.to === process.env.ADMIN_EMAIL);
   assert.ok(toSeller[0].text.includes('+40 722 123 456') && toSeller[0].text.includes('Cluj-Napoca'));
 });
+
+test('telefonul: mesajul spune câte cifre a numărat; cifrele japoneze (０-９) se numără; emailul folosit are cheia lui', async () => {
+  const short = await reg('tel-scurt@exemplu.test', { phone: '0722 1' });
+  assert.equal(short.status, 400);
+  assert.equal(short.data.key, 'eroare.telefon_gresit');
+  assert.match(short.data.error, /6 cifre; cel scris are 5/);
+  const jp = await reg('tel-jp@exemplu.test', { phone: '０９０－１２３４－５６７８', country: 'JP' });
+  assert.equal(jp.status, 201, JSON.stringify(jp.data));
+  const again = await reg('tel-jp@exemplu.test');
+  assert.equal(again.status, 409);
+  assert.equal(again.data.key, 'eroare.email_exista');
+  assert.match(again.data.error, /deja folosită/);
+});

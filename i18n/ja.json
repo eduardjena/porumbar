@@ -1377,7 +1377,7 @@
   "eroare.doar_json": "リクエストはJSON形式で送信してください。",
   "eroare.cerere_refuzata": "リクエストが拒否されました。",
   "eroare.email_gresit": "メールアドレスが正しくないようです。",
-  "eroare.email_exista": "このメールアドレスのアカウントはすでにあります。",
+  "eroare.email_exista": "このメールアドレスはすでに使われています。",
   "eroare.limba_indisponibila": "選ばれた言語は利用できません。",
   "eroare.login_gresit": "メールアドレスかパスワードが違います。販売者がアカウントを作成した場合は、まず販売者から届いたリンクを開いてください。",
   "eroare.date_doar_vanzator": "名前、血統書に載せる名前、電話番号、住所を変更できるのは、このプログラムの販売者だけです。",
@@ -1707,7 +1707,7 @@
   "camp.localitate": "市区町村",
   "cont_nou.telefon": "電話番号",
   "cont_nou.localitate": "市区町村",
-  "eroare.telefon_gresit": "電話番号が正しくないようです。すべての数字を入力してください。",
+  "eroare.telefon_gresit": "電話番号は6桁以上で入力してください（入力された数字は{n}桁です）。",
   "cont_nou.obligatorii": "*の項目は必須です。",
   "cont_nou.verifica": "赤で示された項目をご確認ください。",
   "cont_nou.lipsa_nume": "お名前（または鳩舎名）を入力してください。",
@@ -1721,5 +1721,6 @@
   "cont_nou.gol_telefon": "例：090-1234-5678",
   "cont_nou.gol_localitate": "例：名古屋市",
   "cont_nou.gol_parola": "10文字以上",
-  "cont_nou.gol_parola2": "同じパスワードをもう一度"
+  "cont_nou.gol_parola2": "同じパスワードをもう一度",
+  "cont_nou.email_folosit_ajutor": "ご自分のアドレスの場合："
 }

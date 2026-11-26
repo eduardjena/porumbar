@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, afterLoginUrl } from '../../core/auth';
@@ -7,6 +8,18 @@ import { PasswordField } from '../../shared/password-field';
 import { LangSwitch } from '../../shared/lang-switch';
 import { TPipe, currentLang, t } from '../../core/i18n';
 import { countryOptions, defaultCountry } from '../../core/countries';
+
+/** Ca pe server: ceva@ceva.ceva, fără spații. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Câte cifre are telefonul (și cele scrise cu tastatura japoneză, ０-９). */
+const phoneDigits = (phone: string) => (phone.match(/\p{Nd}/gu) ?? []).length;
+
+/** Erorile serverului (după `key`) și câmpul sub care apar. */
+const SERVER_FIELD: Record<string, string> = {
+  'eroare.email_exista': 'email', 'eroare.email_gresit': 'email', 'eroare.email_unica_folosinta': 'email',
+  'eroare.telefon_gresit': 'phone', 'eroare.tara_lipsa': 'country', 'eroare.parola_scurta': 'password',
+  'eroare.parola_lunga': 'password', 'eroare.termeni_necesari': 'terms',
+};
 
 /** Termenii și condițiile, în limba ecranului (pe sit). */
 const TERMS: Record<string, string> = {
@@ -62,6 +75,9 @@ const TERMS: Record<string, string> = {
               <input type="email" name="email" autocomplete="email" inputmode="email" required [(ngModel)]="email" (ngModelChange)="clear('email')" [attr.placeholder]="inField('email')" [attr.aria-invalid]="bad('email')" />
             </label>
             @if (err('email'); as e) { <div class="field-error" role="alert">{{ e }}</div> }
+            @if (errors()['email']?.exists) {
+              <div class="muted">{{ 'cont_nou.email_folosit_ajutor' | t }}<a routerLink="/intra">{{ 'intra.intra' | t }}</a> · <a routerLink="/parola-uitata">{{ 'intra.am_uitat' | t }}</a></div>
+            }
           </div>
           <div data-f="phone" [class.bad]="bad('phone')" class="stack">
             <label class="field"><span>{{ 'cont_nou.telefon' | t }} <span class="req">*</span></span>
@@ -122,7 +138,7 @@ export default class ContNou {
   terms = false;
   readonly error = signal('');
   /** Ce e greșit la fiecare câmp (după ce omul a apăsat „Fă contul”); se șterge când scrie în el. */
-  protected readonly errors = signal<Record<string, { msg: string; empty?: string }>>({});
+  protected readonly errors = signal<Record<string, { msg: string; empty?: string; exists?: boolean }>>({});
   /** Câmpul e greșit (chenar roșu). */
   protected bad(field: string): boolean { return !!this.errors()[field]; }
   /** Mesajul de sub câmp: doar când în câmp e scris ceva greșit (câmpul gol are textul înăuntru). */
@@ -161,10 +177,11 @@ export default class ContNou {
     if (!this.name.trim()) e['name'] = blank('cont_nou.lipsa_nume', 'cont_nou.gol_nume');
     const email = this.email.trim();
     if (!email) e['email'] = blank('cont_nou.lipsa_email', 'cont_nou.gol_email');
-    else if (!/^[^s@]+@[^s@]+.[^s@]+$/.test(email)) e['email'] = { msg: `${t('eroare.email_gresit')} ${t('cont_nou.lipsa_email')}` };
+    else if (!EMAIL_RE.test(email)) e['email'] = { msg: `${t('eroare.email_gresit')} ${t('cont_nou.lipsa_email')}` };
     const phone = this.phone.trim();
+    const digits = phoneDigits(phone);
     if (!phone) e['phone'] = blank('cont_nou.lipsa_telefon', 'cont_nou.gol_telefon');
-    else if ((phone.match(/d/g) ?? []).length < 6) e['phone'] = { msg: t('eroare.telefon_gresit') };
+    else if (digits < 6) e['phone'] = { msg: t('eroare.telefon_gresit', { n: digits }) };
     if (!this.city.trim()) e['city'] = blank('cont_nou.lipsa_localitate', 'cont_nou.gol_localitate');
     if (!this.country) e['country'] = { msg: t('eroare.tara_lipsa') };
     if (!this.password) e['password'] = blank('cont_nou.lipsa_parola', 'cont_nou.gol_parola');
@@ -175,6 +192,15 @@ export default class ContNou {
     return e;
   }
 
+  /** Sus la câmpul greșit, cu cursorul în el. */
+  private goTo(field: string) {
+    setTimeout(() => {
+      const box = document.querySelector<HTMLElement>(`[data-f="${field}"]`);
+      box?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      box?.querySelector<HTMLElement>('input, select')?.focus({ preventScroll: true });
+    });
+  }
+
   async submit() {
     this.error.set('');
     const errors = this.check();
@@ -182,12 +208,7 @@ export default class ContNou {
     const first = Object.keys(errors)[0];
     if (first) {
       this.error.set(t('cont_nou.verifica'));
-      // Sus la primul câmp greșit, cu cursorul în el.
-      setTimeout(() => {
-        const box = document.querySelector<HTMLElement>(`[data-f="${first}"]`);
-        box?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        box?.querySelector<HTMLElement>('input, select')?.focus({ preventScroll: true });
-      });
+      this.goTo(first);
       return;
     }
     this.busy.set(true);
@@ -199,7 +220,16 @@ export default class ContNou {
       });
       this.sentTo.set(email);
     } catch (e) {
-      this.error.set(errorMessage(e));
+      // Greșelile găsite de server (de ex. emailul deja folosit) apar sub câmpul lor.
+      const key = e instanceof HttpErrorResponse ? (e.error as { key?: string } | null)?.key : undefined;
+      const field = key ? SERVER_FIELD[key] : undefined;
+      if (field) {
+        this.errors.set({ [field]: { msg: errorMessage(e), exists: key === 'eroare.email_exista' } });
+        this.error.set(t('cont_nou.verifica'));
+        this.goTo(field);
+      } else {
+        this.error.set(errorMessage(e));
+      }
     } finally {
       this.busy.set(false);
     }

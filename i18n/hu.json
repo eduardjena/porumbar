@@ -35,7 +35,7 @@
   "eroare.doar_json": "A kérést JSON formátumban kell küldeni.",
   "eroare.cerere_refuzata": "A kérés elutasítva.",
   "eroare.email_gresit": "Az e-mail-cím nem tűnik helyesnek.",
-  "eroare.email_exista": "Ezzel az e-mail-címmel már van fiók.",
+  "eroare.email_exista": "Ez az e-mail-cím már használatban van.",
   "eroare.limba_indisponibila": "A választott nyelv nem érhető el.",
   "eroare.login_gresit": "Hibás e-mail-cím vagy jelszó. Ha a fiókodat az eladó hozta létre, előbb nyisd meg a tőle kapott linket.",
   "eroare.date_doar_vanzator": "A nevet, a származási lapon szereplő nevet, a telefonszámot és a címet csak az módosíthatja, akitől a programot kaptad (az eladó).",
@@ -1701,7 +1701,7 @@
   "camp.localitate": "település",
   "cont_nou.telefon": "Telefonszám",
   "cont_nou.localitate": "Település",
-  "eroare.telefon_gresit": "A telefonszám hibásnak tűnik: add meg az összes számjegyével.",
+  "eroare.telefon_gresit": "A telefonszámnak legalább 6 számjegyből kell állnia; a megadottban {n} van.",
   "cont_nou.obligatorii": "A *-gal jelölt mezők kitöltése kötelező.",
   "cont_nou.verifica": "Ellenőrizd a pirossal jelölt mezőket.",
   "cont_nou.lipsa_nume": "Add meg a neved (vagy a dúc nevét).",
@@ -1715,5 +1715,6 @@
   "cont_nou.gol_telefon": "pl. +36 30 123 4567",
   "cont_nou.gol_localitate": "pl. Debrecen",
   "cont_nou.gol_parola": "Legalább 10 karakter",
-  "cont_nou.gol_parola2": "Ugyanaz a jelszó még egyszer"
+  "cont_nou.gol_parola2": "Ugyanaz a jelszó még egyszer",
+  "cont_nou.email_folosit_ajutor": "Ha ez a te címed: "
 }

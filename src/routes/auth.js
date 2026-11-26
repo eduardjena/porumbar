@@ -84,7 +84,8 @@ export function authRouter() {
     const country = countryOf(req.body?.country);
     // Telefonul (cel puțin 6 cifre) și localitatea: obligatorii. Localitatea e adresa de pe fișă (strada o poate adăuga vânzătorul).
     const phone = text(req.body?.phone, 'camp.telefon', { max: 40 });
-    if ((phone.match(/\d/g) ?? []).length < 6) throw badRequest('eroare.telefon_gresit');
+    const digits = (phone.match(/\p{Nd}/gu) ?? []).length; // și cifrele scrise cu tastatura japoneză (０-９)
+    if (digits < 6) throw badRequest('eroare.telefon_gresit', { n: digits });
     const city = text(req.body?.city, 'camp.localitate', { max: 100 });
     // Limba de pe ecran (toate limbile sunt publice; una nepublică o poate pune doar vânzătorul).
     const lang = req.body?.lang ?? 'ro';

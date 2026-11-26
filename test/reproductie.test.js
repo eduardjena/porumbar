@@ -145,13 +145,13 @@ test('cont ja: puiul inelat și seria cu inele japoneze fără JPN; la ro seria 
   const y = await call(`/api/clutches/${cl.data.clutch.id}/young`, { method: 'POST', cookie: ja, body: { ring: '26-ab-00050' } });
   assert.equal(y.status, 201, JSON.stringify(y.data));
   assert.equal(y.data.pigeon.ring.raw, 'JPN 26-ab-00050');
-  assert.equal(y.data.pigeon.ring.display, 'JP-26-AB-00050');
+  assert.equal(y.data.pigeon.ring.display, 'JPN 26-AB-00050');
   const d = await call(`/api/clutches/${cl.data.clutch.id}/young`, { method: 'POST', cookie: ja, body: { ring: '26-800546' } });
   assert.equal(d.data.pigeon.ring.raw, '26-800546');
 
   const s = await call('/api/ring-series', { method: 'POST', cookie: ja, body: { first: '26-CD-00001', last: '26-CD-00010' } });
   assert.equal(s.status, 201, JSON.stringify(s.data));
-  assert.equal(s.data.series.first, 'JP-26-CD-00001');
-  assert.equal((await call('/api/ring-series/next?year=2026', { cookie: ja })).data.ring, 'JP-26-CD-00001');
+  assert.equal(s.data.series.first, 'JPN 26-CD-00001');
+  assert.equal((await call('/api/ring-series/next?year=2026', { cookie: ja })).data.ring, 'JPN 26-CD-00001');
   assert.equal((await call('/api/ring-series', { method: 'POST', cookie: a, body: { first: '26-CD-00001', last: '26-CD-00010' } })).status, 400);
 });

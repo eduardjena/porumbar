@@ -319,15 +319,20 @@ function worldParts(s, result, now) {
  * Afișarea uniformă: RO-25-276971, DV-08778-24-271 (Germania: clubul pe 5 cifre, înaintea anului),
  * AT-18-301-1405 (alte țări cu club sau literă de serie: anul, clubul, numărul: GB-22-T-12345, AU-18-RMR-18861),
  * LT-01-03-14003 (clubul înaintea anului, ca pe inel); numărul cu zerourile din față la familiile noi cu lățime fixă
- * (CN-26-15-0443185, HKPA-26-0001384); un inel necitit sau lipsă rămâne cum a fost scris.
+ * (CN-26-15-0443185, HKPA-26-0001384); Japonia ca pe inel, cu spațiu după emitent (JPN 25-AB-01234, NIPPON 2009-123456);
+ * un inel necitit sau lipsă rămâne cum a fost scris. Orice afișare se citește înapoi la aceeași cheie.
  */
 export function formatRing(r) {
   if (!r?.ok || r.unringed) return r?.raw ?? '';
   const yy = String(r.year % 100).padStart(2, '0');
   // Ungaria: anul întreg, ca pe inel (HU-2023-29-14530).
   if (r.country === 'HU' && r.club) return `HU-${r.year}-${r.club}-${r.number}`;
+  // NIPPON (日本伝書鳩協会): ca pe inel, prefixul și anul întreg (NIPPON 2009-123456); cheia rămâne NIPPON|2009||123456.
+  if (r.country === 'NIPPON') return `NIPPON ${r.year}-${String(r.number).padStart(WIDTH.NIPPON, '0')}`;
   const width = r.country === 'CN' && r.club ? (r.year >= 2014 ? 7 : 6) : r.country === 'JP' && r.club ? 5 : WIDTH[r.country];
   const number = width ? String(r.number).padStart(width, '0') : r.number;
+  // Japonia (JRPA): cum scriu crescătorii și cum e pe inel, „JPN ” în față (JPN 25-AB-01234); cheia rămâne JP|…
+  if (r.country === 'JP') return `JPN ${yy}-${r.club ? `${r.club}-` : ''}${number}`;
   if (!r.club) return `${r.country}-${yy}-${number}`;
   if (r.country === 'DV') return `${r.country}-${r.club.padStart(5, '0')}-${yy}-${number}`;
   if (SHOW_CLUB_FIRST.has(r.country)) return `${r.country}-${r.club}-${yy}-${number}`;

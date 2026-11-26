@@ -26,7 +26,6 @@ export const ALLOW_NONJA = new Set(['sex.m', 'sex.f', 'genetica.baza_si_desen', 
   'cont.pana_pe', // doar semnul „〜” între data de început și cea de sfârșit
   'cont.de_pe', // doar semnul „：” între stare și dată
   'push.titlu', // numele aplicației (marcă), la fel în toate limbile
-  'arbore.tm', // semnul „T+M” (tată + mamă), citat identic în retea.legenda_tm
   'vanzare.email_exemplu', // adresă de email de exemplu (ASCII), în câmpul gol
   'tratamente.zile_interval', // doar intervalul „1〜60” (cifre și semnul de interval)
   'tratament.jurnal_text', // doar substituenți și semne: „{nume}（{mod}、{perioada}）”
@@ -66,4 +65,16 @@ test('japoneză: grupele acoperă toate prefixele din ro.json (afară de test)',
   const dinGrupe = new Set(GROUPS.flatMap((g) => g.prefixe));
   const dinRo = new Set(Object.keys(ro).map((k) => k.split('.')[0]).filter((p) => p !== 'test'));
   assert.deepEqual([...dinGrupe].sort(), [...dinRo].sort());
+});
+
+test('semnul strămoșului de la tată și de la mamă: în cuvintele limbii, iar explicațiile încep cu el', () => {
+  for (const lang of ['ro', 'hu', 'ja']) {
+    const d = read(lang);
+    const v = (k) => (typeof d[k] === 'string' ? d[k] : d[k].text);
+    const sign = v('arbore.tm');
+    assert.ok(v('fisa.tm').startsWith(sign), `${lang} fisa.tm`);
+    assert.ok(v('retea.legenda_tm').startsWith(sign), `${lang} retea.legenda_tm`);
+  }
+  assert.ok(isJapanese(ja['arbore.tm']), 'ja arbore.tm');
+  assert.ok(!/T\+M/.test(ja['fisa.tm'] + ja['retea.legenda_tm']), 'fără „T+M” românesc în japoneză');
 });

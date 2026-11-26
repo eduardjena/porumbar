@@ -112,7 +112,7 @@ test('POST /test trimite proba în limba contului, doar la dispozitivul contului
   const r = await call('/api/auth/push/test', { method: 'POST', cookie: a, body: { endpoint: fakeSub('t1').endpoint } });
   assert.equal(r.status, 200);
   assert.deepEqual(r.data, { result: 'ok' });
-  assert.equal(calls[0].body, 'Proba: amintirile merg');
+  assert.equal(calls[0].body, 'Proba: notificările merg');
   assert.equal((await call('/api/auth/push/test', { method: 'POST', cookie: b, body: { endpoint: fakeSub('t1').endpoint } })).status, 404);
   assert.equal(calls.length, 1);
 });

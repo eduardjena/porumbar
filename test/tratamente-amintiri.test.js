@@ -190,8 +190,8 @@ test('fără dispozitive: un email seara, cu ambele tratamente, în limba contul
   assert.match(mails[0].text, /Holnap kezdődik: .*, 2 galamb \(ivóvízbe\)/);
   assert.match(mails[0].text, /Holnap kezdődik: .*\(injekció\)/);
   assert.ok(mails[0].text.includes('http://localhost:3100/tratamente'), mails[0].text);
-  assert.ok(mails[0].text.includes('mert a telefonodon az emlékeztetők nincsenek bekapcsolva (vagy nem érkeztek meg)'), mails[0].text);
-  assert.ok(mails[0].text.includes('Fiók → Emlékeztetők'), mails[0].text);
+  assert.ok(mails[0].text.includes('mert a telefonodon az értesítések nincsenek bekapcsolva (vagy nem érkeztek meg)'), mails[0].text);
+  assert.ok(mails[0].text.includes('Fiók → Értesítések'), mails[0].text);
   // A doua zi seara: „mâine e ultima zi” → încă un email (unul pe seară).
   await run(at(d, 19, 5, BUDAPEST));
   assert.equal(mailsTo(a).length, 2);
@@ -213,7 +213,7 @@ test('singurul dispozitiv răspunde „gone”: abonamentul dispare și pleacă 
   assert.equal(mailsTo(a).length, 1);
   assert.match(mailsTo(a)[0].text, /Mâine începe: Tricomonază \(gălbenele\), 2 porumbei \(în apă\)/);
   assert.ok(
-    mailsTo(a)[0].text.includes('Primești acest email pentru că pe telefonul tău amintirile nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Amintiri.'),
+    mailsTo(a)[0].text.includes('Primești acest email pentru că pe telefonul tău notificările nu sunt pornite (sau n-au ajuns). Le poți porni sau poți opri emailul din Cont → Notificări.'),
     mailsTo(a)[0].text,
   );
   assert.ok(!mailsTo(a)[0].text.includes('nu au ajuns pe telefon'));

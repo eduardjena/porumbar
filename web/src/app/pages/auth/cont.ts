@@ -6,12 +6,13 @@ import { Api, errorMessage } from '../../core/api';
 import { ConfirmService, changes } from '../../core/confirm';
 import { PushService } from '../../core/push';
 import { LANGS, TPipe, formatDay, isPublicLang, t, GluePipe } from '../../core/i18n';
+import { InstallApp } from '../../shared/install-app';
 
 const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 
 @Component({
   selector: 'app-cont',
-  imports: [FormsModule, TPipe, GluePipe],
+  imports: [FormsModule, TPipe, GluePipe, InstallApp],
   styles: `
     .subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; }
     .h { margin: 0; }
@@ -121,6 +122,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 
     @if (section() === 'amintiri') {
       <h2>{{ 'amintiri.titlu' | t }}</h2>
+      <app-install-app />
       @if (pushState() !== 'nokeys') {
       <div class="card stack">
         <p>{{ 'amintiri.explicatie' | t }}</p>

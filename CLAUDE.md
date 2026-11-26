@@ -144,7 +144,7 @@ web/            interfața: Angular 22, componente standalone, semnale, zoneless
                   ale porumbelului folosesc aceleași componente ca Rezultate concurs (tabelul cu `pigeonId`, editorul
                   porumbel/rezultat-editor.ts, ecranul de introducere cu `focusPigeon`)
   web/public/sw.js  service worker-ul (primește push-ul și deschide aplicația); core/push.ts + core/push-key.ts: abonarea
-                  la push (se refăce dacă cheia serverului s-a schimbat). Cont → Amintiri (?sec=amintiri): notificări pe
+                  la push (se refăce dacă cheia serverului s-a schimbat). Cont → Notificări (?sec=amintiri; în interfață ro/hu/ja: Notificări / Értesítések / 通知): notificări pe
                   telefon și email. Banda „În curs / Urmează” de pe Panou apare doar pe Grilă
   src/app/shared/ fișa A4 (pedigree-page, pedigree-sheet), qr-code, ring-input, pigeon-picker, lang-switch, icon …
                   date-field.ts (<app-date>): câmpul de dată peste tot, NU <input type="date"> (calendarul browserului
@@ -202,6 +202,9 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   Fără cont, limba se alege din steagul rotund din colțul din dreapta sus (`shared/lang-switch.ts`, ca pe sit; pe
   paginile de intrare e în colț prin `.auth-page app-lang-switch` din styles.css). Sub siglă, pe Intră și Cont nou, e
   `web/public/wordmark.svg` (literele din siglă, scrise de `docs/design/sigla/scrie-svg.py`).
+  „Instalează aplicația” (`shared/install-app.ts`, pe Intră și în Cont → Notificări): `core/install.ts` prinde oferta
+  browserului (`beforeinstallprompt`) din main.ts, înainte de Angular; pe Android fără ofertă arată pașii din meniu;
+  deschisă din iconiță (instalată) nu arată nimic.
 - Japoneza (`ja`) e **publică** din 2026-11-26 (a fost „în probă” din 2026-11-25; vânzătorul a hotărât să o deschidă
   înainte de verificarea unui columbofil japonez a listei din `docs/cercetare/termeni-japonezi.md` §8, care rămâne de făcut). Fontul ei (Noto Sans JP, feliat cu unicode-range) e într-un CSS separat,
   `web/src/japoneza.css` → `/japoneza.css` (angular.json, `inject: false`), adus de `core/font-ja.ts` doar când se folosește

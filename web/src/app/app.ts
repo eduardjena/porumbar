@@ -151,7 +151,8 @@ const NAV: NavItem[] = [
     /* Submeniul ales: doar litera (îngroșată, mai mare, neagră), ca la meniul mare. */
     .pill.on { color: var(--text); font-weight: 800; font-size: 1.02rem; }
     .pill .count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: #c62828; color: #fff; font-size: 0.75rem; font-weight: 800; }
-    .brand { font-weight: 800; font-size: 1.2rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: -0.01em; }
+    /* Numele de lângă siglă: PIGEONRAMA cu majuscule și mai subțire, ca în siglă. */
+    .brand { font-weight: 600; font-size: 1.15rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 0; letter-spacing: 0.06em; text-transform: uppercase; }
     .brand-mark { width: 40px; height: 40px; display: block; }
     /* Meniul mare la mijlocul spațiului dintre siglă și marginea din dreapta („Ieși” stă în Cont → Ieșire și ștergere). */
     .top-nav { display: flex; gap: 0; align-items: stretch; flex: 1 1 auto; justify-content: center; margin-left: 8px; }

@@ -58,7 +58,7 @@ interface Card {
     <div class="board" [style.width.px]="width()" [style.height.px]="height">
       <svg class="links" [attr.width]="width()" [attr.height]="height" aria-hidden="true">
         @for (l of links(); track l.key) {
-          <path [attr.d]="l.d" [attr.stroke]="l.lit ? '#a33d1c' : l.side === 'F' ? '#9fb8cf' : '#d2a6c9'" [attr.stroke-width]="l.lit ? 3 : 2" fill="none" />
+          <path [attr.d]="l.d" [attr.stroke]="l.lit ? '#d92132' : l.side === 'F' ? '#9fb8cf' : '#d2a6c9'" [attr.stroke-width]="l.lit ? 3 : 2" fill="none" />
         }
       </svg>
       @for (c of cards(); track c.key) {
@@ -121,7 +121,7 @@ interface Card {
       box-shadow: var(--shadow); min-height: 0; font-weight: 400; cursor: pointer; transition: box-shadow 0.2s var(--ease), border-color 0.2s;
     }
     .card-p:hover { border-color: var(--accent); }
-    .card-p.sel { border-color: var(--accent); box-shadow: 0 0 0 4px #f3d3c3, 0 0 26px 6px rgb(240 180 150 / 70%); }
+    .card-p.sel { border-color: var(--accent); box-shadow: 0 0 0 4px #f7cdd1, 0 0 26px 6px rgb(240 180 150 / 70%); }
     .card-p.g4, .card-p.g3 { padding: 6px 8px; border-radius: 12px; }
     .card-p.g0 { padding: 14px; border: 2px solid var(--accent); }
     /* Padding + bordură = PAD din cod (titlurile coloanelor se aliniază cu textul din carduri). */
@@ -154,7 +154,7 @@ interface Card {
       .gen h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; }
       .gen h3 .muted { font-size: 0.85rem; font-weight: 600; }
       .m-card { display: flex; flex-direction: column; align-items: stretch; gap: 3px; text-align: left; padding: 10px 12px; border-radius: 14px; font-weight: 400; background: var(--surface); }
-      .m-card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #f3d3c3; }
+      .m-card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px #f7cdd1; }
       .m-card.empty { color: var(--muted); background: var(--surface-2); border: 1px dashed var(--border); }
       .m-card .txt { white-space: normal; }
     }

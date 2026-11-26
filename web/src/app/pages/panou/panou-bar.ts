@@ -126,7 +126,7 @@ type Panel = 'sort' | 'group' | 'filter' | null;
     .backdrop { position: fixed; inset: 0; z-index: 30; background: transparent; }
     .panel {
       position: absolute; left: 0; top: calc(100% + 8px); z-index: 31; width: 380px; max-height: min(70vh, 620px); overflow: auto;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 18px 50px rgb(43 33 23 / 22%); padding: 10px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 18px 50px rgb(38 51 67 / 22%); padding: 10px;
     }
     .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 8px; }
     .panel-head strong { font-size: 1.1rem; }

@@ -164,7 +164,7 @@ function forgetOldDraft() {
     .links .tata { stroke: #9fb8cf; }
     .links .mama { stroke: #d2a6c9; }
     .slot { position: relative; z-index: 1; align-self: center; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
-    .slot.has { border-color: #c2b39c; }
+    .slot.has { border-color: #adb4bd; }
     .slot.g0 { border: 2px solid var(--accent); }
     .slot input, .slot textarea, .slot select { min-height: 38px; padding: 6px 10px; font-size: 0.95rem; border-radius: 10px; }
     .slot textarea { resize: vertical; }

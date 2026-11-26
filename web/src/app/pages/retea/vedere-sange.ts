@@ -52,10 +52,10 @@ interface Node2 {
         @for (n of nodes(); track n.id) {
           <g class="node" [class.sel]="n.id === selectedId()" (click)="select.emit(n.id)" (dblclick)="open.emit(n.id)">
             <rect [attr.x]="n.x" [attr.y]="n.y - nodeH / 2" [attr.width]="nodeW" [attr.height]="nodeH" rx="10"
-                  [attr.fill]="n.id === data().rootId ? '#a33d1c' : '#fffdf9'" [attr.stroke]="n.id === selectedId() ? '#a33d1c' : '#c2b39c'"
+                  [attr.fill]="n.id === data().rootId ? '#d92132' : '#ffffff'" [attr.stroke]="n.id === selectedId() ? '#d92132' : '#adb4bd'"
                   [attr.stroke-width]="n.id === selectedId() ? 3 : 1" />
-            <text [attr.x]="n.x + 10" [attr.y]="n.y - 3" font-size="13" font-weight="800" [attr.fill]="n.id === data().rootId ? '#fff' : '#2b2117'">{{ ring(n.id) }}</text>
-            <text [attr.x]="n.x + 10" [attr.y]="n.y + 13" font-size="11" [attr.fill]="n.id === data().rootId ? '#fff' : '#625345'">{{ sub(n.id) }}</text>
+            <text [attr.x]="n.x + 10" [attr.y]="n.y - 3" font-size="13" font-weight="800" [attr.fill]="n.id === data().rootId ? '#fff' : '#263343'">{{ ring(n.id) }}</text>
+            <text [attr.x]="n.x + 10" [attr.y]="n.y + 13" font-size="11" [attr.fill]="n.id === data().rootId ? '#fff' : '#55606f'">{{ sub(n.id) }}</text>
           </g>
         }
       </svg>
@@ -147,7 +147,7 @@ export class VedereSange {
     const out: { key: string; d: string; color: string; w: number; line: string }[] = [];
     this.data().blood.paths.forEach((p, pi) => {
       if (p.founderId == null) return; // partea necunoscută apare doar în bară
-      const color = this.colorOf().get(p.line) ?? '#b9ad9d';
+      const color = this.colorOf().get(p.line) ?? '#b3b9c0';
       const w = Math.max(2, p.share * FULL);
       for (let k = 0; k + 1 < p.via.length; k++) {
         const a = pos.get(p.via[k]);

@@ -15,7 +15,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
   styles: `
     .subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; }
     .h { margin: 0; }
-    .sheet { display: flex; flex-direction: column; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; background: #fff; color: #2b2117; line-height: 1.35; }
+    .sheet { display: flex; flex-direction: column; padding: 12px 14px; border: 1px dashed var(--border); border-radius: 12px; background: #fff; color: #263343; line-height: 1.35; }
     .sheet strong { font-size: 1.2rem; }
     .sheet .addr { white-space: pre-line; }
     .show { border: 0; padding: 0; margin: 4px 0 0; } .show legend { font-weight: 700; margin-bottom: 2px; } .show p { margin: 0 0 6px; }

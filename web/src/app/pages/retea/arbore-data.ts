@@ -31,14 +31,14 @@ export interface ArboreData {
 export type { BoardPigeon };
 
 /** Culori pentru strămoșii care se repetă (insigna „×N”), aceleași la fiecare apariție. */
-export const REPEAT_COLORS = ['#b8860b', '#2f7f7a', '#8c357f', '#2b5a86', '#a33d1c', '#567a28'];
+export const REPEAT_COLORS = ['#b8860b', '#2f7f7a', '#8c357f', '#2b5a86', '#d92132', '#567a28'];
 
 /** Culori distincte pentru liniile de sânge; „Necunoscut” / „Fără linie” sunt neutre. */
-const LINE_COLORS = ['#a33d1c', '#2b5a86', '#567a28', '#8c357f', '#b8860b', '#2f7f7a', '#7a5a3a', '#5b5ea6', '#c0563a', '#3f7d55'];
+const LINE_COLORS = ['#d92132', '#2b5a86', '#567a28', '#8c357f', '#b8860b', '#2f7f7a', '#7a5a3a', '#5b5ea6', '#c0563a', '#3f7d55'];
 export function lineColor(name: string, index: number): string {
   // Numele vin de la server în limba contului (text.necunoscut / text.fara_linie).
-  if (name === t('text.necunoscut')) return '#b9ad9d';
-  if (name === t('text.fara_linie')) return '#d6cbbd';
+  if (name === t('text.necunoscut')) return '#b3b9c0';
+  if (name === t('text.fara_linie')) return '#d3d7dc';
   return LINE_COLORS[index % LINE_COLORS.length];
 }
 

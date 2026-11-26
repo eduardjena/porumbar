@@ -19,7 +19,7 @@ export class QrCode {
       const size = this.size();
       const el = this.canvas().nativeElement;
       const QRCode = (await import('qrcode')).default;
-      await QRCode.toCanvas(el, url, { width: size, margin: 1, errorCorrectionLevel: 'M', color: { dark: '#2b2117', light: '#ffffff' } });
+      await QRCode.toCanvas(el, url, { width: size, margin: 1, errorCorrectionLevel: 'M', color: { dark: '#263343', light: '#ffffff' } });
       // Biblioteca pune lățimea în stil; mărimea pe ecran o dă locul în care stă codul (CSS-ul de mai jos).
       el.style.removeProperty('width');
       el.style.removeProperty('height');

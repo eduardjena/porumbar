@@ -318,7 +318,7 @@ export default class Retea implements OnDestroy {
             'border-color': css('--accent'),
             'border-style': 'solid',
             // halou pastel, moale, în jurul porumbelului ales (cerut de utilizator)
-            'underlay-color': '#f3c9b5',
+            'underlay-color': '#f7cdd1',
             'underlay-opacity': 1,
             'underlay-padding': 26,
             'underlay-shape': 'round-rectangle',

@@ -116,7 +116,7 @@ const isView = (v: unknown): v is View => VIEWS.some((x) => x.id === v);
     /* Lista se deschide sub bară, peste arbore (fixă, ca să nu fie tăiată de bara care se derulează pe telefon). */
     .picker {
       position: fixed; z-index: 50; top: 132px; left: 50%; transform: translateX(-50%); width: min(820px, calc(100vw - 24px));
-      max-height: calc(100dvh - var(--picker-top, 150px) - 16px); display: flex; flex-direction: column; padding: 14px; box-shadow: 0 24px 60px -16px rgb(43 33 23 / 45%);
+      max-height: calc(100dvh - var(--picker-top, 150px) - 16px); display: flex; flex-direction: column; padding: 14px; box-shadow: 0 24px 60px -16px rgb(38 51 67 / 45%);
     }
     .picker-head { display: flex; gap: 8px; align-items: center; }
     .picker-head .search { flex: 1; }

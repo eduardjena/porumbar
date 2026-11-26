@@ -56,7 +56,7 @@ import { QrCode } from './qr-code';
     :host { display: block; }
     .preview { padding-bottom: 12px; }
     .page {
-      box-sizing: content-box; width: 186mm; height: 272mm; padding: 12mm; margin: 0 auto; background: #fff; color: #2b2117;
+      box-sizing: content-box; width: 186mm; height: 272mm; padding: 12mm; margin: 0 auto; background: #fff; color: #263343;
       line-height: 1.5; /* la fel în orice limbă (ecranul japonez are rânduri mai înalte), ca foaia să rămână pe o pagină */
       display: flex; flex-direction: column; gap: 3mm; border: 1px solid var(--border); box-shadow: var(--shadow);
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
@@ -68,15 +68,15 @@ import { QrCode } from './qr-code';
     .qr { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0.8mm; width: 24mm; font-size: 5.5pt; text-align: center; line-height: 1.15; }
     .qr app-qr-code { width: 22mm; }
     .sheet-area { flex: 1; min-height: 0; }
-    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; min-height: 18mm; border-top: 0.3mm solid #8f8476; padding-top: 1.5mm; }
+    footer { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; min-height: 18mm; border-top: 0.3mm solid #8a929c; padding-top: 1.5mm; }
     .owner { display: flex; flex-direction: column; font-size: 9.5pt; line-height: 1.3; }
     .owner strong { font-size: 12pt; }
     /* Adresa pe rândurile scrise în Cont (strada / localitatea), cel mult 3. */
     .owner .addr { white-space: pre-line; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-    .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 7pt; color: #6b5d4f; }
+    .stamp { display: flex; flex-direction: column; align-items: flex-end; font-size: 7pt; color: #55606f; }
     .stamp .made { display: inline-flex; align-items: center; gap: 0.8mm; }
     .stamp .made img { width: 3.6mm; height: 3.6mm; }
-    .stamp .site { font-weight: 700; color: #2b2117; }
+    .stamp .site { font-weight: 700; color: #263343; }
     @media print {
       @page { size: A4 portrait; margin: 0; }
       .preview { overflow: visible; padding: 0; }

@@ -278,7 +278,7 @@ function plusOneYear(start: string) {
     .icon-btn { width: 48px; padding: 0; }
     .link { word-break: break-all; background: var(--surface-2); padding: 8px 10px; border-radius: 10px; font-size: 0.85rem; }
     .ev { font-size: 0.92rem; }
-    .sheet { display: flex; flex-direction: column; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: #fff; color: #2b2117; line-height: 1.35; }
+    .sheet { display: flex; flex-direction: column; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: #fff; color: #263343; line-height: 1.35; }
     .sheet strong { font-size: 1.1rem; }
     .sheet .addr { white-space: pre-line; }
     @media (max-width: 1000px) {

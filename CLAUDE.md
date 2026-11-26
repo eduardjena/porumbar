@@ -227,7 +227,7 @@ Când se schimbă adresa aplicației (domeniu propriu), se schimbă `APP_URL` ac
 ## Publicarea (Railway)
 
 - Proiectul Railway „porumbar” (Soopra Projects, UE): serviciul `porumbar` (Dockerfile: construiește interfața, apoi
-  pornește serverul) + `Postgres`. Adresa: https://porumbar-production.up.railway.app.
+  pornește serverul) + `Postgres`. Adresa: **https://app.pigeonrama.com** (din 2026-11-26, domeniu propriu pe Railway: CNAME `app` → `lrz7xqum.up.railway.app` și TXT `_railway-verify.app` în DNS-ul DirectAdmin; `PUBLIC_BASE_URL` arată spre ea). Adresa veche https://porumbar-production.up.railway.app merge în continuare (codurile QR deja tipărite) și nu se șterge.
 - Înainte de publicarea „inelelor din toată lumea” (regula anului: `27` scris pe 2 cifre era 1927, acum 2027) se
   verifică în producție: `SELECT count(*) FROM pigeons WHERE ring_year = 1927;` și
   `SELECT count(*) FROM ring_series WHERE year = 1927;`. Dacă nu dau 0, rândurile acelea se lămuresc cu vânzătorul.

@@ -440,6 +440,7 @@
   "pdf.gata": "Fișa e gata",
   "pdf.gata_rand": "{fisier} se poate trimite acum pe WhatsApp, mail sau unde vrei.",
   "pdf.trimite": "Trimite fișa",
+  "pdf.prea_lent": "Pregătirea a durat prea mult (peste 30 de secunde). Verifică internetul și încearcă din nou.",
   "titlu.panou": {
     "text": "Panou · Porumbar",
     "sens": "Titlul paginii în bara browserului."

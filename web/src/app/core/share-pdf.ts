@@ -4,6 +4,7 @@ import { Api } from './api';
 import { AuthService } from './auth';
 import { ConfirmService } from './confirm';
 import { PedigreeV1 } from './models';
+import { PDF_TIMEOUT_MS, withTimeout } from './within';
 import { loadJapaneseFont } from './font-ja';
 import { loadSheetFonts, sheetFontCss } from './sheet-fonts';
 import { allowedSheetLang } from './sheet-langs';
@@ -34,11 +35,18 @@ export class SharePdfService {
     this.busy.set(id);
     let file: File;
     try {
-      const [data, link] = await Promise.all([
-        this.api.get<PedigreeV1>(`/pigeons/${id}/pedigree`),
-        this.api.get<{ url: string | null }>(`/pigeons/${id}/public`),
-      ]);
-      file = await this.makePdf(data, link.url);
+      // O rețea blocată nu ține butonul în „Se pregătește…” la nesfârșit: după 30 s, eroare și butonul revine.
+      file = await withTimeout(
+        (async () => {
+          const [data, link] = await Promise.all([
+            this.api.get<PedigreeV1>(`/pigeons/${id}/pedigree`),
+            this.api.get<{ url: string | null }>(`/pigeons/${id}/public`),
+          ]);
+          return this.makePdf(data, link.url);
+        })(),
+        PDF_TIMEOUT_MS,
+        () => new Error(t('pdf.prea_lent')),
+      );
     } finally {
       this.busy.set(null);
     }

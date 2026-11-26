@@ -345,6 +345,7 @@
   "pdf.gata": "Kész a lap",
   "pdf.gata_rand": "A(z) {fisier} most elküldhető WhatsAppon, e-mailben vagy ahová szeretnéd.",
   "pdf.trimite": "Lap küldése",
+  "pdf.prea_lent": "Az előkészítés túl sokáig tartott (több mint 30 másodperc). Ellenőrizd az internetkapcsolatot, és próbáld újra.",
   "titlu.panou": "Főoldal · Porumbar",
   "titlu.arbore": "Családfa · Porumbar",
   "titlu.intra": "Bejelentkezés · Porumbar",

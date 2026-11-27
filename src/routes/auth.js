@@ -11,6 +11,7 @@ import {
 import { isAdminEmail, isoDate, plusDays, logEvent, TERMS_VERSION, TRIAL_DAYS } from '../subscriptions.js';
 import { isDisposableEmail } from '../disposable.js';
 import { isLang, isPublicLang, t } from '../i18n.js';
+import { checkPhone } from '../phone.js';
 import { readsOf } from '../reads.js';
 
 const RESET_MINUTES = 60;
@@ -82,10 +83,10 @@ export function authRouter() {
     const password = validatePassword(req.body?.password);
     const name = text(req.body?.name, 'camp.nume', { max: 120 });
     const country = countryOf(req.body?.country);
-    // Telefonul (cel puțin 6 cifre) și localitatea: obligatorii. Localitatea e adresa de pe fișă (strada o poate adăuga vânzătorul).
-    const phone = text(req.body?.phone, 'camp.telefon', { max: 40 });
-    const digits = (phone.match(/\p{Nd}/gu) ?? []).length; // și cifrele scrise cu tastatura japoneză (０-９)
-    if (digits < 6) throw badRequest('eroare.telefon_gresit', { n: digits });
+    // Telefonul și localitatea: obligatorii. Telefonul se verifică după țara lui (`phoneCountry`, prefixul ales lângă
+    // număr; formularele vechi trimit doar țara contului) și se păstrează în forma internațională (src/phone.js).
+    // Localitatea e adresa de pe fișă (strada o poate adăuga vânzătorul).
+    const phone = checkPhone(text(req.body?.phone, 'camp.telefon', { max: 40 }), req.body?.phoneCountry ?? country, req.lang ?? 'ro');
     const city = text(req.body?.city, 'camp.localitate', { max: 100 });
     // Limba de pe ecran (toate limbile sunt publice; una nepublică o poate pune doar vânzătorul).
     const lang = req.body?.lang ?? 'ro';

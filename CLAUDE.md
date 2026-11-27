@@ -43,7 +43,7 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   din poze sunt incluse în abonament: 100 pe an de abonament, cel mult 20 pe zi, dar în primele 14 zile ale fiecărui
   abonament (cât ține dreptul de retragere) doar 3, `PEDIGREE_READS_FIRST_DAYS` (`src/reads.js`); vânzătorul poate da
   citiri în plus și vede în consolă, la fiecare crescător, câte a folosit și cât au costat (în dolari). Fără credit. Fără abonament contul e doar citire; datele nu se pierd.
-- **Înscrierea și proba** (din 2026-11-26, fără vânzător): „Fă-ți cont” cere nume, email, telefon (≥ 6 cifre), localitate
+- **Înscrierea și proba** (din 2026-11-26, fără vânzător): „Fă-ți cont” cere nume, email, telefon (țara numărului aleasă lângă el, „RO +40”, ghicită din fusul orar; verificat după regulile țării cu `libphonenumber-js`, păstrat ca „+40 724 582 681”: `src/phone.js`, `web/.../core/phone.ts`; țara numărului poate fi alta decât țara omului), localitate
   (devine adresa de pe fișă; strada o poate adăuga vânzătorul), țara, parola de două ori
   (cod ISO, `core/countries.ts`) și bifa termenilor (link spre termenii de pe sit, în limba ecranului), cu o capcană
   pentru roboți (`website`) și fără emailuri de unică folosință (`src/disposable.js`). Contul se face neconfirmat

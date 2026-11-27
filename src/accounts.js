@@ -54,6 +54,9 @@ export const publicAccount = (a) => ({
   isAdmin: isAdminEmail(a.email),
   sellerContact: config.sellerContact,
   subscription: subscriptionOf(a),
+  // În probă: porumbelul ales, singurul a cărui fișă / QR iese din aplicație (src/trial-export.js).
+  trialPigeonId: a.trial_pigeon_id ?? null,
+  trialPigeonRing: a.trial_pigeon_ring ?? null,
 });
 
 export function parseCookies(header = '') {
@@ -105,7 +108,7 @@ export async function requireAccount(req, res, next) {
     const row = await one(
       `SELECT a.id, a.email, a.name, a.pedigree_name, a.phone, a.address, a.tree_view, a.show_phone, a.show_address, a.show_email,
               a.print_phone, a.print_address, a.print_email, a.lang, a.breeder_code, a.reminder_email,
-              a.subscription_start, a.subscription_end, a.email_confirmed_at, a.trial_end, a.country, s.last_seen_at
+              a.subscription_start, a.subscription_end, a.email_confirmed_at, a.trial_end, a.country, a.trial_pigeon_id, a.trial_pigeon_ring, s.last_seen_at
          FROM sessions s JOIN accounts a ON a.id = s.account_id
         WHERE s.token_hash = ? AND s.last_seen_at > now() - make_interval(days => ?)`,
       hash, SESSION_DAYS,

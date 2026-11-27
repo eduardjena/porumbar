@@ -452,6 +452,13 @@ const MIGRATIONS = [
   );
   CREATE INDEX ix_email_confirmations_account ON email_confirmations (account_id);
   `,
+
+  // 27: în probă un singur porumbel iese din aplicație (fișa, PDF-ul, QR-ul): îl alege omul. Ținem minte și inelul de
+  // atunci, ca porumbelul ales să nu poată fi rescris în alt porumbel. Vânzătorul îl poate elibera din consolă.
+  `
+  ALTER TABLE accounts ADD COLUMN trial_pigeon_id BIGINT;
+  ALTER TABLE accounts ADD COLUMN trial_pigeon_ring TEXT;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

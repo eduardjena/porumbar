@@ -3274,6 +3274,25 @@
     "sens": "{activare} = fraza despre activare (începe cu spațiu)."
   },
   "vanzare.doar_cu_abonament": "Vânzarea porumbeilor (trimiterea în contul cumpărătorului) merge cu abonamentul plătit, nu și în proba de 30 de zile.",
+  "eroare.plata_indisponibila": "Plata online nu e pornită încă.",
+  "eroare.plata_nu_acum": "Abonamentul tău e plătit. Îl poți prelungi cu 30 de zile înainte să se termine.",
+  "eroare.plata_polar_jos": "Pagina de plată nu s-a putut deschide acum. Încearcă din nou peste câteva minute.",
+  "plata.plateste": {
+    "text": "Plătește 1 an",
+    "sens": "Butonul care duce la pagina de plată (Polar)."
+  },
+  "plata.se_deschide": "Se deschide plata…",
+  "plata.titlu": "Plata",
+  "plata.gata": {
+    "text": "Gata! Contul tău e activ până pe {data}.",
+    "sens": "După plată. {data} = ultima zi a abonamentului."
+  },
+  "plata.chitanta": "Chitanța și factura vin pe email de la Polar, vânzătorul autorizat al Pigeonrama.",
+  "plata.se_activeaza": "Se activează contul… durează câteva secunde.",
+  "plata.dureaza": "Plata a ajuns, dar activarea mai durează puțin. Contul se activează singur în câteva minute; chitanța vine pe email de la Polar.",
+  "plata.spre_panou": "Spre Panou",
+  "titlu.plata": "Plata · Pigeonrama",
+  "cont.plata_online": "Plătești cu cardul, pe pagina Polar (vânzătorul autorizat al Pigeonrama). Chitanța și factura vin pe email. Abonamentul nu se reînnoiește singur.",
   "proba.alege_titlu": "Alegi acest porumbel pentru pedigree-ul din probă?",
   "proba.alege_titlu_inel": {
     "text": "Alegi porumbelul {inel} pentru pedigree-ul din probă?",

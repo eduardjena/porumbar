@@ -459,6 +459,34 @@ const MIGRATIONS = [
   ALTER TABLE accounts ADD COLUMN trial_pigeon_id BIGINT;
   ALTER TABLE accounts ADD COLUMN trial_pigeon_ring TEXT;
   `,
+
+  // 28: plățile venite de la Polar (merchant of record), o dată pe comandă (polar_order_id unic). Fără cont = nepotrivită
+  // (o leagă vânzătorul de mână); contul șters lasă plata în istoric, fără cont. `raw` = comanda primită, pentru audit.
+  // `paid_on` = ziua plății (de la ea se numără citirile din poze ale anului plătit).
+  `
+  CREATE TABLE payments (
+    id             BIGSERIAL PRIMARY KEY,
+    polar_order_id TEXT NOT NULL UNIQUE,
+    account_id     BIGINT REFERENCES accounts(id) ON DELETE SET NULL,
+    amount_minor   BIGINT,
+    tax_minor      BIGINT,
+    currency       TEXT,
+    country        TEXT,
+    period_start   DATE,
+    period_end     DATE,
+    status         TEXT NOT NULL CHECK (status IN ('applied', 'unmatched', 'refunded', 'partially_refunded')),
+    refunded_minor BIGINT NOT NULL DEFAULT 0,
+    raw            JSONB NOT NULL,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    adjusted_at    TIMESTAMPTZ
+  );
+  CREATE INDEX ix_payments_account ON payments (account_id);
+  CREATE INDEX ix_payments_unmatched ON payments (created_at) WHERE status = 'unmatched';
+  ALTER TABLE accounts ADD COLUMN paid_on DATE;
+  ALTER TABLE account_events DROP CONSTRAINT account_events_kind_check;
+  ALTER TABLE account_events ADD CONSTRAINT account_events_kind_check
+    CHECK (kind IN ('subscription', 'credit', 'password-link', 'reminder', 'created', 'identity', 'reads', 'confirmed', 'payment'));
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

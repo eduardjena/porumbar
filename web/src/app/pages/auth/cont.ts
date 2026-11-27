@@ -7,12 +7,14 @@ import { ConfirmService, changes } from '../../core/confirm';
 import { PushService } from '../../core/push';
 import { LANGS, TPipe, formatDay, isPublicLang, t, GluePipe } from '../../core/i18n';
 import { InstallApp } from '../../shared/install-app';
+import { PayButton } from '../../shared/pay-button';
+import { PlataService } from '../../core/plata';
 
 const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 
 @Component({
   selector: 'app-cont',
-  imports: [FormsModule, TPipe, GluePipe, InstallApp],
+  imports: [FormsModule, TPipe, GluePipe, InstallApp, PayButton],
   styles: `
     .subs { margin-bottom: 20px; } .subs h2 { margin: 0; } .subs p { margin: 0; }
     .h { margin: 0; }
@@ -49,7 +51,10 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
           @if (a.reads; as r) { <p>{{ 'cont.citiri' | t }}{{ ' ' | glue }}<strong>{{ 'cititor.citiri_din' | t: { folosite: r.used, total: r.allowed } }}</strong>{{ '&nbsp;' | glue }}<span class="muted">{{ 'cont.citiri_explicatie' | t: { numar: r.perYear } }}</span></p>
             @if (r.fullFrom) { <p class="muted">{{ 'cont.citiri_inceput' | t: { total: r.perYear, data: day(r.fullFrom) } }}</p> }
           }
-          @if (a.sellerContact) { <p class="muted">{{ 'cont.plata_contact' | t: { contact: a.sellerContact } }}</p> }
+          @if (plata.state()?.canPay) {
+            <app-pay-button />
+            <p class="muted">{{ 'cont.plata_online' | t }}</p>
+          } @else if (a.sellerContact && !plata.state()?.online) { <p class="muted">{{ 'cont.plata_contact' | t: { contact: a.sellerContact } }}</p> }
         </section>
       }
     }
@@ -187,6 +192,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
 })
 export default class Cont {
   protected readonly auth = inject(AuthService);
+  protected readonly plata = inject(PlataService);
   /** Submeniul din banda de sus (?sec=); vânzătorul n-are abonament, așa că pornește de la datele de pe fișă. */
   readonly sec = input<string>();
   protected readonly section = computed(() => {

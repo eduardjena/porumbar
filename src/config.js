@@ -37,6 +37,25 @@ export const config = {
   get sellerContact() {
     return (process.env.SELLER_CONTACT || '').trim() || null;
   },
+  /**
+   * Plata prin Polar (merchant of record): mediul (sandbox până la lansare), tokenul de organizație (secret, doar pe
+   * server), produsul „Pigeonrama – 1 an” (plătit o dată) și secretul webhook-ului. Le pune doar vânzătorul (Railway / .env).
+   */
+  get polarEnv() {
+    return process.env.POLAR_ENV === 'production' ? 'production' : 'sandbox';
+  },
+  get polarApi() {
+    return this.polarEnv === 'production' ? 'https://api.polar.sh' : 'https://sandbox-api.polar.sh';
+  },
+  get polarAccessToken() {
+    return (process.env.POLAR_ACCESS_TOKEN || '').trim() || null;
+  },
+  get polarProductId() {
+    return (process.env.POLAR_PRODUCT_ID || '').trim() || null;
+  },
+  get polarWebhookSecret() {
+    return (process.env.POLAR_WEBHOOK_SECRET || '').trim() || null;
+  },
   /** Cheile VAPID ale notificărilor pe telefon (web push). Fără ele, notificările nu pornesc. */
   get vapidPublicKey() {
     return (process.env.VAPID_PUBLIC_KEY || '').trim() || null;
@@ -67,3 +86,9 @@ export const config = {
     return process.env.NODE_ENV === 'production';
   },
 };
+
+/**
+ * Polar pornit de tot: tokenul, produsul și secretul webhook-ului. Doar atunci apare butonul „Plătește”. Fără secret,
+ * plata ar trece la Polar, dar webhook-ul ar răspunde 503 și contul nu s-ar activa.
+ */
+export const polarLive = () => !!(config.polarAccessToken && config.polarProductId && config.polarWebhookSecret);

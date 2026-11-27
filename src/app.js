@@ -18,6 +18,7 @@ import { publicRouter } from './routes/public.js';
 import { transfersRouter } from './routes/transfers.js';
 import { adminRouter } from './routes/admin.js';
 import { treatmentsRouter } from './routes/treatments.js';
+import { polarRouter, plataRouter, POLAR_WEBHOOK_PATH } from './routes/polar.js';
 import { importsRouter } from './routes/imports.js';
 
 export const WEB_DIR = path.join(import.meta.dirname, '..', 'web', 'dist', 'web', 'browser');
@@ -81,7 +82,8 @@ export function createApp() {
       return res.status(415).json({ error: t(req.lang, 'eroare.doar_json') });
     }
     // Scrieri venite de pe alt site (și cele fără corp, pe care regula JSON nu le prinde): refuzate.
-    if (changes && crossSite(req)) return res.status(403).json({ error: t(req.lang, 'eroare.cerere_refuzata') });
+    // Webhook-ul Polar vine de la serverele Polar, fără cookie: îl apără semnătura (src/routes/polar.js), nu această verificare.
+    if (changes && req.path !== POLAR_WEBHOOK_PATH && crossSite(req)) return res.status(403).json({ error: t(req.lang, 'eroare.cerere_refuzata') });
     next();
   });
   // Poza / PDF-ul unui pedigree vine ca JSON (base64), deci aici limita e mai mare; restul rămâne la 1 MB. Corpul mare
@@ -89,6 +91,8 @@ export function createApp() {
   app.use('/api/pedigrees/read', requireAccount, express.json({ limit: '17mb', inflate: false }));
   // Tabelul adus din Excel (cel mult 3.000 de rânduri): cel mult 2 MB, tot după ce se știe cine e omul.
   app.use('/api/import/excel', requireAccount, express.json({ limit: '2mb', inflate: false }));
+  // Webhook-ul Polar: corpul brut (Buffer), pentru semnătura HMAC calculată pe exact ce a trimis Polar.
+  app.use(`/api${POLAR_WEBHOOK_PATH}`, express.raw({ type: '*/*', limit: '1mb', inflate: false }));
   app.use(express.json({ limit: '1mb', inflate: false }));
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -96,6 +100,9 @@ export function createApp() {
   // Înaintea lui /api/auth: sub /api/auth, deci scutit de regula „doar citire” (și fără abonament se pot porni amintirile).
   app.use('/api/auth/push', pushRouter());
   app.use('/api/auth', authRouter());
+  // Fără cont (Polar nu are sesiune), înaintea routerelor care cer cont.
+  app.use('/api/polar', polarRouter());
+  app.use('/api/plata', plataRouter());
   // Familia înaintea fișei: /api/pigeons/lookup nu trebuie luat drept id de porumbel.
   app.use('/api', familyRouter());
   app.use('/api', journalRouter());

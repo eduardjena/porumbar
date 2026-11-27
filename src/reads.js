@@ -32,9 +32,11 @@ export const budgetUsd = () => {
 };
 
 /** SQL pentru citirile din anul curent de abonament ale contului `a` (folosit și în lista din consolă). */
-// Cu abonament: de la începutul lui. Fără abonament (în probă): de la confirmarea emailului.
+// Cu abonament: de la ziua plății (paid_on, plata prin Polar; la activarea de mână e NULL, deci de la începutul
+// abonamentului). Plata din probă deblochează citirile pe loc, deși anul plătit începe la sfârșitul probei.
+// Fără abonament (în probă): de la confirmarea emailului.
 export const YEAR_READS_WHERE = `r.account_id = a.id AND r.created_at >=
-  CASE WHEN a.subscription_end IS NOT NULL THEN a.subscription_start ELSE a.email_confirmed_at END`;
+  CASE WHEN a.subscription_end IS NOT NULL THEN COALESCE(a.paid_on, a.subscription_start) ELSE a.email_confirmed_at END`;
 
 /**
  * Rândul din consolă / Cont: { used, allowed, perYear, costUsd, fullFrom } din coloanele reads_year, cost_year,
@@ -42,7 +44,8 @@ export const YEAR_READS_WHERE = `r.account_id = a.id AND r.created_at >=
  */
 export function readsOfRow(a, now = new Date()) {
   const paid = !!a.subscription_end;
-  const from = paid && a.subscription_start ? fullReadsFrom(a.subscription_start) : null;
+  const start = a.paid_on ?? a.subscription_start;
+  const from = paid && start ? fullReadsFrom(start) : null;
   // Doar când limita din primele zile chiar e mai mică decât cea pe an.
   const firstDays = !!from && isoDate(now) < from && readsFirstDays() < readsPerYear();
   const base = !paid ? readsTrial() : firstDays ? readsFirstDays() : readsPerYear();
@@ -57,7 +60,7 @@ export function readsOfRow(a, now = new Date()) {
 
 export async function readsOf(accountId) {
   const a = await one(
-    `SELECT a.extra_reads, a.subscription_start, a.subscription_end, a.email_confirmed_at,
+    `SELECT a.extra_reads, a.subscription_start, a.subscription_end, a.paid_on, a.email_confirmed_at,
             (SELECT count(*) FROM pedigree_reads r WHERE ${YEAR_READS_WHERE}) AS reads_year,
             (SELECT coalesce(sum(r.cost_micros), 0) FROM pedigree_reads r WHERE ${YEAR_READS_WHERE}) AS cost_year
        FROM accounts a WHERE a.id = ?`,

@@ -126,9 +126,10 @@ export async function requireAccount(req, res, next) {
     req.lang = req.account.lang;
     setCurrentLang(req.lang);
     req.sessionHash = hash;
-    // Fără abonament activ: doar citire. Setările contului (/api/auth) și consola (/api/admin) merg oricum.
+    // Fără abonament activ: doar citire. Setările contului (/api/auth), consola (/api/admin) și plata (/api/plata:
+    // tocmai contul fără abonament trebuie să poată plăti) merg oricum.
     const writes = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
-    const exempt = /^\/api\/(auth|admin)(\/|$)/.test(req.originalUrl);
+    const exempt = /^\/api\/(auth|admin|plata)(\/|$)/.test(req.originalUrl);
     if (writes && !exempt && !req.account.subscription.active) throw readOnlyError(req.account.subscription.status);
     next();
   } catch (err) {

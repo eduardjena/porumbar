@@ -51,7 +51,20 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   până deschide linkul `/confirma/<token>` (7 zile; „Trimite din nou linkul” după email, pe Cont nou și pe Intră).
   Linkul îl bagă direct în cont (ca linkul de parolă nouă) și pornește singur proba de 30 de zile (`trial`, `trial_end`; 3 citiri din poză, `PEDIGREE_READS_TRIAL`);
   vânzătorul primește emailul „Cont nou” abia la confirmare (un cont real). Linkul de parolă nouă confirmă și el emailul.
-  După probă: `trial-ended` = doar citire până activează vânzătorul abonamentul plătit (plata cu cardul vine separat).
+  După probă: `trial-ended` = doar citire până plătește (online, prin Polar) sau îi activează vânzătorul abonamentul.
+- **Plata online prin Polar** (din 2026-11-27, ramura `feat/plata-polar`; înlocuiește feat/plata-paddle): Polar e
+  *merchant of record* (vinde, încasează, plătește TVA-ul, dă chitanța / factura). Un produs „Pigeonrama – 1 an”, plătit
+  o dată (fără reînnoire automată), cu prețuri în lei (RO), euro (restul) și yeni (JP): moneda o alegem după țara contului
+  (`currencyFor`). „Plătește 1 an” (banda de sus și Cont, doar în `trial`, `trial-ended`, `expiring`, `expired`) →
+  `POST /api/plata/checkout` face sesiunea Polar (`POST /v1/checkouts/`, `metadata.accountId`) → pagina Polar →
+  întoarcere la `/plata/gata` (așteaptă activarea). Contul se activează **doar** din webhook-ul semnat
+  `POST /api/polar/webhook` (Standard Webhooks; `order.paid` cu produsul nostru; o dată pe comandă, `payments`);
+  anul începe la max(azi, sfârșitul probei, sfârșitul abonamentului); citirile din poze se numără de la `paid_on`.
+  Rambursările (`order.refunded` / `order.updated`) se notează, vânzătorul primește email, abonamentul nu se taie singur
+  (consola: „Rambursări”); plățile fără cont se leagă de mână. Contestațiile de card nu au eveniment: le vezi în Polar.
+  Mediu: `POLAR_ENV` (sandbox | production), `POLAR_ACCESS_TOKEN`, `POLAR_PRODUCT_ID`, `POLAR_WEBHOOK_SECRET`; fără ele
+  butonul nu apare (`polarLive`). Cod: `src/polar.js`, `src/routes/polar.js`, `web/.../core/plata.ts`,
+  `shared/pay-button.ts`, `pages/plata/gata.ts`; migrarea **28** (`payments`, `paid_on`).
 - **Ce iese din aplicație, după stare** (din 2026-11-27, `src/trial-export.js`; „iese” = pedigree-ul tipărit / „Salvează PDF”,
   „Trimite”, codul QR / linkul public, tipărirea mai multora deodată): **în probă un singur porumbel**, ales de om cu
   confirmare la prima tipărire / primul QR / „Trimite” (`POST /api/pigeons/:id/trial-pigeon`, `web/.../core/trial-pigeon.ts`;

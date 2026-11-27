@@ -41,7 +41,7 @@ interface Row {
   invited: boolean;
 }
 interface Event {
-  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity' | 'reads' | 'confirmed';
+  kind: 'subscription' | 'credit' | 'password-link' | 'reminder' | 'created' | 'identity' | 'reads' | 'confirmed' | 'payment';
   amount: number | null;
   note: string | null;
   createdAt: string;
@@ -61,7 +61,27 @@ const STATUS_LABEL: Record<Status, string> = {
   unconfirmed: 'Neconfirmat', trial: 'În probă', 'trial-ended': 'Proba terminată', active: 'Activ', expiring: 'Expiră curând', expired: 'Expirat',
 };
 const EVENT_LABEL: Record<Event['kind'], string> = {
-  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă', reads: 'Citiri în plus', confirmed: 'Email confirmat',
+  subscription: 'Abonament', credit: 'Credit', 'password-link': 'Link parolă nouă', reminder: 'Memento trimis', created: 'Cont făcut', identity: 'Date pe fișă', reads: 'Citiri în plus', confirmed: 'Email confirmat', payment: 'Plată',
+};
+
+/** O plată venită de la Polar (sumele în unități mici: bani / cenți). */
+interface Payment {
+  id: number;
+  order: string;
+  date: string;
+  amount: number | null;
+  refunded: number;
+  currency: string | null;
+  country: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  status: 'applied' | 'unmatched' | 'refunded' | 'partially_refunded';
+  accountId: number | null;
+  accountName?: string;
+  accountEmail?: string;
+}
+const PAYMENT_STATUS: Record<Payment['status'], string> = {
+  applied: 'aplicată', unmatched: 'fără cont', refunded: 'rambursată', partially_refunded: 'rambursată parțial',
 };
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -141,6 +161,28 @@ function plusOneYear(start: string) {
         <input type="search" placeholder="Caută după nume, email sau telefon" aria-label="Caută" [ngModel]="q()" (ngModelChange)="q.set($event)" />
       </label>
       @if (error()) { <div class="error" role="alert"><app-icon name="alerta" />{{ error() }}</div> }
+
+      @if (unmatched().length || refunds().length) {
+        <section class="card stack box pay-alerts">
+          @if (unmatched().length) {
+            <h3>Plăți fără cont ({{ unmatched().length }})</h3>
+            <p class="muted">Plătitorul n-a venit din aplicație sau contul lui nu mai există. Deschide contul crescătorului din listă, apoi „Leagă de contul deschis”.</p>
+            @for (p of unmatched(); track p.id) {
+              <div class="row between pay">
+                <span>{{ date(p.date) }} · <strong>{{ sum(p.amount, p.currency) }}</strong>@if (p.country) { · {{ p.country }} } · <span class="mono">{{ p.order }}</span></span>
+                <button type="button" [disabled]="!detail()" (click)="linkPayment(p)">Leagă de contul deschis</button>
+              </div>
+            }
+          }
+          @if (refunds().length) {
+            <h3>Rambursări ({{ refunds().length }})</h3>
+            <p class="muted">Polar a dat banii înapoi, dar anul plătit e încă pe cont. Hotărăști tu: îl lași sau schimbi data de sfârșit din „Abonament”.</p>
+            @for (p of refunds(); track p.id) {
+              <div class="pay"><strong>{{ p.accountName }}</strong> · {{ paymentStatus[p.status] }} {{ sum(p.refunded, p.currency) }} din {{ sum(p.amount, p.currency) }} · anul {{ p.periodStart ? date(p.periodStart) : '' }} → {{ p.periodEnd ? date(p.periodEnd) : '' }}</div>
+            }
+          }
+        </section>
+      }
 
       <div class="layout">
         <div class="list">
@@ -237,6 +279,15 @@ function plusOneYear(start: string) {
               }
             </section>
 
+            @if (payments().length) {
+              <section class="stack box">
+                <h3>Plăți Polar</h3>
+                @for (p of payments(); track p.id) {
+                  <div class="pay">{{ date(p.date) }} · <strong>{{ sum(p.amount, p.currency) }}</strong>@if (p.country) { · {{ p.country }} } · {{ paymentStatus[p.status] }}@if (p.refunded) { ({{ sum(p.refunded, p.currency) }}) }@if (p.periodEnd) { · anul {{ date(p.periodStart!) }} → {{ date(p.periodEnd) }} }</div>
+                }
+              </section>
+            }
+
             <section class="stack">
               <h3>Istoric</h3>
               @for (e of events(); track $index) {
@@ -296,6 +347,8 @@ function plusOneYear(start: string) {
     .icon-btn { width: 48px; padding: 0; }
     .link { word-break: break-all; background: var(--surface-2); padding: 8px 10px; border-radius: 10px; font-size: 0.85rem; }
     .ev { font-size: 0.92rem; }
+    .pay { font-size: 0.95rem; padding: 4px 0; }
+    .pay-alerts { margin-bottom: 16px; border-color: var(--danger); }
     .sheet { display: flex; flex-direction: column; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: #fff; color: #263343; line-height: 1.35; }
     .sheet strong { font-size: 1.1rem; }
     .sheet .addr { white-space: pre-line; }
@@ -316,6 +369,13 @@ export default class Consola implements OnInit {
   protected readonly filters = FILTERS;
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly eventLabel = EVENT_LABEL;
+  protected readonly paymentStatus = PAYMENT_STATUS;
+  /** Plățile contului deschis, plățile fără cont și rambursările cu anul încă pe cont. */
+  readonly payments = signal<Payment[]>([]);
+  readonly unmatched = signal<Payment[]>([]);
+  readonly refunds = signal<Payment[]>([]);
+  protected readonly sum = (minor: number | null, currency: string | null) =>
+    minor == null ? '—' : `${(minor / (currency === 'JPY' ? 1 : 100)).toLocaleString('ro-RO', { maximumFractionDigits: 2 })} ${currency ?? ''}`.trim();
   readonly rows = signal<Row[]>([]);
   readonly counts = signal<Counts | null>(null);
   readonly mailConfigured = signal<boolean | null>(null);
@@ -372,7 +432,46 @@ export default class Consola implements OnInit {
     await this.load();
   }
 
+  /** Istoricul și plățile contului deschis. */
+  private async loadDetail(id: number) {
+    const r = await this.api.get<{ events: Event[]; payments: Payment[] }>(`/admin/accounts/${id}`);
+    this.events.set(r.events);
+    this.payments.set(r.payments ?? []);
+  }
+
+  /** Plățile fără cont și rambursările (deasupra listei). */
+  private async loadPayments() {
+    try {
+      const [u, r] = await Promise.all([
+        this.api.get<{ payments: Payment[] }>('/admin/payments?status=unmatched'),
+        this.api.get<{ refunds: Payment[] }>('/admin/refunds'),
+      ]);
+      this.unmatched.set(u.payments);
+      this.refunds.set(r.refunds);
+    } catch {
+      /* consola merge și fără ele */
+    }
+  }
+
+  async linkPayment(p: Payment) {
+    const d = this.detail();
+    if (!d) return;
+    const ok = await this.confirm.ask({
+      title: `Legi plata de ${this.sum(p.amount, p.currency)} de contul lui ${d.name}?`,
+      lines: [`Contul primește un an plătit (după probă sau după abonamentul de acum). Se poate face o singură dată.`, `Comanda Polar: ${p.order}`],
+      confirmLabel: 'Da, leagă',
+    });
+    if (!ok) return;
+    try {
+      await this.api.post(`/admin/payments/${p.id}/link`, { accountId: d.id });
+      await this.refresh(d.id);
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    }
+  }
+
   private async load() {
+    void this.loadPayments();
     try {
       const r = await this.api.get<{ accounts: Row[]; counts: Counts; mailConfigured: boolean }>(`/admin/accounts${this.filter() ? `?filter=${this.filter()}` : ''}`);
       this.rows.set(r.accounts);
@@ -397,7 +496,7 @@ export default class Consola implements OnInit {
     this.extraReads = 50;
     this.readsNote = '';
     try {
-      this.events.set((await this.api.get<{ events: Event[] }>(`/admin/accounts/${id}`)).events);
+      await this.loadDetail(id);
     } catch (e) {
       this.error.set(errorMessage(e));
     }
@@ -406,12 +505,12 @@ export default class Consola implements OnInit {
   private async refresh(id: number) {
     await this.load();
     if (this.rows().some((r) => r.id === id)) {
-      this.events.set((await this.api.get<{ events: Event[] }>(`/admin/accounts/${id}`)).events);
+      await this.loadDetail(id);
     } else {
       // A ieșit din filtrul curent (de ex. din „Neactivați” după activare): arătăm tot.
       this.filter.set('');
       await this.load();
-      this.events.set((await this.api.get<{ events: Event[] }>(`/admin/accounts/${id}`)).events);
+      await this.loadDetail(id);
     }
   }
 
@@ -537,7 +636,7 @@ export default class Consola implements OnInit {
     if (!ok) return;
     try {
       this.link.set(await this.api.post<{ link: string; emailed: boolean; hours: number }>(`/admin/accounts/${d.id}/password-link`));
-      this.events.set((await this.api.get<{ events: Event[] }>(`/admin/accounts/${d.id}`)).events);
+      await this.loadDetail(d.id);
     } catch (e) {
       this.error.set(errorMessage(e));
     }

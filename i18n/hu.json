@@ -1670,8 +1670,8 @@
   "eroare.doar_citire_proba": "A próbaidő lejárt, ezért most csak olvasni tudsz: megnézheted és kinyomtathatod a galambjaidat, de nem adhatsz hozzá és nem módosíthatsz semmit.{activare}",
   "eroare.termeni_necesari": "A fiók létrehozásához el kell fogadnod a felhasználási feltételeket.",
   "eroare.email_unica_folosinta": "Az eldobható e-mail-címeket nem fogadjuk el. Használd a saját, megszokott e-mail-címedet.",
-  "mail.confirmare.subiect": "Erősítsd meg az e-mail-címedet a Pigeonrama alkalmazáshoz",
-  "mail.confirmare.text": "Kedves {nume}!\n\nHogy elinduljon a 30 napos próbaidőszak a Pigeonrama alkalmazásban, erősítsd meg az e-mail-címedet az alábbi link megnyitásával (7 napig érvényes):\n\n{link}\n\nHa nem te hoztál létre fiókot, hagyd figyelmen kívül ezt az üzenetet.\n",
+  "mail.confirmare.subiect": "Erősítsd meg Pigeonrama-fiókod e-mail-címét",
+  "mail.confirmare.text": "Kedves {nume}!\n\nKöszönjük, hogy Pigeonrama-fiókot hoztál létre.\n\nA fiók aktiválásához és a 30 napos ingyenes próbaidő elindításához kérjük, erősítsd meg az e-mail-címedet az alábbi linkre kattintva:\n\n{link}\n\nA link 7 napig érvényes.\n\nHa nem te hoztad létre ezt a fiókot, nyugodtan hagyd figyelmen kívül ezt az üzenetet; a fiók nem lesz aktiválva.\n\nÜdvözlettel:\nA Pigeonrama csapata\nwww.pigeonrama.com\n",
   "cont_nou.termeni_bifa": "Elolvastam és megértettem a ",
   "cont_nou.termeni_link": "felhasználási feltételeket",
   "cont_nou.trimis_titlu": "Küldtünk neked egy e-mailt",
@@ -1717,5 +1717,5 @@
   "cont_nou.gol_parola": "Legalább 10 karakter",
   "cont_nou.gol_parola2": "Ugyanaz a jelszó még egyszer",
   "cont_nou.email_folosit_ajutor": "Ha ez a te címed: ",
-  "eroare.email_neconfirmat": "Az e-mail-címed még nincs megerősítve. Nyisd meg a regisztrációkor kapott e-mailben lévő linket (nézd meg a spam mappát is)."
+  "eroare.email_neconfirmat": "Az e-mail-címed még nincs megerősítve. A belépéshez nyisd meg az e-mailben kapott megerősítő linket. Ha nem találod, nézd meg a spam mappát is, vagy kérj új linket."
 }

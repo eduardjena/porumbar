@@ -1676,8 +1676,8 @@
   "eroare.doar_citire_proba": "お試し期間が終了したため、閲覧のみになりました。鳩の閲覧と印刷はできますが、追加や変更はできません。{activare}",
   "eroare.termeni_necesari": "アカウントを作成するには、利用規約への同意が必要です。",
   "eroare.email_unica_folosinta": "使い捨てのメールアドレスはご利用いただけません。普段お使いのメールアドレスをご利用ください。",
-  "mail.confirmare.subiect": "Pigeonramaのメールアドレスの確認",
-  "mail.confirmare.text": "{nume}さん、こんにちは。\n\nPigeonramaの30日間のお試しを始めるには、下のリンクを開いてメールアドレスを確認してください（7日間有効です）。\n\n{link}\n\nお心当たりがない場合は、このメールを無視してください。\n",
+  "mail.confirmare.subiect": "【Pigeonrama】メールアドレスのご確認",
+  "mail.confirmare.text": "{nume}様\n\nこのたびはPigeonramaにご登録いただき、誠にありがとうございます。\n\nアカウントを有効にし、30日間の無料お試しを開始するには、下記のリンクからメールアドレスのご確認をお願いいたします。\n\n{link}\n\nこのリンクの有効期限は7日間です。\n\nお心当たりがない場合は、このメールを破棄してください。アカウントは有効になりません。\n\nPigeonrama\nwww.pigeonrama.com\n",
   "cont_nou.termeni_bifa": "次を読み、同意します：",
   "cont_nou.termeni_link": "利用規約",
   "cont_nou.trimis_titlu": "メールをお送りしました",
@@ -1723,5 +1723,5 @@
   "cont_nou.gol_parola": "10文字以上",
   "cont_nou.gol_parola2": "同じパスワードをもう一度",
   "cont_nou.email_folosit_ajutor": "ご自分のアドレスの場合：",
-  "eroare.email_neconfirmat": "メールアドレスがまだ確認されていません。登録時にお送りしたメールのリンクを開いてください（迷惑メールフォルダーもご確認ください）。"
+  "eroare.email_neconfirmat": "メールアドレスの確認が完了していません。ログインするには、確認メールに記載のリンクを開いてください。メールが見つからない場合は、迷惑メールフォルダーをご確認いただくか、リンクを再送信してください。"
 }

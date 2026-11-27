@@ -1,6 +1,6 @@
 import { fold, BREEDS, EYE_COLORS, STATUSES } from './catalog.js';
 import { parseRing } from './rings.js';
-import { t } from './i18n.js';
+import { t, LANGS } from './i18n.js';
 
 /*
  * Citirea valorilor din celulele unei tabele aduse (Excel / CSV): sex, rasă, culoarea ochilor, stare, linii de sânge,
@@ -20,7 +20,7 @@ export function readSex(text) {
 }
 
 /**
- * Codul dintr-o listă de catalog, după cod sau după numele din interfață (română, maghiară sau japoneză); `dictKeys` e
+ * Codul dintr-o listă de catalog, după cod sau după numele din interfață (în oricare limbă din languages.json); `dictKeys` e
  * prefixul cheilor din i18n („catalog.stare”). Fără potrivire: null.
  */
 export function readCode(text, list, dictKeys) {
@@ -28,7 +28,7 @@ export function readCode(text, list, dictKeys) {
   if (!f) return null;
   for (const { code } of list) {
     if (fold(code) === f) return code;
-    for (const lang of ['ro', 'hu', 'ja']) {
+    for (const { code: lang } of LANGS) {
       const name = t(lang, `${dictKeys}.${code}`);
       if (name !== `${dictKeys}.${code}` && fold(name) === f) return code;
     }

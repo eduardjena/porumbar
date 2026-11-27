@@ -68,7 +68,7 @@ test('japoneză: grupele acoperă toate prefixele din ro.json (afară de test)',
 });
 
 test('semnul strămoșului de la tată și de la mamă: în cuvintele limbii, iar explicațiile încep cu el', () => {
-  for (const lang of ['ro', 'hu', 'ja']) {
+  for (const lang of ['ro', 'hu', 'en', 'ja']) {
     const d = read(lang);
     const v = (k) => (typeof d[k] === 'string' ? d[k] : d[k].text);
     const sign = v('arbore.tm');

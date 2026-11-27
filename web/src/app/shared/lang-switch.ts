@@ -13,6 +13,7 @@ import { currentLang, publicLangs, rememberGuestLang, useLang } from '../core/i1
         <summary [attr.title]="label()" [attr.aria-label]="label()">
           <span class="flag" aria-hidden="true">@switch (lang()) {
             @case ('hu') { <svg viewBox="0 0 3 3"><rect width="3" height="3" fill="#477050"/><rect width="3" height="2" fill="#fff"/><rect width="3" height="1" fill="#ce2939"/></svg> }
+            @case ('en') { <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#c8102e" stroke-width="6"/></svg> }
             @case ('ja') { <svg viewBox="0 0 3 3"><rect width="3" height="3" fill="#fff"/><circle cx="1.5" cy="1.5" r="0.8" fill="#bc002d"/></svg> }
             @default { <svg viewBox="0 0 3 3"><rect width="1" height="3" fill="#002b7f"/><rect x="1" width="1" height="3" fill="#fcd116"/><rect x="2" width="1" height="3" fill="#ce1126"/></svg> }
           }</span>
@@ -24,6 +25,7 @@ import { currentLang, publicLangs, rememberGuestLang, useLang } from '../core/i1
               <button type="button" [attr.lang]="l.code" [class.on]="l.code === lang()" [attr.aria-current]="l.code === lang() ? 'true' : null" (click)="pick(l.code)">
                 <span class="flag" aria-hidden="true">@switch (l.code) {
             @case ('hu') { <svg viewBox="0 0 3 3"><rect width="3" height="3" fill="#477050"/><rect width="3" height="2" fill="#fff"/><rect width="3" height="1" fill="#ce2939"/></svg> }
+            @case ('en') { <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0v30M0 15h60" stroke="#fff" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#c8102e" stroke-width="6"/></svg> }
             @case ('ja') { <svg viewBox="0 0 3 3"><rect width="3" height="3" fill="#fff"/><circle cx="1.5" cy="1.5" r="0.8" fill="#bc002d"/></svg> }
             @default { <svg viewBox="0 0 3 3"><rect width="1" height="3" fill="#002b7f"/><rect x="1" width="1" height="3" fill="#fcd116"/><rect x="2" width="1" height="3" fill="#ce1126"/></svg> }
           }</span><span>{{ l.name }}</span>
@@ -70,7 +72,7 @@ export class LangSwitch {
   protected readonly lang = currentLang;
   protected readonly langs = computed(() => publicLangs());
   /** Textul pentru cititoarele de ecran: în toate limbile publice, ca să-l înțeleagă oricine. */
-  protected readonly label = computed(() => `Limba / Nyelv / 言語: ${this.langs().find((l) => l.code === this.lang())?.name ?? ''}`);
+  protected readonly label = computed(() => `Limba / Nyelv / Language / 言語: ${this.langs().find((l) => l.code === this.lang())?.name ?? ''}`);
 
   protected async pick(code: string) {
     this.close();

@@ -116,11 +116,11 @@ test('meniul de jos: etichetele japoneze încap la 320px, cu literele de 14,4 / 
 });
 
 // Eticheta pentru cititoarele de ecran a codului QR vine din i18n, nu din româna scrisă în cod.
-test('codul QR: eticheta de accesibilitate e cheie i18n în ro/hu/ja', () => {
+test('codul QR: eticheta de accesibilitate e cheie i18n în toate limbile', () => {
   const src = fs.readFileSync(path.join(ROOT, 'web', 'src', 'app', 'shared', 'qr-code.ts'), 'utf8');
   assert.doesNotMatch(src, /Cod QR pentru/);
   assert.match(src, /t\('partajare\.qr_eticheta'/);
-  for (const l of ['ro', 'hu', 'ja']) {
+  for (const l of ['ro', 'hu', 'en', 'ja']) {
     const d = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n', `${l}.json`), 'utf8'));
     assert.match(d['partajare.qr_eticheta'], /\{url\}/, l);
   }

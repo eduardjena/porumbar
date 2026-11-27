@@ -152,8 +152,9 @@ test('țara inelelor fără țară: japonezii au JP, primul și implicit; român
   const before = ['RO', 'HU', 'DE', 'NL', 'BE', 'PL', 'CZ', 'SK', 'RS', 'BG', 'MD', 'UA', 'IT', 'FR', 'GB', 'US', 'AT', 'SI', 'HR'];
   assert.deepEqual(ringCountries('ro'), before);
   assert.deepEqual(ringCountries('hu'), before);
+  assert.deepEqual(ringCountries('en'), before);
   assert.deepEqual(ringCountries(undefined), before);
   assert.deepEqual(ringCountries('ja'), ['JP', ...before]);
-  assert.deepEqual(['ro', 'hu', 'ja', undefined].map(defaultRingCountry), ['RO', 'HU', 'JP', 'RO']);
-  for (const lang of ['ro', 'hu', 'ja']) assert.ok(ringCountries(lang).includes(defaultRingCountry(lang)), lang);
+  assert.deepEqual(['ro', 'hu', 'en', 'ja', undefined].map(defaultRingCountry), ['RO', 'HU', 'GB', 'JP', 'RO']);
+  for (const lang of ['ro', 'hu', 'en', 'ja']) assert.ok(ringCountries(lang).includes(defaultRingCountry(lang)), lang);
 });

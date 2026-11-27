@@ -51,10 +51,11 @@ export function nextStartAfter(tr, today) {
   return s;
 }
 
-/** Data scrisă pentru om, ca pe ecran: ro 21.11.2026, hu 2026. 11. 21., ja 2026/11/21 (fără zero în față). */
+/** Data scrisă pentru om, ca pe ecran: ro 21.11.2026, hu 2026. 11. 21., en 21/11/2026, ja 2026/11/21 (fără zero în față). */
 export function formatDate(iso, lang) {
   const [y, m, d] = iso.split('-');
   if (lang === 'ja') return `${y}/${Number(m)}/${Number(d)}`;
+  if (lang === 'en') return `${d}/${m}/${y}`;
   return lang === 'hu' ? `${y}. ${m}. ${d}.` : `${d}.${m}.${y}`;
 }
 

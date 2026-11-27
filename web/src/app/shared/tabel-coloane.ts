@@ -24,7 +24,7 @@ export function ringCountries(lang?: string): string[] {
 
 /** Țara pusă în față inelelor scrise fără ea, aleasă dinainte: după limba contului. */
 export function defaultRingCountry(lang?: string): string {
-  return lang === 'hu' ? 'HU' : lang === 'ja' ? 'JP' : 'RO';
+  return lang === 'hu' ? 'HU' : lang === 'ja' ? 'JP' : lang === 'en' ? 'GB' : 'RO';
 }
 
 // Fără diacritice, litere mici, doar litere/cifre separate de un spațiu.

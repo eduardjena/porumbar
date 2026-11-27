@@ -25,6 +25,7 @@ const SERVER_FIELD: Record<string, string> = {
 const TERMS: Record<string, string> = {
   ro: 'https://www.pigeonrama.com/termeni.html',
   hu: 'https://www.pigeonrama.com/feltetelek.html',
+  en: 'https://www.pigeonrama.com/terms.html',
   ja: 'https://www.pigeonrama.com/ja-kiyaku.html',
 };
 

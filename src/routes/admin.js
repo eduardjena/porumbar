@@ -7,6 +7,7 @@ import { sendMail } from '../mail.js';
 import { isAdminEmail, isoDate, logEvent, plusDays, plusOneYear, subscriptionOf, TRIAL_DAYS } from '../subscriptions.js';
 import { isLang, t } from '../i18n.js';
 import { releaseTrialPigeon } from '../trial-export.js';
+import { PaymentLinkError, grantPaidYear } from '../polar.js';
 import { YEAR_READS_WHERE, readsOfRow } from '../reads.js';
 
 /*
@@ -127,6 +128,23 @@ function row(a) {
   };
 }
 
+/** O plată Polar pentru consolă; sumele rămân în unități mici (bani / cenți), consola le arată cu moneda. */
+const paymentOut = (p) => ({
+  id: p.id,
+  order: p.polar_order_id,
+  date: p.created_at,
+  amount: p.amount_minor == null ? null : Number(p.amount_minor),
+  refunded: Number(p.refunded_minor ?? 0),
+  currency: p.currency ?? null,
+  country: p.country ?? null,
+  periodStart: p.period_start ?? null,
+  periodEnd: p.period_end ?? null,
+  status: p.status,
+  accountId: p.account_id ?? null,
+  adjustedAt: p.adjusted_at ?? null,
+});
+const PAYMENT_COLS = 'id, polar_order_id, created_at, amount_minor, refunded_minor, currency, country, period_start, period_end, status, account_id, adjusted_at';
+
 const ACCOUNT_SQL = `
   SELECT a.*,
          (SELECT count(*) FROM pigeons p WHERE p.account_id = a.id AND p.kind = 'own') AS pigeons,
@@ -209,10 +227,48 @@ export function adminRouter() {
   r.get('/accounts/:id', async (req, res) => {
     const a = await accountRow(req.params.id);
     const events = await all('SELECT kind, amount_micros, note, created_at FROM account_events WHERE account_id = ? ORDER BY created_at DESC, id DESC LIMIT 200', a.id);
+    const payments = await all(`SELECT ${PAYMENT_COLS} FROM payments WHERE account_id = ? ORDER BY created_at DESC, id DESC`, a.id);
     res.json({
       account: row(a),
+      payments: payments.map(paymentOut),
       events: events.map((e) => ({ kind: e.kind, amount: e.amount_micros == null ? null : Math.round(e.amount_micros / 1e4) / 100, note: e.note, createdAt: e.created_at })),
     });
+  });
+
+  // Plățile Polar fără cont (plătitorul n-a venit din aplicație sau contul nu mai există): de legat de mână.
+  r.get('/payments', async (req, res) => {
+    const status = ['unmatched', 'applied', 'refunded', 'partially_refunded'].includes(req.query.status) ? req.query.status : null;
+    const rows = await all(
+      `SELECT ${PAYMENT_COLS} FROM payments ${status ? 'WHERE status = ?' : ''} ORDER BY created_at DESC, id DESC LIMIT 200`,
+      ...(status ? [status] : []),
+    );
+    res.json({ payments: rows.map(paymentOut) });
+  });
+
+  // „Rambursări”: plățile rambursate (toate sau o parte) al căror an plătit e încă pe cont. Vânzătorul hotărăște;
+  // după ce taie anul (din „Abonament”), nu mai apar.
+  r.get('/refunds', async (req, res) => {
+    const rows = await all(
+      `SELECT ${PAYMENT_COLS.split(', ').map((c) => `p.${c}`).join(', ')}, a.name AS account_name, a.email AS account_email, a.subscription_end
+         FROM payments p JOIN accounts a ON a.id = p.account_id
+        WHERE p.status IN ('refunded', 'partially_refunded') AND p.period_end IS NOT NULL AND a.subscription_end >= p.period_end
+        ORDER BY p.adjusted_at DESC NULLS LAST, p.id DESC LIMIT 200`,
+    );
+    res.json({ refunds: rows.map((p) => ({ ...paymentOut(p), accountName: p.account_name, accountEmail: p.account_email, subscriptionEnd: p.subscription_end })) });
+  });
+
+  // Leagă o plată nepotrivită de un cont: același an plătit ca la webhook (o singură dată; refuzat dacă nu e „unmatched”).
+  r.post('/payments/:id/link', async (req, res) => {
+    const accountId = Number(req.body?.accountId);
+    if (!Number.isSafeInteger(accountId) || accountId < 1) throw badRequest('Alege contul crescătorului.'); // i18n: ro
+    const paymentId = Number(req.params.id);
+    if (!Number.isSafeInteger(paymentId) || paymentId < 1) throw notFound('Plata nu există.'); // i18n: ro
+    try {
+      res.json(await grantPaidYear(accountId, paymentId));
+    } catch (e) {
+      if (e instanceof PaymentLinkError) throw new HttpError(e.status, e.message);
+      throw e;
+    }
   });
 
   // Activare / prelungire după plată: data de început; sfârșitul = un an mai târziu (sau altă dată aleasă).
@@ -224,7 +280,7 @@ export function adminRouter() {
     const a = await tx(async () => {
       const acc = await accountRow(req.params.id);
       if (!acc.pedigree_name) throw badRequest(NEED_SHEET_NAME);
-      await run('UPDATE accounts SET subscription_start = ?, subscription_end = ?, extra_reads = 0 WHERE id = ?', start, end, acc.id);
+      await run('UPDATE accounts SET subscription_start = ?, subscription_end = ?, paid_on = NULL, extra_reads = 0 WHERE id = ?', start, end, acc.id);
       await logEvent(acc.id, 'subscription', { note: [`${start} → ${end}`, note].filter(Boolean).join(' · ') });
       return accountRow(acc.id);
     });

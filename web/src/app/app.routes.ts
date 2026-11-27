@@ -54,6 +54,7 @@ export const routes: Routes = [
   { path: 'vanzari', canActivate: [authGuard], title: title('titlu.vanzari'), loadComponent: () => import('./pages/vanzari/vanzari') },
   // Pagina deschisă de codul QR: fără cont.
   { path: 'p/:token', title: title('titlu.public'), loadComponent: () => import('./pages/public/public-pedigree') },
+  { path: 'plata/gata', canActivate: [authGuard], title: title('titlu.plata'), loadComponent: () => import('./pages/plata/gata') },
   { path: 'cont', canActivate: [authGuard], title: title('titlu.cont'), loadComponent: () => import('./pages/auth/cont') },
   { path: '**', redirectTo: 'panou' },
 ];

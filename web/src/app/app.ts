@@ -6,6 +6,8 @@ import { AuthService } from './core/auth';
 import { Api } from './core/api';
 import { Icon, IconName } from './shared/icon';
 import { ConfirmDialog } from './core/confirm';
+import { PlataService } from './core/plata';
+import { PayButton } from './shared/pay-button';
 import { TPipe, currentLang, formatDay, t } from './core/i18n';
 
 interface NavItem {
@@ -58,7 +60,7 @@ const NAV: NavItem[] = [
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, Icon, ConfirmDialog, TPipe],
+  imports: [RouterOutlet, RouterLink, Icon, ConfirmDialog, TPipe, PayButton],
   template: `
     @if (auth.account()) {
       <header class="top">
@@ -98,6 +100,8 @@ const NAV: NavItem[] = [
       @if (banner(); as b) {
         <div class="no-print" [class]="'sub-banner stack ' + b.kind + (b.big ? ' big' : '')" role="status">
           <span>{{ b.text }}</span>
+          <!-- Roșu (principal) doar când contează: proba se termină în 5 zile, s-a terminat sau abonamentul expiră. -->
+          @if (b.action === 'pay') { <app-pay-button [primary]="b.kind !== 'trial'" /> }
           @if (b.action === 'resend') {
             @if (resend() === 'sent') { <span>{{ 'banda.trimis' | t }}</span> }
             <button type="button" [disabled]="resend() === 'busy'" (click)="resendConfirmation()">{{ 'banda.trimite_din_nou' | t }}</button>
@@ -371,6 +375,12 @@ export class App {
       onCleanup(() => sizes.disconnect());
     });
     document.fonts?.ready.then(() => this.alignBand()).catch(() => undefined);
+    // Plata online (butonul „Plătește”): se întreabă serverul la intrare și când se schimbă starea contului.
+    effect(() => {
+      const a = this.auth.account();
+      const key = a && !a.isAdmin ? `${a.id}:${a.subscription?.status}:${a.subscription?.end}` : '';
+      untracked(() => (key ? void this.plata.load() : this.plata.state.set(null)));
+    });
     this.router.events.subscribe((e) => {
       if (!(e instanceof NavigationEnd)) return;
       this.url.set(e.urlAfterRedirects);
@@ -403,29 +413,33 @@ export class App {
   /** „Trimite din nou” din banda de confirmare: 'sent' = a plecat linkul, 'busy' = se trimite. */
   protected readonly resend = signal<'' | 'busy' | 'sent'>('');
   private readonly api = inject(Api);
+  private readonly plata = inject(PlataService);
 
   /** Banda de sus pentru crescători: confirmarea emailului, proba, „doar citire” sau abonamentul care expiră curând. */
-  protected readonly banner = computed(() => {
+  protected readonly banner = computed((): { kind: string; big: boolean; text: string; action: 'pay' | 'resend' | null } | null => {
     const a = this.auth.account();
     const s = a?.subscription;
     if (!a || a.isAdmin || !s) return null;
     // Pe pagina de confirmare a emailului banda ar repeta ce scrie pagina.
     if (this.url().startsWith('/confirma/') || this.url().startsWith('/cont-nou')) return null;
-    // Fraza de activare începe cu un spațiu (aceleași chei ca la erorile „doar citire” de pe server).
-    const activare = a.sellerContact ? t('eroare.activare_contact', { contact: a.sellerContact }) : t('eroare.activare_vanzator');
+    // Cu plata online pornită: butonul „Plătește 1 an” în bandă, fără fraza despre vânzător. Altfel fraza de activare
+    // (începe cu un spațiu; aceleași chei ca la erorile „doar citire” de pe server).
+    const pay = !!this.plata.state()?.canPay;
+    const action = pay ? ('pay' as const) : null;
+    const activare = pay ? '' : a.sellerContact ? t('eroare.activare_contact', { contact: a.sellerContact }) : t('eroare.activare_vanzator');
     switch (s.status) {
       case 'unconfirmed':
         return null; // nu mai poate fi intrat în cont până confirmă emailul
       case 'trial': {
         const days = s.trialDaysLeft ?? 0;
-        return { kind: days <= 5 ? 'notice' : 'trial', big: false, text: t('banda.proba', { count: days }), action: null };
+        return { kind: days <= 5 ? 'notice' : 'trial', big: false, text: t('banda.proba', { count: days }), action };
       }
       case 'trial-ended':
-        return { kind: 'warning', big: true, text: t('banda.proba_gata', { activare }), action: null };
+        return { kind: 'warning', big: true, text: t('banda.proba_gata', { activare }), action };
       case 'expired':
-        return { kind: 'warning', big: true, text: t('banda.expirat', { data: formatDay(s.end), activare }), action: null };
+        return { kind: 'warning', big: true, text: t('banda.expirat', { data: formatDay(s.end), activare }), action };
       case 'expiring':
-        return { kind: 'notice', big: false, text: t('banda.expira', { data: formatDay(s.end), count: s.daysLeft, activare }), action: null };
+        return { kind: 'notice', big: false, text: t('banda.expira', { data: formatDay(s.end), count: s.daysLeft, activare }), action };
       default:
         return null;
     }

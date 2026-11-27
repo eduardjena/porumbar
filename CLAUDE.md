@@ -52,6 +52,14 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   Linkul îl bagă direct în cont (ca linkul de parolă nouă) și pornește singur proba de 30 de zile (`trial`, `trial_end`; 3 citiri din poză, `PEDIGREE_READS_TRIAL`);
   vânzătorul primește emailul „Cont nou” abia la confirmare (un cont real). Linkul de parolă nouă confirmă și el emailul.
   După probă: `trial-ended` = doar citire până activează vânzătorul abonamentul plătit (plata cu cardul vine separat).
+- **Ce iese din aplicație, după stare** (din 2026-11-27, `src/trial-export.js`; „iese” = pedigree-ul tipărit / „Salvează PDF”,
+  „Trimite”, codul QR / linkul public, tipărirea mai multora deodată): **în probă un singur porumbel**, ales de om cu
+  confirmare la prima tipărire / primul QR / „Trimite” (`POST /api/pigeons/:id/trial-pigeon`, `web/.../core/trial-pigeon.ts`;
+  `accounts.trial_pigeon_id` + inelul de atunci `trial_pigeon_ring`, migrarea **27**: rescris cu alt inel nu mai iese;
+  vânzătorul îl eliberează din consolă, „Eliberează”), **fără vânzare** (402 `eroare.vanzare_fara_abonament`);
+  `trial-ended` / `unconfirmed`: nimic (402 `eroare.tipar_fara_abonament`); `expired` (a plătit) tipărește în continuare,
+  cum promit termenii („La expirare… pot fi vizualizate și tipărite”); plătit și vânzătorul: tot. Linkurile / QR-urile
+  pornite merg în continuare în orice stare. Porumbeii se văd pe ecran în orice stare.
   Conturile făcute din consolă sunt confirmate și primesc proba de azi. Stările: unconfirmed, trial, trial-ended,
   active, expiring, expired (`subscriptionOf`; un SELECT trebuie să ia `ACCOUNT_STATE_COLUMNS`). Migrările **25**
   (stări, țara, termenii) și **26** (`email_confirmations`); ramurile neîmbinate cu migrări ≥ 25 (feat/plata-paddle

@@ -1,5 +1,5 @@
 import { Component, ElementRef, computed, effect, inject, input, signal, untracked } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Api, errorMessage } from '../../core/api';
 import { ConfirmService } from '../../core/confirm';
 import { PedigreeV1 } from '../../core/models';
@@ -14,6 +14,7 @@ import { loadJapaneseFont } from '../../core/font-ja';
 import { loadSheetFonts } from '../../core/sheet-fonts';
 import { within } from '../../core/within';
 import { parseIds } from '../../shared/fise-toate';
+import { TrialPigeon } from '../../core/trial-pigeon';
 
 interface Sheet { id: number; pedigree: PedigreeV1; url: string | null }
 
@@ -29,17 +30,17 @@ interface Sheet { id: number; pedigree: PedigreeV1; url: string | null }
     <div class="bar no-print">
       @if (single()) {
         <a class="btn" [routerLink]="['/porumbei', id()]" [queryParams]="{ fila: inapoi() === 'arbore' ? 'arbore' : 'qr' }"><app-icon name="inapoi" />{{ 'tiparire.inapoi' | t }}</a>
-        @if (!url() && loaded()) {
+        @if (!url() && data()) {
           <button type="button" (click)="startLink()"><app-icon name="qr" />{{ 'tiparire.pune_qr' | t }}</button>
         }
       } @else {
         <a class="btn" [routerLink]="inapoi() === 'porumbar' ? '/porumbar' : '/panou'"><app-icon name="inapoi" />{{ 'tiparire.inapoi_porumbei' | t }}</a>
         @if (sheets().length) { <strong class="count">{{ 'tiparire.fise_numar' | t: { count: sheets().length } }}</strong> }
       }
-      @if (single() || sheets().length) {
+      @if ((single() && data()) || sheets().length) {
         <button type="button" class="primary" [disabled]="preparing()" (click)="print()"><app-icon name="tipar" />{{ 'tiparire.tipareste_pdf' | t }}</button>
       }
-      @if (single()) { <app-share-button [pigeonId]="+id()!" /> }
+      @if (single() && data()) { <app-share-button [pigeonId]="+id()!" /> }
       @if (langChoices().length > 1) {
         <label class="lang">{{ 'tiparire.limba_fisei' | t }}
           <select [value]="lang()" (change)="pickLang($any($event.target).value)">
@@ -88,6 +89,8 @@ interface Sheet { id: number; pedigree: PedigreeV1; url: string | null }
 export default class Tiparire {
   private readonly api = inject(Api);
   private readonly confirm = inject(ConfirmService);
+  private readonly trial = inject(TrialPigeon);
+  private readonly router = inject(Router);
   /** Fără `id` (ruta /porumbei/tiparire?ids=…) se tipăresc mai multe fișe, câte una pe pagină. */
   readonly id = input<string>();
   readonly ids = input<string>();
@@ -124,6 +127,11 @@ export default class Tiparire {
 
   private async load(id: string) {
     try {
+      // În probă: întâi alegerea porumbelului (cine renunță se întoarce la porumbel).
+      if (!(await this.trial.ensureChosen(+id))) {
+        await this.router.navigate(['/porumbei', id]);
+        return;
+      }
       const [ped, link] = await Promise.all([
         this.api.get<PedigreeV1>(`/pigeons/${id}/pedigree`),
         this.api.get<{ url: string | null }>(`/pigeons/${id}/public`),

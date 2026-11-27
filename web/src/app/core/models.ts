@@ -17,6 +17,8 @@ export interface Account {
   isAdmin?: boolean;
   sellerContact?: string | null;
   subscription?: Subscription;
+  /** În probă: porumbelul ales, singurul al cărui pedigree / QR iese din aplicație. */
+  trialPigeonId?: number | null;
   /** Creditul pentru citirea pozelor, în dolari. */
   /** Citirile din poze în anul de abonament (doar la /auth/me). */
   reads?: { used: number; allowed: number; perYear: number; fullFrom: string | null };

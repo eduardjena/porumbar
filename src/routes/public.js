@@ -7,6 +7,7 @@ import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
 import { importPedigree } from '../pedigree-import.js';
 import { pedigreeContext, pedigreeFrom, pedigreeV1, toImportNode } from '../pedigree-format.js';
+import { assertExport, chooseTrialPigeon } from '../trial-export.js';
 
 /*
  * Linkul public / codul QR al unui porumbel (Planul 3, separare totală): singura cale prin care date dintr-un cont
@@ -57,12 +58,21 @@ export function publicRouter() {
   // Pedigree-ul unui porumbel al meu în formatul deschis (pentru tipar).
   r.get('/pigeons/:id/pedigree', requireAccount, async (req, res) => {
     const row = await getPigeonRow(req.account.id, req.params.id);
+    await assertExport(req.account, [row.id]);
     res.json(await pedigreeV1(req.account.id, row.id, { forPrint: true }));
+  });
+
+  // În probă: omul alege porumbelul a cărui fișă și cod QR pot ieși din aplicație (o singură dată).
+  r.post('/pigeons/:id/trial-pigeon', requireAccount, async (req, res) => {
+    const row = await getPigeonRow(req.account.id, req.params.id);
+    await chooseTrialPigeon(req.account, row.id);
+    res.json({ trialPigeonId: req.account.trialPigeonId ?? null });
   });
 
   // Fișele mai multor porumbei deodată (tipărirea tuturor).
   r.get('/sheets', requireAccount, async (req, res) => {
     const ids = parseSheetIds(req.query.ids);
+    await assertExport(req.account, ids);
     const rows = new Map((await all('SELECT id, public_token FROM pigeons WHERE account_id = ? AND id = ANY(?::bigint[])', req.account.id, ids)).map((x) => [Number(x.id), x]));
     const sheets = [];
     const ctx = await pedigreeContext(req.account.id, { forPrint: true });
@@ -76,6 +86,7 @@ export function publicRouter() {
   // Pornește linkul public pentru porumbeii proprii care nu-l au; îl păstrează pe al celor care îl au.
   r.post('/sheets/public', requireAccount, async (req, res) => {
     const ids = parseSheetIds(req.body?.ids);
+    await assertExport(req.account, ids);
     const rows = new Set((await all("SELECT id FROM pigeons WHERE account_id = ? AND kind = 'own' AND id = ANY(?::bigint[])", req.account.id, ids)).map((x) => Number(x.id)));
     const sheets = [];
     for (const id of ids) {
@@ -88,6 +99,7 @@ export function publicRouter() {
 
   r.post('/pigeons/:id/public', requireAccount, async (req, res) => {
     const row = await ownRow(req.account.id, req.params.id);
+    await assertExport(req.account, [row.id]);
     // Atomic: zece apăsări deodată dau același link (primul pornit rămâne).
     const { public_token: token } = await one('UPDATE pigeons SET public_token = COALESCE(public_token, ?) WHERE id = ? RETURNING public_token', newToken(), row.id);
     res.json({ url: urlOf(token) });
@@ -95,6 +107,7 @@ export function publicRouter() {
 
   r.post('/pigeons/:id/public/new', requireAccount, async (req, res) => {
     const row = await ownRow(req.account.id, req.params.id);
+    await assertExport(req.account, [row.id]);
     const token = newToken();
     await run('UPDATE pigeons SET public_token = ? WHERE id = ?', token, row.id);
     res.json({ url: urlOf(token) });

@@ -7,6 +7,7 @@ import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { QrCode } from '../../shared/qr-code';
 import { Vanzare } from './vanzare';
+import { TrialPigeon } from '../../core/trial-pigeon';
 import { TPipe, t, GluePipe, glue } from '../../core/i18n';
 
 /*
@@ -70,6 +71,7 @@ export class Partajare {
   private readonly api = inject(Api);
   private readonly auth = inject(AuthService);
   private readonly confirm = inject(ConfirmService);
+  private readonly trial = inject(TrialPigeon);
   readonly pigeon = input.required<Pigeon>();
   readonly url = signal<string | null>(null);
   readonly loaded = signal(false);
@@ -106,6 +108,12 @@ export class Partajare {
   }
 
   async start() {
+    try {
+      if (!(await this.trial.ensureChosen(this.pigeon().id))) return;
+    } catch (e) {
+      this.error.set(errorMessage(e));
+      return;
+    }
     const ok = await this.confirm.ask({
       title: t('partajare.porniti_titlu'),
       lines: [t('partajare.porniti_rand1'), t('partajare.porniti_rand2')],

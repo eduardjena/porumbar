@@ -6,6 +6,7 @@ import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.j
 import { sendMail } from '../mail.js';
 import { isAdminEmail, isoDate, logEvent, plusDays, plusOneYear, subscriptionOf, TRIAL_DAYS } from '../subscriptions.js';
 import { isLang, t } from '../i18n.js';
+import { releaseTrialPigeon } from '../trial-export.js';
 import { YEAR_READS_WHERE, readsOfRow } from '../reads.js';
 
 /*
@@ -114,6 +115,8 @@ function row(a) {
     trialEnd: sub.trialEnd,
     emailConfirmedAt: a.email_confirmed_at ?? null,
     country: a.country ?? null,
+    // În probă: porumbelul ales de om pentru fișă / QR (inelul sau numele), dacă l-a ales.
+    trialPigeon: a.trial_pigeon_id ? a.trial_pigeon_label ?? a.trial_pigeon_ring ?? '—' : null,
     // Citirile din poze: în anul curent de abonament (folosite / limită, costul în dolari) și de la început.
     reads: readsOfRow(a),
     pigeons: Number(a.pigeons ?? 0),
@@ -130,7 +133,8 @@ const ACCOUNT_SQL = `
          (SELECT count(*) FROM pedigree_reads r WHERE r.account_id = a.id) AS reads,
          (SELECT count(*) FROM pedigree_reads r WHERE ${YEAR_READS_WHERE}) AS reads_year,
          (SELECT coalesce(sum(r.cost_micros), 0) FROM pedigree_reads r WHERE ${YEAR_READS_WHERE}) AS cost_year,
-         (SELECT max(last_seen_at) FROM sessions s WHERE s.account_id = a.id) AS last_seen
+         (SELECT max(last_seen_at) FROM sessions s WHERE s.account_id = a.id) AS last_seen,
+         (SELECT coalesce(p.ring_raw, p.name) FROM pigeons p WHERE p.id = a.trial_pigeon_id AND p.account_id = a.id) AS trial_pigeon_label
     FROM accounts a`;
 
 async function accountRow(id) {
@@ -246,6 +250,13 @@ export function adminRouter() {
       return accountRow(acc.id);
     });
     res.json({ account: row(a) });
+  });
+
+  // Eliberează porumbelul ales în probă (de ex. omul a corectat inelul): omul poate alege din nou.
+  r.delete('/accounts/:id/trial-pigeon', async (req, res) => {
+    const acc = await accountRow(req.params.id);
+    await releaseTrialPigeon(acc.id);
+    res.json({ account: row(await accountRow(acc.id)) });
   });
 
   // Citiri din poze în plus pentru anul curent de abonament (negativ = corectură; nu coboară sub zero).

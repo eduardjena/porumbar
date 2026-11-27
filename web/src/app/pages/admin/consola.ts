@@ -31,6 +31,8 @@ interface Row {
   /** Sfârșitul probei de 30 de zile (fără abonament plătit) și țara de la înscriere. */
   trialEnd?: string | null;
   country?: string | null;
+  /** În probă: porumbelul ales pentru fișă / QR (inelul sau numele). */
+  trialPigeon?: string | null;
   pigeons: number;
   /** Citirile din poze în anul curent de abonament: folosite / limită, costul lor în dolari. */
   reads: { used: number; allowed: number; perYear: number; costUsd: number; fullFrom: string | null };
@@ -198,6 +200,12 @@ function plusOneYear(start: string) {
             <section class="stack box">
               <h3>Abonament <span class="st" [class]="'st ' + d.status">{{ statusLabel[d.status] }}</span></h3>
               @if (d.subscriptionStart) { <p>De pe {{ date(d.subscriptionStart) }} până pe {{ date(d.subscriptionEnd!) }}.@if (d.reminderSentAt) { Memento trimis pe {{ date(d.reminderSentAt) }}. }</p> }
+              @if (!d.subscriptionStart && (d.status === 'trial' || d.status === 'trial-ended')) {
+                <p class="row">
+                  <span>Fișa din probă (un singur porumbel): <strong>{{ d.trialPigeon ?? 'încă nealeasă' }}</strong></span>
+                  @if (d.trialPigeon && d.status === 'trial') { <button type="button" (click)="releaseTrialPigeon(d)">Eliberează</button> }
+                </p>
+              }
               <div class="row">
                 <label class="field">Începe pe <app-date [(ngModel)]="startDate" name="start" /></label>
                 <span class="muted">→ ține până pe <strong>{{ startDate ? date(endFor(startDate)) : '—' }}</strong></span>
@@ -500,6 +508,21 @@ export default class Consola implements OnInit {
       await this.api.post(`/admin/accounts/${d.id}/reads`, { amount, note: this.readsNote || null });
       await this.refresh(d.id);
       this.readsNote = '';
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    }
+  }
+
+  async releaseTrialPigeon(d: Row) {
+    const ok = await this.confirm.ask({
+      title: `Eliberezi porumbelul din probă al lui ${d.name}?`,
+      lines: [`Acum e ${d.trialPigeon}. După eliberare poate alege alt porumbel pentru fișă și codul QR (tot unul singur).`],
+      confirmLabel: 'Da, eliberează',
+    });
+    if (!ok) return;
+    try {
+      await this.api.delete(`/admin/accounts/${d.id}/trial-pigeon`);
+      await this.refresh(d.id);
     } catch (e) {
       this.error.set(errorMessage(e));
     }

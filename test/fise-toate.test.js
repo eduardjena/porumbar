@@ -54,11 +54,11 @@ test('cod QR pe toate: pornește lipsă, păstrează existent, sare peste ale al
   assert.match(r.data.sheets[1].url, /\/p\/[A-Za-z0-9_-]{20,}$/);
   assert.equal((await call(`/api/pigeons/${pB}/public`, { cookie: b })).data.url, null);
 });
-test('doar citire: fișele se văd, codul QR nu se pornește (402)', async () => {
+test('după probă, fără plată: fișele nu se mai tipăresc și codul QR nu se pornește (402)', async () => {
   const c = await newAccount(call, 'Nou', { active: false });
-  const g = await call(`/api/sheets?ids=${p1}`, { cookie: c }); // GET merge; p1 e al lui a, deci lista e goală
-  assert.equal(g.status, 200);
-  assert.deepEqual(g.data.sheets, []);
+  const g = await call(`/api/sheets?ids=${p1}`, { cookie: c });
+  assert.equal(g.status, 402);
+  assert.equal(g.data.key, 'eroare.tipar_fara_abonament');
   assert.equal((await call('/api/sheets/public', { method: 'POST', cookie: c, body: { ids: [p1] } })).status, 402);
 });
 test('fișele: tot pedigree-ul fiecărei fișe e la fel cu cel cerut pe porumbel', async () => {

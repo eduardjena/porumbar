@@ -3,6 +3,7 @@ import { errorMessage } from '../core/api';
 import { SharePdfService } from '../core/share-pdf';
 import { Icon } from './icon';
 import { TPipe, t } from '../core/i18n';
+import { TrialPigeon } from '../core/trial-pigeon';
 
 /** Butonul „Trimite”: fișa de pedigree ca PDF, prin meniul de partajare al telefonului (iconița obișnuită de share). */
 @Component({
@@ -22,6 +23,7 @@ import { TPipe, t } from '../core/i18n';
 })
 export class ShareButton {
   private readonly share = inject(SharePdfService);
+  private readonly trial = inject(TrialPigeon);
   readonly pigeonId = input.required<number>();
   protected readonly busy = computed(() => this.share.busy() === this.pigeonId());
   protected readonly note = signal('');
@@ -31,6 +33,7 @@ export class ShareButton {
     this.note.set('');
     this.isError.set(false);
     try {
+      if (!(await this.trial.ensureChosen(this.pigeonId()))) return;
       const r = await this.share.sharePigeon(this.pigeonId());
       if (r === 'downloaded') this.note.set(t('trimite.descarcat'));
     } catch (e) {

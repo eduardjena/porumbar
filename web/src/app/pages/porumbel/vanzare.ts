@@ -5,6 +5,7 @@ import { ConfirmService } from '../../core/confirm';
 import { Pigeon } from '../../core/models';
 import { Icon } from '../../shared/icon';
 import { TPipe, formatDate, t, GluePipe } from '../../core/i18n';
+import { AuthService } from '../../core/auth';
 
 interface Outgoing {
   id: number;
@@ -31,6 +32,8 @@ interface Outgoing {
       } @else if (pending(); as s) {
         <p>{{ 'vanzare.asteapta' | t }}{{ ' ' | glue }}<strong>{{ s.buyerEmail }}</strong>{{ ' ' | glue }}{{ 'vanzare.trimis_pe' | t: { data: date(s.createdAt) } }}{{ s.includePrivate ? ('vanzare.cu_notele' | t) : '' }}{{ '.' | glue }}</p>
         <div class="row"><button type="button" (click)="cancel(s)">{{ 'vanzare.anuleaza' | t }}</button></div>
+      } @else if (inTrial()) {
+        <p class="muted">{{ 'vanzare.doar_cu_abonament' | t }}</p>
       } @else {
         <p class="muted">{{ 'vanzare.explicatie' | t }}</p>
         <form class="stack" (ngSubmit)="sell()">
@@ -54,6 +57,9 @@ interface Outgoing {
 export class Vanzare {
   private readonly api = inject(Api);
   private readonly confirm = inject(ConfirmService);
+  private readonly auth = inject(AuthService);
+  /** În proba de 30 de zile vânzarea e oprită (merge cu abonamentul plătit). */
+  protected readonly inTrial = computed(() => this.auth.account()?.subscription?.status === 'trial' && !this.auth.account()?.isAdmin);
   readonly pigeon = input.required<Pigeon>();
   readonly mine = signal<Outgoing[]>([]);
   readonly busy = signal(false);

@@ -40,6 +40,7 @@ const yes = (v: boolean | undefined) => t(v ? 'text.da' : 'text.nu');
             <p>{{ 'cont.neconfirmat' | t }}</p>
           } @else if (s.status === 'trial') {
             <p><strong>{{ 'cont.proba_pana' | t: { data: day(s.trialEnd ?? null) } }}</strong>{{ ' ' | glue }}{{ 'cont.zile_ramase' | t: { count: s.trialDaysLeft } }}{{ '.' | glue }}</p>
+            <p class="muted">{{ 'cont.proba_limita' | t }}</p>
           } @else if (s.status === 'trial-ended') {
             <p>{{ 'cont.proba_gata' | t: { data: day(s.trialEnd ?? null) } }}</p>
           } @else if (s.start) {

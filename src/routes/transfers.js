@@ -5,6 +5,7 @@ import { HttpError, badRequest, notFound } from '../http.js';
 import { requireAccount } from '../accounts.js';
 import { getPigeonRow } from '../pigeons.js';
 import { importPedigree } from '../pedigree-import.js';
+import { assertCanSell } from '../trial-export.js';
 import { pedigreeV1, toImportNode } from '../pedigree-format.js';
 
 /*
@@ -30,6 +31,7 @@ export function transfersRouter() {
   r.post('/pigeons/:id/transfers', requireAccount, async (req, res) => {
     const pigeon = await getPigeonRow(req.account.id, req.params.id);
     if (pigeon.kind !== 'own') throw badRequest('eroare.vinde_doar_proprii');
+    assertCanSell(req.account);
     const email = String(req.body?.email ?? '').trim();
     if (!email) throw badRequest('eroare.email_cumparator');
     const buyer = await one('SELECT id FROM accounts WHERE lower(email) = lower(?)', email);

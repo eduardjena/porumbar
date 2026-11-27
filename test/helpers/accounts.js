@@ -20,7 +20,7 @@ export async function adminCookie(call) {
 
 export const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
 
-export async function newAccount(call, name = 'Crescător', { active = true } = {}) {
+export async function newAccount(call, name = 'Crescător', { active = true, trial = false } = {}) {
   n += 1;
   const r = await call('/api/auth/register', {
     method: 'POST',
@@ -30,6 +30,8 @@ export async function newAccount(call, name = 'Crescător', { active = true } = 
   if (r.status !== 201) throw new Error(`Contul de test nu s-a creat: ${r.status} ${JSON.stringify(r.data)}`);
   // Înscrierea nu intră în cont: intră linkul din emailul de confirmare (pornește proba de 30 de zile).
   const cookie = await confirmAndEnter(call, r.data.account.email);
+  // { trial: true }: rămâne în proba de 30 de zile (fără abonament plătit).
+  if (trial) return cookie;
   if (!active) {
     // „Neactivat” = doar citire: proba s-a terminat (ieri), fără abonament plătit.
     const { run } = await import('../../src/db.js');

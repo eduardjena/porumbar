@@ -198,6 +198,23 @@ test('butonul „Plătește”: oprit fără Polar pornit; pornit, duce la pagin
     assert.equal((await call('/api/plata', { cookie: paid })).data.canPay, false);
     assert.equal((await call('/api/plata/checkout', { method: 'POST', cookie: paid })).status, 409);
 
+    // Polar refuză emailul (de ex. un domeniu rezervat): a doua încercare, fără email, deschide totuși plata.
+    let calls = 0;
+    const before = globalThis.fetch;
+    globalThis.fetch = async (url, opts) => {
+      if (String(url).startsWith('https://sandbox-api.polar.sh/')) {
+        calls += 1;
+        const b = JSON.parse(opts.body);
+        if (b.customer_email) return new Response(JSON.stringify({ error: 'RequestValidationError', detail: [{ loc: ['body', 'customer_email'] }] }), { status: 422 });
+        return new Response(JSON.stringify({ id: uuid(), url: 'https://sandbox.polar.sh/checkout/fara_email' }), { status: 201 });
+      }
+      return before(url, opts);
+    };
+    const noMail = await call('/api/plata/checkout', { method: 'POST', cookie: c });
+    assert.equal(noMail.data.url, 'https://sandbox.polar.sh/checkout/fara_email');
+    assert.equal(calls, 2);
+    globalThis.fetch = before;
+
     // Japonia plătește în yeni, restul (nu România) în euro.
     await db.run("UPDATE accounts SET country = 'JP' WHERE id = ?", id);
     await call('/api/plata/checkout', { method: 'POST', cookie: c });

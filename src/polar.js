@@ -247,13 +247,21 @@ export async function createCheckout(account, ip, fetchImpl = fetch) {
     allow_discount_codes: false,
     ...(publicIp(ip) ? { customer_ip_address: publicIp(ip) } : {}),
   };
-  const res = await fetchImpl(`${config.polarApi}/v1/checkouts/`, {
+  const send = (payload) => fetchImpl(`${config.polarApi}/v1/checkouts/`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${config.polarAccessToken}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
     signal: AbortSignal.timeout(15_000),
   });
-  const data = await res.json().catch(() => null);
+  let res = await send(body);
+  let data = await res.json().catch(() => null);
+  // Polar refuză unele adrese (domenii rezervate, forme rare): pagina se deschide oricum, fără emailul completat,
+  // iar omul și-l scrie acolo. Contul vine tot din metadata.
+  if (res.status === 422 && JSON.stringify(data ?? '').includes('customer_email')) {
+    const { customer_email: _email, ...rest } = body;
+    res = await send(rest);
+    data = await res.json().catch(() => null);
+  }
   if (!res.ok || typeof data?.url !== 'string' || !/^https:\/\//.test(data.url)) {
     console.error(`[porumbar] Polar: sesiunea de plată nu s-a făcut (${res.status}):`, JSON.stringify(data)?.slice(0, 500)); // i18n: ro
     throw new Error('polar-checkout');

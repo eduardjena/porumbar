@@ -77,6 +77,11 @@ schimbare la publicare). Detaliile fiecărei funcții sunt în `docs/superpowers
   active, expiring, expired (`subscriptionOf`; un SELECT trebuie să ia `ACCOUNT_STATE_COLUMNS`). Migrările **25**
   (stări, țara, termenii) și **26** (`email_confirmations`); ramurile neîmbinate cu migrări ≥ 25 (feat/plata-paddle
   etc.) se renumerotează. Înscrierea, confirmarea și proba au fost luate din feat/plata-paddle, fără plată.
+- **Copia de siguranță** (din 2026-11-27): consola vânzătorului → „Copie de siguranță” → parola de vânzător din nou →
+  fișier `.pgrb` cu toată baza (fără sesiuni / linkuri de unică folosință), gzip + AES-256-GCM cu `BACKUP_PASSPHRASE`
+  (≥ 12 caractere; fără ea, 409); 5 pe oră; email la vânzător la fiecare descărcare. `src/backup.js`, ruta
+  `POST /api/admin/backup`; restaurarea într-o bază goală: `scripts/restaurare.mjs` (migrările aplicației, apoi
+  `json_populate_recordset`, apoi id-urile); test/copie-siguranta.test.js (copie → restaurare → aceleași date).
 - **Local = dezvoltare și test** (date de probă, conturi de test). **Railway = producție, cu date reale.**
 
 ## Structura

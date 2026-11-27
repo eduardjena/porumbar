@@ -76,6 +76,24 @@ Pornește un PostgreSQL temporar (din programele instalate) și îl șterge la f
   - **pedigree tipărit** pe A4 vertical, cu QR-ul; ce apare pe el (telefon, adresă, email) se alege în „Contul meu”.
 - `PUBLIC_BASE_URL` trebuie să fie domeniul final înainte de a tipări coduri QR (codul conține adresa).
 
+## Copia de siguranță (consola vânzătorului)
+
+În consolă: **Copie de siguranță** → parola de vânzător → **Descarcă copia**. Fișierul (`pigeonrama-copie-….pgrb`) are toată
+baza de date, fără sesiuni și linkuri de unică folosință, arhivată și criptată (AES-256-GCM) cu parola din
+`BACKUP_PASSPHRASE` (pe Railway; cel puțin 12 caractere). Fără parolă copia nu se face și nu se poate deschide. La fiecare
+descărcare vânzătorul primește un email. Codul: `src/backup.js`.
+
+**Restaurarea pe calculator** (Postgres local), într-o bază **goală**:
+
+```powershell
+createdb -h localhost -p 5433 -U porumbar pigeonrama_restaurata
+$env:DATABASE_URL = "postgres://porumbar:parola@localhost:5433/pigeonrama_restaurata"
+node scripts/restaurare.mjs C:\Users\eu\Downloads\pigeonrama-copie-2026-11-27-1530.pgrb
+```
+
+Scriptul cere parola copiilor (sau o ia din `BACKUP_PASSPHRASE`), face tabelele cu migrările aplicației (aceeași versiune
+a codului e cea mai sigură), pune rândurile înapoi și potrivește id-urile. Oamenii intră apoi din nou cu parola lor.
+
 ## Limbi
 
 Textele vin din `i18n/<limba>.json` (româna și maghiara; maghiara e „în probă” până o verifică un crescător maghiar și o

@@ -104,8 +104,29 @@ function plusOneYear(start: string) {
     <div class="wide">
       <div class="title-row">
         <h1>Consola vânzătorului</h1>
-        <button type="button" class="primary" (click)="toggleNew()" [attr.aria-expanded]="showNew()"><app-icon name="plus" />Crescător nou</button>
+        <div class="row">
+          <button type="button" (click)="showBackup.set(!showBackup())" [attr.aria-expanded]="showBackup()"><app-icon name="jos" />Copie de siguranță</button>
+          <button type="button" class="primary" (click)="toggleNew()" [attr.aria-expanded]="showNew()"><app-icon name="plus" />Crescător nou</button>
+        </div>
       </div>
+
+      @if (showBackup()) {
+        <section class="card stack new">
+          <h2>Copie de siguranță</h2>
+          <p class="muted">Toată baza de date (crescătorii, porumbeii, plățile, istoricul), într-un fișier criptat cu parola copiilor (BACKUP_PASSPHRASE de pe Railway). Fără acea parolă fișierul nu se poate deschide. Ține-l doar pe calculatoarele tale și păstrează ultimele câteva copii; pe cele vechi șterge-le. La fiecare descărcare primești un email.</p>
+          @if (backupReady() === false) {
+            <p class="warning">Mai întâi pune parola copiilor pe Railway: variabila <strong>BACKUP_PASSPHRASE</strong>, cel puțin 12 caractere.</p>
+          } @else {
+            <form class="row" (ngSubmit)="downloadBackup()">
+              <label class="field">Parola ta de vânzător (din nou)
+                <input type="password" name="backupPassword" autocomplete="current-password" [(ngModel)]="backupPassword" required />
+              </label>
+              <button type="submit" class="primary" [disabled]="backupBusy() || !backupPassword"><app-icon name="jos" />{{ backupBusy() ? 'Se pregătește…' : 'Descarcă copia' }}</button>
+            </form>
+            @if (backupDone()) { <p class="ok">Copia s-a descărcat: {{ backupDone() }}. Restaurarea pe calculator: <span class="mono">node scripts/restaurare.mjs</span> (pașii sunt în README).</p> }
+          }
+        </section>
+      }
 
       @if (showNew()) {
         <section class="card stack new">
@@ -348,6 +369,7 @@ function plusOneYear(start: string) {
     .link { word-break: break-all; background: var(--surface-2); padding: 8px 10px; border-radius: 10px; font-size: 0.85rem; }
     .ev { font-size: 0.92rem; }
     .pay { font-size: 0.95rem; padding: 4px 0; }
+    .ok { color: var(--ok); font-weight: 700; }
     .pay-alerts { margin-bottom: 16px; border-color: var(--danger); }
     .sheet { display: flex; flex-direction: column; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: #fff; color: #263343; line-height: 1.35; }
     .sheet strong { font-size: 1.1rem; }
@@ -383,6 +405,12 @@ export default class Consola implements OnInit {
   readonly q = signal('');
   readonly loaded = signal(false);
   readonly error = signal('');
+  /** Copia de siguranță: formularul, parola de vânzător cerută din nou, dacă serverul are parola copiilor. */
+  readonly showBackup = signal(false);
+  readonly backupReady = signal<boolean | null>(null);
+  readonly backupBusy = signal(false);
+  readonly backupDone = signal('');
+  backupPassword = '';
   readonly selectedId = signal<number | null>(null);
   readonly events = signal<Event[]>([]);
   readonly link = signal<{ link: string; emailed: boolean } | null>(null);
@@ -425,6 +453,7 @@ export default class Consola implements OnInit {
 
   ngOnInit() {
     this.load();
+    this.api.get<{ ready: boolean }>('/admin/backup').then((r) => this.backupReady.set(r.ready)).catch(() => this.backupReady.set(null));
   }
 
   async setFilter(f: '' | Status) {
@@ -467,6 +496,38 @@ export default class Consola implements OnInit {
       await this.refresh(d.id);
     } catch (e) {
       this.error.set(errorMessage(e));
+    }
+  }
+
+  async downloadBackup() {
+    this.backupBusy.set(true);
+    this.backupDone.set('');
+    this.error.set('');
+    try {
+      const res = await fetch('/api/admin/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: this.backupPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? `Eroare ${res.status}`);
+      }
+      const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'pigeonrama-copie.pgrb';
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      this.backupDone.set(name);
+      this.backupPassword = '';
+    } catch (e) {
+      this.error.set(errorMessage(e));
+    } finally {
+      this.backupBusy.set(false);
     }
   }
 

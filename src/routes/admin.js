@@ -1,8 +1,9 @@
 import express from 'express';
 import { config } from '../config.js';
 import { all, insert, nowIso, one, run, tx } from '../db.js';
-import { HttpError, badRequest, notFound, realDate, text } from '../http.js';
-import { hashPassword, randomToken, requireAccount, sha256 } from '../accounts.js';
+import { HttpError, badRequest, notFound, rateLimit, realDate, text } from '../http.js';
+import { checkPassword, hashPassword, randomToken, requireAccount, sha256 } from '../accounts.js';
+import { backupPassphrase, createBackup } from '../backup.js';
 import { sendMail } from '../mail.js';
 import { isAdminEmail, isoDate, logEvent, plusDays, plusOneYear, subscriptionOf, TRIAL_DAYS } from '../subscriptions.js';
 import { isLang, t } from '../i18n.js';
@@ -335,6 +336,37 @@ export function adminRouter() {
   });
 
   // Link de parolă nouă (24 h, o folosire): pleacă pe email și îl vede și adminul (îl poate trimite pe telefon).
+  // Copia de siguranță a bazei de date (criptată cu BACKUP_PASSPHRASE): cere din nou parola vânzătorului, cel mult 5 pe
+  // oră, și îi trimite un email la fiecare descărcare (dacă n-a fost el, află imediat). src/backup.js.
+  r.get('/backup', (req, res) => res.json({ ready: !!backupPassphrase() }));
+  r.post('/backup', rateLimit({ windowMs: 3600_000, max: 5, key: (req) => `backup:${req.account.id}` }), async (req, res) => {
+    const passphrase = backupPassphrase();
+    if (!passphrase) throw new HttpError(409, 'Pune întâi parola copiilor (BACKUP_PASSPHRASE, cel puțin 12 caractere) pe Railway.'); // i18n: ro
+    const me = await one('SELECT password_hash FROM accounts WHERE id = ?', req.account.id);
+    if (!me || !(await checkPassword(me.password_hash, req.body?.password))) throw new HttpError(403, 'Parola nu e bună.'); // i18n: ro
+    const { file, counts } = await createBackup(passphrase);
+    const stamp = new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Bucharest' }).replace(' ', '-').replace(/:/g, '').slice(0, 15);
+    const name = `pigeonrama-copie-${stamp}.pgrb`;
+    console.log(`[porumbar] Copie de siguranță descărcată de ${req.account.email} (${file.length} octeți).`); // i18n: ro
+    if (config.adminEmail) {
+      const lines = [
+        `S-a descărcat o copie de siguranță a bazei de date Pigeonrama (${name}).`, // i18n: ro
+        '',
+        `Cine: ${req.account.email}`, // i18n: ro
+        `Când: ${new Date().toLocaleString('ro-RO', { timeZone: 'Europe/Bucharest' })}`, // i18n: ro
+        `De la adresa IP: ${req.ip}`, // i18n: ro
+        `Crescători: ${counts.accounts ?? 0} · porumbei: ${counts.pigeons ?? 0} · plăți: ${counts.payments ?? 0}`, // i18n: ro
+        '',
+        'Dacă nu ai fost tu, schimbă-ți imediat parola de vânzător și parola copiilor (BACKUP_PASSPHRASE) pe Railway.', // i18n: ro
+        '',
+      ];
+      sendMail({ to: config.adminEmail, subject: 'Pigeonrama: s-a descărcat o copie de siguranță', text: lines.join('\n') }).catch((e) => // i18n: ro
+        console.error('[porumbar] Emailul despre copia de siguranță nu a plecat:', e.message)); // i18n: ro
+    }
+    res.set({ 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="${name}"`, 'Cache-Control': 'no-store' });
+    res.send(file);
+  });
+
   r.post('/accounts/:id/password-link', async (req, res) => {
     const a = await accountRow(req.params.id);
     // Cine n-a intrat încă niciodată (făcut din consolă) primește iar 7 zile; restul, 24 de ore.

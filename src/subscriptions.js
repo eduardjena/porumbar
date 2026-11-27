@@ -15,7 +15,7 @@ import { sendMail } from './mail.js';
 export const REMIND_DAYS = 30;
 export const TRIAL_DAYS = 30;
 /** Versiunea termenilor acceptați la înscriere (se schimbă când se schimbă termenii de pe sit). */
-export const TERMS_VERSION = '2026-11-27-v4';
+export const TERMS_VERSION = '2026-11-27-v5';
 const DAY = 86_400_000;
 
 /** Ziua calendaristică în România (abonamentul se termină la miezul nopții de aici, nu la 02:00 / 03:00). */

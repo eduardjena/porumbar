@@ -3195,9 +3195,9 @@
   },
   "eroare.termeni_necesari": "Ca să-ți faci cont, trebuie să fii de acord cu termenii și condițiile.",
   "eroare.email_unica_folosinta": "Adresele de email de unică folosință nu sunt acceptate. Folosește emailul tău obișnuit.",
-  "mail.confirmare.subiect": "Confirmă emailul pentru Pigeonrama",
+  "mail.confirmare.subiect": "Confirmă adresa de email pentru contul tău Pigeonrama",
   "mail.confirmare.text": {
-    "text": "Bună, {nume}!\n\nCa să pornească cele 30 de zile de probă în Pigeonrama, confirmă-ți emailul deschizând linkul de mai jos (e valabil 7 zile):\n\n{link}\n\nDacă nu ți-ai făcut tu cont, ignoră acest mesaj.\n",
+    "text": "Bună ziua, {nume},\n\nÎți mulțumim că ți-ai creat un cont Pigeonrama.\n\nPentru a activa contul și a începe perioada de probă gratuită de 30 de zile, te rugăm să îți confirmi adresa de email accesând linkul de mai jos:\n\n{link}\n\nLinkul este valabil 7 zile.\n\nDacă nu ai creat tu acest cont, poți ignora acest mesaj; contul nu va fi activat.\n\nCu stimă,\nEchipa Pigeonrama\nwww.pigeonrama.com\n",
     "sens": "Mailul de confirmare a emailului, trimis la înscriere; confirmarea pornește proba de 30 de zile."
   },
   "cont_nou.termeni_bifa": {
@@ -3347,7 +3347,7 @@
     "sens": "Sub emailul deja folosit, înainte de linkurile „Intră” și „Am uitat parola”."
   },
   "eroare.email_neconfirmat": {
-    "text": "Emailul nu e confirmat încă. Deschide linkul din emailul primit la înscriere (uită-te și în Spam).",
+    "text": "Adresa de email nu a fost încă confirmată. Pentru a intra în cont, deschide linkul de confirmare primit pe email. Dacă nu îl găsești, verifică și folderul Spam sau cere un link nou.",
     "sens": "La intrare (sau cu o sesiune veche), când contul nu și-a confirmat încă emailul."
   }
 }

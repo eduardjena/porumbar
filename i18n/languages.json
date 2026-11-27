@@ -1,6 +1,7 @@
 [
   { "code": "ro", "name": "Română", "locale": "ro-RO", "zone": "Europe/Bucharest", "public": true },
   { "code": "hu", "name": "Magyar", "locale": "hu-HU", "zone": "Europe/Budapest", "public": true },
+  { "code": "en", "name": "English", "locale": "en-GB", "zone": "Europe/London", "public": true },
   { "code": "ja", "name": "日本語", "locale": "ja-JP", "zone": "Asia/Tokyo", "public": true,
     "semne": { ".": "。", ",": "、", ":": "：", "(": "（", ")": "）", "„": "「", "”": "」", "–": "〜", " ": "", "\u00a0": "" } }
 ]

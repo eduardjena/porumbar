@@ -210,7 +210,7 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
 ## Limbi (i18n)
 
 - Dicționarele: `i18n/languages.json` (lista: cod, nume, locale, `public`), `i18n/ro.json` (sursa, cu `sens` pentru
-  traducători: `{ "text": "...", "sens": "..." }`), `i18n/hu.json` și `i18n/ja.json` (aceleași chei, doar textul). Plural: obiect cu
+  traducători: `{ "text": "...", "sens": "..." }`), `i18n/hu.json`, `i18n/en.json` și `i18n/ja.json` (aceleași chei, doar textul). Plural: obiect cu
   formele `Intl.PluralRules` (`one` / `few` / `other`), apelat cu `{ count: n }`. Valori: `{nume}`.
 - Serverul: `t(lang, cheie, valori)`; în cereri `tr(cheie)` (limba cererii prin AsyncLocalStorage); erorile se aruncă cu
   chei (`badRequest('eroare.x', { ... })`), iar numele câmpurilor sunt și ele chei (`text(v, 'camp.nume')`).
@@ -222,14 +222,14 @@ A4; serverul: `GET /api/sheets`, `POST /api/sheets/public` în `src/routes/publi
   în cod `glue(', ')` (`glueIn` pe limba foii), pe server `glue(lang, ', ')`. Harta e `semne` din `languages.json` (doar japoneza o
   are: 。、：（）「」〜, fără spații); ro/hu rămân cum sunt scrise. „ · ” nu se schimbă. Paza: `test/lipici.test.js`.
   O propoziție din mai multe bucăți într-o cutie `.notice` / `.warning` / `.error` (flex) stă în `<span class="flow">`.
-- **Regulă:** orice text nou pe care îl vede crescătorul intră în `ro.json`, `hu.json` **și** `ja.json`, în același commit.
+- **Regulă:** orice text nou pe care îl vede crescătorul intră în `ro.json`, `hu.json`, `en.json` **și** `ja.json`, în același commit.
   Un prefix nou de chei intră și în `GROUPS` din `test/ja.test.js` (o valoare japoneză scrisă doar cu litere latine sau semne:
   în `ALLOW_NONJA`, cu motivul). Testul `test/i18n.test.js` cere aceleași chei în toate limbile; `test/texte-ramase.test.js`
   pică dacă rămâne text cu diacritice românești în cod (excepții: comentarii, consola vânzătorului, rânduri marcate `// i18n: ro`).
 - Consola vânzătorului (`/vanzator`, `src/routes/admin.js`) rămâne în română. Mailul către vânzător e în română; mailurile
   către crescător sunt în limba contului.
 - **Toate limbile sunt publice și oficiale** (regula vânzătorului, 2026-11-26, și pentru limbile viitoare): româna,
-  maghiara și japoneza; omul și-o alege la înregistrare
+  maghiara, engleza (din 2026-11-27: `en`, en-GB, ora Londrei, steagul britanic, termenii `terms.html` pe sit, data 21/11/2026, țara implicită a inelelor GB, citirea pedigree-urilor englezești din poză) și japoneza; omul și-o alege la înregistrare
   sau în Cont, iar fără cont vine după limba telefonului. Vânzătorul poate pune limba oricui (Crescător nou / Date pe
   fișă). Mecanismul pentru o limbă nepublică (`public: false`: o dă doar vânzătorul) rămâne în cod, dar nu se folosește;
   test/limba.test.js face maghiara și japoneza „în probă” doar ca să-l verifice. Fișa tipărită și PDF-ul pot ieși și în altă limbă (alegerea de pe pagina de tipărire).

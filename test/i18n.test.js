@@ -37,8 +37,10 @@ test('o cheie lipsă într-o limbă se arată în română; una necunoscută, ca
   assert.equal(t('xx', 'test.salut', { nume: 'A' }), 'Bună, A!');
 });
 
-test('lista limbilor: româna, maghiara (din 2026-11-20) și japoneza (din 2026-11-26) publice', () => {
-  assert.deepEqual(LANGS.map((l) => l.code), ['ro', 'hu', 'ja']);
+test('lista limbilor: româna, maghiara (din 2026-11-20), engleza (din 2026-11-27) și japoneza (din 2026-11-26) publice', () => {
+  assert.deepEqual(LANGS.map((l) => l.code), ['ro', 'hu', 'en', 'ja']);
+  assert.equal(isPublicLang('en'), true);
+  assert.equal(localeOf('en'), 'en-GB');
   assert.equal(isLang('hu'), true);
   assert.equal(isLang('xx'), false);
   assert.equal(isPublicLang('ro'), true);

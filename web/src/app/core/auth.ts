@@ -45,7 +45,7 @@ export class AuthService {
   /**
    * Contul se face neconfirmat; omul NU intră în cont până nu deschide linkul din email (atunci intră direct).
    */
-  async register(data: { name: string; email: string; phone: string; city: string; password: string; lang: string; country: string; acceptTerms: boolean; website: string }): Promise<void> {
+  async register(data: { name: string; email: string; phone: string; phoneCountry: string; city: string; password: string; lang: string; country: string; acceptTerms: boolean; website: string }): Promise<void> {
     // Fără intrare în cont: omul intră abia din linkul din email (telefonul rămâne în contul în care era).
     await this.api.post<{ account: Account | null }>('/auth/register', data);
   }

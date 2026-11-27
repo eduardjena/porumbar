@@ -25,6 +25,7 @@
     "html-to-image": "1.11.13",
     "jspdf": "4.2.1",
     "jsqr": "^1.4.0",
+    "libphonenumber-js": "^1.13.17",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

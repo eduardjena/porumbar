@@ -3274,6 +3274,24 @@
     "sens": "{activare} = fraza despre activare (începe cu spațiu)."
   },
   "vanzare.doar_cu_abonament": "Vânzarea porumbeilor (trimiterea în contul cumpărătorului) merge cu abonamentul plătit, nu și în proba de 30 de zile.",
+  "eroare.telefon_tara": "Alege țara numărului de telefon (prefixul din stânga).",
+  "eroare.telefon_invalid_fara_tara": "Numărul de telefon nu pare corect. Verifică cifrele.",
+  "eroare.telefon_scurt": {
+    "text": "Numărul are prea puține cifre pentru {tara} ({prefix}). Verifică dacă le-ai scris pe toate.",
+    "sens": "{tara} = numele țării numărului, {prefix} = prefixul ei, de ex. +40."
+  },
+  "eroare.telefon_lung": {
+    "text": "Numărul are prea multe cifre pentru {tara} ({prefix}). Verifică dacă n-ai scris vreo cifră de două ori.",
+    "sens": "{tara} = numele țării numărului, {prefix} = prefixul ei, de ex. +40."
+  },
+  "eroare.telefon_invalid": {
+    "text": "Numărul nu pare un număr de telefon din {tara} ({prefix}). Verifică cifrele sau alege altă țară din stânga.",
+    "sens": "Lungimea e bună, dar numărul nu există în țara aleasă. {tara}, {prefix} ca mai sus."
+  },
+  "cont_nou.prefix_tara": {
+    "text": "Țara numărului de telefon",
+    "sens": "Eticheta (pentru cititorul de ecran) a selectorului mic de prefix (RO +40) din fața numărului."
+  },
   "proba.alege_titlu": "Alegi acest porumbel pentru pedigree-ul din probă?",
   "proba.alege_titlu_inel": {
     "text": "Alegi porumbelul {inel} pentru pedigree-ul din probă?",
@@ -3314,10 +3332,6 @@
   "cont_nou.localitate": {
     "text": "Localitatea",
     "sens": "Câmpul localității, la înscriere (obligatoriu; devine adresa de pe fișă)."
-  },
-  "eroare.telefon_gresit": {
-    "text": "Numărul de telefon trebuie să aibă cel puțin 6 cifre; cel scris are {n}.",
-    "sens": "La înscriere, un telefon cu mai puțin de 6 cifre. {n} = câte cifre a scris omul."
   },
   "cont_nou.obligatorii": {
     "text": "Câmpurile cu * sunt obligatorii.",

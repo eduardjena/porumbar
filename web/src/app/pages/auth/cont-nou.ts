@@ -7,17 +7,17 @@ import { Api, errorMessage } from '../../core/api';
 import { PasswordField } from '../../shared/password-field';
 import { LangSwitch } from '../../shared/lang-switch';
 import { TPipe, currentLang, t } from '../../core/i18n';
-import { countryOptions, defaultCountry } from '../../core/countries';
+import { countryOptions } from '../../core/countries';
+import { countryInNumber, dialOf, examplePhone, guessCountry, phoneCountries, phoneProblem } from '../../core/phone';
 
 /** Ca pe server: ceva@ceva.ceva, fără spații. */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** Câte cifre are telefonul (și cele scrise cu tastatura japoneză, ０-９). */
-const phoneDigits = (phone: string) => (phone.match(/\p{Nd}/gu) ?? []).length;
 
 /** Erorile serverului (după `key`) și câmpul sub care apar. */
 const SERVER_FIELD: Record<string, string> = {
   'eroare.email_exista': 'email', 'eroare.email_gresit': 'email', 'eroare.email_unica_folosinta': 'email',
-  'eroare.telefon_gresit': 'phone', 'eroare.tara_lipsa': 'country', 'eroare.parola_scurta': 'password',
+  'eroare.telefon_tara': 'phone', 'eroare.telefon_invalid_fara_tara': 'phone',
+  'eroare.telefon_scurt': 'phone', 'eroare.telefon_lung': 'phone', 'eroare.telefon_invalid': 'phone', 'eroare.tara_lipsa': 'country', 'eroare.parola_scurta': 'password',
   'eroare.parola_lunga': 'password', 'eroare.termeni_necesari': 'terms',
 };
 
@@ -48,6 +48,15 @@ const TERMS: Record<string, string> = {
     .bad ::ng-deep input { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
     .field-error { color: var(--danger); font-weight: 700; font-size: 0.95rem; margin-top: -4px; }
     .req { color: var(--danger); }
+    /* Telefonul: prefixul țării (un <select> nativ, invizibil, peste eticheta „RO +40”) și numărul, pe același rând. */
+    .tel { display: flex; gap: 8px; align-items: stretch; }
+    .tel input { flex: 1; min-width: 0; }
+    .cc { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; min-height: 52px; border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-sm); background: var(--surface); font-weight: 700; white-space: nowrap; }
+    .cc select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; min-height: 0; padding: 0; }
+    .cc:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgb(217 33 50 / 20%); }
+    .cc .chev { width: 12px; height: 8px; }
+    .bad .cc { border-color: var(--danger); }
   `,
   template: `
     <div class="auth-page stack">
@@ -82,9 +91,17 @@ const TERMS: Record<string, string> = {
             }
           </div>
           <div data-f="phone" [class.bad]="bad('phone')" class="stack">
-            <label class="field"><span>{{ 'cont_nou.telefon' | t }} <span class="req">*</span></span>
-              <input type="tel" name="phone" autocomplete="tel" inputmode="tel" required [(ngModel)]="phone" (ngModelChange)="clear('phone')" [attr.placeholder]="inField('phone')" [attr.aria-invalid]="bad('phone')" />
-            </label>
+            <label class="field" for="phone"><span>{{ 'cont_nou.telefon' | t }} <span class="req">*</span></span></label>
+            <div class="tel">
+              <span class="cc">
+                <span aria-hidden="true">{{ phoneCountry }} {{ dial() }}</span>
+                <svg class="chev" viewBox="0 0 12 8" aria-hidden="true"><path d="M1.5 1.5 6 6l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <select name="phoneCountry" autocomplete="tel-country-code" [attr.aria-label]="'cont_nou.prefix_tara' | t" [(ngModel)]="phoneCountry" (ngModelChange)="onPhoneCountry($event)">
+                  @for (c of phoneCountries(); track c.code) { <option [value]="c.code">{{ c.name }} {{ c.dial }}</option> }
+                </select>
+              </span>
+              <input id="phone" type="tel" name="phone" autocomplete="tel-national" inputmode="tel" required [(ngModel)]="phone" (ngModelChange)="onPhone($event)" [attr.placeholder]="inField('phone') ?? example()" [attr.aria-invalid]="bad('phone')" />
+            </div>
             @if (err('phone'); as e) { <div class="field-error" role="alert">{{ e }}</div> }
           </div>
           <div data-f="city" [class.bad]="bad('city')" class="stack">
@@ -135,7 +152,12 @@ export default class ContNou {
   city = '';
   password = '';
   password2 = '';
-  country = defaultCountry(currentLang());
+  country = guessCountry(currentLang());
+  /** Țara numărului de telefon (prefixul), aleasă lângă număr; la început, țara în care pare să fie omul. */
+  phoneCountry = guessCountry(currentLang());
+  private readonly phoneCountrySig = signal(this.phoneCountry);
+  protected readonly dial = computed(() => dialOf(this.phoneCountrySig()));
+  protected readonly example = computed(() => examplePhone(this.phoneCountrySig()));
   website = '';
   terms = false;
   readonly error = signal('');
@@ -155,6 +177,23 @@ export default class ContNou {
   readonly sentTo = signal('');
   /** Țările, cu numele în limba ecranului. */
   protected readonly countries = computed(() => countryOptions(currentLang()));
+  /** Prefixele: „România +40”, cu numele în limba ecranului. */
+  protected readonly phoneCountries = computed(() => phoneCountries(currentLang()));
+
+  protected onPhoneCountry(code: string) {
+    this.phoneCountrySig.set(code);
+    this.clear('phone');
+  }
+
+  /** Un număr scris cu +40… / 0040… schimbă singur prefixul din stânga. */
+  protected onPhone(value: string) {
+    this.clear('phone');
+    const c = countryInNumber(value);
+    if (c && c !== this.phoneCountry) {
+      this.phoneCountry = c;
+      this.phoneCountrySig.set(c);
+    }
+  }
   /** Termenii, în limba aleasă pe ecran. */
   protected readonly termsUrl = computed(() => TERMS[currentLang()] ?? TERMS['ro']);
 
@@ -162,7 +201,7 @@ export default class ContNou {
     // La schimbarea limbii, țara implicită o urmează (dacă omul n-a ales încă alta).
     let lastDefault = this.country;
     effect(() => {
-      const d = defaultCountry(currentLang());
+      const d = guessCountry(currentLang());
       if (this.country === lastDefault) this.country = d;
       lastDefault = d;
     });
@@ -191,9 +230,9 @@ export default class ContNou {
     if (!email) e['email'] = blank('cont_nou.lipsa_email', 'cont_nou.gol_email');
     else if (!EMAIL_RE.test(email)) e['email'] = { msg: `${t('eroare.email_gresit')} ${t('cont_nou.lipsa_email')}` };
     const phone = this.phone.trim();
-    const digits = phoneDigits(phone);
+    const problem = phone ? phoneProblem(phone, this.phoneCountry, currentLang()) : null;
     if (!phone) e['phone'] = blank('cont_nou.lipsa_telefon', 'cont_nou.gol_telefon');
-    else if (digits < 6) e['phone'] = { msg: t('eroare.telefon_gresit', { n: digits }) };
+    else if (problem) e['phone'] = { msg: t(problem.key, problem.vars) };
     if (!this.city.trim()) e['city'] = blank('cont_nou.lipsa_localitate', 'cont_nou.gol_localitate');
     if (!this.country) e['country'] = { msg: t('eroare.tara_lipsa') };
     if (!this.password) e['password'] = blank('cont_nou.lipsa_parola', 'cont_nou.gol_parola');
@@ -227,7 +266,7 @@ export default class ContNou {
     try {
       const email = this.email.trim();
       await this.auth.register({
-        name: this.name.trim(), email, phone: this.phone.trim(), city: this.city.trim(), password: this.password, lang: currentLang(), country: this.country,
+        name: this.name.trim(), email, phone: this.phone.trim(), phoneCountry: this.phoneCountry, city: this.city.trim(), password: this.password, lang: currentLang(), country: this.country,
         acceptTerms: this.terms, website: this.website,
       });
       this.sentTo.set(email);

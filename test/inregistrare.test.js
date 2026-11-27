@@ -141,7 +141,7 @@ test('țara: obligatorie, doar un cod cunoscut; se păstrează în cont', async 
     assert.equal(r.status, 400, String(country));
     assert.match(JSON.stringify(r.data), /țara/i);
   }
-  const ok = await reg('tara-jp@exemplu.test', { country: 'jp' });
+  const ok = await reg('tara-jp@exemplu.test', { country: 'jp', phoneCountry: 'RO' });
   assert.equal(ok.status, 201, JSON.stringify(ok.data));
   assert.equal(ok.data.account.country, 'JP');
 });
@@ -198,13 +198,21 @@ test('telefonul și localitatea: obligatorii, telefonul cu cel puțin 6 cifre; a
   assert.ok(toSeller[0].text.includes('+40 722 123 456') && toSeller[0].text.includes('Cluj-Napoca'));
 });
 
-test('telefonul: mesajul spune câte cifre a numărat; cifrele japoneze (０-９) se numără; emailul folosit are cheia lui', async () => {
-  const short = await reg('tel-scurt@exemplu.test', { phone: '0722 1' });
+test('telefonul se verifică după țara lui: prea scurt, prea lung, inexistent, fără țară; cifrele japoneze (０-９) merg; emailul folosit are cheia lui', async () => {
+  const short = await reg('tel-scurt@exemplu.test', { phone: '0722 1', phoneCountry: 'RO' });
   assert.equal(short.status, 400);
-  assert.equal(short.data.key, 'eroare.telefon_gresit');
-  assert.match(short.data.error, /6 cifre; cel scris are 5/);
+  assert.equal(short.data.key, 'eroare.telefon_scurt');
+  assert.match(short.data.error, /prea puține cifre pentru România \(\+40\)/);
+  const long = await reg('tel-lung@exemplu.test', { phone: '0722 123 4567', phoneCountry: 'RO' });
+  assert.equal(long.data.key, 'eroare.telefon_lung');
+  const invalid = await reg('tel-invalid@exemplu.test', { phone: '0122 123 456', phoneCountry: 'RO' });
+  assert.equal(invalid.status, 400);
+  assert.match(invalid.data.key, /^eroare\.telefon_/);
+  const none = await reg('tel-fara-tara@exemplu.test', { phone: '0722 123 456', phoneCountry: 'XX', country: 'XX' });
+  assert.equal(none.status, 400);
   const jp = await reg('tel-jp@exemplu.test', { phone: '０９０－１２３４－５６７８', country: 'JP' });
   assert.equal(jp.status, 201, JSON.stringify(jp.data));
+  assert.equal(jp.data.account.phone, '+81 90 1234 5678');
   const again = await reg('tel-jp@exemplu.test');
   assert.equal(again.status, 409);
   assert.equal(again.data.key, 'eroare.email_exista');
@@ -225,4 +233,19 @@ test('un cont neconfirmat nu intră: nici cu parola, nici cu o sesiune mai veche
   const login = await call('/api/auth/login', { method: 'POST', auth: 'none', body: { email, password: PASS } });
   assert.equal(login.status, 403);
   assert.equal(login.data.key, 'eroare.email_neconfirmat');
+});
+
+test('telefonul: țara numărului e alta decât țara în care stă omul; +40 / 0040 își aleg singure țara; se păstrează în forma internațională', async () => {
+  const away = await reg('japonez-in-uganda@exemplu.test', { phone: '090 1234 5678', phoneCountry: 'JP', country: 'UG' });
+  assert.equal(away.status, 201, JSON.stringify(away.data));
+  assert.equal(away.data.account.phone, '+81 90 1234 5678');
+  assert.equal(away.data.account.country, 'UG');
+  const plus = await reg('plus40@exemplu.test', { phone: '+40 724 582 681', phoneCountry: 'JP' });
+  assert.equal(plus.data.account.phone, '+40 724 582 681');
+  const zeros = await reg('zero40@exemplu.test', { phone: '0040724582681', phoneCountry: 'HU' });
+  assert.equal(zeros.data.account.phone, '+40 724 582 681');
+  const national = await reg('national@exemplu.test', { phone: '0724582681', phoneCountry: 'RO' });
+  assert.equal(national.data.account.phone, '+40 724 582 681');
+  const hu = await reg('magyar@exemplu.test', { phone: '06 30 123 4567', phoneCountry: 'HU', lang: 'hu' });
+  assert.equal(hu.data.account.phone, '+36 30 123 4567');
 });

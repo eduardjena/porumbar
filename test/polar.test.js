@@ -151,11 +151,13 @@ test('rambursarea: notată (parțială, apoi totală), abonamentul rămâne, vâ
   await hook(event('order.paid', o));
   const end = (await accountOf(id)).subscription_end;
   const mails = mailMod.sentMails.length;
-  const part = await hook(event('order.refunded', { ...o, refunded_amount: 5000, status: 'partially_refunded' }));
+  const part = await hook(event('order.refunded', { ...o, refunded_amount: 4132, refunded_tax_amount: 868, status: 'partially_refunded' }));
   assert.equal(part.data.status, 'partially_refunded');
-  assert.equal((await hook(event('order.updated', { ...o, refunded_amount: 5000, status: 'partially_refunded' }))).data.status, 'duplicate');
-  const full = await hook(event('order.refunded', { ...o, refunded_amount: 15000, status: 'refunded' }));
+  assert.equal((await hook(event('order.updated', { ...o, refunded_amount: 4132, refunded_tax_amount: 868, status: 'partially_refunded' }))).data.status, 'duplicate');
+  const full = await hook(event('order.refunded', { ...o, refunded_amount: 12397, refunded_tax_amount: 2603, status: 'refunded' }));
   assert.equal(full.data.status, 'refunded');
+  const p = await db.one('SELECT refunded_minor FROM payments WHERE polar_order_id = ?', o.id);
+  assert.equal(Number(p.refunded_minor), 15000, 'suma întreagă, cu TVA');
   assert.equal((await accountOf(id)).subscription_end, end);
   assert.equal(mailMod.sentMails.slice(mails).filter((m) => m.to === process.env.ADMIN_EMAIL && /rambursare/.test(m.subject)).length, 2);
   const admin = await adminCookie(call);

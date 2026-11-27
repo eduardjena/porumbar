@@ -150,14 +150,16 @@ export async function applyOrder(order) {
 const roDay = (d) => (d ? new Date(`${d}T00:00:00Z`).toLocaleDateString('ro-RO', { timeZone: 'UTC' }) : '—');
 
 /**
- * `order.refunded` / `order.updated` cu bani dați înapoi (`refunded_amount` > 0): plata devine `refunded` (toată suma)
+ * `order.refunded` / `order.updated` cu bani dați înapoi (`refunded_amount` + `refunded_tax_amount` > 0): plata devine `refunded` (toată suma)
  * sau `partially_refunded`. Apare în istoricul contului, la „Rambursări” în consolă și într-un email către vânzător.
  * Abonamentul rămâne cum e: vânzătorul decide din consolă. A doua livrare (aceeași sumă rambursată) nu mai face nimic.
  */
 export async function applyRefund(order) {
   const orderId = order?.id;
   if (typeof orderId !== 'string' || !ORDER_ID.test(orderId)) return { status: 'ignored' };
-  const refunded = minor(order.refunded_amount);
+  // Polar dă suma rambursată fără TVA (`refunded_amount`) și TVA-ul ei separat (`refunded_tax_amount`): omul a primit
+  // înapoi suma lor (150 lei = 123,97 + 26,03).
+  const refunded = (minor(order.refunded_amount) ?? 0) + (minor(order.refunded_tax_amount) ?? 0);
   if (!refunded) return { status: 'ignored' };
   const result = await tx(async () => {
     const payment = await one(
